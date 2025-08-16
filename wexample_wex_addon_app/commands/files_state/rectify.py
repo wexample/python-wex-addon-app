@@ -10,5 +10,4 @@ if TYPE_CHECKING:
 def app__files_state__rectify(
         context: "ExecutionContext"
 ):
-    # TODO
-    context.io.log('Fixing app state...')
+    print(context)
