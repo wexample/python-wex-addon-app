@@ -10,6 +10,5 @@ if TYPE_CHECKING:
 def app__files_state__rectify(
         context: "ExecutionContext"
 ):
-    # First try
-    workdir = context.request.get_addon_manager().get_workdir()
+    workdir = context.request.get_addon_manager().app_workdir
     workdir.dry_run()
