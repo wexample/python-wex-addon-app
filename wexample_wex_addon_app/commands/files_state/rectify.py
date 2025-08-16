@@ -1,14 +1,21 @@
 from typing import TYPE_CHECKING
 
 from wexample_wex_core.decorator.command import command
+from wexample_wex_core.decorator.option import option
 
 if TYPE_CHECKING:
     from wexample_wex_core.context.execution_context import ExecutionContext
 
 
+@option(name="yes", type=bool, default=False)
 @command()
 def app__files_state__rectify(
-        context: "ExecutionContext"
+        context: "ExecutionContext",
+        yes: bool
 ):
     workdir = context.request.get_addon_manager().app_workdir
-    workdir.dry_run()
+
+    if yes:
+        workdir.apply()
+    else:
+        workdir.dry_run()
