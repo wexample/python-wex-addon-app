@@ -7,7 +7,7 @@ if TYPE_CHECKING:
     from wexample_wex_core.context.execution_context import ExecutionContext
 
 
-@option(name="yes", type=bool, default=False)
+@option(name="yes", type=bool, default=False, is_flag=True)
 @command()
 def app__files_state__rectify(
         context: "ExecutionContext",
