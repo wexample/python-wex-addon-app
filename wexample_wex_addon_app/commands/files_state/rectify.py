@@ -7,7 +7,7 @@ if TYPE_CHECKING:
 
 
 @command()
-def app__state__rectify(
+def app__files_state__rectify(
         context: "ExecutionContext"
 ):
     # TODO
