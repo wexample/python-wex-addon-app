@@ -8,14 +8,16 @@ if TYPE_CHECKING:
 
 
 @option(name="yes", type=bool, default=False, is_flag=True)
+@option(name="dry_run", type=bool, default=False, is_flag=True)
 @command()
 def app__files_state__rectify(
         context: "ExecutionContext",
-        yes: bool
+        yes: bool,
+        dry_run: bool,
 ):
     workdir = context.request.get_addon_manager().app_workdir
 
-    if yes:
-        workdir.apply()
+    if not dry_run:
+        workdir.apply(interactive=(not yes))
     else:
         workdir.dry_run()
