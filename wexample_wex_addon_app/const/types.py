@@ -1,4 +1,4 @@
-from typing import TypedDict, Optional, List, Dict
+from typing import Dict, List, Optional, TypedDict
 
 from wexample_helpers.const.types import StringKeysDict
 
