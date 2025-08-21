@@ -27,4 +27,3 @@ class AppAddonManager(AbstractAddonManager):
             )
 
         return workdir
-

@@ -11,9 +11,9 @@ if TYPE_CHECKING:
 @option(name="dry_run", type=bool, default=False, is_flag=True)
 @command()
 def app__files_state__rectify(
-        context: "ExecutionContext",
-        yes: bool,
-        dry_run: bool,
+    context: "ExecutionContext",
+    yes: bool,
+    dry_run: bool,
 ):
     workdir = context.request.get_addon_manager().app_workdir
 
