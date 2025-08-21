@@ -1,5 +1,5 @@
-from wexample_wex_core.workdir.workdir import Workdir
+from wexample_wex_core.workdir.project_workdir import ProjectWorkdir
 
 
-class FrameworkPackageSuiteWorkdir(Workdir):
+class FrameworkPackageSuiteWorkdir(ProjectWorkdir):
     pass
