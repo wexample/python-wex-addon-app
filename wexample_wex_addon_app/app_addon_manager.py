@@ -24,25 +24,26 @@ class AppAddonManager(AbstractAddonManager):
         config_yml = workdir.find_by_name_recursive(APP_FILE_APP_CONFIG)
         if config_yml is not None:
             manager_config = config_yml.read_as_config().search('files_state.manager')
-            file_relative = manager_config.get_config_item('file')
-            class_name = manager_config.get_config_item('class')
+            if manager_config:
+                file_relative = manager_config.get_config_item('file')
+                class_name = manager_config.get_config_item('class')
 
-            # Compute absolute path to the python file
-            file_abs_path = (path / file_relative.get_str())
+                # Compute absolute path to the python file
+                file_abs_path = (path / file_relative.get_str())
 
-            if file_abs_path.exists():
-                # Dynamically load the module and fetch the class
-                class_module = module_load_class_from_file(
-                    file_path=file_abs_path,
-                    class_name=class_name.get_str(),
-                )
-
-                # Good format
-                if issubclass(class_module, ProjectWorkdir):
-                    # Replace the basic workdir
-                    return class_module.create_from_path(
-                        path=path,
-                        io=self.kernel.io,
+                if file_abs_path.exists():
+                    # Dynamically load the module and fetch the class
+                    class_module = module_load_class_from_file(
+                        file_path=file_abs_path,
+                        class_name=class_name.get_str(),
                     )
+
+                    # Good format
+                    if issubclass(class_module, ProjectWorkdir):
+                        # Replace the basic workdir
+                        return class_module.create_from_path(
+                            path=path,
+                            io=self.kernel.io,
+                        )
 
         return workdir
