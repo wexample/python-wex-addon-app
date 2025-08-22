@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from wexample_wex_core.const.globals import CORE_COMMAND_NAME
 
 APP_DIR_APP_DATA_NAME: str = f".{CORE_COMMAND_NAME}"
