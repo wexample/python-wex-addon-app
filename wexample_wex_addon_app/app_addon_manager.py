@@ -11,7 +11,7 @@ if TYPE_CHECKING:
 
 class AppAddonManager(AbstractAddonManager):
     @cached_property
-    def app_workdir(self) -> "ProjectWorkdir":
+    def app_workdir(self) -> ProjectWorkdir:
         from wexample_wex_core.workdir.project_workdir import ProjectWorkdir
 
         path = self.kernel.call_workdir.get_path()

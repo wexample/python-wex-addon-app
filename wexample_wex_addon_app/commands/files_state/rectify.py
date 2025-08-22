@@ -13,7 +13,7 @@ if TYPE_CHECKING:
 @option(name="dry_run", type=bool, default=False, is_flag=True)
 @command()
 def app__files_state__rectify(
-    context: "ExecutionContext",
+    context: ExecutionContext,
     yes: bool,
     dry_run: bool,
 ) -> None:
