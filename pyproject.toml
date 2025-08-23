@@ -21,7 +21,6 @@ classifiers = [
 dependencies = [
     "pip-tools",
     "pydantic",
-    "pytest",
     "wexample-wex-core",
 ]
 
@@ -34,3 +33,6 @@ text = "MIT"
 
 [project.urls]
 homepage = "https://github.com/wexample/python-wex-addon-app"
+
+[project.optional-dependencies]
+dev = ["pytest"]
