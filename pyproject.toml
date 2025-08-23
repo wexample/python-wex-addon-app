@@ -1,9 +1,6 @@
 [build-system]
-requires = [
-    "setuptools",
-    "wheel",
-]
-build-backend = "setuptools.build_meta"
+requires = ["pdm-backend"]
+build-backend = "pdm.backend"
 
 [project]
 name = "wexample-wex-addon-app"
@@ -12,14 +9,14 @@ description = "App management with wex"
 authors = [
     { name = "weeger", email = "contact@wexample.com" },
 ]
-requires-python = ">=3.12"
+requires-python = ">=3.10"
 classifiers = [
     "Programming Language :: Python :: 3",
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
 ]
 dependencies = [
-    "pydantic",
+    "pydantic>=2,<3",
     "wexample-wex-core",
 ]
 
@@ -35,3 +32,6 @@ homepage = "https://github.com/wexample/python-wex-addon-app"
 
 [project.optional-dependencies]
 dev = ["pytest"]
+
+[tool.pdm.build]
+includes = ["python_package_workdir/py.typed"]
