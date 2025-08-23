@@ -19,7 +19,6 @@ classifiers = [
     "Operating System :: OS Independent",
 ]
 dependencies = [
-    "pip-tools",
     "pydantic",
     "wexample-wex-core",
 ]
