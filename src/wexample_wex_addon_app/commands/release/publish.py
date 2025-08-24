@@ -20,7 +20,7 @@ def app__release__publish(
 # TODO Find a way to define that current app is a python package (services ?)
 def _python_app__release__publish(
         context: ExecutionContext,
-):
+) -> None:
     from wexample_helpers.helpers.shell import shell_run
     workdir = context.request.get_addon_manager().app_workdir
 
