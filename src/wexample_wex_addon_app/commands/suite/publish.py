@@ -19,4 +19,4 @@ def app__suite__publish(
         context.io.warning(f'The current path is not a suite manager: {workdir.get_path()}')
         return
 
-    workdir.publish_suite()
+    workdir.packages_harmonize_versions()
