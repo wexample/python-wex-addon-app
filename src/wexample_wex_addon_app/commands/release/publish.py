@@ -10,7 +10,7 @@ if TYPE_CHECKING:
 
 @command(description="Publish the Python package to PyPI.")
 def app__release__publish(
-        context: ExecutionContext,
+    context: ExecutionContext,
 ) -> None:
     workdir = context.request.get_addon_manager().app_workdir
     workdir.publish()
