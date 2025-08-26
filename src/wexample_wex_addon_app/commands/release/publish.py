@@ -12,5 +12,5 @@ if TYPE_CHECKING:
 def app__release__publish(
     context: ExecutionContext,
 ) -> None:
-    workdir = context.request.get_addon_manager().app_workdir
+    workdir = context.request.get_addon_manager().app_workdir()
     workdir.publish()

@@ -15,7 +15,7 @@ if TYPE_CHECKING:
 def app__suite__publish(
     context: ExecutionContext,
 ) -> None:
-    workdir = context.request.get_addon_manager().app_workdir
+    workdir = context.request.get_addon_manager().app_workdir()
 
     if not isinstance(workdir, FrameworkPackageSuiteWorkdir):
         context.io.warning(

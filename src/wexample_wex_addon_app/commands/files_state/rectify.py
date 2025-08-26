@@ -17,7 +17,7 @@ def app__files_state__rectify(
     yes: bool,
     dry_run: bool,
 ) -> None:
-    workdir = context.request.get_addon_manager().app_workdir
+    workdir = context.request.get_addon_manager().app_workdir()
 
     if not dry_run:
         workdir.apply(interactive=(not yes))
