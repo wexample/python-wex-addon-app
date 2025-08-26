@@ -1,19 +1,17 @@
-# Wex Addon App
+# wexample-wex-addon-app
 
 App management with wex
 
-Version: 0.0.24
+Version: 0.0.38
 
 ## Requirements
 
-- Python >=3.6
+- Python >=3.10
 
 ## Dependencies
 
-- pip-tools
-- pydantic
-- pytest
-- wexample-wex-core==6.0.25
+- pydantic>=2,<3
+- wexample-wex-core==6.0.40
 
 ## Installation
 
