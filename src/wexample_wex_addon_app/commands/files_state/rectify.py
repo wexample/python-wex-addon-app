@@ -15,11 +15,11 @@ if TYPE_CHECKING:
 @option(name="limit", type=int, default=10)
 @command()
 def app__files_state__rectify(
-    context: ExecutionContext,
-    yes: bool,
-    dry_run: bool,
-    loop: bool,
-    limit: int,
+        context: ExecutionContext,
+        yes: bool = False,
+        dry_run: bool = False,
+        loop: bool = True,
+        limit: int = 10,
 ) -> None:
     workdir = context.request.get_addon_manager().app_workdir()
 

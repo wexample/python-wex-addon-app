@@ -13,7 +13,7 @@ if TYPE_CHECKING:
 
 @command(description="Publish the Python package to PyPI.")
 def app__suite__publish(
-    context: ExecutionContext,
+        context: ExecutionContext,
 ) -> None:
     workdir = context.request.get_addon_manager().app_workdir()
 
@@ -22,6 +22,12 @@ def app__suite__publish(
             f"The current path is not a suite manager: {workdir.get_path()}"
         )
         return
+
+    from wexample_wex_addon_app.commands.files_state.rectify import app__files_state__rectify
+    app__files_state__rectify.function(
+        context=context,
+        yes=True,
+    )
 
     context.io.task("Checking internal dependencies...")
     workdir.packages_validate_internal_dependencies_declarations()
