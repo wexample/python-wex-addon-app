@@ -21,11 +21,15 @@ class AppAddonManager(AbstractAddonManager):
             io=self.kernel.io,
         )
 
+        progress = self.kernel.io.progress(label='Workdir initialization...', total=2).get_handle()
+
         preferred = workdir.get_preferred_workdir_class()
         if preferred:
-            return preferred.create_from_path(
+            workdir = preferred.create_from_path(
                 path=path,
                 io=self.kernel.io,
             )
+
+        progress.finish()
 
         return workdir
