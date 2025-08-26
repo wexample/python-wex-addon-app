@@ -34,13 +34,13 @@ def app__files_state__rectify(
                 break
 
             if len(result.operations) == 0:
-                context.io.success(f'Rectifications complete after {iterations} iterations.')
+                context.io.success(f'Rectifications completed after {iterations} iteration(s).')
                 break
 
             iterations += 1
             if iterations >= limit:
-                context.io.success(f'Rectifications interrupted after {iterations} iterations.')
+                context.io.success(f'Rectifications stopped after {iterations} iteration(s) (limit reached).')
                 break
-            context.io.loop(f'Last rectification found remaning corrections, looping...')
+            context.io.loop('Previous rectification found remaining changes; continuing...')
     else:
         workdir.dry_run()
