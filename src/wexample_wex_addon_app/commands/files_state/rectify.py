@@ -15,11 +15,11 @@ if TYPE_CHECKING:
 @option(name="limit", type=int, default=10)
 @command()
 def app__files_state__rectify(
-        context: ExecutionContext,
-        yes: bool,
-        dry_run: bool,
-        loop: bool,
-        limit: int,
+    context: ExecutionContext,
+    yes: bool,
+    dry_run: bool,
+    loop: bool,
+    limit: int,
 ) -> None:
     workdir = context.request.get_addon_manager().app_workdir()
 
@@ -34,13 +34,19 @@ def app__files_state__rectify(
                 break
 
             if len(result.operations) == 0:
-                context.io.success(f'Rectifications completed after {iterations} iteration(s).')
+                context.io.success(
+                    f"Rectifications completed after {iterations} iteration(s)."
+                )
                 break
 
             iterations += 1
             if iterations >= limit:
-                context.io.success(f'Rectifications stopped after {iterations} iteration(s) (limit reached).')
+                context.io.success(
+                    f"Rectifications stopped after {iterations} iteration(s) (limit reached)."
+                )
                 break
-            context.io.loop('Previous rectification found remaining changes; continuing...')
+            context.io.log(
+                "Previous rectification found remaining changes; continuing..."
+            )
     else:
         workdir.dry_run()

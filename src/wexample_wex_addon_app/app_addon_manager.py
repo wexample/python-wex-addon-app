@@ -11,13 +11,10 @@ if TYPE_CHECKING:
 
 
 class AppAddonManager(AbstractAddonManager):
-    _app_workdir: ProjectWorkdir | None = PrivateAttr(
-        default=None
-    )
+    _app_workdir: ProjectWorkdir | None = PrivateAttr(default=None)
 
     def app_workdir(
-            self,
-            progress: ProgressHandle | None = None
+        self, progress: ProgressHandle | None = None
     ) -> ProjectWorkdir | None:
         from wexample_wex_core.workdir.project_workdir import ProjectWorkdir
 
@@ -25,10 +22,7 @@ class AppAddonManager(AbstractAddonManager):
             return self._app_workdir
 
         progress = self.kernel.io.progress_handle_create_or_update(
-            progress=progress,
-            label="Initialize app workdir...",
-            total=2,
-            current=0
+            progress=progress, label="Initialize app workdir...", total=2, current=0
         )
 
         path = self.kernel.call_workdir.get_path()
@@ -40,9 +34,7 @@ class AppAddonManager(AbstractAddonManager):
 
         preferred = self._app_workdir.get_preferred_workdir_class()
         if preferred:
-            progress.advance(
-                step=1
-            )
+            progress.advance(step=1)
 
             self._app_workdir = preferred.create_from_path(
                 path=path,
