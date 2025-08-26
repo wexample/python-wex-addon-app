@@ -12,17 +12,20 @@ if TYPE_CHECKING:
 @option(name="yes", type=bool, default=False, is_flag=True)
 @option(name="dry_run", type=bool, default=False, is_flag=True)
 @option(name="loop", type=bool, default=True, is_flag=True)
+@option(name="limit", type=int, default=10)
 @command()
 def app__files_state__rectify(
         context: ExecutionContext,
         yes: bool,
         dry_run: bool,
         loop: bool,
+        limit: int,
 ) -> None:
     workdir = context.request.get_addon_manager().app_workdir()
 
     if not dry_run:
         # Apply changes, and if --loop is enabled, keep applying until there are no operations left.
+        iterations = 0
         while True:
             result = workdir.apply(interactive=(not yes))
 
@@ -31,6 +34,13 @@ def app__files_state__rectify(
                 break
 
             if len(result.operations) == 0:
+                context.io.success(f'Rectifications complete after {iterations} iterations.')
                 break
+
+            iterations += 1
+            if iterations >= limit:
+                context.io.success(f'Rectifications interrupted after {iterations} iterations.')
+                break
+            context.io.loop(f'Last rectification found remaning corrections, looping...')
     else:
         workdir.dry_run()
