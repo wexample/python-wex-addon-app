@@ -21,7 +21,9 @@ def app__files_state__rectify(
         loop: bool = True,
         limit: int = 10,
 ) -> None:
-    workdir = context.request.get_addon_manager().app_workdir()
+    workdir = context.request.get_addon_manager().app_workdir(
+        reload=True
+    )
 
     if not dry_run:
         # Apply changes, and if --loop is enabled, keep applying until there are no operations left.
