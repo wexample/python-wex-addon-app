@@ -16,7 +16,9 @@ def app__suite__publish(
         context: ExecutionContext,
 ) -> None:
     # Avoid to initialize workdir before this.
-    from wexample_wex_addon_app.commands.files_state.rectify import app__files_state__rectify
+    from wexample_wex_addon_app.commands.files_state.rectify import (
+        app__files_state__rectify,
+    )
     app__files_state__rectify.function(
         context=context,
         yes=True,
