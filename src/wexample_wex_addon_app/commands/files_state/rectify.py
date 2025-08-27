@@ -15,11 +15,11 @@ if TYPE_CHECKING:
 @option(name="limit", type=int, default=10)
 @command()
 def app__files_state__rectify(
-    context: ExecutionContext,
-    yes: bool = False,
-    dry_run: bool = False,
-    loop: bool = False,
-    limit: int = 10,
+        context: ExecutionContext,
+        yes: bool = False,
+        dry_run: bool = False,
+        loop: bool = False,
+        limit: int = 10,
 ) -> None:
     if not dry_run:
         # Apply changes, and if --loop is enabled, keep applying until there are no operations left.
@@ -31,6 +31,7 @@ def app__files_state__rectify(
 
             # Stop immediately if loop is disabled.
             if not loop:
+                context.io.log(f"Stopping after detecting {len(result.operations)} operations")
                 break
 
             if len(result.operations) == 0:
@@ -46,7 +47,7 @@ def app__files_state__rectify(
                 )
                 break
             context.io.log(
-                "Previous rectification found remaining changes; starting a new inspection pass..."
+                f"Previous rectification found remaining changes; starting a new inspection pass {iterations} / {limit}"
             )
     else:
         workdir = context.request.get_addon_manager().app_workdir(reload=True)
