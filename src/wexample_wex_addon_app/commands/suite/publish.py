@@ -15,6 +15,14 @@ if TYPE_CHECKING:
 def app__suite__publish(
         context: ExecutionContext,
 ) -> None:
+    # Avoid to initialize workdir before this.
+    from wexample_wex_addon_app.commands.files_state.rectify import app__files_state__rectify
+    app__files_state__rectify.function(
+        context=context,
+        yes=True,
+    )
+
+    # Now we can initialize.
     workdir = context.request.get_addon_manager().app_workdir()
 
     if not isinstance(workdir, FrameworkPackageSuiteWorkdir):
@@ -23,12 +31,6 @@ def app__suite__publish(
         )
         return
 
-    from wexample_wex_addon_app.commands.files_state.rectify import app__files_state__rectify
-    app__files_state__rectify.function(
-        context=context,
-        yes=True,
-    )
-
     context.io.task("Checking internal dependencies...")
     workdir.packages_validate_internal_dependencies_declarations()
     context.io.success("Internal dependencies matches.")
@@ -36,3 +38,5 @@ def app__suite__publish(
     context.io.task("Propagating versions across packages...")
     workdir.packages_propagate_versions()
     context.io.success("Versions updated.")
+
+    workdir.publish_packages()
