@@ -11,14 +11,14 @@ if TYPE_CHECKING:
 
 @option(name="yes", type=bool, default=False, is_flag=True)
 @option(name="dry_run", type=bool, default=False, is_flag=True)
-@option(name="loop", type=bool, default=True, is_flag=True)
+@option(name="loop", type=bool, default=False, is_flag=True)
 @option(name="limit", type=int, default=10)
 @command()
 def app__files_state__rectify(
     context: ExecutionContext,
     yes: bool = False,
     dry_run: bool = False,
-    loop: bool = True,
+    loop: bool = False,
     limit: int = 10,
 ) -> None:
     if not dry_run:

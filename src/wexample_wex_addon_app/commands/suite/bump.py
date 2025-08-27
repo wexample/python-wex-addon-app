@@ -10,7 +10,7 @@ if TYPE_CHECKING:
 
 @command(description="Bump version for every package of the suite.")
 def app__suite__bump(
-        context: ExecutionContext,
+    context: ExecutionContext,
 ) -> None:
     # Now we can initialize.
     workdir = context.request.get_addon_manager().app_workdir()

@@ -2,7 +2,7 @@
 
 App management with wex
 
-Version: 0.0.38
+Version: 0.0.39
 
 ## Requirements
 
