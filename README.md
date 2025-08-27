@@ -11,7 +11,7 @@ Version: 0.0.39
 ## Dependencies
 
 - pydantic>=2,<3
-- wexample-wex-core==6.0.40
+- wexample-wex-core==6.0.41
 
 ## Installation
 
