@@ -15,8 +15,8 @@ if TYPE_CHECKING:
 @option(name="yes", type=bool, default=False, is_flag=True)
 @command(description="Publish the Python package to PyPI.")
 def app__suite__publish(
-        context: ExecutionContext,
-        yes: bool = False,
+    context: ExecutionContext,
+    yes: bool = False,
 ) -> None:
     # Avoid to initialize workdir before this.
     from wexample_wex_addon_app.commands.files_state.rectify import (

@@ -3,7 +3,6 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from pydantic import PrivateAttr
-
 from wexample_prompt.common.progress.progress_handle import ProgressHandle
 from wexample_wex_core.common.abstract_addon_manager import AbstractAddonManager
 
@@ -15,7 +14,7 @@ class AppAddonManager(AbstractAddonManager):
     _app_workdir: ProjectWorkdir | None = PrivateAttr(default=None)
 
     def app_workdir(
-            self, reload: bool = False, progress: ProgressHandle | None = None
+        self, reload: bool = False, progress: ProgressHandle | None = None
     ) -> ProjectWorkdir | None:
         from wexample_wex_core.workdir.project_workdir import ProjectWorkdir
 
