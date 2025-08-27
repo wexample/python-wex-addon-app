@@ -15,11 +15,11 @@ if TYPE_CHECKING:
 @option(name="limit", type=int, default=10)
 @command()
 def app__files_state__rectify(
-        context: ExecutionContext,
-        yes: bool = False,
-        dry_run: bool = False,
-        loop: bool = False,
-        limit: int = 10,
+    context: ExecutionContext,
+    yes: bool = False,
+    dry_run: bool = False,
+    loop: bool = False,
+    limit: int = 10,
 ) -> None:
     if not dry_run:
         # Apply changes once, or keep looping until no operations remain (when --loop is set).
