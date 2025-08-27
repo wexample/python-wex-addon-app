@@ -21,11 +21,15 @@ def app__files_state__rectify(
     loop: bool = False,
     limit: int = 10,
 ) -> None:
+    progress = context.get_or_create_progress(totla=limit + 1)
+
     if not dry_run:
         # Apply changes once, or keep looping until no operations remain (when --loop is set).
         iterations = 0
         while True:
-            workdir = context.request.get_addon_manager().app_workdir(reload=True)
+            workdir = context.request.get_addon_manager().app_workdir(
+                reload=True, progress=progress.create_range_handle(to=1)
+            )
 
             result = workdir.apply(interactive=(not yes))
 
@@ -48,9 +52,15 @@ def app__files_state__rectify(
                     f"Loop limit reached ({iterations}/{limit}); stopping further passes."
                 )
                 break
+
+            progress.advance(step=1)
             context.io.log(
                 f"Remaining operations detected; starting pass {iterations} of {limit}."
             )
     else:
-        workdir = context.request.get_addon_manager().app_workdir(reload=True)
+        workdir = context.request.get_addon_manager().app_workdir(
+            reload=True, progress=progress.create_range_handle(to=limit + 1)
+        )
         workdir.dry_run()
+
+    progress.finish()

@@ -18,18 +18,26 @@ def app__suite__publish(
     context: ExecutionContext,
     yes: bool = False,
 ) -> None:
+    context.get_or_create_progress(total=5, label="Preparing publication...")
+
     # Avoid to initialize workdir before this.
     from wexample_wex_addon_app.commands.files_state.rectify import (
         app__files_state__rectify,
     )
+
+    context.create_progress_range(to=1)
 
     app__files_state__rectify.function(
         context=context,
         yes=yes,
     )
 
+    progress = context.finish_progress(current=1)
+
     # Now we can initialize.
-    workdir = context.request.get_addon_manager().app_workdir()
+    workdir = context.request.get_addon_manager().app_workdir(
+        progress=progress.create_range_handle(to=2)
+    )
 
     if not isinstance(workdir, FrameworkPackageSuiteWorkdir):
         context.io.warning(
@@ -37,12 +45,16 @@ def app__suite__publish(
         )
         return
 
-    context.io.task("Checking internal dependencies...")
+    progress.advance(step=2, label="Checking internal dependencies...")
     workdir.packages_validate_internal_dependencies_declarations()
     context.io.success("Internal dependencies matches.")
 
-    context.io.task("Propagating versions across packages...")
+    progress.advance(step=3, label="Propagating versions across packages...")
     workdir.packages_propagate_versions()
     context.io.success("Versions updated.")
 
+    progress.advance(step=4, label="Publishing packages...")
     workdir.publish_packages()
+
+    progress.finish()
+    context.io.success("All packages published")
