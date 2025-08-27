@@ -46,7 +46,7 @@ def app__files_state__rectify(
                 )
                 break
             context.io.log(
-                "Previous rectification found remaining changes; continuing..."
+                "Previous rectification found remaining changes; starting a new inspection pass..."
             )
     else:
         workdir = context.request.get_addon_manager().app_workdir(reload=True)
