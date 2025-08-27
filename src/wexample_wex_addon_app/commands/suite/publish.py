@@ -14,14 +14,16 @@ if TYPE_CHECKING:
 @command(description="Publish the Python package to PyPI.")
 def app__suite__publish(
         context: ExecutionContext,
+        yes: bool = False,
 ) -> None:
     # Avoid to initialize workdir before this.
     from wexample_wex_addon_app.commands.files_state.rectify import (
         app__files_state__rectify,
     )
+
     app__files_state__rectify.function(
         context=context,
-        yes=True,
+        yes=yes,
     )
 
     # Now we can initialize.

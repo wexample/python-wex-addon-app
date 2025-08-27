@@ -41,7 +41,7 @@ def app__files_state__rectify(
 
             iterations += 1
             if iterations >= limit:
-                context.io.success(
+                context.io.warning(
                     f"Rectifications stopped after {iterations} iteration(s) (limit reached)."
                 )
                 break
