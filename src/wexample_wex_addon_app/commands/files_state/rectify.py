@@ -22,32 +22,34 @@ def app__files_state__rectify(
         limit: int = 10,
 ) -> None:
     if not dry_run:
-        # Apply changes, and if --loop is enabled, keep applying until there are no operations left.
+        # Apply changes once, or keep looping until no operations remain (when --loop is set).
         iterations = 0
         while True:
             workdir = context.request.get_addon_manager().app_workdir(reload=True)
 
             result = workdir.apply(interactive=(not yes))
 
-            # Stop immediately if loop is disabled.
+            # Stop immediately after the first pass if looping is disabled.
             if not loop:
-                context.io.log(f"Stopping after detecting {len(result.operations)} operations")
+                context.io.log(
+                    f"Rectification pass completed; detected {len(result.operations)} operation(s)."
+                )
                 break
 
             if len(result.operations) == 0:
                 context.io.success(
-                    f"Rectifications completed after {iterations} iteration(s)."
+                    f"No remaining operations; rectification converged after {iterations} pass(es)."
                 )
                 break
 
             iterations += 1
             if iterations >= limit:
                 context.io.warning(
-                    f"Rectifications stopped after {iterations} iteration(s) (limit reached)."
+                    f"Loop limit reached ({iterations}/{limit}); stopping further passes."
                 )
                 break
             context.io.log(
-                f"Previous rectification found remaining changes; starting a new inspection pass {iterations} / {limit}"
+                f"Remaining operations detected; starting pass {iterations} of {limit}."
             )
     else:
         workdir = context.request.get_addon_manager().app_workdir(reload=True)
