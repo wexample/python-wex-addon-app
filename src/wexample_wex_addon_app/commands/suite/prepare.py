@@ -77,7 +77,7 @@ def app__suite__prepare(
     context.io.success("Internal dependencies match.")
 
     progress.advance(step=1, label="Checking internal dependencies...")
-    workdir.packages_propagate_versions()
+    workdir.packages_propagate_versions(progress=progress)
     context.io.success("Versions updated.")
 
     # Commit/push if requested
