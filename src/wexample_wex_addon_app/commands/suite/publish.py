@@ -16,8 +16,8 @@ if TYPE_CHECKING:
 @option(name="yes", type=bool, default=False, is_flag=True)
 @command(description="Publish the Python package to PyPI.")
 def app__suite__publish(
-        context: ExecutionContext,
-        yes: bool = False,
+    context: ExecutionContext,
+    yes: bool = False,
 ) -> None:
     progress = context.get_or_create_progress(total=6, label="Preparing publication...")
 
@@ -70,7 +70,9 @@ def app__suite__publish(
     progress.finish(color=TerminalColor.GREEN, label="All packages published.")
 
 
-def _init_app_workdir(context: ExecutionContext, progress) -> FrameworkPackageSuiteWorkdir | None:
+def _init_app_workdir(
+    context: ExecutionContext, progress
+) -> FrameworkPackageSuiteWorkdir | None:
     """Create an app workdir and ensure its type is valid for a suite.
 
     Returns the workdir or None if the current path is not a suite manager workdir.
@@ -86,7 +88,9 @@ def _init_app_workdir(context: ExecutionContext, progress) -> FrameworkPackageSu
     return workdir
 
 
-def _validate_and_propagate(workdir: FrameworkPackageSuiteWorkdir, context: ExecutionContext, progress) -> None:
+def _validate_and_propagate(
+    workdir: FrameworkPackageSuiteWorkdir, context: ExecutionContext, progress
+) -> None:
     """Validate internal dependencies and propagate versions with progress updates."""
     progress.advance(step=1, label="Checking internal dependencies...")
     workdir.packages_validate_internal_dependencies_declarations()
@@ -97,7 +101,9 @@ def _validate_and_propagate(workdir: FrameworkPackageSuiteWorkdir, context: Exec
     context.io.success("Versions updated.")
 
 
-def _commit_or_warn_uncommitted(packages, yes: bool, context: ExecutionContext, progress) -> bool:
+def _commit_or_warn_uncommitted(
+    packages, yes: bool, context: ExecutionContext, progress
+) -> bool:
     """Commit/push uncommitted changes if confirmed, else warn and remember there were changes.
 
     Returns True if there were uncommitted changes detected in at least one package.
@@ -125,11 +131,11 @@ def _commit_or_warn_uncommitted(packages, yes: bool, context: ExecutionContext, 
 
 
 def _stabilize_to_publish(
-        context: ExecutionContext,
-        base_progress,
-        workdir: FrameworkPackageSuiteWorkdir,
-        initial_to_publish,
-        max_loops: int = 3,
+    context: ExecutionContext,
+    base_progress,
+    workdir: FrameworkPackageSuiteWorkdir,
+    initial_to_publish,
+    max_loops: int = 3,
 ):
     """Recompute the set of packages to publish until stable or max_loops.
 
