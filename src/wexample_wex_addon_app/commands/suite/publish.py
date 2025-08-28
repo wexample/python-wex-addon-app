@@ -15,8 +15,8 @@ if TYPE_CHECKING:
 @option(name="yes", type=bool, default=False, is_flag=True)
 @command(description="Publish the Python package to PyPI.")
 def app__suite__publish(
-    context: ExecutionContext,
-    yes: bool = False,
+        context: ExecutionContext,
+        yes: bool = False,
 ) -> None:
     context.get_or_create_progress(total=5, label="Preparing publication...")
 
@@ -53,8 +53,10 @@ def app__suite__publish(
     workdir.packages_propagate_versions()
     context.io.success("Versions updated.")
 
-    progress.advance(step=4, label="Publishing packages...")
-    workdir.publish_packages()
+    workdir.publish_packages(
+        progress=progress.create_range_handle(to=5),
+        commit_and_push=yes
+    )
 
     progress.finish()
     context.io.success("All packages published")
