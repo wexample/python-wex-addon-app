@@ -57,34 +57,94 @@ def app__suite__publish(
     progress.advance(step=1, label="Propagating versions across packages...")
     workdir.packages_propagate_versions()
     context.io.success("Versions updated.")
-    packages = workdir.get_packages()
 
+    from wexample_helpers_git.helpers.git import (
+        git_last_tag_for_prefix,
+        git_has_changes_since_tag,
+    )
+
+    def compute_packages_to_publish(current_workdir: FrameworkPackageSuiteWorkdir):
+        to_publish: list = []
+        for pkg in current_workdir.get_packages():
+            name = pkg.get_package_name()
+            path = pkg.get_path()
+            tag_prefix = f"{name}/v*"
+            last_tag = git_last_tag_for_prefix(tag_prefix, cwd=path, inherit_stdio=False)
+            if last_tag is None:
+                to_publish.append(pkg)
+                continue
+            if git_has_changes_since_tag(last_tag, path, cwd=path, inherit_stdio=False):
+                to_publish.append(pkg)
+        return to_publish
+
+    # Commit/push uncommitted changes if confirmed, else stop.
+    packages = workdir.get_packages()
     for package in packages:
         if package.has_working_changes():
             has_changes = True
-
             if yes:
                 package.commit_changes()
                 package.push_changes()
             else:
-                context.io.warning(f"Package {package.get_package_name()} has uncommitted changes.")
-
+                context.io.warning(
+                    f"Package {package.get_package_name()} has uncommitted changes."
+                )
         progress_range.advance(step=1)
 
     if has_changes and not yes:
         context.io.warning("Stopping due to uncommitted changes.")
         return
 
-    progress_range = progress.create_range_handle(to=6, total=len(packages))
-    for package in packages:
+    # Determine which packages need publication (changed since last tag)
+    to_publish = compute_packages_to_publish(workdir)
+
+    # Stabilization loop: if publishing some packages affects others (pin updates),
+    # run rectify + rebuild workdir + re-propagate versions, then recompute.
+    max_loops = 3
+    loop = 0
+    while to_publish and loop < max_loops:
+        loop += 1
+
+        # Run rectify to sync pinned dependencies
+        app__files_state__rectify.function(
+            context=context,
+            yes=yes,
+        )
+
+        # Recreate workdir after rectify
+        workdir = context.request.get_addon_manager().app_workdir(
+            progress=progress.create_range_handle(to=2)
+        )
+
+        # Validate and propagate again
+        progress.advance(step=1, label="Re-checking internal dependencies...")
+        workdir.packages_validate_internal_dependencies_declarations()
+        progress.advance(step=1, label="Re-propagating versions...")
+        workdir.packages_propagate_versions()
+
+        new_to_publish = compute_packages_to_publish(workdir)
+
+        # If stable, break; else continue with the new set
+        old_set = {p.get_package_name() for p in to_publish}
+        new_set = {p.get_package_name() for p in new_to_publish}
+        if new_set == old_set:
+            break
+        to_publish = new_to_publish
+
+    if not to_publish:
+        context.io.info("No packages to publish (no changes since last publication tags).")
+        return
+
+    # Publish only the selected packages
+    progress_range = progress.create_range_handle(to=6, total=len(to_publish))
+    for package in to_publish:
         package.publish(
             progress=progress_range.create_range_handle(
                 to=progress.response.current + 1,
             ),
         )
-
+        # Add tag after successful publication
         package.add_publication_tag()
-
         progress_range.advance(step=1)
 
     progress_range.finish()
