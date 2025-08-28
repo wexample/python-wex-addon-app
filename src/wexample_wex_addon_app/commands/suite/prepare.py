@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Iterable
+from typing import TYPE_CHECKING
+from collections.abc import Iterable
 
 from wexample_prompt.enums.terminal_color import TerminalColor
 
@@ -20,7 +21,7 @@ if TYPE_CHECKING:
 @option(name="yes", type=bool, default=False, is_flag=True)
 @command(description="Validate internal deps, propagate versions, and optionally commit/push.")
 def app__suite__prepare(
-    context: "ExecutionContext",
+    context: ExecutionContext,
     all: bool | None = None,
     package: str | None = None,
     yes: bool = False,
@@ -70,7 +71,7 @@ def app__suite__prepare(
     context.progress().finish(color=TerminalColor.GREEN, label="Preparation complete.")
 
 
-def _init_app_workdir(context: "ExecutionContext") -> FrameworkPackageSuiteWorkdir | None:
+def _init_app_workdir(context: ExecutionContext) -> FrameworkPackageSuiteWorkdir | None:
     workdir = context.request.get_addon_manager().app_workdir()
     if not isinstance(workdir, FrameworkPackageSuiteWorkdir):
         context.io.warning(
@@ -80,7 +81,7 @@ def _init_app_workdir(context: "ExecutionContext") -> FrameworkPackageSuiteWorkd
     return workdir
 
 
-def _commit_or_warn_uncommitted(packages: Iterable["FrameworkPackage"], yes: bool, context: "ExecutionContext") -> bool:
+def _commit_or_warn_uncommitted(packages: Iterable[FrameworkPackage], yes: bool, context: ExecutionContext) -> bool:
     has_changes = False
     for package in packages:
         if package.has_working_changes():

@@ -3,7 +3,6 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from wexample_prompt.enums.terminal_color import TerminalColor
-
 from wexample_wex_core.decorator.command import command
 from wexample_wex_core.decorator.option import option
 from wexample_wex_core.workdir.framework_packages_suite_workdir import (
@@ -71,7 +70,7 @@ def app__suite__publish(
     progress.finish(color=TerminalColor.GREEN, label="All packages published.")
 
 
-def _init_app_workdir(context: "ExecutionContext", progress) -> FrameworkPackageSuiteWorkdir | None:
+def _init_app_workdir(context: ExecutionContext, progress) -> FrameworkPackageSuiteWorkdir | None:
     """Create an app workdir and ensure its type is valid for a suite.
 
     Returns the workdir or None if the current path is not a suite manager workdir.
@@ -87,7 +86,7 @@ def _init_app_workdir(context: "ExecutionContext", progress) -> FrameworkPackage
     return workdir
 
 
-def _validate_and_propagate(workdir: FrameworkPackageSuiteWorkdir, context: "ExecutionContext", progress) -> None:
+def _validate_and_propagate(workdir: FrameworkPackageSuiteWorkdir, context: ExecutionContext, progress) -> None:
     """Validate internal dependencies and propagate versions with progress updates."""
     progress.advance(step=1, label="Checking internal dependencies...")
     workdir.packages_validate_internal_dependencies_declarations()
@@ -98,7 +97,7 @@ def _validate_and_propagate(workdir: FrameworkPackageSuiteWorkdir, context: "Exe
     context.io.success("Versions updated.")
 
 
-def _commit_or_warn_uncommitted(packages, yes: bool, context: "ExecutionContext", progress) -> bool:
+def _commit_or_warn_uncommitted(packages, yes: bool, context: ExecutionContext, progress) -> bool:
     """Commit/push uncommitted changes if confirmed, else warn and remember there were changes.
 
     Returns True if there were uncommitted changes detected in at least one package.
@@ -126,7 +125,7 @@ def _commit_or_warn_uncommitted(packages, yes: bool, context: "ExecutionContext"
 
 
 def _stabilize_to_publish(
-        context: "ExecutionContext",
+        context: ExecutionContext,
         base_progress,
         workdir: FrameworkPackageSuiteWorkdir,
         initial_to_publish,
