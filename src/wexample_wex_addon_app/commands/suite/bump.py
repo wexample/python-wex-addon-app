@@ -11,32 +11,49 @@ if TYPE_CHECKING:
 
 @option(name="all", type=bool, default=False, is_flag=True)
 @option(name="package", type=str)
-@command(description="Bump version for every package of the suite.")
+@command(description="Bump version for one or all package of the suite.")
 def app__suite__bump(
         context: ExecutionContext,
         all: bool | None = None,
         package: str | None = None
 ) -> None:
-    # Passed variable should be named "package".
+    # Normalize input and initialize once.
     package_name = package
+    workdir = context.request.get_addon_manager().app_workdir()
+
+    # Guard against conflicting options.
+    if all and package_name:
+        context.io.error("Options conflict: use either --all or --package <name>, not both.")
+        return
 
     if all is True:
-        # Now we can initialize.
-        workdir = context.request.get_addon_manager().app_workdir()
-        # for package in workdir.get_packages():
-        #     package.bump()
-        workdir.packages_propagate_versions()
-    elif package is not None:
-        # Now we can initialize.
-        workdir = context.request.get_addon_manager().app_workdir()
+        packages = list(workdir.get_packages())
+        if not packages:
+            context.io.warning("No packages found in the suite to bump.")
+            return
 
-        package = workdir.get_package(
-            package_name=package_name
-        )
-        if package:
-            # package.bump()
-            workdir.packages_propagate_versions()
-        else:
-            context.io.warning(f'Package not found: {package_name}')
+        context.io.info(f"Bumping versions for {len(packages)} package(s)...")
+        bumped = 0
+        for package in packages:
+            package.bump()
+            bumped += 1
+            context.io.info(f"- Bumped: {getattr(package, 'name', str(package))}")
+
+        workdir.packages_propagate_versions()
+        context.io.info(f"Version propagation completed. Successfully bumped {bumped}/{len(packages)} package(s).")
+
+    elif package_name:
+        package = workdir.get_package(package_name=package_name)
+
+        if not package:
+            context.io.error(f"Package not found: {package_name}")
+            return
+
+        context.io.info(f"Bumping version for package: {package_name}...")
+        package.bump()
+
+        workdir.packages_propagate_versions()
+        context.io.info(f"Version propagation completed for {package_name}.")
+
     else:
-        context.io.warning('You should choose --all or --package [name] option')
+        context.io.error("Missing option. Use --all to bump every package or --package <name> to bump a specific one.")
