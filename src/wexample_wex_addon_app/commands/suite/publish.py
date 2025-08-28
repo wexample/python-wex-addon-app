@@ -13,12 +13,10 @@ if TYPE_CHECKING:
 
 
 @option(name="yes", type=bool, default=False, is_flag=True)
-@option(name="dry_run", type=bool, default=False, is_flag=True)
 @command(description="Publish the Python package to PyPI.")
 def app__suite__publish(
         context: ExecutionContext,
         yes: bool = False,
-        dry_run: bool = False,
 ) -> None:
     from wexample_prompt.enums.terminal_color import TerminalColor
     context.get_or_create_progress(total=6, label="Preparing publication...")
@@ -60,10 +58,6 @@ def app__suite__publish(
     workdir.packages_propagate_versions()
     context.io.success("Versions updated.")
 
-    # Use suite-level helper for computing what to publish
-    def compute_packages_to_publish(current_workdir: FrameworkPackageSuiteWorkdir):
-        return current_workdir.compute_packages_to_publish()
-
     # Commit/push uncommitted changes if confirmed, else stop.
     packages = workdir.get_packages()
     for package in packages:
@@ -83,7 +77,7 @@ def app__suite__publish(
         return
 
     # Determine which packages need publication (changed since last tag)
-    to_publish = compute_packages_to_publish(workdir)
+    to_publish = workdir.compute_packages_to_publish()
 
     # Stabilization loop: if publishing some packages affects others (pin updates),
     # run rectify + rebuild workdir + re-propagate versions, then recompute.
@@ -109,7 +103,7 @@ def app__suite__publish(
         progress.advance(step=1, label="Re-propagating versions...")
         workdir.packages_propagate_versions()
 
-        new_to_publish = compute_packages_to_publish(workdir)
+        new_to_publish = workdir.compute_packages_to_publish()
 
         # If stable, break; else continue with the new set
         old_set = {p.get_package_name() for p in to_publish}
@@ -120,12 +114,6 @@ def app__suite__publish(
 
     if not to_publish:
         context.io.info("No packages to publish (no changes since last publication tags).")
-        return
-
-    # Publish only the selected packages
-    if dry_run:
-        names = ", ".join([p.get_package_name() for p in to_publish]) or "<none>"
-        context.io.info(f"[Dry-run] Packages that would be published: {names}")
         return
 
     progress_range = progress.create_range_handle(to=6, total=len(to_publish))
