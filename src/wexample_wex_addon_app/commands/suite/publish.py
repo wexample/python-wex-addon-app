@@ -48,16 +48,19 @@ def app__suite__publish(
         return
 
     has_changes = False
+    progress_range = progress.create_range_handle(to=3)
+
     for package in workdir.get_packages():
-        if package.has():
+        if package.has_working_changes():
             has_changes = True
 
             if yes:
-                package.commit_and_push(
-                    progress=progress.create_range_handle(to=3)
-                )
+                package.commit_changes()
+                package.push_changes()
             else:
                 context.io.warning(f"Package {package.get_package_name()} has uncommitted changes.")
+
+        progress_range.advance(step=1)
 
     if has_changes and not yes:
         context.io.warning("Stopping due to uncommitted changes.")
