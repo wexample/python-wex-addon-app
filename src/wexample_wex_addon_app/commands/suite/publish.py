@@ -40,6 +40,13 @@ def app__suite__publish(
         progress=progress.create_range_handle(to=2)
     )
 
+    # Ensure we are in the correct workdir type before using it.
+    if not isinstance(workdir, FrameworkPackageSuiteWorkdir):
+        context.io.warning(
+            f"The current path is not a suite manager workdir: {workdir.get_path()}"
+        )
+        return
+
     has_changes = False
     for package in workdir.get_packages():
         if package.has():
@@ -50,29 +57,23 @@ def app__suite__publish(
                     progress=progress.create_range_handle(to=3)
                 )
             else:
-                context.io.warning(f'Package {package.get_package_name()} has uncommited changes.')
+                context.io.warning(f"Package {package.get_package_name()} has uncommitted changes.")
 
     if has_changes and not yes:
-        context.io.log(f'Stopping due to uncomitted changes.')
-        return
-
-    if not isinstance(workdir, FrameworkPackageSuiteWorkdir):
-        context.io.warning(
-            f"The current path is not a suite manager: {workdir.get_path()}"
-        )
+        context.io.warning("Stopping due to uncommitted changes.")
         return
 
     progress.advance(step=1, label="Checking internal dependencies...")
     workdir.packages_validate_internal_dependencies_declarations()
-    context.io.success("Internal dependencies matches.")
+    context.io.success("Internal dependencies match.")
 
     progress.advance(step=1, label="Propagating versions across packages...")
     workdir.packages_propagate_versions()
     context.io.success("Versions updated.")
 
     workdir.publish_packages(
-        progress=progress.create_range_handle(to=6)
+        progress=progress.create_range_handle(to=6),
     )
 
     progress.finish(color=TerminalColor.GREEN)
-    context.io.success("All packages published")
+    context.io.success("All packages published.")
