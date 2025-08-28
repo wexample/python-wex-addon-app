@@ -1,4 +1,4 @@
-## Usage
+`## Usage
 
 app::files-state/rectify
 Normalizes/rectifies code across the suite; no commits.
@@ -9,4 +9,4 @@ Bumps only packages that have new content (no current version tag on HEAD), then
 app::suite/prepare --yes [--all|--package X]
 Re-run validation/propagation after bumps to ensure consistency; commits/pushes if needed.
 app::suite/publish [--all|--package X]
-Publishes only packages that need it; adds/pushes publication tag after successful publish; never bumps here.
+Publishes only packages that need it; adds/pushes publication tag after successful publish; never bumps here.`
