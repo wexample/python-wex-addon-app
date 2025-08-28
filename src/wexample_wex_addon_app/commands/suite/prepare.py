@@ -4,6 +4,7 @@ from collections.abc import Iterable
 from typing import TYPE_CHECKING
 
 from wexample_prompt.enums.terminal_color import TerminalColor
+
 from wexample_wex_core.decorator.command import command
 from wexample_wex_core.decorator.option import option
 from wexample_wex_core.workdir.framework_packages_suite_workdir import (
@@ -22,16 +23,25 @@ if TYPE_CHECKING:
     description="Validate internal deps, propagate versions, and optionally commit/push."
 )
 def app__suite__prepare(
-    context: ExecutionContext,
-    all: bool | None = None,
-    package: str | None = None,
-    yes: bool = False,
+        context: ExecutionContext,
+        all: bool | None = None,
+        package: str | None = None,
+        yes: bool = False,
 ) -> None:
-    progress = context.get_or_create_progress(total=4)
+    progress = context.get_or_create_progress(total=5)
 
     # Normalize input and initialize once
     package_name = package
-    workdir = _init_app_workdir(context)
+
+    workdir = context.request.get_addon_manager().app_workdir(
+        progress=progress.create_range_handle(to_step=1)
+    )
+
+    if not isinstance(workdir, FrameworkPackageSuiteWorkdir):
+        context.io.warning(
+            f"The current path is not a suite manager workdir: {workdir.get_path()}"
+        )
+
     if workdir is None:
         return
 
@@ -78,18 +88,8 @@ def app__suite__prepare(
     progress.finish(color=TerminalColor.GREEN, label="Preparation complete.")
 
 
-def _init_app_workdir(context: ExecutionContext) -> FrameworkPackageSuiteWorkdir | None:
-    workdir = context.request.get_addon_manager().app_workdir()
-    if not isinstance(workdir, FrameworkPackageSuiteWorkdir):
-        context.io.warning(
-            f"The current path is not a suite manager workdir: {workdir.get_path()}"
-        )
-        return None
-    return workdir
-
-
 def _commit_or_warn_uncommitted(
-    packages: Iterable[FrameworkPackage], yes: bool, context: ExecutionContext
+        packages: Iterable[FrameworkPackage], yes: bool, context: ExecutionContext
 ) -> bool:
     has_changes = False
     for package in packages:
