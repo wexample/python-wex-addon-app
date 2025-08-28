@@ -16,12 +16,12 @@ if TYPE_CHECKING:
 @option(name="no_remotes", type=bool, default=False, is_flag=False)
 @command()
 def app__files_state__rectify(
-        context: ExecutionContext,
-        yes: bool = False,
-        dry_run: bool = False,
-        loop: bool = False,
-        limit: int = 10,
-        no_remotes: bool = False,
+    context: ExecutionContext,
+    yes: bool = False,
+    dry_run: bool = False,
+    loop: bool = False,
+    limit: int = 10,
+    no_remotes: bool = False,
 ) -> None:
     from wexample_filestate.enum.scopes import Scope
 
@@ -49,10 +49,7 @@ def app__files_state__rectify(
                     Scope.TIMESTAMPS,
                 }
 
-            result = workdir.apply(
-                interactive=(not yes),
-                scopes=scopes
-            )
+            result = workdir.apply(interactive=(not yes), scopes=scopes)
 
             if len(result.operations) == 0:
                 context.io.success(

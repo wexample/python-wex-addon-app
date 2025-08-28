@@ -15,10 +15,11 @@ if TYPE_CHECKING:
 @option(name="yes", type=bool, default=False, is_flag=True)
 @command(description="Publish the Python package to PyPI.")
 def app__suite__publish(
-        context: ExecutionContext,
-        yes: bool = False,
+    context: ExecutionContext,
+    yes: bool = False,
 ) -> None:
     from wexample_prompt.enums.terminal_color import TerminalColor
+
     context.get_or_create_progress(total=6, label="Preparing publication...")
 
     # Avoid to initialize workdir before this.
@@ -113,7 +114,9 @@ def app__suite__publish(
         to_publish = new_to_publish
 
     if not to_publish:
-        context.io.info("No packages to publish (no changes since last publication tags).")
+        context.io.info(
+            "No packages to publish (no changes since last publication tags)."
+        )
         return
 
     progress_range = progress.create_range_handle(to=6, total=len(to_publish))
