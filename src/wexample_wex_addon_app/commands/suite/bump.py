@@ -11,11 +11,13 @@ if TYPE_CHECKING:
 
 @option(name="all", type=bool, default=False, is_flag=True)
 @option(name="package", type=str)
+@option(name="yes", type=bool, default=False, is_flag=True)
 @command(description="Bump version for one or all package of the suite.")
 def app__suite__bump(
         context: ExecutionContext,
         all: bool | None = None,
-        package: str | None = None
+        package: str | None = None,
+        yes: bool = False,
 ) -> None:
     # Normalize input and initialize once.
     package_name = package
@@ -35,7 +37,7 @@ def app__suite__bump(
         context.io.info(f"Bumping versions for {len(packages)} package(s)...")
         bumped = 0
         for package in packages:
-            package.bump()
+            package.bump(interactive=not yes)
             bumped += 1
             context.io.info(f"- Bumped: {getattr(package, 'name', str(package))}")
 
@@ -50,7 +52,7 @@ def app__suite__bump(
             return
 
         context.io.info(f"Bumping version for package: {package_name}...")
-        package.bump()
+        package.bump(interactive=not yes)
 
         workdir.packages_propagate_versions()
         context.io.info(f"Version propagation completed for {package_name}.")
