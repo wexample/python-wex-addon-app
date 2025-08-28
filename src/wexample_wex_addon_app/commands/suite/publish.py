@@ -77,12 +77,6 @@ def app__suite__publish(
     while to_publish and loop < max_loops:
         loop += 1
 
-        # Run rectify to sync pinned dependencies
-        app__files_state__rectify.function(
-            context=context,
-            yes=yes,
-        )
-
         # Recreate workdir after rectify
         workdir = context.request.get_addon_manager().app_workdir(
             progress=progress.create_range_handle(to=4)
