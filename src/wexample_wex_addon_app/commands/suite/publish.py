@@ -21,7 +21,7 @@ def _init_app_workdir(context: "ExecutionContext", progress) -> FrameworkPackage
     Returns the workdir or None if the current path is not a suite manager workdir.
     """
     workdir = context.request.get_addon_manager().app_workdir(
-        progress=progress.create_range_handle(to=2)
+        progress=progress.create_range_handle(to_step=2)
     )
     if not isinstance(workdir, FrameworkPackageSuiteWorkdir):
         context.io.warning(
@@ -49,7 +49,8 @@ def _commit_or_warn_uncommitted(packages, yes: bool, context: "ExecutionContext"
     """
     has_changes = False
     # Make per-package progress explicit
-    progress_range = progress.create_range_handle(to=3, total=len(packages))
+    # Allocate exactly one outer progress unit for this phase, and spread it over packages
+    progress_range = progress.create_range_handle(to_step=1, total=len(packages))
     for package in packages:
         if package.has_working_changes():
             has_changes = True
@@ -86,7 +87,7 @@ def _stabilize_to_publish(
 
         # Recreate workdir after potential rectify/pins updates
         workdir = context.request.get_addon_manager().app_workdir(
-            progress=base_progress.create_range_handle(to=4)
+            progress=base_progress.create_range_handle(to_step=2)
         )
 
         # Re-validate and re-propagate
@@ -148,12 +149,11 @@ def app__suite__publish(
         )
         return
 
-    progress_range = progress.create_range_handle(to=6, total=len(to_publish))
+    # Allocate remaining outer progress units for publishing phase
+    progress_range = progress.create_range_handle(to_step=3, total=len(to_publish))
     for package in to_publish:
         package.publish(
-            progress=progress_range.create_range_handle(
-                to=progress.response.current + 1,
-            ),
+            progress=progress_range.create_range_handle(to_step=1),
         )
         # Add tag after successful publication
         package.add_publication_tag()
