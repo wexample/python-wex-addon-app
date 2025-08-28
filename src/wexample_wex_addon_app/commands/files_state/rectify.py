@@ -13,14 +13,18 @@ if TYPE_CHECKING:
 @option(name="dry_run", type=bool, default=False, is_flag=True)
 @option(name="loop", type=bool, default=False, is_flag=True)
 @option(name="limit", type=int, default=10)
+@option(name="no_remotes", type=bool, default=False, is_flag=False)
 @command()
 def app__files_state__rectify(
-    context: ExecutionContext,
-    yes: bool = False,
-    dry_run: bool = False,
-    loop: bool = False,
-    limit: int = 10,
+        context: ExecutionContext,
+        yes: bool = False,
+        dry_run: bool = False,
+        loop: bool = False,
+        limit: int = 10,
+        no_remotes: bool = False,
 ) -> None:
+    from wexample_filestate.enum.scopes import Scope
+
     progress = context.get_or_create_progress(total=limit + 1)
 
     if not dry_run:
@@ -33,7 +37,22 @@ def app__files_state__rectify(
                 reload=True, progress=progress.create_range_handle(to=1)
             )
 
-            result = workdir.apply(interactive=(not yes))
+            scopes = None
+            if no_remotes:
+                scopes = {
+                    Scope.CONTENT,
+                    Scope.LOCATION,
+                    Scope.NAME,
+                    Scope.OWNERSHIP,
+                    Scope.PERMISSIONS,
+                    # All except Scope.REMOTE,
+                    Scope.TIMESTAMPS,
+                }
+
+            result = workdir.apply(
+                interactive=(not yes),
+                scopes=scopes
+            )
 
             if len(result.operations) == 0:
                 context.io.success(
