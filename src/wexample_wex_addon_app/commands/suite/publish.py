@@ -40,6 +40,10 @@ def app__suite__publish(
         progress=progress.create_range_handle(to=2)
     )
 
+    progress.advance(step=1, label="Checking internal dependencies...")
+    workdir.packages_validate_internal_dependencies_declarations()
+    context.io.success("Internal dependencies match.")
+
     # Ensure we are in the correct workdir type before using it.
     if not isinstance(workdir, FrameworkPackageSuiteWorkdir):
         context.io.warning(
@@ -49,6 +53,10 @@ def app__suite__publish(
 
     has_changes = False
     progress_range = progress.create_range_handle(to=3)
+
+    progress.advance(step=1, label="Propagating versions across packages...")
+    workdir.packages_propagate_versions()
+    context.io.success("Versions updated.")
 
     for package in workdir.get_packages():
         if package.has_working_changes():
@@ -65,14 +73,6 @@ def app__suite__publish(
     if has_changes and not yes:
         context.io.warning("Stopping due to uncommitted changes.")
         return
-
-    progress.advance(step=1, label="Checking internal dependencies...")
-    workdir.packages_validate_internal_dependencies_declarations()
-    context.io.success("Internal dependencies match.")
-
-    progress.advance(step=1, label="Propagating versions across packages...")
-    workdir.packages_propagate_versions()
-    context.io.success("Versions updated.")
 
     workdir.publish_packages(
         progress=progress.create_range_handle(to=6),
