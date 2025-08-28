@@ -27,6 +27,8 @@ def app__suite__prepare(
     package: str | None = None,
     yes: bool = False,
 ) -> None:
+    progress = context.get_or_create_progress(total=4)
+
     # Normalize input and initialize once
     package_name = package
     workdir = _init_app_workdir(context)
@@ -39,6 +41,8 @@ def app__suite__prepare(
             "Options conflict: use either --all or --package <name>, not both."
         )
         return
+
+    progress.advance(step=1)
 
     # Resolve target packages (for commit/push scope)
     target_packages: Iterable[FrameworkPackage]
@@ -58,11 +62,11 @@ def app__suite__prepare(
         target_packages = list(workdir.get_packages())
 
     # Validate and propagate
-    context.io.info("Checking internal dependencies...")
+    progress.advance(step=1, label="Checking internal dependencies...")
     workdir.packages_validate_internal_dependencies_declarations()
     context.io.success("Internal dependencies match.")
 
-    context.io.info("Propagating versions across packages...")
+    progress.advance(step=1, label="Checking internal dependencies...")
     workdir.packages_propagate_versions()
     context.io.success("Versions updated.")
 
@@ -71,7 +75,7 @@ def app__suite__prepare(
     if had_changes and not yes:
         context.io.warning("Changes detected. Re-run with --yes to commit and push.")
 
-    context.progress().finish(color=TerminalColor.GREEN, label="Preparation complete.")
+    progress.finish(color=TerminalColor.GREEN, label="Preparation complete.")
 
 
 def _init_app_workdir(context: ExecutionContext) -> FrameworkPackageSuiteWorkdir | None:
