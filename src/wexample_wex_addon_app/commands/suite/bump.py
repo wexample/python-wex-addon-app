@@ -17,16 +17,26 @@ def app__suite__bump(
         all: bool | None = None,
         package: str | None = None
 ) -> None:
-    # Now we can initialize.
-    workdir = context.request.get_addon_manager().app_workdir()
+    # Passed variable should be named "package".
+    package_name = package
 
     if all is True:
-        for package in workdir.get_packages():
-            package.bump()
+        # Now we can initialize.
+        workdir = context.request.get_addon_manager().app_workdir()
+        # for package in workdir.get_packages():
+        #     package.bump()
+        workdir.packages_propagate_versions()
     elif package is not None:
+        # Now we can initialize.
+        workdir = context.request.get_addon_manager().app_workdir()
+
         package = workdir.get_package(
-            package_name=package
+            package_name=package_name
         )
-        package.bump()
+        if package:
+            # package.bump()
+            workdir.packages_propagate_versions()
+        else:
+            context.io.warning(f'Package not found: {package_name}')
     else:
         context.io.warning('You should choose --all or --package [name] option')
