@@ -3,7 +3,6 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from wexample_prompt.enums.terminal_color import TerminalColor
-
 from wexample_wex_core.decorator.command import command
 from wexample_wex_core.decorator.option import option
 from wexample_wex_core.workdir.framework_packages_suite_workdir import (
@@ -57,7 +56,7 @@ def app__suite__publish(
     progress.finish(color=TerminalColor.GREEN, label="All packages published.")
 
 
-def _init_app_workdir(context: "ExecutionContext", progress) -> FrameworkPackageSuiteWorkdir | None:
+def _init_app_workdir(context: ExecutionContext, progress) -> FrameworkPackageSuiteWorkdir | None:
     """Create an app workdir and ensure its type is valid for a suite.
 
     Returns the workdir or None if the current path is not a suite manager workdir.

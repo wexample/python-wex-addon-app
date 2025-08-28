@@ -18,7 +18,9 @@ if TYPE_CHECKING:
 @option(name="all", type=bool, default=False, is_flag=True)
 @option(name="package", type=str)
 @option(name="yes", type=bool, default=False, is_flag=True)
-@command(description="Validate internal deps, propagate versions, and optionally commit/push.")
+@command(
+    description="Validate internal deps, propagate versions, and optionally commit/push."
+)
 def app__suite__prepare(
     context: ExecutionContext,
     all: bool | None = None,
@@ -33,7 +35,9 @@ def app__suite__prepare(
 
     # Check options
     if all and package_name:
-        context.io.error("Options conflict: use either --all or --package <name>, not both.")
+        context.io.error(
+            "Options conflict: use either --all or --package <name>, not both."
+        )
         return
 
     # Resolve target packages (for commit/push scope)
@@ -80,7 +84,9 @@ def _init_app_workdir(context: ExecutionContext) -> FrameworkPackageSuiteWorkdir
     return workdir
 
 
-def _commit_or_warn_uncommitted(packages: Iterable[FrameworkPackage], yes: bool, context: ExecutionContext) -> bool:
+def _commit_or_warn_uncommitted(
+    packages: Iterable[FrameworkPackage], yes: bool, context: ExecutionContext
+) -> bool:
     has_changes = False
     for package in packages:
         if package.has_working_changes():
