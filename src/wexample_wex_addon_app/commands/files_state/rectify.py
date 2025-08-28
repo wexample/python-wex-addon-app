@@ -77,7 +77,7 @@ def app__files_state__rectify(
             )
     else:
         workdir = context.request.get_addon_manager().app_workdir(
-            reload=True, progress=progress.create_range_handle(to=limit + 1)
+            reload=True, progress=progress.create_range_handle(to_step=1)
         )
         workdir.dry_run()
 
