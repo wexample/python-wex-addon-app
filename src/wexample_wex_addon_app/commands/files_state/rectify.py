@@ -21,9 +21,7 @@ def app__files_state__rectify(
     loop: bool = False,
     limit: int = 10,
 ) -> None:
-    progress = context.get_or_create_progress(
-        total=limit + 1
-    )
+    progress = context.get_or_create_progress(total=limit + 1)
 
     if not dry_run:
         # Apply changes once, or keep looping until no operations remain (when --loop is set).
