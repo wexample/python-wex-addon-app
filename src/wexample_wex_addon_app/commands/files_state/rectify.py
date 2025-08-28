@@ -35,16 +35,16 @@ def app__files_state__rectify(
 
             result = workdir.apply(interactive=(not yes))
 
+            if len(result.operations) == 0:
+                context.io.success(
+                    f"No remaining operations; rectification converged after {iterations} pass(es)."
+                )
+                break
+
             # Stop immediately after the first pass if looping is disabled.
             if not loop:
                 context.io.log(
                     f"Rectification pass completed; detected {len(result.operations)} operation(s)."
-                )
-                break
-
-            if len(result.operations) == 0:
-                context.io.success(
-                    f"No remaining operations; rectification converged after {iterations} pass(es)."
                 )
                 break
 
