@@ -15,26 +15,12 @@ if TYPE_CHECKING:
 @option(name="yes", type=bool, default=False, is_flag=True)
 @command(description="Publish the Python package to PyPI.")
 def app__suite__publish(
-    context: ExecutionContext,
-    yes: bool = False,
+        context: ExecutionContext,
+        yes: bool = False,
 ) -> None:
     from wexample_prompt.enums.terminal_color import TerminalColor
 
-    context.get_or_create_progress(total=6, label="Preparing publication...")
-
-    # Avoid to initialize workdir before this.
-    from wexample_wex_addon_app.commands.files_state.rectify import (
-        app__files_state__rectify,
-    )
-
-    context.create_progress_range(to=1)
-
-    app__files_state__rectify.function(
-        context=context,
-        yes=yes,
-    )
-
-    progress = context.finish_progress(current=1)
+    progress = context.get_or_create_progress(total=6, label="Preparing publication...")
 
     # Now we can initialize.
     workdir = context.request.get_addon_manager().app_workdir(
@@ -71,6 +57,10 @@ def app__suite__publish(
                 context.io.warning(
                     f"Package {package.get_package_name()} has uncommitted changes."
                 )
+        else:
+            context.io.log(
+                f"Package {package.get_package_name()} has no uncommitted changes."
+            )
         progress_range.advance(step=1)
 
     if has_changes and not yes:
@@ -95,7 +85,7 @@ def app__suite__publish(
 
         # Recreate workdir after rectify
         workdir = context.request.get_addon_manager().app_workdir(
-            progress=progress.create_range_handle(to=2)
+            progress=progress.create_range_handle(to=4)
         )
 
         # Validate and propagate again
