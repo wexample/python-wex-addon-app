@@ -57,8 +57,9 @@ def app__suite__publish(
     progress.advance(step=1, label="Propagating versions across packages...")
     workdir.packages_propagate_versions()
     context.io.success("Versions updated.")
+    packages = workdir.get_packages()
 
-    for package in workdir.get_packages():
+    for package in packages:
         if package.has_working_changes():
             has_changes = True
 
@@ -74,9 +75,18 @@ def app__suite__publish(
         context.io.warning("Stopping due to uncommitted changes.")
         return
 
-    workdir.publish_packages(
-        progress=progress.create_range_handle(to=6),
-    )
+    progress_range = progress.create_range_handle(to=6, total=len(packages))
+    for package in packages:
+        package.publish(
+            progress=progress_range.create_range_handle(
+                to=progress.response.current + 1,
+            ),
+        )
 
-    progress.finish(color=TerminalColor.GREEN)
-    context.io.success("All packages published.")
+        package.add_publication_tag()
+
+        progress_range.advance(step=1)
+
+    progress_range.finish()
+
+    progress.finish(color=TerminalColor.GREEN, label="All packages published.")
