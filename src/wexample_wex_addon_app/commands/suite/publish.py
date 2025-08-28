@@ -7,46 +7,49 @@ from wexample_wex_core.decorator.option import option
 from wexample_wex_core.workdir.framework_packages_suite_workdir import (
     FrameworkPackageSuiteWorkdir,
 )
+from wexample_prompt.enums.terminal_color import TerminalColor
 
 if TYPE_CHECKING:
     from wexample_wex_core.context.execution_context import ExecutionContext
 
 
-@option(name="yes", type=bool, default=False, is_flag=True)
-@command(description="Publish the Python package to PyPI.")
-def app__suite__publish(
-        context: ExecutionContext,
-        yes: bool = False,
-) -> None:
-    from wexample_prompt.enums.terminal_color import TerminalColor
+# ----- Internal helpers -----------------------------------------------------
 
-    progress = context.get_or_create_progress(total=6, label="Preparing publication...")
+def _init_app_workdir(context: "ExecutionContext", progress) -> FrameworkPackageSuiteWorkdir | None:
+    """Create an app workdir and ensure its type is valid for a suite.
 
-    # Now we can initialize.
+    Returns the workdir or None if the current path is not a suite manager workdir.
+    """
     workdir = context.request.get_addon_manager().app_workdir(
         progress=progress.create_range_handle(to=2)
     )
-
-    progress.advance(step=1, label="Checking internal dependencies...")
-    workdir.packages_validate_internal_dependencies_declarations()
-    context.io.success("Internal dependencies match.")
-
-    # Ensure we are in the correct workdir type before using it.
     if not isinstance(workdir, FrameworkPackageSuiteWorkdir):
         context.io.warning(
             f"The current path is not a suite manager workdir: {workdir.get_path()}"
         )
-        return
+        return None
+    return workdir
 
-    has_changes = False
-    progress_range = progress.create_range_handle(to=3)
+
+def _validate_and_propagate(workdir: FrameworkPackageSuiteWorkdir, context: "ExecutionContext", progress) -> None:
+    """Validate internal dependencies and propagate versions with progress updates."""
+    progress.advance(step=1, label="Checking internal dependencies...")
+    workdir.packages_validate_internal_dependencies_declarations()
+    context.io.success("Internal dependencies match.")
 
     progress.advance(step=1, label="Propagating versions across packages...")
     workdir.packages_propagate_versions()
     context.io.success("Versions updated.")
 
-    # Commit/push uncommitted changes if confirmed, else stop.
-    packages = workdir.get_packages()
+
+def _commit_or_warn_uncommitted(packages, yes: bool, context: "ExecutionContext", progress) -> bool:
+    """Commit/push uncommitted changes if confirmed, else warn and remember there were changes.
+
+    Returns True if there were uncommitted changes detected in at least one package.
+    """
+    has_changes = False
+    # Make per-package progress explicit
+    progress_range = progress.create_range_handle(to=3, total=len(packages))
     for package in packages:
         if package.has_working_changes():
             has_changes = True
@@ -62,7 +65,66 @@ def app__suite__publish(
                 f"Package {package.get_package_name()} has no uncommitted changes."
             )
         progress_range.advance(step=1)
+    return has_changes
 
+
+def _stabilize_to_publish(
+    context: "ExecutionContext",
+    base_progress,
+    workdir: FrameworkPackageSuiteWorkdir,
+    initial_to_publish,
+    max_loops: int = 3,
+):
+    """Recompute the set of packages to publish until stable or max_loops.
+
+    Returns the stable list of packages to publish.
+    """
+    to_publish = list(initial_to_publish)
+    loop = 0
+    while to_publish and loop < max_loops:
+        loop += 1
+
+        # Recreate workdir after potential rectify/pins updates
+        workdir = context.request.get_addon_manager().app_workdir(
+            progress=base_progress.create_range_handle(to=4)
+        )
+
+        # Re-validate and re-propagate
+        base_progress.advance(step=1, label="Re-checking internal dependencies...")
+        workdir.packages_validate_internal_dependencies_declarations()
+        base_progress.advance(step=1, label="Re-propagating versions...")
+        workdir.packages_propagate_versions()
+
+        new_to_publish = workdir.compute_packages_to_publish()
+
+        old_set = {p.get_package_name() for p in to_publish}
+        new_set = {p.get_package_name() for p in new_to_publish}
+        if new_set == old_set:
+            break
+        to_publish = new_to_publish
+
+    return to_publish
+
+
+@option(name="yes", type=bool, default=False, is_flag=True)
+@command(description="Publish the Python package to PyPI.")
+def app__suite__publish(
+        context: ExecutionContext,
+        yes: bool = False,
+) -> None:
+    progress = context.get_or_create_progress(total=6, label="Preparing publication...")
+
+    # Initialization and checks
+    workdir = _init_app_workdir(context, progress)
+    if workdir is None:
+        return
+
+    # Validate internal deps and propagate versions
+    _validate_and_propagate(workdir, context, progress)
+
+    # Commit/push uncommitted changes if confirmed, else stop.
+    packages = workdir.get_packages()
+    has_changes = _commit_or_warn_uncommitted(packages, yes, context, progress)
     if has_changes and not yes:
         context.io.warning("Stopping due to uncommitted changes.")
         return
@@ -72,30 +134,13 @@ def app__suite__publish(
 
     # Stabilization loop: if publishing some packages affects others (pin updates),
     # run rectify + rebuild workdir + re-propagate versions, then recompute.
-    max_loops = 3
-    loop = 0
-    while to_publish and loop < max_loops:
-        loop += 1
-
-        # Recreate workdir after rectify
-        workdir = context.request.get_addon_manager().app_workdir(
-            progress=progress.create_range_handle(to=4)
-        )
-
-        # Validate and propagate again
-        progress.advance(step=1, label="Re-checking internal dependencies...")
-        workdir.packages_validate_internal_dependencies_declarations()
-        progress.advance(step=1, label="Re-propagating versions...")
-        workdir.packages_propagate_versions()
-
-        new_to_publish = workdir.compute_packages_to_publish()
-
-        # If stable, break; else continue with the new set
-        old_set = {p.get_package_name() for p in to_publish}
-        new_set = {p.get_package_name() for p in new_to_publish}
-        if new_set == old_set:
-            break
-        to_publish = new_to_publish
+    to_publish = _stabilize_to_publish(
+        context=context,
+        base_progress=progress,
+        workdir=workdir,
+        initial_to_publish=to_publish,
+        max_loops=3,
+    )
 
     if not to_publish:
         context.io.info(
