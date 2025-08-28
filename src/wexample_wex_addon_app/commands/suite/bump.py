@@ -14,10 +14,10 @@ if TYPE_CHECKING:
 @option(name="yes", type=bool, default=False, is_flag=True)
 @command(description="Bump version for one or all package of the suite.")
 def app__suite__bump(
-        context: ExecutionContext,
-        all: bool | None = None,
-        package: str | None = None,
-        yes: bool = False,
+    context: ExecutionContext,
+    all: bool | None = None,
+    package: str | None = None,
+    yes: bool = False,
 ) -> None:
     # Normalize input and initialize once.
     package_name = package
@@ -25,7 +25,9 @@ def app__suite__bump(
 
     # Guard against conflicting options.
     if all and package_name:
-        context.io.error("Options conflict: use either --all or --package <name>, not both.")
+        context.io.error(
+            "Options conflict: use either --all or --package <name>, not both."
+        )
         return
 
     if all is True:
@@ -42,7 +44,9 @@ def app__suite__bump(
             context.io.info(f"- Bumped: {getattr(package, 'name', str(package))}")
 
         workdir.packages_propagate_versions()
-        context.io.info(f"Version propagation completed. Successfully bumped {bumped}/{len(packages)} package(s).")
+        context.io.info(
+            f"Version propagation completed. Successfully bumped {bumped}/{len(packages)} package(s)."
+        )
 
     elif package_name:
         package = workdir.get_package(package_name=package_name)
@@ -58,4 +62,6 @@ def app__suite__bump(
         context.io.info(f"Version propagation completed for {package_name}.")
 
     else:
-        context.io.error("Missing option. Use --all to bump every package or --package <name> to bump a specific one.")
+        context.io.error(
+            "Missing option. Use --all to bump every package or --package <name> to bump a specific one."
+        )

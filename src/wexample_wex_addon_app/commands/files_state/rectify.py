@@ -15,21 +15,22 @@ if TYPE_CHECKING:
 @option(name="limit", type=int, default=10)
 @command()
 def app__files_state__rectify(
-        context: ExecutionContext,
-        yes: bool = False,
-        dry_run: bool = False,
-        loop: bool = False,
-        limit: int = 10,
+    context: ExecutionContext,
+    yes: bool = False,
+    dry_run: bool = False,
+    loop: bool = False,
+    limit: int = 10,
 ) -> None:
     progress = context.get_or_create_progress(
-        total=limit + 1,
-        label="Starting rectification..."
+        total=limit + 1
     )
 
     if not dry_run:
         # Apply changes once, or keep looping until no operations remain (when --loop is set).
         iterations = 0
         while True:
+            progress.update(current=0, label="Starting rectification...")
+
             workdir = context.request.get_addon_manager().app_workdir(
                 reload=True, progress=progress.create_range_handle(to=1)
             )
