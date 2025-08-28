@@ -4,7 +4,6 @@ from collections.abc import Iterable
 from typing import TYPE_CHECKING
 
 from wexample_prompt.enums.terminal_color import TerminalColor
-
 from wexample_wex_core.decorator.command import command
 from wexample_wex_core.decorator.option import option
 from wexample_wex_core.workdir.framework_packages_suite_workdir import (
@@ -23,10 +22,10 @@ if TYPE_CHECKING:
     description="Validate internal deps, propagate versions, and optionally commit/push."
 )
 def app__suite__prepare(
-        context: ExecutionContext,
-        all: bool | None = None,
-        package: str | None = None,
-        yes: bool = False,
+    context: ExecutionContext,
+    all: bool | None = None,
+    package: str | None = None,
+    yes: bool = False,
 ) -> None:
     progress = context.get_or_create_progress(total=100)
 
@@ -88,7 +87,7 @@ def app__suite__prepare(
 
 
 def _commit_or_warn_uncommitted(
-        packages: Iterable[FrameworkPackage], yes: bool, context: ExecutionContext
+    packages: Iterable[FrameworkPackage], yes: bool, context: ExecutionContext
 ) -> bool:
     has_changes = False
     for package in packages:
