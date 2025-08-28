@@ -28,13 +28,13 @@ def app__suite__prepare(
         package: str | None = None,
         yes: bool = False,
 ) -> None:
-    progress = context.get_or_create_progress(total=5)
+    progress = context.get_or_create_progress(total=100)
 
     # Normalize input and initialize once
     package_name = package
 
     workdir = context.request.get_addon_manager().app_workdir(
-        progress=progress.create_range_handle(to_step=1)
+        progress=progress.create_range_handle(to_step=10)
     )
 
     if not isinstance(workdir, FrameworkPackageSuiteWorkdir):
@@ -52,7 +52,7 @@ def app__suite__prepare(
         )
         return
 
-    progress.advance(step=1)
+    progress.advance(step=10)
 
     # Resolve target packages (for commit/push scope)
     target_packages: Iterable[FrameworkPackage]
@@ -72,12 +72,11 @@ def app__suite__prepare(
         target_packages = list(workdir.get_packages())
 
     # Validate and propagate
-    progress.advance(step=1, label="Checking internal dependencies...")
+    progress.advance(step=10, label="Checking internal dependencies...")
     workdir.packages_validate_internal_dependencies_declarations()
     context.io.success("Internal dependencies match.")
 
-    progress.advance(step=1, label="Checking internal dependencies...")
-    workdir.packages_propagate_versions(progress=progress)
+    workdir.packages_propagate_versions(progress=progress.create_range_handle(to=50))
     context.io.success("Versions updated.")
 
     # Commit/push if requested
