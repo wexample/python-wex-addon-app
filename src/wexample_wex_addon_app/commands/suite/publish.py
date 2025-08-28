@@ -15,10 +15,11 @@ if TYPE_CHECKING:
 @option(name="yes", type=bool, default=False, is_flag=True)
 @command(description="Publish the Python package to PyPI.")
 def app__suite__publish(
-    context: ExecutionContext,
-    yes: bool = False,
+        context: ExecutionContext,
+        yes: bool = False,
 ) -> None:
-    context.get_or_create_progress(total=5, label="Preparing publication...")
+    from wexample_prompt.enums.terminal_color import TerminalColor
+    context.get_or_create_progress(total=6, label="Preparing publication...")
 
     # Avoid to initialize workdir before this.
     from wexample_wex_addon_app.commands.files_state.rectify import (
@@ -39,23 +40,39 @@ def app__suite__publish(
         progress=progress.create_range_handle(to=2)
     )
 
+    has_changes = False
+    for package in workdir.get_packages():
+        if package.has():
+            has_changes = True
+
+            if yes:
+                package.commit_and_push(
+                    progress=progress.create_range_handle(to=3)
+                )
+            else:
+                context.io.warning(f'Package {package.get_package_name()} has uncommited changes.')
+
+    if has_changes and not yes:
+        context.io.log(f'Stopping due to uncomitted changes.')
+        return
+
     if not isinstance(workdir, FrameworkPackageSuiteWorkdir):
         context.io.warning(
             f"The current path is not a suite manager: {workdir.get_path()}"
         )
         return
 
-    progress.advance(step=2, label="Checking internal dependencies...")
+    progress.advance(step=1, label="Checking internal dependencies...")
     workdir.packages_validate_internal_dependencies_declarations()
     context.io.success("Internal dependencies matches.")
 
-    progress.advance(step=3, label="Propagating versions across packages...")
+    progress.advance(step=1, label="Propagating versions across packages...")
     workdir.packages_propagate_versions()
     context.io.success("Versions updated.")
 
     workdir.publish_packages(
-        progress=progress.create_range_handle(to=5), commit_and_push=yes
+        progress=progress.create_range_handle(to=6)
     )
 
-    progress.finish()
+    progress.finish(color=TerminalColor.GREEN)
     context.io.success("All packages published")
