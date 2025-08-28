@@ -13,7 +13,7 @@ if TYPE_CHECKING:
 @option(name="dry_run", type=bool, default=False, is_flag=True)
 @option(name="loop", type=bool, default=False, is_flag=True)
 @option(name="limit", type=int, default=10)
-@option(name="no_remotes", type=bool, default=False, is_flag=False)
+@option(name="no_remotes", type=bool, default=False, is_flag=True)
 @command()
 def app__files_state__rectify(
     context: ExecutionContext,
