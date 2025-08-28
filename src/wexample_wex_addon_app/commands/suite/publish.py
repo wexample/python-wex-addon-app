@@ -13,10 +13,12 @@ if TYPE_CHECKING:
 
 
 @option(name="yes", type=bool, default=False, is_flag=True)
+@option(name="dry_run", type=bool, default=False, is_flag=True)
 @command(description="Publish the Python package to PyPI.")
 def app__suite__publish(
         context: ExecutionContext,
         yes: bool = False,
+        dry_run: bool = False,
 ) -> None:
     from wexample_prompt.enums.terminal_color import TerminalColor
     context.get_or_create_progress(total=6, label="Preparing publication...")
@@ -58,24 +60,9 @@ def app__suite__publish(
     workdir.packages_propagate_versions()
     context.io.success("Versions updated.")
 
-    from wexample_helpers_git.helpers.git import (
-        git_last_tag_for_prefix,
-        git_has_changes_since_tag,
-    )
-
+    # Use suite-level helper for computing what to publish
     def compute_packages_to_publish(current_workdir: FrameworkPackageSuiteWorkdir):
-        to_publish: list = []
-        for pkg in current_workdir.get_packages():
-            name = pkg.get_package_name()
-            path = pkg.get_path()
-            tag_prefix = f"{name}/v*"
-            last_tag = git_last_tag_for_prefix(tag_prefix, cwd=path, inherit_stdio=False)
-            if last_tag is None:
-                to_publish.append(pkg)
-                continue
-            if git_has_changes_since_tag(last_tag, path, cwd=path, inherit_stdio=False):
-                to_publish.append(pkg)
-        return to_publish
+        return current_workdir.compute_packages_to_publish()
 
     # Commit/push uncommitted changes if confirmed, else stop.
     packages = workdir.get_packages()
@@ -136,6 +123,11 @@ def app__suite__publish(
         return
 
     # Publish only the selected packages
+    if dry_run:
+        names = ", ".join([p.get_package_name() for p in to_publish]) or "<none>"
+        context.io.info(f"[Dry-run] Packages that would be published: {names}")
+        return
+
     progress_range = progress.create_range_handle(to=6, total=len(to_publish))
     for package in to_publish:
         package.publish(
