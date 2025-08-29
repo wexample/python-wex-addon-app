@@ -80,8 +80,6 @@ def app__suite__bump_changed(
     if changed and not yes:
         context.io.warning("Changes detected. Re-run with --yes to commit and push.")
 
-    context.progress().finish(color=TerminalColor.GREEN, label="Bump-changed complete.")
-
 
 def _init_app_workdir(context: ExecutionContext) -> FrameworkPackageSuiteWorkdir | None:
     workdir = context.request.get_addon_manager().app_workdir()
