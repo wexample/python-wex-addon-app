@@ -4,7 +4,7 @@ build-backend = "pdm.backend"
 
 [project]
 name = "wexample-wex-addon-app"
-version = "0.0.41"
+version = "0.0.42"
 description = "App management with wex"
 authors = [
     { name = "weeger", email = "contact@wexample.com" },
@@ -17,7 +17,7 @@ classifiers = [
 ]
 dependencies = [
     "pydantic>=2,<3",
-    "wexample-wex-core==6.0.43",
+    "wexample-wex-core==6.0.44",
 ]
 
 [project.readme]
