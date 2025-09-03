@@ -1,2 +1,3 @@
-name: wex_addon_app
-version: 0.0.42
+general:
+  name: wex_addon_app
+  version: 0.0.42
