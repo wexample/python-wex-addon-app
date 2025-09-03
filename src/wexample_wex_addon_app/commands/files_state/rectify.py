@@ -25,7 +25,7 @@ def app__files_state__rectify(
 ) -> None:
     from wexample_filestate.enum.scopes import Scope
 
-    progress = context.get_or_create_progress(total=limit + 1)
+    progress = context.get_or_create_progress(total=limit + 1, print=False)
 
     if not dry_run:
         # Apply changes once, or keep looping until no operations remain (when --loop is set).
