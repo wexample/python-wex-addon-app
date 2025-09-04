@@ -25,17 +25,11 @@ def app__files_state__rectify(
 ) -> None:
     from wexample_filestate.enum.scopes import Scope
 
-    progress = context.get_or_create_progress(total=limit + 1, print=False)
-
     if not dry_run:
         # Apply changes once, or keep looping until no operations remain (when --loop is set).
         iterations = 0
         while True:
-            progress.update(current=0, label="Starting rectification...")
-
-            workdir = context.request.get_addon_manager().app_workdir(
-                reload=True, progress=progress.create_range_handle(to=1)
-            )
+            workdir = context.request.get_addon_manager().app_workdir(reload=True)
 
             # Remove remote.
             scopes = (set(Scope) - {Scope.REMOTE}) if no_remote else None
@@ -61,14 +55,9 @@ def app__files_state__rectify(
                 )
                 break
 
-            progress.advance(step=1)
             context.io.log(
                 f"Remaining operations detected; starting pass {iterations} of {limit}."
             )
     else:
-        workdir = context.request.get_addon_manager().app_workdir(
-            reload=True, progress=progress.create_range_handle(to_step=1)
-        )
+        workdir = context.request.get_addon_manager().app_workdir(reload=True)
         workdir.dry_run()
-
-    progress.finish()

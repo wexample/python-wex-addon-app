@@ -37,8 +37,6 @@ class AppAddonManager(AbstractAddonManager):
 
         preferred = self._app_workdir.get_preferred_workdir_class()
         if preferred:
-            progress.advance(step=1)
-
             self._app_workdir = preferred.create_from_path(
                 path=path,
                 parent_io_handler=self.kernel,
