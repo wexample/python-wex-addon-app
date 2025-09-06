@@ -1,6 +1,4 @@
 from __future__ import annotations
-
-from collections.abc import Iterable
 from typing import TYPE_CHECKING
 
 from wexample_wex_core.decorator.command import command
@@ -12,6 +10,7 @@ if TYPE_CHECKING:
     from wexample_wex_core.workdir.framework_packages_suite_workdir import (
         FrameworkPackageSuiteWorkdir,
     )
+    from collections.abc import Iterable
 
 
 @option(name="all", type=bool, default=False, is_flag=True)
@@ -81,9 +80,7 @@ def app__suite__bump_changed(
 
 
 def _init_app_workdir(context: ExecutionContext) -> FrameworkPackageSuiteWorkdir | None:
-    from wexample_wex_core.workdir.framework_packages_suite_workdir import (
-        FrameworkPackageSuiteWorkdir,
-    )
+    from wexample_wex_core.workdir.framework_packages_suite_workdir import FrameworkPackageSuiteWorkdir
 
     workdir = context.request.get_addon_manager().app_workdir()
     if not isinstance(workdir, FrameworkPackageSuiteWorkdir):

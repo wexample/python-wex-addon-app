@@ -16,6 +16,7 @@ if TYPE_CHECKING:
 def app__suite__publish(
     context: ExecutionContext,
 ) -> None:
+    from wexample_prompt.enums.terminal_color import TerminalColor
     progress = context.get_or_create_progress(total=2, label="Publishing...")
 
     # Initialization
@@ -64,6 +65,7 @@ def _init_app_workdir(
 
     Returns the workdir or None if the current path is not a suite manager workdir.
     """
+    from wexample_wex_core.workdir.framework_packages_suite_workdir import FrameworkPackageSuiteWorkdir
     workdir = context.request.get_addon_manager().app_workdir(
         progress=progress.create_range_handle(to_step=2)
     )

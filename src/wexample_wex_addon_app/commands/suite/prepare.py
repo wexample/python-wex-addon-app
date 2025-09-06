@@ -1,18 +1,12 @@
 from __future__ import annotations
-
-from collections.abc import Iterable
 from typing import TYPE_CHECKING
-
-from wexample_prompt.enums.terminal_color import TerminalColor
 from wexample_wex_core.decorator.command import command
 from wexample_wex_core.decorator.option import option
-from wexample_wex_core.workdir.framework_packages_suite_workdir import (
-    FrameworkPackageSuiteWorkdir,
-)
 
 if TYPE_CHECKING:
     from wexample_wex_core.context.execution_context import ExecutionContext
     from wexample_wex_core.package.framework_package import FrameworkPackage
+    from collections.abc import Iterable
 
 
 @option(name="all", type=bool, default=False, is_flag=True)
@@ -27,6 +21,8 @@ def app__suite__prepare(
     package: str | None = None,
     yes: bool = False,
 ) -> None:
+    from wexample_wex_core.workdir.framework_packages_suite_workdir import FrameworkPackageSuiteWorkdir
+    from wexample_prompt.enums.terminal_color import TerminalColor
     progress = context.get_or_create_progress(total=100)
 
     # Normalize input and initialize once
