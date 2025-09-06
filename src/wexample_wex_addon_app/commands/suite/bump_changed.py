@@ -5,13 +5,13 @@ from typing import TYPE_CHECKING
 
 from wexample_wex_core.decorator.command import command
 from wexample_wex_core.decorator.option import option
-from wexample_wex_core.workdir.framework_packages_suite_workdir import (
-    FrameworkPackageSuiteWorkdir,
-)
 
 if TYPE_CHECKING:
     from wexample_wex_core.context.execution_context import ExecutionContext
-    from wexample_wex_core.package.framework_package import FrameworkPackage
+    from wexample_wex_core.workdir.code_base_workdir import CodeBaseWorkdir
+    from wexample_wex_core.workdir.framework_packages_suite_workdir import (
+        FrameworkPackageSuiteWorkdir,
+    )
 
 
 @option(name="all", type=bool, default=False, is_flag=True)
@@ -39,7 +39,7 @@ def app__suite__bump_changed(
         return
 
     # Determine candidate set: either the whole suite or a single package
-    candidates: Iterable[FrameworkPackage]
+    candidates: Iterable[CodeBaseWorkdir]
     if all is True:
         candidates = list(workdir.get_packages())
         if not candidates:
@@ -81,6 +81,10 @@ def app__suite__bump_changed(
 
 
 def _init_app_workdir(context: ExecutionContext) -> FrameworkPackageSuiteWorkdir | None:
+    from wexample_wex_core.workdir.framework_packages_suite_workdir import (
+        FrameworkPackageSuiteWorkdir,
+    )
+
     workdir = context.request.get_addon_manager().app_workdir()
     if not isinstance(workdir, FrameworkPackageSuiteWorkdir):
         context.io.warning(
@@ -91,7 +95,7 @@ def _init_app_workdir(context: ExecutionContext) -> FrameworkPackageSuiteWorkdir
 
 
 def _commit_or_warn_uncommitted(
-    packages: Iterable[FrameworkPackage], yes: bool, context: ExecutionContext
+    packages: Iterable[CodeBaseWorkdir], yes: bool, context: ExecutionContext
 ) -> bool:
     has_changes = False
     for package in packages:
