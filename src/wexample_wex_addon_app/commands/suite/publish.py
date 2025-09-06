@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from wexample_prompt.enums.terminal_color import TerminalColor
 from wexample_wex_core.decorator.command import command
 from wexample_wex_core.workdir.framework_packages_suite_workdir import (
     FrameworkPackageSuiteWorkdir,
@@ -65,7 +64,9 @@ def _init_app_workdir(
 
     Returns the workdir or None if the current path is not a suite manager workdir.
     """
-    from wexample_wex_core.workdir.framework_packages_suite_workdir import FrameworkPackageSuiteWorkdir
+    from wexample_wex_core.workdir.framework_packages_suite_workdir import (
+        FrameworkPackageSuiteWorkdir,
+    )
     workdir = context.request.get_addon_manager().app_workdir(
         progress=progress.create_range_handle(to_step=2)
     )
