@@ -24,8 +24,10 @@ def app__suite__prepare(
     package: str | None = None,
     yes: bool = False,
 ) -> None:
-    from wexample_wex_core.workdir.framework_packages_suite_workdir import FrameworkPackageSuiteWorkdir
     from wexample_prompt.enums.terminal_color import TerminalColor
+    from wexample_wex_core.workdir.framework_packages_suite_workdir import (
+        FrameworkPackageSuiteWorkdir,
+    )
     progress = context.get_or_create_progress(total=100)
 
     # Normalize input and initialize once

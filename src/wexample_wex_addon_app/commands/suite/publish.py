@@ -64,9 +64,7 @@ def _init_app_workdir(
 
     Returns the workdir or None if the current path is not a suite manager workdir.
     """
-    from wexample_wex_core.workdir.framework_packages_suite_workdir import (
-        FrameworkPackageSuiteWorkdir,
-    )
+    from wexample_wex_core.workdir.framework_packages_suite_workdir import FrameworkPackageSuiteWorkdir
     workdir = context.request.get_addon_manager().app_workdir(
         progress=progress.create_range_handle(to_step=2)
     )

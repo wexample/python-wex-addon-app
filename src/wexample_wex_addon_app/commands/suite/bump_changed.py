@@ -82,7 +82,9 @@ def app__suite__bump_changed(
 
 
 def _init_app_workdir(context: ExecutionContext) -> FrameworkPackageSuiteWorkdir | None:
-    from wexample_wex_core.workdir.framework_packages_suite_workdir import FrameworkPackageSuiteWorkdir
+    from wexample_wex_core.workdir.framework_packages_suite_workdir import (
+        FrameworkPackageSuiteWorkdir,
+    )
 
     workdir = context.request.get_addon_manager().app_workdir()
     if not isinstance(workdir, FrameworkPackageSuiteWorkdir):
