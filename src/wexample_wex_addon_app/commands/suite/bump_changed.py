@@ -81,20 +81,6 @@ def app__suite__bump_changed(
         context.io.warning("Changes detected. Re-run with --yes to commit and push.")
 
 
-def _init_app_workdir(context: ExecutionContext) -> FrameworkPackageSuiteWorkdir | None:
-    from wexample_wex_core.workdir.framework_packages_suite_workdir import (
-        FrameworkPackageSuiteWorkdir,
-    )
-
-    workdir = context.request.get_addon_manager().app_workdir()
-    if not isinstance(workdir, FrameworkPackageSuiteWorkdir):
-        context.io.warning(
-            f"The current path is not a suite manager workdir: {workdir.get_path()}"
-        )
-        return None
-    return workdir
-
-
 def _commit_or_warn_uncommitted(
     packages: Iterable[CodeBaseWorkdir], yes: bool, context: ExecutionContext
 ) -> bool:
@@ -114,3 +100,17 @@ def _commit_or_warn_uncommitted(
                 f"Package {package.get_package_name()} has no uncommitted changes."
             )
     return has_changes
+
+
+def _init_app_workdir(context: ExecutionContext) -> FrameworkPackageSuiteWorkdir | None:
+    from wexample_wex_core.workdir.framework_packages_suite_workdir import (
+        FrameworkPackageSuiteWorkdir,
+    )
+
+    workdir = context.request.get_addon_manager().app_workdir()
+    if not isinstance(workdir, FrameworkPackageSuiteWorkdir):
+        context.io.warning(
+            f"The current path is not a suite manager workdir: {workdir.get_path()}"
+        )
+        return None
+    return workdir
