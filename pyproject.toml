@@ -41,9 +41,6 @@ dev = [
 distribution = true
 
 [tool.pdm.build]
-includes = [
-    'src/wexample_wex_addon_app/*',
-]
 package-dir = "src"
 
 [[tool.pdm.build.packages]]
