@@ -12,8 +12,8 @@ class AppConfig(TypedDict):
     domains: list[str]
     domains_string: str
     env: StringKeysDict
-    name: str
     host: dict[str, str]
+    name: str
     password: dict[str, str]
     path: dict[str, str]
     server: StringKeysDict
