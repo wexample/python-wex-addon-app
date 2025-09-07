@@ -10,6 +10,8 @@ Version: 0.0.43
 
 ## Dependencies
 
+- attrs>=23.1.0
+- cattrs>=23.1.0
 - pydantic>=2,<3
 - wexample-wex-core==6.0.45
 
