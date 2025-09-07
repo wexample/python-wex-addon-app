@@ -28,6 +28,7 @@ def app__suite__prepare(
     from wexample_wex_core.workdir.framework_packages_suite_workdir import (
         FrameworkPackageSuiteWorkdir,
     )
+
     progress = context.get_or_create_progress(total=100)
 
     # Normalize input and initialize once
