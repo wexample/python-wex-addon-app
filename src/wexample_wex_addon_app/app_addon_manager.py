@@ -12,8 +12,7 @@ if TYPE_CHECKING:
 
 class AppAddonManager(AbstractAddonManager):
     _app_workdir: ProjectWorkdir | None = private_field(
-        default=None,
-        description="The current managed app workdir"
+        default=None, description="The current managed app workdir"
     )
 
     def app_workdir(
