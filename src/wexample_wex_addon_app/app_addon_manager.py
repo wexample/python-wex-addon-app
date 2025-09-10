@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from pydantic import PrivateAttr
+from wexample_helpers.classes.private_field import private_field
 from wexample_prompt.common.progress.progress_handle import ProgressHandle
 from wexample_wex_core.common.abstract_addon_manager import AbstractAddonManager
 
@@ -11,7 +11,10 @@ if TYPE_CHECKING:
 
 
 class AppAddonManager(AbstractAddonManager):
-    _app_workdir: ProjectWorkdir | None = PrivateAttr(default=None)
+    _app_workdir: ProjectWorkdir | None = private_field(
+        default=None,
+        description="The current managed app workdir"
+    )
 
     def app_workdir(
         self, reload: bool = False, progress: ProgressHandle | None = None
