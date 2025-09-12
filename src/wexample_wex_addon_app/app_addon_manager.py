@@ -8,6 +8,7 @@ from wexample_wex_core.common.abstract_addon_manager import AbstractAddonManager
 
 if TYPE_CHECKING:
     from wexample_wex_core.workdir.project_workdir import ProjectWorkdir
+    from wexample_prompt.common.progress.progress_handle import ProgressHandle
 
 
 class AppAddonManager(AbstractAddonManager):

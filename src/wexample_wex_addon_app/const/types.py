@@ -3,6 +3,9 @@ from __future__ import annotations
 from typing import TypedDict
 
 from wexample_helpers.const.types import StringKeysDict
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from wexample_helpers.const.types import StringKeysDict
 
 
 class AppConfig(TypedDict):
