@@ -3,12 +3,12 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from wexample_helpers.classes.private_field import private_field
-from wexample_wex_core.common.abstract_addon_manager import AbstractAddonManager
 from wexample_helpers.decorator.base_class import base_class
+from wexample_wex_core.common.abstract_addon_manager import AbstractAddonManager
 
 if TYPE_CHECKING:
-    from wexample_wex_core.workdir.project_workdir import ProjectWorkdir
     from wexample_prompt.common.progress.progress_handle import ProgressHandle
+    from wexample_wex_core.workdir.project_workdir import ProjectWorkdir
 
 @base_class
 class AppAddonManager(AbstractAddonManager):

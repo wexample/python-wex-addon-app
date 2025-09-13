@@ -19,15 +19,15 @@ if TYPE_CHECKING:
 @option(name="max", type=int, default=None)
 @command()
 def app__files_state__rectify(
-        context: ExecutionContext,
-        yes: bool = False,
-        dry_run: bool = False,
-        loop: bool = False,
-        limit: int = 10,
-        no_remote: bool = False,
-        filter_path: str | None = None,
-        filter_operation: str | None = None,
-        max:int = None
+    context: ExecutionContext,
+    yes: bool = False,
+    dry_run: bool = False,
+    loop: bool = False,
+    limit: int = 10,
+    no_remote: bool = False,
+    filter_path: str | None = None,
+    filter_operation: str | None = None,
+    max: int = None,
 ) -> None:
     from wexample_filestate.enum.scopes import Scope
 
@@ -39,7 +39,13 @@ def app__files_state__rectify(
 
             # Remove remote.
             scopes = (set(Scope) - {Scope.REMOTE}) if no_remote else None
-            result = workdir.apply(interactive=(not yes), scopes=scopes, filter_path=filter_path, filter_operation=filter_operation, max=max)
+            result = workdir.apply(
+                interactive=(not yes),
+                scopes=scopes,
+                filter_path=filter_path,
+                filter_operation=filter_operation,
+                max=max,
+            )
 
             if len(result.operations) == 0:
                 context.io.success(
