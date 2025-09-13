@@ -14,14 +14,18 @@ if TYPE_CHECKING:
 @option(name="loop", type=bool, default=False, is_flag=True)
 @option(name="limit", type=int, default=10)
 @option(name="no_remote", type=bool, default=False, is_flag=True)
+@option(name="filter_path", type=str, default=None)
+@option(name="filter_operation", type=str, default=None)
 @command()
 def app__files_state__rectify(
-    context: ExecutionContext,
-    yes: bool = False,
-    dry_run: bool = False,
-    loop: bool = False,
-    limit: int = 10,
-    no_remote: bool = False,
+        context: ExecutionContext,
+        yes: bool = False,
+        dry_run: bool = False,
+        loop: bool = False,
+        limit: int = 10,
+        no_remote: bool = False,
+        filter_path: str | None = None,
+        filter_operation: str | None = None
 ) -> None:
     from wexample_filestate.enum.scopes import Scope
 
@@ -33,7 +37,7 @@ def app__files_state__rectify(
 
             # Remove remote.
             scopes = (set(Scope) - {Scope.REMOTE}) if no_remote else None
-            result = workdir.apply(interactive=(not yes), scopes=scopes)
+            result = workdir.apply(interactive=(not yes), scopes=scopes, filter_path=filter_path, filter_operation=filter_operation)
 
             if len(result.operations) == 0:
                 context.io.success(
