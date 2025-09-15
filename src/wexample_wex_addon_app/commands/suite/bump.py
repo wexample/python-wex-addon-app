@@ -41,7 +41,7 @@ def app__suite__bump(
         for package in packages:
             package.bump(interactive=not yes)
             bumped += 1
-            context.io.info(f"- Bumped: {getattr(package, 'name', str(package))}")
+            context.io.info(f"- Bumped: {package.get_package_name()}")
 
         workdir.packages_propagate_versions()
         context.io.info(
