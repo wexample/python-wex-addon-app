@@ -3,9 +3,6 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from wexample_wex_core.decorator.command import command
-from wexample_wex_core.workdir.framework_packages_suite_workdir import (
-    FrameworkPackageSuiteWorkdir,
-)
 
 if TYPE_CHECKING:
     from wexample_wex_core.context.execution_context import ExecutionContext

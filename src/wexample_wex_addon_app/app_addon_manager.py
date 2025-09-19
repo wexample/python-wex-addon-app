@@ -10,6 +10,7 @@ if TYPE_CHECKING:
     from wexample_prompt.common.progress.progress_handle import ProgressHandle
     from wexample_wex_core.workdir.project_workdir import ProjectWorkdir
 
+
 @base_class
 class AppAddonManager(AbstractAddonManager):
     _app_workdir: ProjectWorkdir | None = private_field(
