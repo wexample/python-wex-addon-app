@@ -16,9 +16,9 @@ def app__info__show(
     workdir = context.request.get_addon_manager().app_workdir()
 
     context.io.properties({
-        "name": workdir.get_item_name(),
-        "version": workdir.get_project_version(),
-        "path": cli_make_clickable_path(
+        "Name": workdir.get_item_name(),
+        "Version": workdir.get_project_version(),
+        "Path": cli_make_clickable_path(
             path=workdir.get_path()
         ),
     }, title="Application info")
