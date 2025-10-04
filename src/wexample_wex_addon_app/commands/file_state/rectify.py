@@ -18,7 +18,7 @@ if TYPE_CHECKING:
 @option(name="filter_operation", type=str, default=None)
 @option(name="max", type=int, default=None)
 @command()
-def app__files_state__rectify(
+def app__file_state__rectify(
     context: ExecutionContext,
     yes: bool = False,
     dry_run: bool = False,

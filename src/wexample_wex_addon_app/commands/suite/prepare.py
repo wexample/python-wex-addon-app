@@ -34,9 +34,7 @@ def app__suite__prepare(
     # Normalize input and initialize once
     package_name = package
 
-    workdir = context.request.get_addon_manager().app_workdir(
-        progress=progress.create_range_handle(to_step=10)
-    )
+    workdir = context.request.get_addon_manager().app_workdir()
 
     if not isinstance(workdir, FrameworkPackageSuiteWorkdir):
         context.io.warning(
