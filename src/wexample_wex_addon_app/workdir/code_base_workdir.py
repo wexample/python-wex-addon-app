@@ -11,9 +11,6 @@ if TYPE_CHECKING:
     )
     from wexample_prompt.common.progress.progress_handle import ProgressHandle
 
-# TODO >>>> Pas de dépendance de app dans core, c'est interdit
-# TODO >>>> On déplace CodeBaseWorkdir et Framework dans addon APP (a défaut d'avoir un addon "CODE")
-# TODO >>>> WexKernelWorkdir et WexKernel sont créés dans wex-6 et dépendent a la fois de core et de app (ce qui n'est pas le cas du kernel de app_manager)
 class CodeBaseWorkdir(BasicAppWorkdir):
     def add_publication_tag(self) -> None:
         from wexample_helpers_git.helpers.git import (
