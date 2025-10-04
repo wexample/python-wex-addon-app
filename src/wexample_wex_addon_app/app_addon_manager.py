@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import os
 from typing import TYPE_CHECKING
 
 from wexample_helpers.classes.private_field import private_field
@@ -9,20 +8,20 @@ from wexample_helpers.helpers.module import module_load_class_from_file
 from wexample_wex_core.common.abstract_addon_manager import AbstractAddonManager
 
 if TYPE_CHECKING:
-    from wexample_prompt.common.progress.progress_handle import ProgressHandle
-    from wexample_wex_core.workdir.project_workdir import ProjectWorkdir
+    from wexample_wex_addon_app.workdir.mixin.app_workdir_mixin import AppWorkdirMixin
+    from wexample_wex_addon_app.workdir.basic_app_workdir import BasicAppWorkdir
 
 
 @base_class
 class AppAddonManager(AbstractAddonManager):
-    _app_workdir: ProjectWorkdir | None = private_field(
+    _app_workdir: AppWorkdirMixin | None = private_field(
         default=None, description="The current managed app workdir"
     )
 
     def app_workdir(
-        self, reload: bool = False
-    ) -> ProjectWorkdir | None:
-        from wexample_wex_core.workdir.project_workdir import ProjectWorkdir
+            self, reload: bool = False
+    ) -> AppWorkdirMixin | None:
+        from wexample_wex_addon_app.workdir.basic_app_workdir import BasicAppWorkdir
 
         if reload:
             self._app_workdir = None
@@ -38,7 +37,7 @@ class AppAddonManager(AbstractAddonManager):
                 class_name="AppWorkdir"
             )
         else:
-            app_workdir_class = ProjectWorkdir
+            app_workdir_class = BasicAppWorkdir
 
         # Use basic project class to access minimal configuration.
         self._app_workdir = app_workdir_class.create_from_path(

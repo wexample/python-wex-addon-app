@@ -24,37 +24,6 @@ if TYPE_CHECKING:
 class AppWorkdirMixin(
     AsSuitePackageItem, WithReadmeWorkdirMixin, WithAppVersionWorkdirMixin
 ):
-    @classmethod
-    def create_from_config(cls, **kwargs) -> AppWorkdirMixin:
-        # from wexample_app.const.globals import APP_FILE_APP_CONFIG
-        # from wexample_filestate.option.class_option import (
-        #     ClassOption,
-        # )
-        # from wexample_helpers.helpers.module import module_are_same
-        #
-        # config = kwargs.get("config")
-
-        instance = super().create_from_config(**kwargs)
-
-        # if isinstance(config, dict):
-        #     ClassOption.get_name()
-        #     preferred = instance.get_preferred_workdir_class()
-        #     if preferred:
-        #
-        #         # The loaded class definition is a different one.
-        #         if not module_are_same(preferred, cls):
-        #             if not issubclass(preferred, cls):
-        #                 io = kwargs.get("io")
-        #                 if io:
-        #                     io.warning(
-        #                         f"Preferred project workdir class '{preferred}' defined in {APP_FILE_APP_CONFIG} "
-        #                         f"is not a child of {cls.__name__} as expected by parent workdir."
-        #                     )
-        #
-        #             return preferred.create_from_config(**kwargs)
-
-        return instance
-
     def get_config(self) -> NestedConfigValue:
         from wexample_config.config_value.nested_config_value import NestedConfigValue
 
@@ -99,47 +68,6 @@ class AppWorkdirMixin(
 
         return value
 
-    # def get_preferred_workdir_class(self) -> type[ProjectWorkdir] | None:
-    #     from wexample_app.const.globals import APP_FILE_APP_CONFIG
-    #     from wexample_helpers.helpers.module import (
-    #         module_load_class_from_file_with_package_root,
-    #     )
-    #     from wexample_wex_core.const.globals import WORKDIR_SETUP_DIR
-    #
-    #     path = self.get_path()
-    #     manager_config = self.get_config().search("files_state.manager")
-    #
-    #     if manager_config:
-    #         file_relative = manager_config.get_config_item("file").get_str()
-    #         class_name = manager_config.get_config_item("class").get_str()
-    #
-    #         # Compute absolute path to the python file
-    #         file_abs_path = path / file_relative
-    #
-    #         if file_abs_path.exists():
-    #             # Dynamically load the module and fetch the class
-    #             class_module = module_load_class_from_file_with_package_root(
-    #                 file_path=file_abs_path,
-    #                 class_name=class_name,
-    #                 # Use the .wex dir as package root so relative imports resolve
-    #                 package_root=path / WORKDIR_SETUP_DIR,
-    #             )
-    #
-    #             # Good format
-    #             if issubclass(class_module, ProjectWorkdir):
-    #                 return class_module
-    #             else:
-    #                 self.warning(
-    #                     f"Custom class '{class_name}' defined in {APP_FILE_APP_CONFIG} was found at {file_abs_path}, "
-    #                     f"but it must be a subclass of {ProjectWorkdir.__name__}."
-    #                 )
-    #         else:
-    #             self.warning(
-    #                 f"Custom manager file '{file_relative}' configured in {APP_FILE_APP_CONFIG} "
-    #                 f"does not exist at {file_abs_path}."
-    #             )
-    #     return None
-
     def get_project_name(self) -> str:
         from wexample_app.const.globals import APP_FILE_APP_CONFIG
 
@@ -171,19 +99,96 @@ class AppWorkdirMixin(
         return str(version).strip()
 
     def prepare_value(self, raw_value: DictConfig | None = None) -> DictConfig:
-        from wexample_filestate.const.disk import DiskItemType
         from wexample_wex_core.const.project import PROJECT_GITIGNORE_DEFAULT
+        from wexample_app.const.globals import APP_FILE_APP_CONFIG
+        from wexample_filestate.const.disk import DiskItemType
+        from wexample_filestate.item.file.env_file import EnvFile
+        from wexample_filestate.option.text_option import TextOption
+        from wexample_wex_core.const.globals import WORKDIR_SETUP_DIR
+        from wexample_filestate.item.file.yaml_file import YamlFile
 
         raw_value = super().prepare_value(raw_value)
 
         raw_value.update({"mode": {"permissions": "777", "recursive": True}})
-
-        children = raw_value["children"]
+        raw_value["children"] = raw_value.get("children", [])
 
         self.append_readme(config=raw_value)
         self.append_version(config=raw_value)
 
-        children.append(
+        raw_value["children"].append(
+            {
+                # .wex
+                "name": WORKDIR_SETUP_DIR,
+                "type": DiskItemType.DIRECTORY,
+                "should_exist": True,
+                "children": [
+                    {
+                        # .env
+                        "class": EnvFile,
+                        "name": EnvFile.EXTENSION_DOT_ENV,
+                        "type": DiskItemType.FILE,
+                        "should_exist": True,
+                        TextOption.get_name(): {"end_new_line": True},
+                    },
+                    {
+                        # config.yml
+                        "name": APP_FILE_APP_CONFIG,
+                        "type": DiskItemType.FILE,
+                        "should_exist": True,
+                        "class": YamlFile,
+                        TextOption.get_name(): {"end_new_line": True},
+                        "yaml": {"sort_recursive": True},
+                    },
+                    {
+                        # python (app manager)
+                        "name": "bin",
+                        "type": DiskItemType.DIRECTORY,
+                        "should_exist": True,
+                        #     {
+                        #         "name": "app-manager",
+                        #         "type": DiskItemType.FILE,
+                        #         "should_exist": True,
+                        #         "content": AggregatedTemplatesConfigValue(
+                        #             templates=[
+                        #                 "#!/usr/bin/env bash",
+                        #                 "set -euo pipefail",
+                        #                 'ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"',
+                        #                 'APP_ROOT="${APP_ROOT:-$ROOT}"',
+                        #                 'AM_DIR="$ROOT/.wex/python/app_manager"',
+                        #                 "",
+                        #                 "# Require PDM to manage env and dependencies declared in pyproject.toml",
+                        #                 "if ! command -v pdm >/dev/null 2>&1; then",
+                        #                 "  echo Error: 'pdm' is required but not installed. Please install PDM: https://pdm.fming.dev >&2",
+                        #                 "  exit 1",
+                        #                 "fi",
+                        #                 "",
+                        #                 "# Install/sync dependencies as per $AM_DIR/pyproject.toml (creates/uses project venv)",
+                        #                 'pdm --project "$AM_DIR" install -q',
+                        #                 "",
+                        #                 "export APP_ROOT",
+                        #                 'exec pdm --project "$AM_DIR" run python -m wexample_wex_core.app_manager -- "$@"',
+                        #             ]
+                        #         ),
+                        #     }
+                        # ],
+                    },
+                    {
+                        # tmp
+                        "name": "tmp",
+                        "type": DiskItemType.DIRECTORY,
+                        "should_exist": True,
+                    },
+                    {
+                        "name": ".gitignore",
+                        "type": DiskItemType.FILE,
+                        "should_exist": True,
+                        "should_contain_lines": [EnvFile.EXTENSION_DOT_ENV],
+                        TextOption.get_name(): {"end_new_line": True},
+                    },
+                ],
+            })
+
+        raw_value["children"].append(
             {
                 "name": ".gitignore",
                 "type": DiskItemType.FILE,
