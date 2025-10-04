@@ -6,6 +6,9 @@ from wexample_wex_core.decorator.command import command
 
 if TYPE_CHECKING:
     from wexample_wex_core.context.execution_context import ExecutionContext
+    from wexample_wex_addon_app.workdir.framework_packages_suite_workdir import (
+        FrameworkPackageSuiteWorkdir,
+    )
 
 
 @command(description="Publish the Python package to PyPI.")
@@ -62,7 +65,7 @@ def _init_app_workdir(
 
     Returns the workdir or None if the current path is not a suite manager workdir.
     """
-    from wexample_wex_core.workdir.framework_packages_suite_workdir import (
+    from wexample_wex_addon_app.workdir.framework_packages_suite_workdir import (
         FrameworkPackageSuiteWorkdir,
     )
 

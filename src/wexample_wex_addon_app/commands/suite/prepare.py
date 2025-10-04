@@ -25,7 +25,7 @@ def app__suite__prepare(
     yes: bool = False,
 ) -> None:
     from wexample_prompt.enums.terminal_color import TerminalColor
-    from wexample_wex_core.workdir.framework_packages_suite_workdir import (
+    from wexample_wex_addon_app.workdir.framework_packages_suite_workdir import (
         FrameworkPackageSuiteWorkdir,
     )
 
