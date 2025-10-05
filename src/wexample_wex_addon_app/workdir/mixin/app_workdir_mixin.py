@@ -1,13 +1,15 @@
 from __future__ import annotations
 
+from pathlib import Path
 from typing import TYPE_CHECKING
 
-from wexample_wex_addon_app.workdir.mixin.with_readme_workdir_mixin import (
-    WithReadmeWorkdirMixin,
-)
+from wexample_filestate.config_value.file_content_config_value import FileContentConfigValue
 from wexample_helpers.decorator.base_class import base_class
 from wexample_wex_addon_app.workdir.mixin.as_suite_package_item import (
     AsSuitePackageItem,
+)
+from wexample_wex_addon_app.workdir.mixin.with_readme_workdir_mixin import (
+    WithReadmeWorkdirMixin,
 )
 from wexample_wex_core.const.globals import WORKDIR_SETUP_DIR
 from wexample_wex_core.workdir.mixin.with_app_version_workdir_mixin import (
@@ -114,6 +116,10 @@ class AppWorkdirMixin(
         self.append_readme(config=raw_value)
         self.append_version(config=raw_value)
 
+        import wexample_wex_core
+        import importlib.resources
+        app_manager_template_path = Path(importlib.resources.files(wexample_wex_core)) / "resources" / "app-manager.sh"
+
         raw_value["children"].append(
             {
                 # .wex
@@ -143,33 +149,16 @@ class AppWorkdirMixin(
                         "name": "bin",
                         "type": DiskItemType.DIRECTORY,
                         "should_exist": True,
-                        #     {
-                        #         "name": "app-manager",
-                        #         "type": DiskItemType.FILE,
-                        #         "should_exist": True,
-                        #         "content": AggregatedTemplatesConfigValue(
-                        #             templates=[
-                        #                 "#!/usr/bin/env bash",
-                        #                 "set -euo pipefail",
-                        #                 'ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"',
-                        #                 'APP_ROOT="${APP_ROOT:-$ROOT}"',
-                        #                 'AM_DIR="$ROOT/.wex/python/app_manager"',
-                        #                 "",
-                        #                 "# Require PDM to manage env and dependencies declared in pyproject.toml",
-                        #                 "if ! command -v pdm >/dev/null 2>&1; then",
-                        #                 "  echo Error: 'pdm' is required but not installed. Please install PDM: https://pdm.fming.dev >&2",
-                        #                 "  exit 1",
-                        #                 "fi",
-                        #                 "",
-                        #                 "# Install/sync dependencies as per $AM_DIR/pyproject.toml (creates/uses project venv)",
-                        #                 'pdm --project "$AM_DIR" install -q',
-                        #                 "",
-                        #                 "export APP_ROOT",
-                        #                 'exec pdm --project "$AM_DIR" run python -m wexample_wex_core.app_manager -- "$@"',
-                        #             ]
-                        #         ),
-                        #     }
-                        # ],
+                        "children": [
+                            {
+                                "name": "app-manager",
+                                "type": DiskItemType.FILE,
+                                "should_exist": True,
+                                "content": FileContentConfigValue(
+                                    path=app_manager_template_path
+                                ),
+                            }
+                        ],
                     },
                     {
                         # tmp
