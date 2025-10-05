@@ -9,6 +9,7 @@ from wexample_helpers.decorator.base_class import base_class
 from wexample_wex_addon_app.workdir.mixin.as_suite_package_item import (
     AsSuitePackageItem,
 )
+from wexample_wex_core.const.globals import WORKDIR_SETUP_DIR
 from wexample_wex_core.workdir.mixin.with_app_version_workdir_mixin import (
     WithAppVersionWorkdirMixin,
 )
@@ -35,7 +36,7 @@ class AppWorkdirMixin(
     def get_config_file(self) -> YamlFile:
         from wexample_app.const.globals import APP_FILE_APP_CONFIG
 
-        config_file = self.find_by_name_recursive(item_name=APP_FILE_APP_CONFIG)
+        config_file = self.find_by_path(path=f"{WORKDIR_SETUP_DIR}/{APP_FILE_APP_CONFIG}")
         assert config_file is not None
         return config_file
 

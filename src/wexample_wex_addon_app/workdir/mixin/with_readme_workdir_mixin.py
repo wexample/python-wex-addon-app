@@ -32,7 +32,7 @@ class WithReadmeWorkdirMixin(BaseClass):
 
         return config
 
-    def _get_readme_content(self) -> ReadmeContentConfigValue | None:
+    def _get_readme_content(self) -> ReadmeContentConfigValue:
         from wexample_filestate.config_value.readme_content_config_value import (
             ReadmeContentConfigValue,
         )
