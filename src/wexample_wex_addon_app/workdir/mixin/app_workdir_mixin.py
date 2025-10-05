@@ -2,8 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from wexample_filestate.option.text_option import TextOption
-from wexample_filestate.workdir.mixin.with_readme_workdir_mixin import (
+from wexample_wex_addon_app.workdir.mixin.with_readme_workdir_mixin import (
     WithReadmeWorkdirMixin,
 )
 from wexample_helpers.decorator.base_class import base_class
