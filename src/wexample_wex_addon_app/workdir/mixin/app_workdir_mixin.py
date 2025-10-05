@@ -110,7 +110,6 @@ class AppWorkdirMixin(
         raw_value = super().prepare_value(raw_value)
 
         raw_value.update({"mode": {"permissions": "777", "recursive": True}})
-        raw_value["children"] = raw_value.get("children", [])
 
         self.append_readme(config=raw_value)
         self.append_version(config=raw_value)
