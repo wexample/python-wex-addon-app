@@ -18,9 +18,6 @@ class WithReadmeWorkdirMixin(BaseClass):
     README_FILENAME: ClassVar[str] = "README.md"
 
     def append_readme(self, config: DictConfig | None = None) -> DictConfig:
-        from wexample_filestate.config_value.readme_content_config_value import (
-            ReadmeContentConfigValue,
-        )
         from wexample_filestate.const.disk import DiskItemType
 
         config.get("children").append(
@@ -28,25 +25,16 @@ class WithReadmeWorkdirMixin(BaseClass):
                 "name": self.README_FILENAME,
                 "type": DiskItemType.FILE,
                 "should_exist": True,
-                "content": self._get_readme_content_string(),
-                "default_content": ReadmeContentConfigValue(
-                    templates=[], parameters={}
-                ),
+                "content": self._get_readme_content(),
                 TextOption.get_name(): {"end_new_line": True},
             }
         )
 
         return config
 
-    def _get_readme_content_string(self) -> str:
-        """Get README content as a simple string for ContentOption."""
-        # For now, return a basic README content
-        # This can be enhanced later to use templates
-        return "# README\n\nThis is a generated README file.\n"
-
     def _get_readme_content(self) -> ReadmeContentConfigValue | None:
         from wexample_filestate.config_value.readme_content_config_value import (
             ReadmeContentConfigValue,
         )
 
-        return ReadmeContentConfigValue(templates=[], parameters={})
+        return ReadmeContentConfigValue()
