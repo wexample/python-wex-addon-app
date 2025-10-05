@@ -14,16 +14,15 @@ class WithVersionWorkdirMixin(BaseClass):
         from wexample_filestate.const.disk import DiskItemType
         from wexample_filestate.option.text_option import TextOption
 
-        # TODO
-        # config.get("children").append(
-        #     {
-        #         "name": "version.txt",
-        #         "type": DiskItemType.FILE,
-        #         "should_exist": True,
-        #         "content": self._get_version_default_content(),
-        #         TextOption.get_name(): {"end_new_line": True},
-        #     }
-        # )
+        config.get("children").append(
+            {
+                "name": "version.txt",
+                "type": DiskItemType.FILE,
+                "should_exist": True,
+                "content": self._get_version_default_content(),
+                TextOption.get_name(): {"end_new_line": True},
+            }
+        )
 
         return config
 
