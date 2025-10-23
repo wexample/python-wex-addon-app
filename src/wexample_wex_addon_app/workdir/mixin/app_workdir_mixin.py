@@ -12,7 +12,7 @@ from wexample_wex_addon_app.workdir.mixin.as_suite_package_item import (
 from wexample_wex_addon_app.workdir.mixin.with_readme_workdir_mixin import (
     WithReadmeWorkdirMixin,
 )
-from wexample_wex_core.const.globals import WORKDIR_SETUP_DIR
+from wexample_wex_core.const.globals import WORKDIR_SETUP_DIR, CORE_DIR_NAME_TMP
 from wexample_wex_core.workdir.mixin.with_app_version_workdir_mixin import (
     WithAppVersionWorkdirMixin,
 )
@@ -44,7 +44,7 @@ class AppWorkdirMixin(
     def is_app_workdir_path(cls, path: FileStringOrPath) -> bool:
         config = cls.is_app_workdir_path(path=path) is not None
         if config:
-            return config.read_config().search('global.version').is_not_none()
+            return not config.read_config().search('global.version').is_none()
         return False
 
     def get_config(self) -> NestedConfigValue:
@@ -97,7 +97,7 @@ class AppWorkdirMixin(
         name_config = self.get_config().search("global.name")
         # Ensure we properly handle missing or empty name
         name: str | None = None
-        if name_config.is_not_none():
+        if not name_config.is_none():
             name = (name_config.get_str_or_none() or "").strip()
         # Enforce that a project must have a non-empty name; include path for debug
         if not name:
@@ -183,7 +183,7 @@ class AppWorkdirMixin(
                     },
                     {
                         # tmp
-                        "name": "tmp",
+                        "name": CORE_DIR_NAME_TMP,
                         "type": DiskItemType.DIRECTORY,
                         "should_exist": True,
                     },

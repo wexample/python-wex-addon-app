@@ -31,9 +31,12 @@ class AsSuitePackageItem(BaseClass):
 
             return False
 
-        directory_iterate_parent_dirs(
+        suite_path = directory_iterate_parent_dirs(
             path=self.get_path(),
             condition=_found
         )
+
+        if suite_path:
+            return suite_path
 
         return self.find_closest(FrameworkPackageSuiteWorkdir)
