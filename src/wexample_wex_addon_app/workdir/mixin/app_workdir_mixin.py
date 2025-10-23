@@ -4,6 +4,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 from wexample_filestate.config_value.file_content_config_value import FileContentConfigValue
+from wexample_helpers.const.types import FileStringOrPath
 from wexample_helpers.decorator.base_class import base_class
 from wexample_wex_addon_app.workdir.mixin.as_suite_package_item import (
     AsSuitePackageItem,
@@ -26,6 +27,26 @@ if TYPE_CHECKING:
 class AppWorkdirMixin(
     AsSuitePackageItem, WithReadmeWorkdirMixin, WithAppVersionWorkdirMixin
 ):
+    @classmethod
+    def get_config_from_path(cls, path: FileStringOrPath) -> YamlFile | None:
+        from wexample_filestate.item.file.yaml_file import YamlFile
+        from wexample_app.const.globals import APP_FILE_APP_CONFIG
+        setup_config_path = Path(path) / WORKDIR_SETUP_DIR / APP_FILE_APP_CONFIG
+
+        if setup_config_path.exists():
+            return YamlFile.create_from_path(
+                path=setup_config_path,
+            )
+
+        return None
+
+    @classmethod
+    def is_app_workdir_path(cls, path: FileStringOrPath) -> bool:
+        config = cls.is_app_workdir_path(path=path) is not None
+        if config:
+            return config.read_config().search('global.version').is_not_none()
+        return False
+
     def get_config(self) -> NestedConfigValue:
         from wexample_config.config_value.nested_config_value import NestedConfigValue
 
