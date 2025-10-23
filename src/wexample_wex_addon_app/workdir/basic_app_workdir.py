@@ -7,5 +7,4 @@ from wexample_wex_core.workdir.workdir import Workdir
 
 @base_class
 class BasicAppWorkdir(AppWorkdirMixin, Workdir):
-    def get_ordered_readme_files_names(self) -> list[str]:
-        return []
+    pass
