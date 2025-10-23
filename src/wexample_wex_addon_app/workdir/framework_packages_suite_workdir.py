@@ -5,10 +5,8 @@ from typing import TYPE_CHECKING
 
 from wexample_prompt.common.progress.progress_handle import ProgressHandle
 
-from wexample_config.config_value.nested_config_value import NestedConfigValue
 from wexample_helpers.classes.abstract_method import abstract_method
 from wexample_wex_addon_app.workdir.basic_app_workdir import BasicAppWorkdir
-from wexample_wex_core.const.globals import CORE_DIR_NAME_KNOWLEDGE, WORKDIR_SETUP_DIR
 
 if TYPE_CHECKING:
     from wexample_config.const.types import DictConfig
@@ -18,26 +16,6 @@ if TYPE_CHECKING:
 
 
 class FrameworkPackageSuiteWorkdir(BasicAppWorkdir):
-    def build_registry_value(self) -> NestedConfigValue:
-        registry = super().build_registry_value()
-
-        readme_config = {}
-        suite_signature_path = (
-                self.get_path() /
-                WORKDIR_SETUP_DIR /
-                CORE_DIR_NAME_KNOWLEDGE /
-                Path("package-readme/suite-signature.md.j2")
-        )
-
-        if suite_signature_path.exists():
-            readme_config['suite_signature'] = str(suite_signature_path)
-
-        registry.raw['suite'] = {
-            'readme': readme_config
-        }
-
-        return registry
-
     def build_dependencies_map(self) -> dict[str, list[str]]:
         dependencies = {}
         for package in self.get_packages():
