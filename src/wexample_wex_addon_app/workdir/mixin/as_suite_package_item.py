@@ -26,7 +26,7 @@ class AsSuitePackageItem(BaseClass):
                 path=path,
             )
             if config:
-                if config.read_config().search('app.is_suite').is_true():
+                if config.read_config().search('app.is_package_suite_manager').is_true():
                     return True
 
             return False
