@@ -26,7 +26,7 @@ class FrameworkPackageSuiteWorkdir(BasicAppWorkdir):
                 self.get_path() /
                 WORKDIR_SETUP_DIR /
                 CORE_DIR_NAME_KNOWLEDGE /
-                Path("readme/suite-signature.md")
+                Path("package-readme/suite-signature.md.j2")
         )
 
         if suite_signature_path.exists():
