@@ -1,25 +1,20 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import TYPE_CHECKING
 
 from wexample_helpers.classes.base_class import BaseClass
 from wexample_helpers.decorator.base_class import base_class
 from wexample_helpers.helpers.directory import directory_iterate_parent_dirs
 
-if TYPE_CHECKING:
-    from wexample_wex_addon_app.workdir.framework_packages_suite_workdir import (
-        FrameworkPackageSuiteWorkdir,
-    )
-
 
 @base_class
 class AsSuitePackageItem(BaseClass):
-    def find_suite_workdir_path(self) -> Path:
+    def find_suite_workdir_path(self) -> Path | None:
+        """
+        We have to trust the configuration file to know if parent directory is a suite or not,
+        as we cannot directly load suite python class from a different venv.
+        """
         from wexample_wex_addon_app.workdir.mixin.app_workdir_mixin import AppWorkdirMixin
-        from wexample_wex_addon_app.workdir.framework_packages_suite_workdir import (
-            FrameworkPackageSuiteWorkdir,
-        )
 
         def _found(path: Path) -> bool:
             config = AppWorkdirMixin.get_config_from_path(
@@ -39,4 +34,4 @@ class AsSuitePackageItem(BaseClass):
         if suite_path:
             return suite_path
 
-        return self.find_closest(FrameworkPackageSuiteWorkdir)
+        return None
