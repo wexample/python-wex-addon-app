@@ -12,7 +12,7 @@ from wexample_wex_addon_app.workdir.mixin.as_suite_package_item import (
 from wexample_wex_addon_app.workdir.mixin.with_readme_workdir_mixin import (
     WithReadmeWorkdirMixin,
 )
-from wexample_wex_core.const.globals import WORKDIR_SETUP_DIR, CORE_DIR_NAME_TMP
+from wexample_wex_core.const.globals import CORE_DIR_NAME_TMP, WORKDIR_SETUP_DIR
 from wexample_wex_core.workdir.mixin.with_app_version_workdir_mixin import (
     WithAppVersionWorkdirMixin,
 )
@@ -46,6 +46,29 @@ class AppWorkdirMixin(
         if config:
             return not config.read_config().search('global.version').is_none()
         return False
+
+    def build_registry_value(self) -> NestedConfigValue:
+        from wexample_config.config_value.nested_config_value import NestedConfigValue
+        return NestedConfigValue(raw={
+            'config': self.get_config(),
+        })
+
+    def build_registry(self) -> YamlFile:
+        from wexample_filestate.item.file.yaml_file import YamlFile
+        from wexample_wex_core.const.globals import WORKDIR_SETUP_DIR, CORE_DIR_NAME_TMP, CORE_FILE_NAME_REGISTRY
+
+        registry_path = self.get_path() / WORKDIR_SETUP_DIR / CORE_DIR_NAME_TMP / CORE_FILE_NAME_REGISTRY
+
+        registry = YamlFile.create_from_path(
+            path=registry_path,
+            io=self.io
+        )
+
+        registry.write_config(
+            self.build_registry_value()
+        )
+
+        return registry
 
     def get_config(self) -> NestedConfigValue:
         from wexample_config.config_value.nested_config_value import NestedConfigValue
