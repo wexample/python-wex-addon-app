@@ -76,7 +76,7 @@ class AppWorkdirMixin(
         name_config = self.get_config().search("global.name")
         # Ensure we properly handle missing or empty name
         name: str | None = None
-        if name_config is not None:
+        if name_config.is_not_none():
             name = (name_config.get_str_or_none() or "").strip()
         # Enforce that a project must have a non-empty name; include path for debug
         if not name:
@@ -92,7 +92,7 @@ class AppWorkdirMixin(
         config = self.get_config_file().read_config()
         version_config = config.search("global.version")
         version = (
-            version_config.get_str_or_none() if version_config is not None else None
+            version_config.get_str_or_none()
         )
         if version is None or str(version).strip() == "":
             raise ValueError(
