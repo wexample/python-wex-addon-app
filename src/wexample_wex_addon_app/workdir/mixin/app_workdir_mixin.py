@@ -3,9 +3,12 @@ from __future__ import annotations
 from pathlib import Path
 from typing import TYPE_CHECKING
 
+from wexample_prompt.common.io_manager import IoManager
+
 from wexample_filestate.config_value.file_content_config_value import FileContentConfigValue
 from wexample_helpers.const.types import FileStringOrPath
 from wexample_helpers.decorator.base_class import base_class
+from wexample_helpers.helpers.shell import ShellResult
 from wexample_wex_addon_app.workdir.mixin.as_suite_package_item import (
     AsSuitePackageItem,
 )
@@ -47,6 +50,34 @@ class AppWorkdirMixin(
             return not config.read_config().search('global.version').is_none()
         return False
 
+    @classmethod
+    def get_registry_path_from_path(cls, path: FileStringOrPath) -> FileStringOrPath:
+        from wexample_wex_core.const.globals import WORKDIR_SETUP_DIR, CORE_DIR_NAME_TMP, CORE_FILE_NAME_REGISTRY
+        return Path(path) / WORKDIR_SETUP_DIR / CORE_DIR_NAME_TMP / CORE_FILE_NAME_REGISTRY
+
+    @classmethod
+    def get_registry_from_path(cls, path: FileStringOrPath, io: IoManager) -> YamlFile | None:
+        from wexample_filestate.item.file.yaml_file import YamlFile
+        registry_path = cls.get_registry_path_from_path(path=path)
+        if registry_path.exists():
+            return YamlFile.create_from_path(
+                path=registry_path,
+                io=io
+            )
+        return None
+
+    @classmethod
+    def shell_run_from_path(cls, path: FileStringOrPath, cmd: str) -> ShellResult:
+        """ TODO Generate path and command name dynamically."""
+        from wexample_helpers.helpers.shell import shell_run
+
+        # Ask parent suite to generate the info registry that contains packages readme information
+        return shell_run(
+            cmd=f'.wex/bin/app-manager {cmd}',
+            cwd=path,
+            inherit_stdio=True,
+        )
+
     def build_registry_value(self) -> NestedConfigValue:
         from wexample_config.config_value.nested_config_value import NestedConfigValue
         return NestedConfigValue(raw={
@@ -55,9 +86,7 @@ class AppWorkdirMixin(
 
     def build_registry(self) -> YamlFile:
         from wexample_filestate.item.file.yaml_file import YamlFile
-        from wexample_wex_core.const.globals import WORKDIR_SETUP_DIR, CORE_DIR_NAME_TMP, CORE_FILE_NAME_REGISTRY
-
-        registry_path = self.get_path() / WORKDIR_SETUP_DIR / CORE_DIR_NAME_TMP / CORE_FILE_NAME_REGISTRY
+        registry_path = self.get_registry_path_from_path(path=self.get_path())
 
         registry = YamlFile.create_from_path(
             path=registry_path,
