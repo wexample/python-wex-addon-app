@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from wexample_wex_core.const.globals import COMMAND_TYPE_ADDON
 from wexample_wex_core.decorator.command import command
 from wexample_wex_core.decorator.option import option
 
@@ -15,7 +16,7 @@ if TYPE_CHECKING:
 @option(name="all", type=bool, default=False, is_flag=True)
 @option(name="package", type=str)
 @option(name="yes", type=bool, default=False, is_flag=True)
-@command(
+@command(type=COMMAND_TYPE_ADDON,
     description="Validate internal deps, propagate versions, and optionally commit/push."
 )
 def app__suite__prepare(

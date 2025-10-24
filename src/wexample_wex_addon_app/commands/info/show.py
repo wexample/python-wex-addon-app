@@ -2,13 +2,15 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from wexample_wex_core.const.globals import COMMAND_TYPE_ADDON
+
 if TYPE_CHECKING:
     from wexample_wex_core.context.execution_context import ExecutionContext
 
 from wexample_wex_core.decorator.command import command
 
 
-@command()
+@command(type=COMMAND_TYPE_ADDON)
 def app__info__show(
         context: ExecutionContext,
 ) -> None:

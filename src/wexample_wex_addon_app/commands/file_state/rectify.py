@@ -17,7 +17,7 @@ if TYPE_CHECKING:
 @option(name="filter_path", type=str, default=None)
 @option(name="filter_operation", type=str, default=None)
 @option(name="max", type=int, default=None)
-@command()
+@command(type=COMMAND_TYPE_ADDON)
 def app__file_state__rectify(
     context: ExecutionContext,
     yes: bool = False,
