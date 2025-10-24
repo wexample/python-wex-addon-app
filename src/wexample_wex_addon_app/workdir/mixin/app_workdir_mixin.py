@@ -85,12 +85,12 @@ class AppWorkdirMixin(
             cmd = [cmd]
 
         if not AppWorkdirMixin.is_app_workdir_path_setup(path=path):
-            return shell_run(
+            shell_run(
                 cmd=[
                     "pdm",
                     "install",
                 ],
-                cwd=path,
+                cwd=path / APP_PATH_APP_MANAGER,
                 inherit_stdio=True,
             )
 
