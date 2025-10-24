@@ -5,10 +5,12 @@ from typing import TYPE_CHECKING
 
 from wexample_prompt.common.io_manager import IoManager
 
+from wexample_app.const.globals import APP_FILE_APP_MANAGER, APP_PATH_BIN_APP_MANAGER, APP_PATH_APP_MANAGER
 from wexample_filestate.config_value.file_content_config_value import FileContentConfigValue
 from wexample_helpers.const.types import FileStringOrPath
 from wexample_helpers.decorator.base_class import base_class
 from wexample_helpers.helpers.shell import ShellResult
+from wexample_wex_addon_app.app_addon_manager import AppAddonManager
 from wexample_wex_addon_app.workdir.mixin.as_suite_package_item import (
     AsSuitePackageItem,
 )
@@ -45,9 +47,18 @@ class AppWorkdirMixin(
 
     @classmethod
     def is_app_workdir_path(cls, path: FileStringOrPath) -> bool:
-        config = cls.is_app_workdir_path(path=path) is not None
+        config = cls.get_config_from_path(path=path)
         if config:
             return not config.read_config().search('global.version').is_none()
+        return False
+
+    @classmethod
+    def is_app_workdir_path_setup(cls, path: FileStringOrPath) -> bool:
+        path = Path(path)
+        if cls.is_app_workdir_path(path=path):
+            # app-manager exists.
+            return (path / APP_PATH_BIN_APP_MANAGER).exists() and (
+                        path / APP_PATH_APP_MANAGER / ".venv/bin/python").exists()
         return False
 
     @classmethod
@@ -73,7 +84,7 @@ class AppWorkdirMixin(
         if not isinstance(cmd, list):
             cmd = [cmd]
 
-        if not (APP_PATH_APP_MANAGER / ".venv/bin/python").exists():
+        if not AppWorkdirMixin.is_app_workdir_path_setup(path=path):
             return shell_run(
                 cmd=[
                     "pdm",
@@ -204,10 +215,6 @@ class AppWorkdirMixin(
         self.append_readme(config=raw_value)
         self.append_version(config=raw_value)
 
-        import wexample_wex_core
-        import importlib.resources
-        app_manager_template_path = Path(importlib.resources.files(wexample_wex_core)) / "resources" / "app-manager.sh"
-
         raw_value["children"].append(
             {
                 # .wex
@@ -239,11 +246,11 @@ class AppWorkdirMixin(
                         "should_exist": True,
                         "children": [
                             {
-                                "name": "app-manager",
+                                "name": APP_FILE_APP_MANAGER,
                                 "type": DiskItemType.FILE,
                                 "should_exist": True,
                                 "content": FileContentConfigValue(
-                                    path=app_manager_template_path
+                                    path=AppAddonManager.get_shell_manager_path()
                                 ),
                             }
                         ],

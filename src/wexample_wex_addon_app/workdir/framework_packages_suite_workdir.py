@@ -19,11 +19,6 @@ if TYPE_CHECKING:
 
 class FrameworkPackageSuiteWorkdir(BasicAppWorkdir):
 
-    def build_dependencies_map(self) -> dict[str, list[str]]:
-        dependencies = {}
-        for package in self.get_packages():
-            dependencies[package.get_package_name()] = self.filter_local_packages(
-                package.get_dependencies()
     def apply(
             self,
             **kwargs
@@ -70,9 +65,26 @@ class FrameworkPackageSuiteWorkdir(BasicAppWorkdir):
                 )
 
         return result
+
+    # def build_dependencies_map(self) -> dict[str, list[str]]:
+    #     dependencies = {}
+    #     for package in self.get_packages():
+    #         dependencies[package.get_package_name()] = self.filter_local_packages(
+    #             package.get_dependencies()
+    #         )
+    #
+    #     return dependencies
+
+    def get_packages_paths(self) -> list[Path]:
+        locations = (location.get_str() for location in self.get_config().search('package_suite.location').get_list())
+        resolved = []
+
+        for location in locations:
+            resolved.extend(
+                [Path(p) for p in self.get_path().glob(location)]
             )
 
-        return dependencies
+        return resolved
 
     def build_dependencies_stack(
             self,
