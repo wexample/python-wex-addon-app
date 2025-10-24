@@ -67,13 +67,28 @@ class AppWorkdirMixin(
         return None
 
     @classmethod
-    def shell_run_from_path(cls, path: FileStringOrPath, cmd: str) -> ShellResult:
-        """ TODO Generate path and command name dynamically."""
+    def shell_run_from_path(cls, path: FileStringOrPath, cmd: list[str] | str) -> ShellResult:
         from wexample_helpers.helpers.shell import shell_run
+
+        if not isinstance(cmd, list):
+            cmd = [cmd]
+
+        if not (APP_PATH_APP_MANAGER / ".venv/bin/python").exists():
+            return shell_run(
+                cmd=[
+                    "pdm",
+                    "install",
+                ],
+                cwd=path,
+                inherit_stdio=True,
+            )
+
+        full_cmd = [str(APP_PATH_BIN_APP_MANAGER)]
+        full_cmd.extend(cmd)
 
         # Ask parent suite to generate the info registry that contains packages readme information
         return shell_run(
-            cmd=f'.wex/bin/app-manager {cmd}',
+            cmd=full_cmd,
             cwd=path,
             inherit_stdio=True,
         )

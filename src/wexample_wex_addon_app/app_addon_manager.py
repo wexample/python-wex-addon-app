@@ -1,7 +1,9 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from pathlib import Path
+from typing import TYPE_CHECKING, Any
 
+from wexample_app.const.globals import APP_FILE_APP_MANAGER
 from wexample_helpers.classes.private_field import private_field
 from wexample_helpers.decorator.base_class import base_class
 from wexample_helpers.helpers.module import module_load_class_from_file
@@ -46,3 +48,12 @@ class AppAddonManager(AbstractAddonManager):
         )
 
         return self._app_workdir
+
+    @classmethod
+    def get_shell_manager_path(cls) -> Path:
+        return cls.get_package_source_path() / "resources" / f"{APP_FILE_APP_MANAGER}.sh"
+
+    @classmethod
+    def get_package_module(cls) -> Any:
+        import wexample_wex_addon_app
+        return wexample_wex_addon_app

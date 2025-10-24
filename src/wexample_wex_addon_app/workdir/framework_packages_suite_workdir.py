@@ -3,10 +3,12 @@ from __future__ import annotations
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from wexample_prompt.common.progress.progress_handle import ProgressHandle
-
+from wexample_filestate.enum.scopes import Scope
+from wexample_filestate.result.file_state_result import FileStateResult
 from wexample_helpers.classes.abstract_method import abstract_method
 from wexample_wex_addon_app.workdir.basic_app_workdir import BasicAppWorkdir
+from wexample_wex_addon_app.workdir.mixin.app_workdir_mixin import AppWorkdirMixin
+from wexample_wex_core.resolver.addon_command_resolver import AddonCommandResolver
 
 if TYPE_CHECKING:
     from wexample_config.const.types import DictConfig
@@ -22,6 +24,52 @@ class FrameworkPackageSuiteWorkdir(BasicAppWorkdir):
         for package in self.get_packages():
             dependencies[package.get_package_name()] = self.filter_local_packages(
                 package.get_dependencies()
+    def apply(
+            self,
+            **kwargs
+    ) -> FileStateResult:
+        from wexample_wex_addon_app.commands.file_state.rectify import app__file_state__rectify
+
+        result = super().apply(
+            **kwargs
+        )
+
+        # Execute "apply" command on package is the same of using rectify app command.
+        cmd = [AddonCommandResolver.build_command_from_function(
+            command_wrapper=app__file_state__rectify
+        )]
+
+        interactive = kwargs.get("interactive", True)
+        if interactive is False:
+            cmd.append("--yes")
+
+        filter_path = kwargs.get("filter_path", False)
+        if filter_path:
+            cmd.append("--filter-path")
+            cmd.append(filter_path)
+
+        filter_operation = kwargs.get("filter_operation", False)
+        if filter_operation:
+            cmd.append("--filter-operation")
+            cmd.append(filter_operation)
+
+        max = kwargs.get("max", False)
+        if max:
+            cmd.append("--max")
+            cmd.append(max)
+
+        scopes = kwargs.get("scopes", False)
+        if scopes and not Scope.REMOTE in scopes:
+            cmd.append("--no-remote")
+
+        for package_path in self.get_packages_paths():
+            if AppWorkdirMixin.is_app_workdir_path_setup(package_path):
+                AppWorkdirMixin.shell_run_from_path(
+                    cmd=cmd,
+                    path=package_path
+                )
+
+        return result
             )
 
         return dependencies
