@@ -12,7 +12,7 @@ from wexample_wex_core.decorator.command import command
 
 @command(type=COMMAND_TYPE_ADDON)
 def app__registry__write(
-        context: ExecutionContext,
+    context: ExecutionContext,
 ) -> None:
     from wexample_helpers.helpers.cli import cli_make_clickable_path
 

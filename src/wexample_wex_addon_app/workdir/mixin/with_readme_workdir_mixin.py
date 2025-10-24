@@ -1,8 +1,6 @@
 from __future__ import annotations
 
 from typing import TYPE_CHECKING, ClassVar
-
-from wexample_filestate.option.text_option import TextOption
 from wexample_helpers.classes.base_class import BaseClass
 from wexample_helpers.decorator.base_class import base_class
 
@@ -19,6 +17,7 @@ class WithReadmeWorkdirMixin(BaseClass):
 
     def append_readme(self, config: DictConfig | None = None) -> DictConfig:
         from wexample_filestate.const.disk import DiskItemType
+        from wexample_filestate.option.text_option import TextOption
 
         config.get("children").append(
             {

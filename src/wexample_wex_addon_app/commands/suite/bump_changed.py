@@ -19,8 +19,9 @@ if TYPE_CHECKING:
 @option(name="all", type=bool, default=False, is_flag=True)
 @option(name="package", type=str)
 @option(name="yes", type=bool, default=False, is_flag=True)
-@command(type=COMMAND_TYPE_ADDON,
-    description="Bump versions only for packages that have new content (HEAD not tagged), propagate versions, and optionally commit/push."
+@command(
+    type=COMMAND_TYPE_ADDON,
+    description="Bump versions only for packages that have new content (HEAD not tagged), propagate versions, and optionally commit/push.",
 )
 def app__suite__bump_changed(
     context: ExecutionContext,

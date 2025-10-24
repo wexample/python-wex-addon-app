@@ -11,6 +11,7 @@ if TYPE_CHECKING:
     )
     from wexample_prompt.common.progress.progress_handle import ProgressHandle
 
+
 class CodeBaseWorkdir(BasicAppWorkdir):
     def add_publication_tag(self) -> None:
         from wexample_helpers_git.helpers.git import (
@@ -32,7 +33,7 @@ class CodeBaseWorkdir(BasicAppWorkdir):
         git_push_tag(tag, cwd=cwd, inherit_stdio=True)
 
     def build_dependencies_stack(
-            self, package: CodeBaseWorkdir, dependency: CodeBaseWorkdir
+        self, package: CodeBaseWorkdir, dependency: CodeBaseWorkdir
     ) -> list[CodeBaseWorkdir]:
         """When package is dependent from another one (is using it in its codebase),
         list the packages inheritance stack to find the original package declaring the explicit dependency
@@ -80,8 +81,8 @@ class CodeBaseWorkdir(BasicAppWorkdir):
             _bump()
 
     def commit_changes(
-            self,
-            progress: ProgressHandle | None = None,
+        self,
+        progress: ProgressHandle | None = None,
     ) -> None:
         """Commit local changes (if any), without pushing."""
         from wexample_helpers_git.helpers.git import (
@@ -95,8 +96,8 @@ class CodeBaseWorkdir(BasicAppWorkdir):
 
         cwd = self.get_path()
         progress = (
-                progress
-                or self.io.progress(label="Committing changes...", total=3).get_handle()
+            progress
+            or self.io.progress(label="Committing changes...", total=3).get_handle()
         )
 
         git_current_branch(cwd=cwd, inherit_stdio=False)
@@ -183,14 +184,14 @@ class CodeBaseWorkdir(BasicAppWorkdir):
         return False
 
     def publish(
-            self,
-            progress: ProgressHandle | None = None,
+        self,
+        progress: ProgressHandle | None = None,
     ) -> None:
         pass
 
     def push_changes(
-            self,
-            progress: ProgressHandle | None = None,
+        self,
+        progress: ProgressHandle | None = None,
     ) -> None:
         """Push current branch to upstream (following tags), without committing."""
         from wexample_helpers_git.helpers.git import (
@@ -201,8 +202,8 @@ class CodeBaseWorkdir(BasicAppWorkdir):
 
         cwd = self.get_path()
         progress = (
-                progress
-                or self.io.progress(label="Pushing changes...", total=1).get_handle()
+            progress
+            or self.io.progress(label="Pushing changes...", total=1).get_handle()
         )
 
         git_current_branch(cwd=cwd, inherit_stdio=False)

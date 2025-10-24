@@ -16,8 +16,9 @@ if TYPE_CHECKING:
 @option(name="all", type=bool, default=False, is_flag=True)
 @option(name="package", type=str)
 @option(name="yes", type=bool, default=False, is_flag=True)
-@command(type=COMMAND_TYPE_ADDON,
-    description="Validate internal deps, propagate versions, and optionally commit/push."
+@command(
+    type=COMMAND_TYPE_ADDON,
+    description="Validate internal deps, propagate versions, and optionally commit/push.",
 )
 def app__suite__prepare(
     context: ExecutionContext,

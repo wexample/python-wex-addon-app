@@ -20,15 +20,15 @@ if TYPE_CHECKING:
 @option(name="max", type=int, default=None)
 @command(type=COMMAND_TYPE_ADDON)
 def app__file_state__rectify(
-        context: ExecutionContext,
-        yes: bool = False,
-        dry_run: bool = False,
-        loop: bool = False,
-        loop_limit: int = 10,
-        no_remote: bool = False,
-        filter_path: str | None = None,
-        filter_operation: str | None = None,
-        max: int = None,
+    context: ExecutionContext,
+    yes: bool = False,
+    dry_run: bool = False,
+    loop: bool = False,
+    loop_limit: int = 10,
+    no_remote: bool = False,
+    filter_path: str | None = None,
+    filter_operation: str | None = None,
+    max: int = None,
 ) -> None:
     from wexample_filestate.enum.scopes import Scope
 
