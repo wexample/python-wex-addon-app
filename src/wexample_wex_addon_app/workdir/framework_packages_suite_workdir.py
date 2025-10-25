@@ -29,9 +29,11 @@ class FrameworkPackageSuiteWorkdir(BasicAppWorkdir):
         )
 
         # Execute "apply" command on package is the same of using rectify app command.
-        cmd = [AddonCommandResolver.build_command_from_function(
-            command_wrapper=app__file_state__rectify
-        )]
+        cmd = [
+            AddonCommandResolver.build_command_from_function(command_wrapper=app__file_state__rectify),
+            "--indentation-level",
+            "1" # TODO How to know current indentation level without access to kenrel ?
+        ]
 
         interactive = kwargs.get("interactive", True)
         if interactive is False:
@@ -63,7 +65,7 @@ class FrameworkPackageSuiteWorkdir(BasicAppWorkdir):
                     cmd=cmd,
                     path=package_path
                 )
-            except:
+            except KeyboardInterrupt:
                 return result
 
         return result
