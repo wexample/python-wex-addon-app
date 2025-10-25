@@ -36,6 +36,7 @@ def app__file_state__rectify(
         # Apply changes once, or keep looping until no operations remain (when --loop is set).
         iterations = 0
         while True:
+            iterations += 1
             workdir = context.request.get_addon_manager().app_workdir(reload=True)
 
             # Remove remote.
@@ -49,19 +50,20 @@ def app__file_state__rectify(
             )
 
             if len(result.operations) == 0:
+                pass_text = "pass" if iterations == 1 else "passes"
                 context.io.success(
-                    f"Rectification completed successfully after {iterations} pass(es)."
+                    f"Rectification completed successfully after {iterations} {pass_text}."
                 )
                 break
 
             # Stop immediately after the first pass if looping is disabled.
             if not loop:
+                operation_text = "operation" if len(result.operations) == 1 else "operations"
                 context.io.log(
-                    f"Rectification pass completed; detected {len(result.operations)} operation(s)."
+                    f"Rectification pass completed; applied {len(result.operations)} {operation_text}."
                 )
                 break
 
-            iterations += 1
             if iterations >= loop_limit:
                 context.io.warning(
                     f"Loop limit reached ({iterations}/{loop_limit}); stopping further passes."
@@ -69,7 +71,7 @@ def app__file_state__rectify(
                 break
 
             context.io.log(
-                f"Remaining operations detected; starting pass {iterations} of {loop_limit}."
+                f"Pass {iterations} completed with {len(result.operations)} operation(s); starting pass {iterations + 1} of {loop_limit}."
             )
     else:
         workdir = context.request.get_addon_manager().app_workdir(reload=True)
