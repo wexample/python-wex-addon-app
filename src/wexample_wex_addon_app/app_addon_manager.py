@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
+
 from wexample_helpers.classes.private_field import private_field
 from wexample_helpers.decorator.base_class import base_class
 from wexample_wex_core.common.abstract_addon_manager import AbstractAddonManager
@@ -32,6 +33,7 @@ class AppAddonManager(AbstractAddonManager):
 
     def app_workdir(self, reload: bool = False) -> AppWorkdirMixin | None:
         from wexample_helpers.helpers.module import module_load_class_from_file
+
         from wexample_wex_addon_app.workdir.basic_app_workdir import BasicAppWorkdir
 
         if reload:

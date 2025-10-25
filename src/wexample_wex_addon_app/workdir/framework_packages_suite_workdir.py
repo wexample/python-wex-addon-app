@@ -2,12 +2,15 @@ from __future__ import annotations
 
 from pathlib import Path
 from typing import TYPE_CHECKING
+
 from wexample_filestate.result.file_state_result import FileStateResult
 from wexample_helpers.classes.abstract_method import abstract_method
+
 from wexample_wex_addon_app.workdir.basic_app_workdir import BasicAppWorkdir
 
 if TYPE_CHECKING:
     from wexample_config.const.types import DictConfig
+
     from wexample_wex_addon_app.workdir.code_base_workdir import (
         CodeBaseWorkdir,
     )
@@ -19,11 +22,12 @@ class FrameworkPackageSuiteWorkdir(BasicAppWorkdir):
         from wexample_wex_core.resolver.addon_command_resolver import (
             AddonCommandResolver,
         )
-        from wexample_wex_addon_app.workdir.mixin.app_workdir_mixin import (
-            AppWorkdirMixin,
-        )
+
         from wexample_wex_addon_app.commands.file_state.rectify import (
             app__file_state__rectify,
+        )
+        from wexample_wex_addon_app.workdir.mixin.app_workdir_mixin import (
+            AppWorkdirMixin,
         )
 
         result = super().apply(**kwargs)
