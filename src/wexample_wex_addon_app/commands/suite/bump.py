@@ -13,7 +13,10 @@ if TYPE_CHECKING:
 @option(name="all", type=bool, default=False, is_flag=True)
 @option(name="package", type=str)
 @option(name="yes", type=bool, default=False, is_flag=True)
-@command(type=COMMAND_TYPE_ADDON, description="Bump version for one or all package of the suite.")
+@command(
+    type=COMMAND_TYPE_ADDON,
+    description="Bump version for one or all package of the suite.",
+)
 def app__suite__bump(
     context: ExecutionContext,
     all: bool | None = None,

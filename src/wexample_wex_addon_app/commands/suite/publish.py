@@ -59,7 +59,6 @@ def app__suite__publish(
     progress.finish(color=TerminalColor.GREEN, label="All packages published.")
 
 
-
 def _init_app_workdir(
     context: ExecutionContext, progress
 ) -> FrameworkPackageSuiteWorkdir | None:
