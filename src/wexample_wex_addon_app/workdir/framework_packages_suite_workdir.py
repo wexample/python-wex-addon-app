@@ -16,8 +16,12 @@ if TYPE_CHECKING:
 class FrameworkPackageSuiteWorkdir(BasicAppWorkdir):
     def apply(self, **kwargs) -> FileStateResult:
         from wexample_filestate.enum.scopes import Scope
-        from wexample_wex_core.resolver.addon_command_resolver import AddonCommandResolver
-        from wexample_wex_addon_app.workdir.mixin.app_workdir_mixin import AppWorkdirMixin
+        from wexample_wex_core.resolver.addon_command_resolver import (
+            AddonCommandResolver,
+        )
+        from wexample_wex_addon_app.workdir.mixin.app_workdir_mixin import (
+            AppWorkdirMixin,
+        )
         from wexample_wex_addon_app.commands.file_state.rectify import (
             app__file_state__rectify,
         )
@@ -60,8 +64,11 @@ class FrameworkPackageSuiteWorkdir(BasicAppWorkdir):
             self.io.title(f"📦 Rectifying {package_path.name}")
             # Allow interruption
             try:
-                if AppWorkdirMixin.shell_run_from_path(cmd=cmd, path=package_path) is None:
-                    self.io.log('Invalid package directory, aborting')
+                if (
+                    AppWorkdirMixin.shell_run_from_path(cmd=cmd, path=package_path)
+                    is None
+                ):
+                    self.io.log("Invalid package directory, aborting")
 
             except KeyboardInterrupt:
                 return result

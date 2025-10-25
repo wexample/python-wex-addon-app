@@ -8,7 +8,6 @@ from wexample_wex_core.common.abstract_addon_manager import AbstractAddonManager
 
 if TYPE_CHECKING:
     from wexample_wex_addon_app.workdir.mixin.app_workdir_mixin import AppWorkdirMixin
-    from wexample_wex_addon_app.workdir.basic_app_workdir import BasicAppWorkdir
 
 
 @base_class
