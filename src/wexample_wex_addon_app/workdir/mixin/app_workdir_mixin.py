@@ -4,7 +4,9 @@ from typing import TYPE_CHECKING
 from wexample_prompt.common.io_manager import IoManager
 
 from wexample_app.const.globals import (
-    APP_PATH_APP_MANAGER)
+    APP_FILE_APP_MANAGER,
+    APP_PATH_APP_MANAGER,
+)
 from wexample_helpers.const.types import FileStringOrPath
 from wexample_helpers.decorator.base_class import base_class
 from wexample_helpers.helpers.shell import ShellResult
@@ -14,7 +16,7 @@ from wexample_wex_addon_app.workdir.mixin.as_suite_package_item import (
 from wexample_wex_addon_app.workdir.mixin.with_readme_workdir_mixin import (
     WithReadmeWorkdirMixin,
 )
-from wexample_wex_core.const.globals import WORKDIR_SETUP_DIR
+from wexample_wex_core.const.globals import CORE_DIR_NAME_TMP, WORKDIR_SETUP_DIR
 from wexample_wex_core.workdir.mixin.with_app_version_workdir_mixin import (
     WithAppVersionWorkdirMixin,
 )
