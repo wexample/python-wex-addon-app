@@ -31,7 +31,7 @@ class FrameworkPackageSuiteWorkdir(BasicAppWorkdir):
                 command_wrapper=app__file_state__rectify
             ),
             "--indentation-level",
-            "1",  # TODO How to know current indentation level without access to kenrel ?
+            "1",  # TODO How to know current indentation level without access to kernel ?
         ]
 
         interactive = kwargs.get("interactive", True)
@@ -58,7 +58,7 @@ class FrameworkPackageSuiteWorkdir(BasicAppWorkdir):
             cmd.append("--no-remote")
 
         for package_path in self.get_packages_paths():
-            self.io.title(f"Applying on {package_path.name}")
+            self.io.title(f"Rectifying {package_path.name}")
             # Allow interruption
             try:
                 AppWorkdirMixin.shell_run_from_path(cmd=cmd, path=package_path)
@@ -77,16 +77,15 @@ class FrameworkPackageSuiteWorkdir(BasicAppWorkdir):
         return dependencies
 
     def get_packages_paths(self) -> list[Path]:
-        locations = (
-            location.get_str()
-            for location in self.get_config()
-            .search("package_suite.location")
-            .get_list()
-        )
-        resolved = []
+        """Return all resolved package paths that are directories only."""
+        config = self.get_config().search("package_suite.location").get_list()
 
-        for location in locations:
-            resolved.extend([Path(p) for p in self.get_path().glob(location)])
+        resolved: list[Path] = []
+
+        for location in (loc.get_str() for loc in config):
+            for path in self.get_path().glob(location):
+                if path.is_dir():  # ✅ only keep directories
+                    resolved.append(path)
 
         return resolved
 
