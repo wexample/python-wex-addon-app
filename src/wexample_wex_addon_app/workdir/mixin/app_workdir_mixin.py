@@ -1,6 +1,4 @@
 from __future__ import annotations
-
-from pathlib import Path
 from typing import TYPE_CHECKING
 
 from wexample_prompt.common.io_manager import IoManager
@@ -10,13 +8,9 @@ from wexample_app.const.globals import (
     APP_PATH_BIN_APP_MANAGER,
     APP_PATH_APP_MANAGER,
 )
-from wexample_filestate.config_value.file_content_config_value import (
-    FileContentConfigValue,
-)
 from wexample_helpers.const.types import FileStringOrPath
 from wexample_helpers.decorator.base_class import base_class
 from wexample_helpers.helpers.shell import ShellResult
-from wexample_wex_addon_app.app_addon_manager import AppAddonManager
 from wexample_wex_addon_app.workdir.mixin.as_suite_package_item import (
     AsSuitePackageItem,
 )
@@ -40,6 +34,7 @@ class AppWorkdirMixin(
 ):
     @classmethod
     def get_config_from_path(cls, path: FileStringOrPath) -> YamlFile | None:
+        from pathlib import Path
         from wexample_filestate.item.file.yaml_file import YamlFile
         from wexample_app.const.globals import APP_FILE_APP_CONFIG
 
@@ -65,6 +60,7 @@ class AppWorkdirMixin(
 
     @classmethod
     def get_registry_path_from_path(cls, path: FileStringOrPath) -> FileStringOrPath:
+        from pathlib import Path
         from wexample_wex_core.const.globals import (
             WORKDIR_SETUP_DIR,
             CORE_DIR_NAME_TMP,
@@ -84,6 +80,8 @@ class AppWorkdirMixin(
 
     @classmethod
     def is_app_workdir_path_setup(cls, path: FileStringOrPath) -> bool:
+        from wexample_app.const.globals import APP_PATH_BIN_APP_MANAGER
+        from pathlib import Path
         path = Path(path)
         if cls.is_app_workdir_path(path=path):
             # app-manager exists.
@@ -96,6 +94,7 @@ class AppWorkdirMixin(
     def shell_run_from_path(
         cls, path: FileStringOrPath, cmd: list[str] | str
     ) -> None | ShellResult:
+        from wexample_app.const.globals import APP_PATH_BIN_APP_MANAGER
         from wexample_helpers.helpers.shell import shell_run
 
         if not isinstance(cmd, list):
@@ -223,6 +222,8 @@ class AppWorkdirMixin(
         return str(version).strip()
 
     def prepare_value(self, raw_value: DictConfig | None = None) -> DictConfig:
+        from wexample_wex_addon_app.app_addon_manager import AppAddonManager
+        from wexample_filestate.config_value.file_content_config_value import FileContentConfigValue
         from wexample_wex_core.const.project import PROJECT_GITIGNORE_DEFAULT
         from wexample_app.const.globals import APP_FILE_APP_CONFIG
         from wexample_filestate.const.disk import DiskItemType
