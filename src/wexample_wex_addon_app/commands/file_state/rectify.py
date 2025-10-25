@@ -50,7 +50,7 @@ def app__file_state__rectify(
 
             if len(result.operations) == 0:
                 context.io.success(
-                    f"No remaining operations; rectification converged after {iterations} pass(es)."
+                    f"Rectification completed successfully after {iterations} pass(es)."
                 )
                 break
 
