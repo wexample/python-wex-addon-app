@@ -59,6 +59,7 @@ class FrameworkPackageSuiteWorkdir(BasicAppWorkdir):
             cmd.append("--no-remote")
 
         for package_path in self.get_packages_paths():
+            self.io.title(f'Applying on {package_path.name}')
             # Allow interruption
             try:
                 AppWorkdirMixin.shell_run_from_path(
