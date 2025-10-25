@@ -76,19 +76,6 @@ class FrameworkPackageSuiteWorkdir(BasicAppWorkdir):
 
         return dependencies
 
-    def get_packages_paths(self) -> list[Path]:
-        """Return all resolved package paths that are directories only."""
-        config = self.get_config().search("package_suite.location").get_list()
-
-        resolved: list[Path] = []
-
-        for location in (loc.get_str() for loc in config):
-            for path in self.get_path().glob(location):
-                if path.is_dir():  # ✅ only keep directories
-                    resolved.append(path)
-
-        return resolved
-
     def build_dependencies_stack(
         self,
         package: CodeBaseWorkdir,
@@ -152,6 +139,19 @@ class FrameworkPackageSuiteWorkdir(BasicAppWorkdir):
         if pip_dir:
             return pip_dir.get_children_list()
         return []
+
+    def get_packages_paths(self) -> list[Path]:
+        """Return all resolved package paths that are directories only."""
+        config = self.get_config().search("package_suite.location").get_list()
+
+        resolved: list[Path] = []
+
+        for location in (loc.get_str() for loc in config):
+            for path in self.get_path().glob(location):
+                if path.is_dir():  # ✅ only keep directories
+                    resolved.append(path)
+
+        return resolved
 
     def packages_propagate_versions(
         self, progress: ProgressHandle | None = None

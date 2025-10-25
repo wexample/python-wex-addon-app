@@ -53,6 +53,29 @@ class AppWorkdirMixin(
         return None
 
     @classmethod
+    def get_registry_from_path(
+        cls, path: FileStringOrPath, io: IoManager
+    ) -> YamlFile | None:
+        from wexample_filestate.item.file.yaml_file import YamlFile
+
+        registry_path = cls.get_registry_path_from_path(path=path)
+        if registry_path.exists():
+            return YamlFile.create_from_path(path=registry_path, io=io)
+        return None
+
+    @classmethod
+    def get_registry_path_from_path(cls, path: FileStringOrPath) -> FileStringOrPath:
+        from wexample_wex_core.const.globals import (
+            WORKDIR_SETUP_DIR,
+            CORE_DIR_NAME_TMP,
+            CORE_FILE_NAME_REGISTRY,
+        )
+
+        return (
+            Path(path) / WORKDIR_SETUP_DIR / CORE_DIR_NAME_TMP / CORE_FILE_NAME_REGISTRY
+        )
+
+    @classmethod
     def is_app_workdir_path(cls, path: FileStringOrPath) -> bool:
         config = cls.get_config_from_path(path=path)
         if config:
@@ -68,29 +91,6 @@ class AppWorkdirMixin(
                 path / APP_PATH_APP_MANAGER / ".venv/bin/python"
             ).exists()
         return False
-
-    @classmethod
-    def get_registry_path_from_path(cls, path: FileStringOrPath) -> FileStringOrPath:
-        from wexample_wex_core.const.globals import (
-            WORKDIR_SETUP_DIR,
-            CORE_DIR_NAME_TMP,
-            CORE_FILE_NAME_REGISTRY,
-        )
-
-        return (
-            Path(path) / WORKDIR_SETUP_DIR / CORE_DIR_NAME_TMP / CORE_FILE_NAME_REGISTRY
-        )
-
-    @classmethod
-    def get_registry_from_path(
-        cls, path: FileStringOrPath, io: IoManager
-    ) -> YamlFile | None:
-        from wexample_filestate.item.file.yaml_file import YamlFile
-
-        registry_path = cls.get_registry_path_from_path(path=path)
-        if registry_path.exists():
-            return YamlFile.create_from_path(path=registry_path, io=io)
-        return None
 
     @classmethod
     def shell_run_from_path(
@@ -128,15 +128,6 @@ class AppWorkdirMixin(
             inherit_stdio=True,
         )
 
-    def build_registry_value(self) -> NestedConfigValue:
-        from wexample_config.config_value.nested_config_value import NestedConfigValue
-
-        return NestedConfigValue(
-            raw={
-                "config": self.get_config(),
-            }
-        )
-
     def build_registry(self) -> YamlFile:
         from wexample_filestate.item.file.yaml_file import YamlFile
 
@@ -147,6 +138,15 @@ class AppWorkdirMixin(
         registry.write_config(self.build_registry_value())
 
         return registry
+
+    def build_registry_value(self) -> NestedConfigValue:
+        from wexample_config.config_value.nested_config_value import NestedConfigValue
+
+        return NestedConfigValue(
+            raw={
+                "config": self.get_config(),
+            }
+        )
 
     def get_config(self) -> NestedConfigValue:
         from wexample_config.config_value.nested_config_value import NestedConfigValue
