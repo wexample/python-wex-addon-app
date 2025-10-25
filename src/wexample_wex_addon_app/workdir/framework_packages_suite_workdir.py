@@ -65,7 +65,7 @@ class FrameworkPackageSuiteWorkdir(BasicAppWorkdir):
             cmd.append("--no-remote")
 
         for package_path in self.get_packages_paths():
-            self.io.title(f"📦 Rectifying {package_path.name}")
+            self.io.title(f"Rectifying {package_path.name}")
             # Allow interruption
             try:
                 if (
