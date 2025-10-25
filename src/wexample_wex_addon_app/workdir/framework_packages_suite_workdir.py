@@ -58,10 +58,12 @@ class FrameworkPackageSuiteWorkdir(BasicAppWorkdir):
             cmd.append("--no-remote")
 
         for package_path in self.get_packages_paths():
-            self.io.title(f"Rectifying {package_path.name}")
+            self.io.title(f"📦 Rectifying {package_path.name}")
             # Allow interruption
             try:
-                AppWorkdirMixin.shell_run_from_path(cmd=cmd, path=package_path)
+                if AppWorkdirMixin.shell_run_from_path(cmd=cmd, path=package_path) is None:
+                    self.io.log('Invalid package directory, aborting')
+
             except KeyboardInterrupt:
                 return result
 
