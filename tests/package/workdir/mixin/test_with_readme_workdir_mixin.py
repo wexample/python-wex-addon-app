@@ -65,5 +65,4 @@ class TestWithReadmeWorkdirMixin(AbstractWorkdirMixinTest):
         class ReadmeWorkdir(WithReadmeWorkdirMixin, BaseClass):
             """Test class that inherits from WithReadmeWorkdirMixin."""
 
-
         return ReadmeWorkdir

@@ -58,7 +58,9 @@ def app__file_state__rectify(
 
             # Stop immediately after the first pass if looping is disabled.
             if not loop:
-                operation_text = "operation" if len(result.operations) == 1 else "operations"
+                operation_text = (
+                    "operation" if len(result.operations) == 1 else "operations"
+                )
                 context.io.log(
                     f"Rectification pass completed; applied {len(result.operations)} {operation_text}."
                 )

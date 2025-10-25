@@ -51,5 +51,4 @@ class TestWithVersionWorkdirMixin(AbstractWorkdirMixinTest):
         class VersionWorkdir(WithVersionWorkdirMixin, BaseClass):
             """Test class that inherits from WithVersionWorkdirMixin."""
 
-
         return VersionWorkdir

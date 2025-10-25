@@ -26,6 +26,7 @@ class AppAddonManager(AbstractAddonManager):
     @classmethod
     def get_shell_manager_path(cls) -> Path:
         from wexample_app.const.globals import APP_FILE_APP_MANAGER
+
         return (
             cls.get_package_source_path() / "resources" / f"{APP_FILE_APP_MANAGER}.sh"
         )
