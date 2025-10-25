@@ -18,21 +18,20 @@ if TYPE_CHECKING:
 
 
 class FrameworkPackageSuiteWorkdir(BasicAppWorkdir):
-    def apply(
-            self,
-            **kwargs
-    ) -> FileStateResult:
-        from wexample_wex_addon_app.commands.file_state.rectify import app__file_state__rectify
-
-        result = super().apply(
-            **kwargs
+    def apply(self, **kwargs) -> FileStateResult:
+        from wexample_wex_addon_app.commands.file_state.rectify import (
+            app__file_state__rectify,
         )
+
+        result = super().apply(**kwargs)
 
         # Execute "apply" command on package is the same of using rectify app command.
         cmd = [
-            AddonCommandResolver.build_command_from_function(command_wrapper=app__file_state__rectify),
+            AddonCommandResolver.build_command_from_function(
+                command_wrapper=app__file_state__rectify
+            ),
             "--indentation-level",
-            "1" # TODO How to know current indentation level without access to kenrel ?
+            "1",  # TODO How to know current indentation level without access to kenrel ?
         ]
 
         interactive = kwargs.get("interactive", True)
@@ -59,18 +58,15 @@ class FrameworkPackageSuiteWorkdir(BasicAppWorkdir):
             cmd.append("--no-remote")
 
         for package_path in self.get_packages_paths():
-            self.io.title(f'Applying on {package_path.name}')
+            self.io.title(f"Applying on {package_path.name}")
             # Allow interruption
             try:
-                AppWorkdirMixin.shell_run_from_path(
-                    cmd=cmd,
-                    path=package_path
-                )
+                AppWorkdirMixin.shell_run_from_path(cmd=cmd, path=package_path)
             except KeyboardInterrupt:
                 return result
 
         return result
-    
+
     def build_dependencies_map(self) -> dict[str, list[str]]:
         dependencies = {}
         for package in self.get_packages():
@@ -81,21 +77,24 @@ class FrameworkPackageSuiteWorkdir(BasicAppWorkdir):
         return dependencies
 
     def get_packages_paths(self) -> list[Path]:
-        locations = (location.get_str() for location in self.get_config().search('package_suite.location').get_list())
+        locations = (
+            location.get_str()
+            for location in self.get_config()
+            .search("package_suite.location")
+            .get_list()
+        )
         resolved = []
 
         for location in locations:
-            resolved.extend(
-                [Path(p) for p in self.get_path().glob(location)]
-            )
+            resolved.extend([Path(p) for p in self.get_path().glob(location)])
 
         return resolved
 
     def build_dependencies_stack(
-            self,
-            package: CodeBaseWorkdir,
-            dependency: CodeBaseWorkdir,
-            dependencies_map: dict[str, list[str]],
+        self,
+        package: CodeBaseWorkdir,
+        dependency: CodeBaseWorkdir,
+        dependencies_map: dict[str, list[str]],
     ) -> list[CodeBaseWorkdir]:
         """When a package depends on another (uses it in its codebase),
         return the dependency chain to locate the original package that declares the explicit dependency.
@@ -136,31 +135,35 @@ class FrameworkPackageSuiteWorkdir(BasicAppWorkdir):
 
     def get_dependents(self, package: CodeBaseWorkdir) -> list[CodeBaseWorkdir]:
         return []
-    
+
     def get_local_packages_names(self) -> list[str]:
         return [p.get_package_name() for p in self.get_packages()]
+
     def get_ordered_packages(self) -> list[CodeBaseWorkdir]:
         return self.get_packages()
+
     def get_package(self, package_name: str) -> CodeBaseWorkdir | None:
         for package in self.get_packages():
             if package.get_package_name() == package_name:
                 return package
         return None
+
     def get_packages(self) -> list[CodeBaseWorkdir]:
         pip_dir = self.find_by_name(item_name="pip")
         if pip_dir:
             return pip_dir.get_children_list()
         return []
+
     def packages_propagate_versions(
-            self, progress: ProgressHandle | None = None
+        self, progress: ProgressHandle | None = None
     ) -> None:
         ordered_packages = self.get_ordered_packages()
 
         progress = (
-                progress
-                or self.io.progress(
-            label=f"Starting...", total=len(ordered_packages)
-        ).get_handle()
+            progress
+            or self.io.progress(
+                label=f"Starting...", total=len(ordered_packages)
+            ).get_handle()
         )
 
         for package in ordered_packages:

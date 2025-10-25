@@ -10,6 +10,7 @@ if TYPE_CHECKING:
     from collections.abc import Iterable
 
     from wexample_wex_core.context.execution_context import ExecutionContext
+
     from wexample_wex_addon_app.workdir.code_base_workdir import CodeBaseWorkdir
     from wexample_wex_addon_app.workdir.framework_packages_suite_workdir import (
         FrameworkPackageSuiteWorkdir,

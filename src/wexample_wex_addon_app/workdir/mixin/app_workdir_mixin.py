@@ -95,21 +95,28 @@ class AppWorkdirMixin(
     @classmethod
     def shell_run_from_path(
         cls, path: FileStringOrPath, cmd: list[str] | str
-    ) -> ShellResult:
+    ) -> None | ShellResult:
         from wexample_helpers.helpers.shell import shell_run
 
         if not isinstance(cmd, list):
             cmd = [cmd]
 
         if not AppWorkdirMixin.is_app_workdir_path_setup(path=path):
-            shell_run(
-                cmd=[
-                    "pdm",
-                    "install",
-                ],
-                cwd=path / APP_PATH_APP_MANAGER,
-                inherit_stdio=True,
-            )
+            manager_path = path / APP_PATH_APP_MANAGER
+            # This is a non installed app.
+            if manager_path.exists():
+                # Install it.
+                shell_run(
+                    cmd=[
+                        "pdm",
+                        "install",
+                    ],
+                    cwd=path / APP_PATH_APP_MANAGER,
+                    inherit_stdio=True,
+                )
+            else:
+                # This is an undefined directory.
+                return None
 
         full_cmd = [str(APP_PATH_BIN_APP_MANAGER)]
         full_cmd.extend(cmd)

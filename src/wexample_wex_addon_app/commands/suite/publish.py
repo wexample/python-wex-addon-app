@@ -7,6 +7,7 @@ from wexample_wex_core.decorator.command import command
 
 if TYPE_CHECKING:
     from wexample_wex_core.context.execution_context import ExecutionContext
+
     from wexample_wex_addon_app.workdir.framework_packages_suite_workdir import (
         FrameworkPackageSuiteWorkdir,
     )

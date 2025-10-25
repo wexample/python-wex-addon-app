@@ -20,6 +20,18 @@ class AppAddonManager(AbstractAddonManager):
         default=None, description="The current managed app workdir"
     )
 
+    @classmethod
+    def get_package_module(cls) -> Any:
+        import wexample_wex_addon_app
+
+        return wexample_wex_addon_app
+
+    @classmethod
+    def get_shell_manager_path(cls) -> Path:
+        return (
+            cls.get_package_source_path() / "resources" / f"{APP_FILE_APP_MANAGER}.sh"
+        )
+
     def app_workdir(self, reload: bool = False) -> AppWorkdirMixin | None:
         from wexample_wex_addon_app.workdir.basic_app_workdir import BasicAppWorkdir
 
@@ -47,15 +59,3 @@ class AppAddonManager(AbstractAddonManager):
         )
 
         return self._app_workdir
-
-    @classmethod
-    def get_shell_manager_path(cls) -> Path:
-        return (
-            cls.get_package_source_path() / "resources" / f"{APP_FILE_APP_MANAGER}.sh"
-        )
-
-    @classmethod
-    def get_package_module(cls) -> Any:
-        import wexample_wex_addon_app
-
-        return wexample_wex_addon_app

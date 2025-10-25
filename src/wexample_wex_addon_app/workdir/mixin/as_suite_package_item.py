@@ -4,7 +4,6 @@ from pathlib import Path
 
 from wexample_helpers.classes.base_class import BaseClass
 from wexample_helpers.decorator.base_class import base_class
-from wexample_helpers.helpers.directory import directory_iterate_parent_dirs
 
 
 @base_class
@@ -14,9 +13,8 @@ class AsSuitePackageItem(BaseClass):
         We have to trust the configuration file to know if parent directory is a suite or not,
         as we cannot directly load suite python class from a different venv.
         """
-        from wexample_wex_addon_app.workdir.mixin.app_workdir_mixin import (
-            AppWorkdirMixin,
-        )
+        from wexample_wex_addon_app.workdir.mixin.app_workdir_mixin import AppWorkdirMixin
+        from wexample_helpers.helpers.directory import directory_iterate_parent_dirs
 
         def _found(path: Path) -> bool:
             config = AppWorkdirMixin.get_config_from_path(
