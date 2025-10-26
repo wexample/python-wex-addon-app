@@ -37,27 +37,11 @@ if TYPE_CHECKING:
 def app__suite__exec_command(
         context: ExecutionContext,
         command: str,
-        arguments: str = None,
-        app_path: str | None = None
+        app_workdir: FrameworkPackageSuiteWorkdir,
+        arguments: str = None
 ) -> None:
-    workdir = context.request.get_addon_manager().app_workdir(path=app_path, reload=True)
-
-    if workdir:
-        if not isinstance(workdir, FrameworkPackageSuiteWorkdir):
-            context.io.info(
-                message=f"The app workdir `{workdir.get_path()}` is of type {workdir.__class__.__name__} and not a subclass of packages suite manager."
-            )
-        else:
-            cmd = [command]
-            if arguments is not None:
-                cmd.extend(shell_split_cmd(arguments))
-
-            if "--indentation-level" not in cmd:
-                cmd.extend([
-                    "--indentation-level",
-                    str(context.io.indentation + 1)
-                ])
-
-            workdir.packages_execute_manager(
-                cmd=cmd
-            )
+    app_workdir.packages_execute_manager(
+        command=command,
+        arguments=shell_split_cmd(arguments),
+        context=context
+    )

@@ -71,7 +71,7 @@ def _init_app_workdir(
         FrameworkPackageSuiteWorkdir,
     )
 
-    workdir = context.request.get_addon_manager().app_workdir()
+    workdir = context.request.get_addon_manager().create_app_workdir()
     if not isinstance(workdir, FrameworkPackageSuiteWorkdir):
         context.io.warning(
             f"The current path is not a suite manager workdir: {workdir.get_path()}"

@@ -3,11 +3,11 @@ from __future__ import annotations
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from wexample_filestate.result.file_state_result import FileStateResult
 from wexample_helpers.classes.abstract_method import abstract_method
 from wexample_helpers.const.types import PathOrString
 from wexample_prompt.common.progress.progress_handle import ProgressHandle
 from wexample_wex_addon_app.workdir.basic_app_workdir import BasicAppWorkdir
+from wexample_wex_core.context.execution_context import ExecutionContext
 
 if TYPE_CHECKING:
     from wexample_config.const.types import DictConfig
@@ -44,10 +44,22 @@ class FrameworkPackageSuiteWorkdir(BasicAppWorkdir):
             except KeyboardInterrupt:
                 return
 
-    def packages_execute_manager(self, cmd: list[str]):
+    def packages_execute_manager(self, command: str, context: ExecutionContext, arguments: None | list[str] = None):
         from wexample_wex_addon_app.workdir.mixin.app_workdir_mixin import (
             AppWorkdirMixin,
         )
+
+        cmd = [command]
+        arguments = arguments or []
+
+        if arguments is not None:
+            cmd.extend(arguments)
+
+        if "--indentation-level" not in cmd:
+            cmd.extend([
+                "--indentation-level",
+                str(context.io.indentation + 1)
+            ])
 
         self._packages_execute(
             cmd=cmd,
@@ -65,8 +77,6 @@ class FrameworkPackageSuiteWorkdir(BasicAppWorkdir):
             executor_method=AppWorkdirMixin.shell_run_from_path,
             message="Executing shell",
         )
-
-        return result
 
     def build_dependencies_map(self) -> dict[str, list[str]]:
         dependencies = {}

@@ -25,7 +25,7 @@ def app__suite__bump(
 ) -> None:
     # Normalize input and initialize once.
     package_name = package
-    workdir = context.request.get_addon_manager().app_workdir()
+    workdir = context.request.get_addon_manager().create_app_workdir()
 
     # Guard against conflicting options.
     if all and package_name:

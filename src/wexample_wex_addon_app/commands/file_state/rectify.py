@@ -2,8 +2,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from wexample_wex_addon_app.middleware.app_middleware import AppMiddleware
 from wexample_wex_addon_app.middleware.each_suite_package_middleware import EachSuitePackageMiddleware
-from wexample_wex_addon_app.middleware.package_suite_middleware import PackageSuiteMiddleware
 from wexample_wex_addon_app.workdir.basic_app_workdir import BasicAppWorkdir
 from wexample_wex_core.const.globals import COMMAND_TYPE_ADDON
 from wexample_wex_core.decorator.command import command
@@ -23,7 +23,7 @@ if TYPE_CHECKING:
 @option(name="filter_operation", type=str, default=None)
 @option(name="max", type=int, default=None)
 @option(name="force", type=bool, default=False, is_flag=True)
-@middleware(middleware=PackageSuiteMiddleware)
+@middleware(middleware=AppMiddleware)
 @middleware(middleware=EachSuitePackageMiddleware)
 @command(type=COMMAND_TYPE_ADDON)
 def app__file_state__rectify(
