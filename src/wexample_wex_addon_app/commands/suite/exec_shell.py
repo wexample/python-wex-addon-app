@@ -10,6 +10,7 @@ from wexample_wex_addon_app.workdir.framework_packages_suite_workdir import (
 from wexample_wex_core.const.globals import COMMAND_TYPE_ADDON
 from wexample_wex_core.decorator.middleware import middleware
 from wexample_wex_core.decorator.option import option
+from wexample_wex_core.decorator.command import command
 
 if TYPE_CHECKING:
     from wexample_wex_core.context.execution_context import ExecutionContext
@@ -33,4 +34,5 @@ def app__suite__exec_shell(
 ) -> None:
     from wexample_helpers.helpers.shell import shell_split_cmd
     from wexample_wex_core.decorator.command import command
+
     app_workdir.packages_execute_shell(cmd=shell_split_cmd(command))

@@ -10,7 +10,6 @@ if TYPE_CHECKING:
     from collections.abc import Iterable
 
     from wexample_wex_core.context.execution_context import ExecutionContext
-    from wexample_wex_core.package.framework_package import FrameworkPackage
 
 
 @option(name="all", type=bool, default=False, is_flag=True)
