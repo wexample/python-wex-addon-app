@@ -206,6 +206,7 @@ class FrameworkPackageSuiteWorkdir(BasicAppWorkdir):
         )
 
         return CodeBaseWorkdir
+
     def _package_title(self, path: PathOrString, message: str) -> None:
         self.io.title(f"📦 {message}: {path.name}")
 
