@@ -13,9 +13,26 @@ if TYPE_CHECKING:
 
 @base_class
 class BasicAppWorkdir(AppWorkdirMixin, Workdir):
-    def apply(self, force: bool = False, **kwargs) -> FileStateResult:
+    def apply(
+        self,
+        force: bool = False,
+        scopes=None,
+        filter_path: str | None = None,
+        filter_operation: str | None = None,
+        max: int = None,
+        **kwargs
+    ) -> FileStateResult:
         from wexample_filestate.result.file_state_result import FileStateResult
         from wexample_helpers.helpers.repo import repo_get_state, repo_has_changed_since
+
+        # Hash protection is only active when all filter parameters are None
+        # to avoid false positives when apply behavior is modified by parameters
+        hash_protection_active = (
+            scopes is None
+            and filter_path is None
+            and filter_operation is None
+            and max is None
+        )
 
         registry_file = self.get_registry_file()
         registry = registry_file.read_config()
@@ -27,19 +44,26 @@ class BasicAppWorkdir(AppWorkdirMixin, Workdir):
         registry.set_by_path("file_state.last_update_hash", None)
         registry_file.write_config()
 
-        if force or (
+        if force or not hash_protection_active or (
             last_update_hash is None
             or repo_has_changed_since(
                 previous_state=last_update_hash, cwd=self.get_path()
             )
         ):
-            result = super().apply(**kwargs)
-
-            # Save hash
-            registry.set_by_path(
-                "file_state.last_update_hash", repo_get_state(cwd=self.get_path())
+            result = super().apply(
+                scopes=scopes,
+                filter_path=filter_path,
+                filter_operation=filter_operation,
+                max=max,
+                **kwargs
             )
-            registry_file.write_config()
+
+            # Save hash only if protection is active
+            if hash_protection_active:
+                registry.set_by_path(
+                    "file_state.last_update_hash", repo_get_state(cwd=self.get_path())
+                )
+                registry_file.write_config()
 
             return result
 
