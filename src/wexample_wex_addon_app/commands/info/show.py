@@ -14,11 +14,12 @@ if TYPE_CHECKING:
 @middleware(middleware=AppMiddleware)
 @command(type=COMMAND_TYPE_ADDON)
 def app__info__show(
-    context: ExecutionContext,
+        context: ExecutionContext,
+        app_path: str = None
 ) -> None:
     from wexample_helpers.helpers.cli import cli_make_clickable_path
 
-    workdir = context.request.get_addon_manager().app_workdir()
+    workdir = context.request.get_addon_manager().app_workdir(app_path)
 
     context.io.properties(
         {

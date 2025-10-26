@@ -11,6 +11,8 @@ from wexample_wex_core.common.abstract_addon_manager import AbstractAddonManager
 from wexample_wex_core.middleware.abstract_middleware import AbstractMiddleware
 
 if TYPE_CHECKING:
+    from wexample_helpers.const.types import PathOrString
+
     from wexample_wex_addon_app.workdir.mixin.app_workdir_mixin import AppWorkdirMixin
 
 
@@ -34,7 +36,9 @@ class AppAddonManager(AbstractAddonManager):
             cls.get_package_source_path() / "resources" / f"{APP_FILE_APP_MANAGER}.sh"
         )
 
-    def app_workdir(self, reload: bool = False) -> AppWorkdirMixin | None:
+    def app_workdir(
+        self, path: PathOrString | None = None, reload: bool = False
+    ) -> AppWorkdirMixin | None:
         from wexample_helpers.helpers.module import module_load_class_from_file
 
         from wexample_wex_addon_app.workdir.basic_app_workdir import BasicAppWorkdir
@@ -45,7 +49,7 @@ class AppAddonManager(AbstractAddonManager):
         if self._app_workdir is not None:
             return self._app_workdir
 
-        app_path = self.kernel.call_workdir.get_path()
+        app_path = Path(path) if path is not None else self.kernel.call_workdir.get_path()
         custom_app_workdir_class_path = (
             self.kernel.workdir.get_path() / "app_workdir.py"
         )

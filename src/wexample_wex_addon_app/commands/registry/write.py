@@ -16,8 +16,7 @@ def app__registry__write(
     from wexample_helpers.helpers.cli import cli_make_clickable_path
 
     workdir = context.request.get_addon_manager().app_workdir()
-
-    registry = workdir.build_registry()
+    registry = workdir.get_registry()
 
     context.io.success(
         message=f"Registry updated at: {cli_make_clickable_path(registry.get_path())}"
