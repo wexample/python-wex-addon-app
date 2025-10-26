@@ -211,7 +211,8 @@ class FrameworkPackageSuiteWorkdir(BasicAppWorkdir):
     def _package_title(self, path: PathOrString, message: str) -> None:
         from wexample_helpers.helpers.cli import cli_make_clickable_path
 
-        self.io.title(f"📦 {message}: {cli_make_clickable_path(path, path.name)}")
+        self.io.title(f"📦 {message}: {path.name}")
+        self.io.log(f"Path: {cli_make_clickable_path(path)}", indentation=1)
 
     def _packages_execute(
         self,
