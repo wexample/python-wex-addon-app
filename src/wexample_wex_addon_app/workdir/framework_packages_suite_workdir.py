@@ -21,7 +21,7 @@ class FrameworkPackageSuiteWorkdir(BasicAppWorkdir):
     def _package_title(self, path: PathOrString, message: str):
         self.io.title(f"📦 {path.name}: {message}")
 
-    def packages_execute_shell(
+    def packages_execute_manager(
             self,
             cmd: list[str],
     ):
@@ -32,79 +32,38 @@ class FrameworkPackageSuiteWorkdir(BasicAppWorkdir):
         for package_path in self.get_packages_paths():
             self._package_title(
                 path=package_path,
-                message=f"Executing shell {package_path.name}"
+                message=f"Executing command"
             )
 
             # Allow interruption
             try:
-                if (
-                        AppWorkdirMixin.shell_run_from_path(cmd=cmd, path=package_path)
-                        is None
-                ):
+                if AppWorkdirMixin.manager_run_from_path(cmd=cmd, path=package_path) is None:
                     self.io.log("Invalid package directory, skipping.", indentation=1)
 
             except KeyboardInterrupt:
                 return
 
-    def apply(self, **kwargs) -> FileStateResult:
-        from wexample_filestate.enum.scopes import Scope
-        from wexample_wex_core.resolver.addon_command_resolver import (
-            AddonCommandResolver,
-        )
-
-        from wexample_wex_addon_app.commands.file_state.rectify import (
-            app__file_state__rectify,
-        )
+    def packages_execute_manager(
+            self,
+            cmd: list[str],
+    ):
         from wexample_wex_addon_app.workdir.mixin.app_workdir_mixin import (
             AppWorkdirMixin,
         )
 
-        result = super().apply(**kwargs)
-
-        # Execute "apply" command on package is the same of using rectify app command.
-        cmd = [
-            AddonCommandResolver.build_command_from_function(
-                command_wrapper=app__file_state__rectify
-            ),
-            "--indentation-level",
-            "1",  # TODO How to know current indentation level without access to kernel ?
-        ]
-
-        interactive = kwargs.get("interactive", True)
-        if interactive is False:
-            cmd.append("--yes")
-
-        filter_path = kwargs.get("filter_path", False)
-        if filter_path:
-            cmd.append("--filter-path")
-            cmd.append(filter_path)
-
-        filter_operation = kwargs.get("filter_operation", False)
-        if filter_operation:
-            cmd.append("--filter-operation")
-            cmd.append(filter_operation)
-
-        max = kwargs.get("max", False)
-        if max:
-            cmd.append("--max")
-            cmd.append(max)
-
-        scopes = kwargs.get("scopes", False)
-        if scopes and not Scope.REMOTE in scopes:
-            cmd.append("--no-remote")
-
         for package_path in self.get_packages_paths():
-            self.io.title(f"📦 Rectifying {package_path.name}")
+            self._package_title(
+                path=package_path,
+                message=f"Executing shell"
+            )
+
             # Allow interruption
             try:
-                if (
-                        AppWorkdirMixin.shell_run_from_path(cmd=cmd, path=package_path)
-                        is None
-                ):
+                if AppWorkdirMixin.shell_run_from_path(cmd=cmd, path=package_path) is None:
                     self.io.log("Invalid package directory, skipping.", indentation=1)
 
             except KeyboardInterrupt:
-                return result
+                return
 
         return result
 
