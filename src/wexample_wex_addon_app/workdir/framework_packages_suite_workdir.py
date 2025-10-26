@@ -18,7 +18,7 @@ if TYPE_CHECKING:
 
 
 class FrameworkPackageSuiteWorkdir(BasicAppWorkdir):
-    def _package_title(self, path: PathOrString, message: str):
+    def _package_title(self, path: PathOrString, message: str) -> None:
         self.io.title(f"📦 {message}: {path.name}")
 
     def _packages_execute(
@@ -26,7 +26,7 @@ class FrameworkPackageSuiteWorkdir(BasicAppWorkdir):
             cmd: list[str],
             executor_method: callable,
             message: str,
-    ):
+    ) -> None:
         """Generic method to execute a command on all packages.
         
         Args:
@@ -44,7 +44,7 @@ class FrameworkPackageSuiteWorkdir(BasicAppWorkdir):
             except KeyboardInterrupt:
                 return
 
-    def packages_execute_manager(self, command: str, context: ExecutionContext, arguments: None | list[str] = None):
+    def packages_execute_manager(self, command: str, context: ExecutionContext, arguments: None | list[str] = None) -> None:
         from wexample_wex_addon_app.workdir.mixin.app_workdir_mixin import (
             AppWorkdirMixin,
         )
@@ -67,7 +67,7 @@ class FrameworkPackageSuiteWorkdir(BasicAppWorkdir):
             message="Executing command",
         )
 
-    def packages_execute_shell(self, cmd: list[str]):
+    def packages_execute_shell(self, cmd: list[str]) -> None:
         from wexample_wex_addon_app.workdir.mixin.app_workdir_mixin import (
             AppWorkdirMixin,
         )

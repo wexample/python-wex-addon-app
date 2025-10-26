@@ -15,8 +15,8 @@ if TYPE_CHECKING:
 @middleware(middleware=AppMiddleware)
 @command(type=COMMAND_TYPE_ADDON)
 def app__info__show(
-        context: ExecutionContext,
-        app_workdir: BasicAppWorkdir,
+    context: ExecutionContext,
+    app_workdir: BasicAppWorkdir,
 ) -> None:
     from wexample_helpers.helpers.cli import cli_make_clickable_path
 

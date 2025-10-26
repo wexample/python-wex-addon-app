@@ -3,7 +3,9 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from wexample_wex_addon_app.middleware.app_middleware import AppMiddleware
-from wexample_wex_addon_app.middleware.each_suite_package_middleware import EachSuitePackageMiddleware
+from wexample_wex_addon_app.middleware.each_suite_package_middleware import (
+    EachSuitePackageMiddleware,
+)
 from wexample_wex_addon_app.workdir.basic_app_workdir import BasicAppWorkdir
 from wexample_wex_core.const.globals import COMMAND_TYPE_ADDON
 from wexample_wex_core.decorator.command import command
@@ -27,17 +29,17 @@ if TYPE_CHECKING:
 @middleware(middleware=EachSuitePackageMiddleware)
 @command(type=COMMAND_TYPE_ADDON)
 def app__file_state__rectify(
-        context: ExecutionContext,
-        app_workdir: BasicAppWorkdir,
-        force: bool = False,
-        yes: bool = False,
-        dry_run: bool = False,
-        loop: bool = False,
-        loop_limit: int = 10,
-        no_remote: bool = False,
-        filter_path: str | None = None,
-        filter_operation: str | None = None,
-        max: int = None,
+    context: ExecutionContext,
+    app_workdir: BasicAppWorkdir,
+    force: bool = False,
+    yes: bool = False,
+    dry_run: bool = False,
+    loop: bool = False,
+    loop_limit: int = 10,
+    no_remote: bool = False,
+    filter_path: str | None = None,
+    filter_operation: str | None = None,
+    max: int = None,
 ) -> None:
     from wexample_filestate.enum.scopes import Scope
 

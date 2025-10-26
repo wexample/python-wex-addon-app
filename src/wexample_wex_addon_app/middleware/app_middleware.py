@@ -21,12 +21,13 @@ class AppMiddleware(AbstractMiddleware):
         request: CommandRequest,
         function_kwargs: Kwargs,
     ) -> list[ExecutionContext]:
-        app_path = function_kwargs.get("app_path", str(request.kernel.call_workdir.get_path()))
+        app_path = function_kwargs.get(
+            "app_path", str(request.kernel.call_workdir.get_path())
+        )
 
         function_kwargs.pop("app_path", None)
-        function_kwargs['app_workdir'] = self._create_app_workdir(
-            request=request,
-            app_path=app_path
+        function_kwargs["app_workdir"] = self._create_app_workdir(
+            request=request, app_path=app_path
         )
 
         return super().build_execution_contexts(
@@ -41,10 +42,11 @@ class AppMiddleware(AbstractMiddleware):
 
     def _get_middleware_options(self) -> list[dict[str, Any]]:
         """Get the default file option definition."""
-        return [{
-            "name": "app_path",
-            "type": str,
-            "required": False,
-            "description": "Path to the app directory (defaults to current directory)",
-        }]
-
+        return [
+            {
+                "name": "app_path",
+                "type": str,
+                "required": False,
+                "description": "Path to the app directory (defaults to current directory)",
+            }
+        ]

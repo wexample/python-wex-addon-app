@@ -16,7 +16,6 @@ if TYPE_CHECKING:
 
 @base_class
 class AppAddonManager(AbstractAddonManager):
-
     @classmethod
     def get_package_module(cls) -> Any:
         import wexample_wex_addon_app

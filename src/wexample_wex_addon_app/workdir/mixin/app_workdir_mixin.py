@@ -46,7 +46,7 @@ class AppWorkdirMixin(
 
     @classmethod
     def get_registry_from_path(
-            cls, path: FileStringOrPath, io: IoManager
+        cls, path: FileStringOrPath, io: IoManager
     ) -> YamlFile | None:
         from wexample_filestate.item.file.yaml_file import YamlFile
 
@@ -66,7 +66,7 @@ class AppWorkdirMixin(
         )
 
         return (
-                Path(path) / WORKDIR_SETUP_DIR / CORE_DIR_NAME_TMP / CORE_FILE_NAME_REGISTRY
+            Path(path) / WORKDIR_SETUP_DIR / CORE_DIR_NAME_TMP / CORE_FILE_NAME_REGISTRY
         )
 
     @classmethod
@@ -86,13 +86,13 @@ class AppWorkdirMixin(
         if cls.is_app_workdir_path(path=path):
             # app-manager exists.
             return (path / APP_PATH_BIN_APP_MANAGER).exists() and (
-                    path / APP_PATH_APP_MANAGER / ".venv/bin/python"
+                path / APP_PATH_APP_MANAGER / ".venv/bin/python"
             ).exists()
         return False
 
     @classmethod
     def shell_run_from_path(
-            cls, path: FileStringOrPath, cmd: list[str] | str
+        cls, path: FileStringOrPath, cmd: list[str] | str
     ) -> None | ShellResult:
         from wexample_helpers.helpers.shell import shell_run
 
@@ -104,7 +104,7 @@ class AppWorkdirMixin(
 
     @classmethod
     def manager_run_from_path(
-            cls, path: FileStringOrPath, cmd: list[str] | str
+        cls, path: FileStringOrPath, cmd: list[str] | str
     ) -> None | ShellResult:
         from wexample_app.const.globals import APP_PATH_BIN_APP_MANAGER
         from wexample_helpers.helpers.shell import shell_run

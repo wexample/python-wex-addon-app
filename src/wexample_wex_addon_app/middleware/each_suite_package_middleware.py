@@ -48,7 +48,7 @@ class EachSuitePackageMiddleware(PackageSuiteMiddleware):
 
             if self._is_package_suite_workdir(workdir=suite_workdir):
                 # Custom behavior: replace function with our custom one
-                def custom_function(context: ExecutionContext, **kwargs):
+                def custom_function(context: ExecutionContext, **kwargs) -> None:
                     suite_workdir.packages_execute_manager(
                         command=request.resolver.build_command_from_function(
                             command_wrapper=command_wrapper

@@ -14,11 +14,12 @@ if TYPE_CHECKING:
 @base_class
 class PackageSuiteMiddleware(AppMiddleware):
     _fail_if_not_suite_workdir: bool = private_field(
-        default=True,
-        description="The called method works only on package suite"
+        default=True, description="The called method works only on package suite"
     )
 
-    def _create_app_workdir(self, request: CommandRequest, app_path: str) -> BasicAppWorkdir:
+    def _create_app_workdir(
+        self, request: CommandRequest, app_path: str
+    ) -> BasicAppWorkdir:
         """Create and validate that the app workdir is a FrameworkPackageSuiteWorkdir."""
         from wexample_wex_addon_app.workdir.framework_packages_suite_workdir import (
             FrameworkPackageSuiteWorkdir,
@@ -27,7 +28,9 @@ class PackageSuiteMiddleware(AppMiddleware):
         app_workdir = super()._create_app_workdir(request=request, app_path=app_path)
 
         # Validate that app_workdir is a FrameworkPackageSuiteWorkdir
-        if self._fail_if_not_suite_workdir and self._is_package_suite_workdir(workdir=app_workdir):
+        if self._fail_if_not_suite_workdir and self._is_package_suite_workdir(
+            workdir=app_workdir
+        ):
             raise TypeError(
                 f"The app_workdir `{app_workdir.get_path()}` is of type {app_workdir.__class__.__name__} "
                 f"and not a subclass of {FrameworkPackageSuiteWorkdir.__name__}."
@@ -39,4 +42,5 @@ class PackageSuiteMiddleware(AppMiddleware):
         from wexample_wex_addon_app.workdir.framework_packages_suite_workdir import (
             FrameworkPackageSuiteWorkdir,
         )
+
         return isinstance(workdir, FrameworkPackageSuiteWorkdir)
