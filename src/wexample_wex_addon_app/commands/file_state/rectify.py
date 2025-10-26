@@ -2,8 +2,11 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from wexample_wex_addon_app.middleware.package_suite_middleware import PackageSuiteMiddleware
+from wexample_wex_addon_app.workdir.basic_app_workdir import BasicAppWorkdir
 from wexample_wex_core.const.globals import COMMAND_TYPE_ADDON
 from wexample_wex_core.decorator.command import command
+from wexample_wex_core.decorator.middleware import middleware
 from wexample_wex_core.decorator.option import option
 
 if TYPE_CHECKING:
@@ -19,18 +22,20 @@ if TYPE_CHECKING:
 @option(name="filter_operation", type=str, default=None)
 @option(name="max", type=int, default=None)
 @option(name="force", type=bool, default=False, is_flag=True)
+@middleware(middleware=PackageSuiteMiddleware)
 @command(type=COMMAND_TYPE_ADDON)
 def app__file_state__rectify(
-    context: ExecutionContext,
-    force: bool = False,
-    yes: bool = False,
-    dry_run: bool = False,
-    loop: bool = False,
-    loop_limit: int = 10,
-    no_remote: bool = False,
-    filter_path: str | None = None,
-    filter_operation: str | None = None,
-    max: int = None,
+        context: ExecutionContext,
+        app_workdir: BasicAppWorkdir,
+        force: bool = False,
+        yes: bool = False,
+        dry_run: bool = False,
+        loop: bool = False,
+        loop_limit: int = 10,
+        no_remote: bool = False,
+        filter_path: str | None = None,
+        filter_operation: str | None = None,
+        max: int = None,
 ) -> None:
     from wexample_filestate.enum.scopes import Scope
 

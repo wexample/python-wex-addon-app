@@ -24,13 +24,20 @@ class AppMiddleware(AbstractMiddleware):
         app_path = function_kwargs.get("app_path", str(request.kernel.call_workdir.get_path()))
 
         function_kwargs.pop("app_path", None)
-        function_kwargs['app_workdir'] = request.get_addon_manager().create_app_workdir(path=app_path)
+        function_kwargs['app_workdir'] = self._create_app_workdir(
+            request=request,
+            app_path=app_path
+        )
 
         return super().build_execution_contexts(
             command_wrapper=command_wrapper,
             request=request,
             function_kwargs=function_kwargs,
         )
+
+    def _create_app_workdir(self, request: CommandRequest, app_path: str):
+        """Create and return the app workdir. Can be overridden by subclasses to add validation."""
+        return request.get_addon_manager().create_app_workdir(path=app_path)
 
     def _get_middleware_options(self) -> list[dict[str, Any]]:
         """Get the default file option definition."""

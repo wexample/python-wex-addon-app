@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from wexample_wex_addon_app.middleware.app_middleware import AppMiddleware
-from wexample_wex_addon_app.workdir.mixin.app_workdir_mixin import AppWorkdirMixin
+from wexample_wex_addon_app.workdir.basic_app_workdir import BasicAppWorkdir
 from wexample_wex_core.const.globals import COMMAND_TYPE_ADDON
 from wexample_wex_core.decorator.command import command
 from wexample_wex_core.decorator.middleware import middleware
@@ -16,7 +16,7 @@ if TYPE_CHECKING:
 @command(type=COMMAND_TYPE_ADDON)
 def app__registry__write(
         context: ExecutionContext,
-        app_workdir: AppWorkdirMixin
+        app_workdir: BasicAppWorkdir,
 ) -> None:
     from wexample_helpers.helpers.cli import cli_make_clickable_path
 

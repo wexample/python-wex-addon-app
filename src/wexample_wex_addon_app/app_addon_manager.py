@@ -5,13 +5,11 @@ from typing import TYPE_CHECKING, Any
 
 from wexample_app.const.globals import APP_PATH_APP_MANAGER
 from wexample_helpers.decorator.base_class import base_class
-from wexample_wex_addon_app.middleware.app_middleware import AppMiddleware
-from wexample_wex_addon_app.middleware.each_suite_package_middleware import EachSuitePackageMiddleware
 from wexample_wex_core.common.abstract_addon_manager import AbstractAddonManager
-from wexample_wex_core.middleware.abstract_middleware import AbstractMiddleware
 
 if TYPE_CHECKING:
     from wexample_helpers.const.types import PathOrString
+    from wexample_wex_core.middleware.abstract_middleware import AbstractMiddleware
 
     from wexample_wex_addon_app.workdir.mixin.app_workdir_mixin import AppWorkdirMixin
 
@@ -65,7 +63,12 @@ class AppAddonManager(AbstractAddonManager):
         )
 
     def get_middlewares_classes(self) -> list[type[AbstractMiddleware]]:
+        from wexample_wex_addon_app.middleware.app_middleware import AppMiddleware
+        from wexample_wex_addon_app.middleware.each_suite_package_middleware import EachSuitePackageMiddleware
+        from wexample_wex_addon_app.middleware.package_suite_middleware import PackageSuiteMiddleware
+        
         return [
             AppMiddleware,
             EachSuitePackageMiddleware,
+            PackageSuiteMiddleware,
         ]

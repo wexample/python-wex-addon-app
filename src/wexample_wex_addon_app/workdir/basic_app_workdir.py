@@ -30,5 +30,5 @@ class BasicAppWorkdir(AppWorkdirMixin, Workdir):
 
             return result
 
-        self.io.log('No change since last pass, skipping.', indentation=2)
+        self.io.log('No change since last pass, skipping.', indentation=1)
         return FileStateResult(state_manager=self)
