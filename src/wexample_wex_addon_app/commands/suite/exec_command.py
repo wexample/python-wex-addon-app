@@ -1,9 +1,6 @@
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
-
-from wexample_helpers.helpers.shell import shell_split_cmd
-from wexample_helpers.validator.regex_validator import RegexValidator
 from wexample_wex_addon_app.middleware.package_suite_middleware import (
     PackageSuiteMiddleware,
 )
@@ -42,6 +39,8 @@ def app__suite__exec_command(
     app_workdir: FrameworkPackageSuiteWorkdir,
     arguments: str = None,
 ) -> None:
+    from wexample_helpers.helpers.shell import shell_split_cmd
+    from wexample_helpers.validator.regex_validator import RegexValidator
     app_workdir.packages_execute_manager(
         command=command, arguments=shell_split_cmd(arguments), context=context
     )
