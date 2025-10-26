@@ -39,7 +39,7 @@ def app__file_state__rectify(
         iterations = 0
         while True:
             iterations += 1
-            workdir = context.request.get_addon_manager().app_workdir(reload=True)
+            workdir = context.request.get_addon_manager().create_app_workdir()
 
             # Remove remote.
             scopes = (set(Scope) - {Scope.REMOTE}) if no_remote else None
@@ -79,5 +79,5 @@ def app__file_state__rectify(
                 f"Pass {iterations} completed with {len(result.operations)} operation(s); starting pass {iterations + 1} of {loop_limit}."
             )
     else:
-        workdir = context.request.get_addon_manager().app_workdir(reload=True)
+        workdir = context.request.get_addon_manager().create_app_workdir(reload=True)
         workdir.dry_run()

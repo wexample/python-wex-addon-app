@@ -60,7 +60,7 @@ class AppAddonManager(AbstractAddonManager):
 
         # Use basic project class to access minimal configuration.
         return app_workdir_class.create_from_path(
-            path=app_path,
+            path=app_path.resolve(),
             parent_io_handler=self.kernel,
         )
 
