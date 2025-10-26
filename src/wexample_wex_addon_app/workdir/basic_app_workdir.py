@@ -20,7 +20,7 @@ class BasicAppWorkdir(AppWorkdirMixin, Workdir):
         filter_path: str | None = None,
         filter_operation: str | None = None,
         max: int = None,
-        **kwargs
+        **kwargs,
     ) -> FileStateResult:
         from wexample_filestate.result.file_state_result import FileStateResult
         from wexample_helpers.helpers.repo import repo_get_state, repo_has_changed_since
@@ -44,10 +44,14 @@ class BasicAppWorkdir(AppWorkdirMixin, Workdir):
         registry.set_by_path("file_state.last_update_hash", None)
         registry_file.write_config()
 
-        if force or not hash_protection_active or (
-            last_update_hash is None
-            or repo_has_changed_since(
-                previous_state=last_update_hash, cwd=self.get_path()
+        if (
+            force
+            or not hash_protection_active
+            or (
+                last_update_hash is None
+                or repo_has_changed_since(
+                    previous_state=last_update_hash, cwd=self.get_path()
+                )
             )
         ):
             result = super().apply(
@@ -55,7 +59,7 @@ class BasicAppWorkdir(AppWorkdirMixin, Workdir):
                 filter_path=filter_path,
                 filter_operation=filter_operation,
                 max=max,
-                **kwargs
+                **kwargs,
             )
 
             # Save hash only if protection is active
