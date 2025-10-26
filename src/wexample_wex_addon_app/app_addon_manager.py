@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 from typing import TYPE_CHECKING, Any
 
 from wexample_app.const.globals import APP_PATH_APP_MANAGER
@@ -6,11 +7,12 @@ from wexample_helpers.decorator.base_class import base_class
 from wexample_wex_core.common.abstract_addon_manager import AbstractAddonManager
 
 if TYPE_CHECKING:
+    from pathlib import Path
+
     from wexample_helpers.const.types import PathOrString
     from wexample_wex_core.middleware.abstract_middleware import AbstractMiddleware
 
     from wexample_wex_addon_app.workdir.mixin.app_workdir_mixin import AppWorkdirMixin
-    from pathlib import Path
 
 
 @base_class
@@ -33,13 +35,14 @@ class AppAddonManager(AbstractAddonManager):
         self, path: PathOrString | None = None
     ) -> AppWorkdirMixin | None:
         from pathlib import Path
-        from wexample_helpers.helpers.module import module_load_class_from_file
+
         from wexample_helpers.helpers.cli import cli_make_clickable_path
+        from wexample_helpers.helpers.module import module_load_class_from_file
+
+        from wexample_wex_addon_app.workdir.basic_app_workdir import BasicAppWorkdir
         from wexample_wex_addon_app.workdir.mixin.app_workdir_mixin import (
             AppWorkdirMixin,
         )
-
-        from wexample_wex_addon_app.workdir.basic_app_workdir import BasicAppWorkdir
 
         app_path = (
             Path(path) if path is not None else self.kernel.call_workdir.get_path()
