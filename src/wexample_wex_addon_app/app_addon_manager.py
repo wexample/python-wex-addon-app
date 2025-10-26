@@ -27,26 +27,32 @@ class AppAddonManager(AbstractAddonManager):
         from wexample_app.const.globals import APP_FILE_APP_MANAGER
 
         return (
-                cls.get_package_source_path() / "resources" / f"{APP_FILE_APP_MANAGER}.sh"
+            cls.get_package_source_path() / "resources" / f"{APP_FILE_APP_MANAGER}.sh"
         )
 
     def create_app_workdir(
-            self, path: PathOrString | None = None
+        self, path: PathOrString | None = None
     ) -> AppWorkdirMixin | None:
         from wexample_helpers.helpers.module import module_load_class_from_file
         from wexample_helpers.helpers.cli import cli_make_clickable_path
-        from wexample_wex_addon_app.workdir.mixin.app_workdir_mixin import AppWorkdirMixin
+        from wexample_wex_addon_app.workdir.mixin.app_workdir_mixin import (
+            AppWorkdirMixin,
+        )
 
         from wexample_wex_addon_app.workdir.basic_app_workdir import BasicAppWorkdir
 
-        app_path = Path(path) if path is not None else self.kernel.call_workdir.get_path()
+        app_path = (
+            Path(path) if path is not None else self.kernel.call_workdir.get_path()
+        )
 
         if not AppWorkdirMixin.is_app_workdir_path_setup(path=app_path):
-            self.kernel.info(f"Application not initialized in {cli_make_clickable_path(app_path)}")
+            self.kernel.info(
+                f"Application not initialized in {cli_make_clickable_path(app_path)}"
+            )
             return None
 
         custom_app_workdir_class_path = (
-                app_path / APP_PATH_APP_MANAGER / "app_workdir.py"
+            app_path / APP_PATH_APP_MANAGER / "app_workdir.py"
         )
         if custom_app_workdir_class_path.exists():
             app_workdir_class = module_load_class_from_file(
@@ -63,9 +69,13 @@ class AppAddonManager(AbstractAddonManager):
 
     def get_middlewares_classes(self) -> list[type[AbstractMiddleware]]:
         from wexample_wex_addon_app.middleware.app_middleware import AppMiddleware
-        from wexample_wex_addon_app.middleware.each_suite_package_middleware import EachSuitePackageMiddleware
-        from wexample_wex_addon_app.middleware.package_suite_middleware import PackageSuiteMiddleware
-        
+        from wexample_wex_addon_app.middleware.each_suite_package_middleware import (
+            EachSuitePackageMiddleware,
+        )
+        from wexample_wex_addon_app.middleware.package_suite_middleware import (
+            PackageSuiteMiddleware,
+        )
+
         return [
             AppMiddleware,
             EachSuitePackageMiddleware,

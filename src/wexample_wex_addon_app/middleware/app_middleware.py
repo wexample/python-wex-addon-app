@@ -7,7 +7,6 @@ from wexample_wex_core.middleware.abstract_middleware import AbstractMiddleware
 
 if TYPE_CHECKING:
     from wexample_helpers.const.types import Kwargs
-
     from wexample_wex_core.common.command_method_wrapper import CommandMethodWrapper
     from wexample_wex_core.common.command_request import CommandRequest
     from wexample_wex_core.context.execution_context import ExecutionContext

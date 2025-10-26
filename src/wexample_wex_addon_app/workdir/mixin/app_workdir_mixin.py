@@ -91,18 +91,6 @@ class AppWorkdirMixin(
         return False
 
     @classmethod
-    def shell_run_from_path(
-        cls, path: FileStringOrPath, cmd: list[str] | str
-    ) -> None | ShellResult:
-        from wexample_helpers.helpers.shell import shell_run
-
-        return shell_run(
-            cmd=cmd,
-            cwd=path,
-            inherit_stdio=True,
-        )
-
-    @classmethod
     def manager_run_from_path(
         cls, path: FileStringOrPath, cmd: list[str] | str
     ) -> None | ShellResult:
@@ -139,6 +127,18 @@ class AppWorkdirMixin(
             inherit_stdio=True,
         )
 
+    @classmethod
+    def shell_run_from_path(
+        cls, path: FileStringOrPath, cmd: list[str] | str
+    ) -> None | ShellResult:
+        from wexample_helpers.helpers.shell import shell_run
+
+        return shell_run(
+            cmd=cmd,
+            cwd=path,
+            inherit_stdio=True,
+        )
+
     def build_registry_value(self) -> NestedConfigValue:
         from wexample_config.config_value.nested_config_value import NestedConfigValue
 
@@ -147,21 +147,6 @@ class AppWorkdirMixin(
                 "config": self.get_config(),
             }
         )
-
-    def get_registry(self, rebuild: bool = False) -> NestedConfigValue:
-        registry = self.get_registry_file(rebuild=rebuild)
-        return registry.read_config()
-
-    def get_registry_file(self, rebuild: bool = False) -> YamlFile:
-        from wexample_filestate.item.file.yaml_file import YamlFile
-
-        registry_path = self.get_registry_path_from_path(path=self.get_path())
-        registry = YamlFile.create_from_path(path=registry_path, io=self.io)
-
-        if rebuild or not registry.get_path().exists():
-            registry.write_config(self.build_registry_value())
-
-        return registry
 
     def get_config(self) -> NestedConfigValue:
         from wexample_config.config_value.nested_config_value import NestedConfigValue
@@ -236,6 +221,21 @@ class AppWorkdirMixin(
                 f"Project at '{self.get_path()}' must define a non-empty 'version' number in {APP_FILE_APP_CONFIG}."
             )
         return str(version).strip()
+
+    def get_registry(self, rebuild: bool = False) -> NestedConfigValue:
+        registry = self.get_registry_file(rebuild=rebuild)
+        return registry.read_config()
+
+    def get_registry_file(self, rebuild: bool = False) -> YamlFile:
+        from wexample_filestate.item.file.yaml_file import YamlFile
+
+        registry_path = self.get_registry_path_from_path(path=self.get_path())
+        registry = YamlFile.create_from_path(path=registry_path, io=self.io)
+
+        if rebuild or not registry.get_path().exists():
+            registry.write_config(self.build_registry_value())
+
+        return registry
 
     def prepare_value(self, raw_value: DictConfig | None = None) -> DictConfig:
         from wexample_app.const.globals import APP_FILE_APP_CONFIG, APP_FILE_APP_MANAGER

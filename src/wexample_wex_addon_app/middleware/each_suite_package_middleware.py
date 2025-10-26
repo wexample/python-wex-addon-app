@@ -20,14 +20,14 @@ if TYPE_CHECKING:
 class EachSuitePackageMiddleware(PackageSuiteMiddleware):
     _fail_if_not_suite_workdir: bool = private_field(
         default=False,
-        description="Do not restrict the command to work only on package suite"
+        description="Do not restrict the command to work only on package suite",
     )
 
     def build_execution_contexts(
-            self,
-            command_wrapper: CommandMethodWrapper,
-            request: CommandRequest,
-            function_kwargs: Kwargs,
+        self,
+        command_wrapper: CommandMethodWrapper,
+        request: CommandRequest,
+        function_kwargs: Kwargs,
     ) -> list[ExecutionContext]:
         from wexample_wex_core.context.execution_context import ExecutionContext
 
@@ -54,7 +54,7 @@ class EachSuitePackageMiddleware(PackageSuiteMiddleware):
                             command_wrapper=command_wrapper
                         ),
                         arguments=request.arguments,
-                        context=context
+                        context=context,
                     )
                     return None
 
@@ -75,12 +75,14 @@ class EachSuitePackageMiddleware(PackageSuiteMiddleware):
     def _get_middleware_options(self) -> list[dict[str, Any]]:
         """Add the all_packages option."""
         options = super()._get_middleware_options()
-        options.append({
-            "name": "all_packages",
-            "type": bool,
-            "required": False,
-            "default": False,
-            "is_flag": True,
-            "description": "Execute the command on all packages of the suite",
-        })
+        options.append(
+            {
+                "name": "all_packages",
+                "type": bool,
+                "required": False,
+                "default": False,
+                "is_flag": True,
+                "description": "Execute the command on all packages of the suite",
+            }
+        )
         return options

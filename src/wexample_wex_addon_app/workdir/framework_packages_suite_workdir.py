@@ -22,13 +22,13 @@ class FrameworkPackageSuiteWorkdir(BasicAppWorkdir):
         self.io.title(f"📦 {message}: {path.name}")
 
     def _packages_execute(
-            self,
-            cmd: list[str],
-            executor_method: callable,
-            message: str,
+        self,
+        cmd: list[str],
+        executor_method: callable,
+        message: str,
     ) -> None:
         """Generic method to execute a command on all packages.
-        
+
         Args:
             cmd: Command to execute
             executor_method: Method to call for execution (e.g., manager_run_from_path or shell_run_from_path)
@@ -44,7 +44,12 @@ class FrameworkPackageSuiteWorkdir(BasicAppWorkdir):
             except KeyboardInterrupt:
                 return
 
-    def packages_execute_manager(self, command: str, context: ExecutionContext, arguments: None | list[str] = None) -> None:
+    def packages_execute_manager(
+        self,
+        command: str,
+        context: ExecutionContext,
+        arguments: None | list[str] = None,
+    ) -> None:
         from wexample_wex_addon_app.workdir.mixin.app_workdir_mixin import (
             AppWorkdirMixin,
         )
@@ -56,10 +61,7 @@ class FrameworkPackageSuiteWorkdir(BasicAppWorkdir):
             cmd.extend(arguments)
 
         if "--indentation-level" not in cmd:
-            cmd.extend([
-                "--indentation-level",
-                str(context.io.indentation + 1)
-            ])
+            cmd.extend(["--indentation-level", str(context.io.indentation + 1)])
 
         self._packages_execute(
             cmd=cmd,
@@ -88,10 +90,10 @@ class FrameworkPackageSuiteWorkdir(BasicAppWorkdir):
         return dependencies
 
     def build_dependencies_stack(
-            self,
-            package: CodeBaseWorkdir,
-            dependency: CodeBaseWorkdir,
-            dependencies_map: dict[str, list[str]],
+        self,
+        package: CodeBaseWorkdir,
+        dependency: CodeBaseWorkdir,
+        dependencies_map: dict[str, list[str]],
     ) -> list[CodeBaseWorkdir]:
         """When a package depends on another (uses it in its codebase),
         return the dependency chain to locate the original package that declares the explicit dependency.
@@ -165,15 +167,15 @@ class FrameworkPackageSuiteWorkdir(BasicAppWorkdir):
         return resolved
 
     def packages_propagate_versions(
-            self, progress: ProgressHandle | None = None
+        self, progress: ProgressHandle | None = None
     ) -> None:
         ordered_packages = self.get_ordered_packages()
 
         progress = (
-                progress
-                or self.io.progress(
-            label=f"Starting...", total=len(ordered_packages)
-        ).get_handle()
+            progress
+            or self.io.progress(
+                label=f"Starting...", total=len(ordered_packages)
+            ).get_handle()
         )
 
         for package in ordered_packages:
