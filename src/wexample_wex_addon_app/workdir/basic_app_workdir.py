@@ -16,7 +16,9 @@ class BasicAppWorkdir(AppWorkdirMixin, Workdir):
         last_update_hash = registry.search("file_state.last_update_hash").get_str_or_none()
 
         # Reset hash
-        registry.set_by_path("file_state.last_update_hash", None).write_config()
+        registry.set_by_path("file_state.last_update_hash", None)
+        registry_file.write_config()
+
         if force or (last_update_hash is None or repo_has_changed_since(
                 previous_state=last_update_hash,
                 cwd=self.get_path()
@@ -27,7 +29,8 @@ class BasicAppWorkdir(AppWorkdirMixin, Workdir):
             registry.set_by_path(
                 "file_state.last_update_hash",
                 repo_get_state(cwd=self.get_path())
-            ).write_config()
+            )
+            registry_file.write_config()
 
             return result
 
