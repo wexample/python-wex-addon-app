@@ -7,16 +7,15 @@ from wexample_helpers.const.types import FileStringOrPath
 from wexample_helpers.decorator.base_class import base_class
 from wexample_helpers.helpers.shell import ShellResult
 from wexample_prompt.common.io_manager import IoManager
-from wexample_wex_core.const.globals import WORKDIR_SETUP_DIR
-from wexample_wex_core.workdir.mixin.with_app_version_workdir_mixin import (
-    WithAppVersionWorkdirMixin,
-)
-
 from wexample_wex_addon_app.workdir.mixin.as_suite_package_item import (
     AsSuitePackageItem,
 )
 from wexample_wex_addon_app.workdir.mixin.with_readme_workdir_mixin import (
     WithReadmeWorkdirMixin,
+)
+from wexample_wex_core.const.globals import WORKDIR_SETUP_DIR
+from wexample_wex_core.workdir.mixin.with_app_version_workdir_mixin import (
+    WithAppVersionWorkdirMixin,
 )
 
 if TYPE_CHECKING:
@@ -47,7 +46,7 @@ class AppWorkdirMixin(
 
     @classmethod
     def get_registry_from_path(
-        cls, path: FileStringOrPath, io: IoManager
+            cls, path: FileStringOrPath, io: IoManager
     ) -> YamlFile | None:
         from wexample_filestate.item.file.yaml_file import YamlFile
 
@@ -67,7 +66,7 @@ class AppWorkdirMixin(
         )
 
         return (
-            Path(path) / WORKDIR_SETUP_DIR / CORE_DIR_NAME_TMP / CORE_FILE_NAME_REGISTRY
+                Path(path) / WORKDIR_SETUP_DIR / CORE_DIR_NAME_TMP / CORE_FILE_NAME_REGISTRY
         )
 
     @classmethod
@@ -87,13 +86,13 @@ class AppWorkdirMixin(
         if cls.is_app_workdir_path(path=path):
             # app-manager exists.
             return (path / APP_PATH_BIN_APP_MANAGER).exists() and (
-                path / APP_PATH_APP_MANAGER / ".venv/bin/python"
+                    path / APP_PATH_APP_MANAGER / ".venv/bin/python"
             ).exists()
         return False
 
     @classmethod
     def shell_run_from_path(
-        cls, path: FileStringOrPath, cmd: list[str] | str
+            cls, path: FileStringOrPath, cmd: list[str] | str
     ) -> None | ShellResult:
         from wexample_helpers.helpers.shell import shell_run
 
@@ -105,7 +104,7 @@ class AppWorkdirMixin(
 
     @classmethod
     def manager_run_from_path(
-        cls, path: FileStringOrPath, cmd: list[str] | str
+            cls, path: FileStringOrPath, cmd: list[str] | str
     ) -> None | ShellResult:
         from wexample_app.const.globals import APP_PATH_BIN_APP_MANAGER
         from wexample_helpers.helpers.shell import shell_run
@@ -149,17 +148,17 @@ class AppWorkdirMixin(
             }
         )
 
-    def get_registry(self) -> NestedConfigValue:
-        registry = self.get_registry_file()
+    def get_registry(self, rebuild: bool = False) -> NestedConfigValue:
+        registry = self.get_registry_file(rebuild=rebuild)
         return registry.read_config()
 
-    def get_registry_file(self) -> YamlFile:
+    def get_registry_file(self, rebuild: bool = False) -> YamlFile:
         from wexample_filestate.item.file.yaml_file import YamlFile
 
         registry_path = self.get_registry_path_from_path(path=self.get_path())
         registry = YamlFile.create_from_path(path=registry_path, io=self.io)
 
-        if not registry.get_path().exists():
+        if rebuild or not registry.get_path().exists():
             registry.write_config(self.build_registry_value())
 
         return registry
