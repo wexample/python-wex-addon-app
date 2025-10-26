@@ -49,11 +49,12 @@ def app__suite__exec_command(
             cmd = [command]
             if arguments is not None:
                 cmd.extend(shell_split_cmd(arguments))
-
-            cmd.extend([
-                "--indentation-level",
-                str(context.io.indentation + 1)
-            ])
+    
+            if "--indentation-level" not in cmd:
+                cmd.extend([
+                    "--indentation-level",
+                    str(context.io.indentation + 1)
+                ])
 
             workdir.packages_execute_shell(
                 cmd=cmd
