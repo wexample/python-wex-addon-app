@@ -209,7 +209,9 @@ class FrameworkPackageSuiteWorkdir(BasicAppWorkdir):
         return CodeBaseWorkdir
 
     def _package_title(self, path: PathOrString, message: str) -> None:
-        self.io.title(f"📦 {message}: {path.name}")
+        from wexample_helpers.helpers.cli import cli_make_clickable_path
+
+        self.io.title(f"📦 {message}: {cli_make_clickable_path(path, path.name)}")
 
     def _packages_execute(
         self,
