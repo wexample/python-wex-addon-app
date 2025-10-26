@@ -40,10 +40,6 @@ class BasicAppWorkdir(AppWorkdirMixin, Workdir):
             "file_state.last_update_hash"
         ).get_str_or_none()
 
-        # Reset hash
-        registry.set_by_path("file_state.last_update_hash", None)
-        registry_file.write_config()
-
         if (
             force
             or not hash_protection_active
@@ -54,6 +50,10 @@ class BasicAppWorkdir(AppWorkdirMixin, Workdir):
                 )
             )
         ):
+            # Reset hash
+            registry.set_by_path("file_state.last_update_hash", None)
+            registry_file.write_config()
+
             result = super().apply(
                 scopes=scopes,
                 filter_path=filter_path,
