@@ -128,17 +128,6 @@ class AppWorkdirMixin(
             inherit_stdio=True,
         )
 
-    def build_registry(self) -> YamlFile:
-        from wexample_filestate.item.file.yaml_file import YamlFile
-
-        registry_path = self.get_registry_path_from_path(path=self.get_path())
-
-        registry = YamlFile.create_from_path(path=registry_path, io=self.io)
-
-        registry.write_config(self.build_registry_value())
-
-        return registry
-
     def build_registry_value(self) -> NestedConfigValue:
         from wexample_config.config_value.nested_config_value import NestedConfigValue
 
@@ -147,6 +136,21 @@ class AppWorkdirMixin(
                 "config": self.get_config(),
             }
         )
+
+    def get_registry(self) -> NestedConfigValue:
+        registry = self.get_registry_file()
+        return registry.read_config()
+
+    def get_registry_file(self) -> YamlFile:
+        from wexample_filestate.item.file.yaml_file import YamlFile
+
+        registry_path = self.get_registry_path_from_path(path=self.get_path())
+        registry = YamlFile.create_from_path(path=registry_path, io=self.io)
+
+        if not registry.get_path().exists():
+            registry.write_config(self.build_registry_value())
+
+        return registry
 
     def get_config(self) -> NestedConfigValue:
         from wexample_config.config_value.nested_config_value import NestedConfigValue
