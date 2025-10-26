@@ -11,6 +11,7 @@ from wexample_wex_core.const.globals import COMMAND_TYPE_ADDON, COMMAND_PATTERNS
 from wexample_wex_core.decorator.command import command
 from wexample_wex_core.decorator.middleware import middleware
 from wexample_wex_core.decorator.option import option
+from wexample_helpers.validator.regex_validator import RegexValidator
 
 if TYPE_CHECKING:
     from wexample_wex_core.context.execution_context import ExecutionContext
@@ -40,7 +41,6 @@ def app__suite__exec_command(
     arguments: str = None,
 ) -> None:
     from wexample_helpers.helpers.shell import shell_split_cmd
-    from wexample_helpers.validator.regex_validator import RegexValidator
 
     app_workdir.packages_execute_manager(
         command=command, arguments=shell_split_cmd(arguments), context=context
