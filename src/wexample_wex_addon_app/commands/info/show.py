@@ -15,11 +15,11 @@ if TYPE_CHECKING:
 @command(type=COMMAND_TYPE_ADDON)
 def app__info__show(
         context: ExecutionContext,
-        app_path: str = None
+        app_path: str
 ) -> None:
     from wexample_helpers.helpers.cli import cli_make_clickable_path
 
-    workdir = context.request.get_addon_manager().app_workdir(app_path)
+    workdir = context.request.get_addon_manager().app_workdir(path=app_path)
 
     context.io.properties(
         {

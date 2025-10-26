@@ -1,13 +1,35 @@
 from __future__ import annotations
 
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from wexample_helpers.decorator.base_class import base_class
 from wexample_wex_core.middleware.abstract_middleware import AbstractMiddleware
 
+if TYPE_CHECKING:
+    from wexample_helpers.const.types import Kwargs
+
+    from wexample_wex_core.common.command_method_wrapper import CommandMethodWrapper
+    from wexample_wex_core.common.command_request import CommandRequest
+    from wexample_wex_core.context.execution_context import ExecutionContext
+
 
 @base_class
 class AppMiddleware(AbstractMiddleware):
+    def build_execution_contexts(
+        self,
+        command_wrapper: CommandMethodWrapper,
+        request: CommandRequest,
+        function_kwargs: Kwargs,
+    ) -> list[ExecutionContext]:
+        # Fill app_path with current directory if not provided
+        if function_kwargs.get("app_path", None) is None:
+            function_kwargs["app_path"] = str(request.kernel.call_workdir.get_path())
+
+        return super().build_execution_contexts(
+            command_wrapper=command_wrapper,
+            request=request,
+            function_kwargs=function_kwargs,
+        )
 
     def _get_middleware_options(self) -> list[dict[str, Any]]:
         """Get the default file option definition."""
