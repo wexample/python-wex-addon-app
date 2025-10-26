@@ -46,29 +46,31 @@ class EachSuitePackageMiddleware(PackageSuiteMiddleware):
         if all_packages:
             suite_workdir = function_kwargs.get("app_workdir")
 
-            # Custom behavior: replace function with our custom one
-            def custom_function(context: ExecutionContext, **kwargs):
-                suite_workdir.packages_execute_manager(
-                    command=request.resolver.build_command_from_function(
-                        command_wrapper=command_wrapper
-                    ),
-                    context=context
+            if self._is_package_suite_workdir(workdir=suite_workdir):
+                # Custom behavior: replace function with our custom one
+                def custom_function(context: ExecutionContext, **kwargs):
+                    suite_workdir.packages_execute_manager(
+                        command=request.resolver.build_command_from_function(
+                            command_wrapper=command_wrapper
+                        ),
+                        arguments=request.arguments,
+                        context=context
+                    )
+                    return None
+
+                # Create a single context with the custom function
+                context = ExecutionContext(
+                    middleware=self,
+                    command_wrapper=command_wrapper,
+                    request=request,
+                    function_kwargs=function_kwargs,
+                    function=custom_function,
                 )
-                return None
 
-            # Create a single context with the custom function
-            context = ExecutionContext(
-                middleware=self,
-                command_wrapper=command_wrapper,
-                request=request,
-                function_kwargs=function_kwargs,
-                function=custom_function,
-            )
+                return [context]
 
-            return [context]
-        else:
-            # Nothing to execute.
-            return []
+        # Nothing to execute.
+        return []
 
     def _get_middleware_options(self) -> list[dict[str, Any]]:
         """Add the all_packages option."""

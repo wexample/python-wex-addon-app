@@ -19,7 +19,7 @@ if TYPE_CHECKING:
 
 class FrameworkPackageSuiteWorkdir(BasicAppWorkdir):
     def _package_title(self, path: PathOrString, message: str):
-        self.io.title(f"📦 {path.name}: {message}")
+        self.io.title(f"📦 {message}: {path.name}")
 
     def _packages_execute(
             self,
