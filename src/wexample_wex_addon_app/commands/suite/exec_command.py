@@ -41,6 +41,7 @@ def app__suite__exec_command(
 ) -> None:
     from wexample_helpers.helpers.shell import shell_split_cmd
     from wexample_helpers.validator.regex_validator import RegexValidator
+
     app_workdir.packages_execute_manager(
         command=command, arguments=shell_split_cmd(arguments), context=context
     )
