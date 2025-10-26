@@ -18,9 +18,11 @@ if TYPE_CHECKING:
 @option(name="filter_path", type=str, default=None)
 @option(name="filter_operation", type=str, default=None)
 @option(name="max", type=int, default=None)
+@option(name="force", type=bool, default=False, is_flag=True)
 @command(type=COMMAND_TYPE_ADDON)
 def app__file_state__rectify(
     context: ExecutionContext,
+    force: bool = False,
     yes: bool = False,
     dry_run: bool = False,
     loop: bool = False,
@@ -43,6 +45,7 @@ def app__file_state__rectify(
             scopes = (set(Scope) - {Scope.REMOTE}) if no_remote else None
             result = workdir.apply(
                 interactive=(not yes),
+                force=force,
                 scopes=scopes,
                 filter_path=filter_path,
                 filter_operation=filter_operation,
