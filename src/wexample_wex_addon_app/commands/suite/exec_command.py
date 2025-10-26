@@ -4,9 +4,11 @@ from typing import TYPE_CHECKING
 
 from wexample_helpers.helpers.shell import shell_split_cmd
 from wexample_helpers.validator.regex_validator import RegexValidator
+from wexample_wex_addon_app.middleware.package_suite_middleware import PackageSuiteMiddleware
 from wexample_wex_addon_app.workdir.framework_packages_suite_workdir import FrameworkPackageSuiteWorkdir
 from wexample_wex_core.const.globals import COMMAND_TYPE_ADDON, COMMAND_PATTERNS
 from wexample_wex_core.decorator.command import command
+from wexample_wex_core.decorator.middleware import middleware
 from wexample_wex_core.decorator.option import option
 
 if TYPE_CHECKING:
@@ -24,6 +26,9 @@ if TYPE_CHECKING:
     name="arguments",
     type=str,
     description="The arguments string, e.g. \"-a arg -v --yes\"",
+)
+@middleware(
+    middleware=PackageSuiteMiddleware
 )
 @command(
     type=COMMAND_TYPE_ADDON,
