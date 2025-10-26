@@ -5,7 +5,8 @@ from typing import TYPE_CHECKING
 
 from wexample_filestate.result.file_state_result import FileStateResult
 from wexample_helpers.classes.abstract_method import abstract_method
-
+from wexample_helpers.const.types import PathOrString
+from wexample_prompt.common.progress.progress_handle import ProgressHandle
 from wexample_wex_addon_app.workdir.basic_app_workdir import BasicAppWorkdir
 
 if TYPE_CHECKING:
@@ -17,6 +18,34 @@ if TYPE_CHECKING:
 
 
 class FrameworkPackageSuiteWorkdir(BasicAppWorkdir):
+    def _package_title(self, path: PathOrString, message: str):
+        self.io.title(f"📦 {path.name}: {message}")
+
+    def packages_execute_shell(
+            self,
+            cmd: list[str],
+    ):
+        from wexample_wex_addon_app.workdir.mixin.app_workdir_mixin import (
+            AppWorkdirMixin,
+        )
+
+        for package_path in self.get_packages_paths():
+            self._package_title(
+                path=package_path,
+                message=f"Executing shell {package_path.name}"
+            )
+
+            # Allow interruption
+            try:
+                if (
+                        AppWorkdirMixin.shell_run_from_path(cmd=cmd, path=package_path)
+                        is None
+                ):
+                    self.io.log("Invalid package directory, aborting")
+
+            except KeyboardInterrupt:
+                return
+
     def apply(self, **kwargs) -> FileStateResult:
         from wexample_filestate.enum.scopes import Scope
         from wexample_wex_core.resolver.addon_command_resolver import (
@@ -69,8 +98,8 @@ class FrameworkPackageSuiteWorkdir(BasicAppWorkdir):
             # Allow interruption
             try:
                 if (
-                    AppWorkdirMixin.shell_run_from_path(cmd=cmd, path=package_path)
-                    is None
+                        AppWorkdirMixin.shell_run_from_path(cmd=cmd, path=package_path)
+                        is None
                 ):
                     self.io.log("Invalid package directory, aborting")
 
@@ -89,10 +118,10 @@ class FrameworkPackageSuiteWorkdir(BasicAppWorkdir):
         return dependencies
 
     def build_dependencies_stack(
-        self,
-        package: CodeBaseWorkdir,
-        dependency: CodeBaseWorkdir,
-        dependencies_map: dict[str, list[str]],
+            self,
+            package: CodeBaseWorkdir,
+            dependency: CodeBaseWorkdir,
+            dependencies_map: dict[str, list[str]],
     ) -> list[CodeBaseWorkdir]:
         """When a package depends on another (uses it in its codebase),
         return the dependency chain to locate the original package that declares the explicit dependency.
@@ -166,15 +195,15 @@ class FrameworkPackageSuiteWorkdir(BasicAppWorkdir):
         return resolved
 
     def packages_propagate_versions(
-        self, progress: ProgressHandle | None = None
+            self, progress: ProgressHandle | None = None
     ) -> None:
         ordered_packages = self.get_ordered_packages()
 
         progress = (
-            progress
-            or self.io.progress(
-                label=f"Starting...", total=len(ordered_packages)
-            ).get_handle()
+                progress
+                or self.io.progress(
+            label=f"Starting...", total=len(ordered_packages)
+        ).get_handle()
         )
 
         for package in ordered_packages:
