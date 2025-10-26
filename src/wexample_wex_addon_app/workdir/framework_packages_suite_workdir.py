@@ -21,49 +21,50 @@ class FrameworkPackageSuiteWorkdir(BasicAppWorkdir):
     def _package_title(self, path: PathOrString, message: str):
         self.io.title(f"📦 {path.name}: {message}")
 
-    def packages_execute_manager(
+    def _packages_execute(
             self,
             cmd: list[str],
+            executor_method: callable,
+            message: str,
     ):
+        """Generic method to execute a command on all packages.
+        
+        Args:
+            cmd: Command to execute
+            executor_method: Method to call for execution (e.g., manager_run_from_path or shell_run_from_path)
+            message: Message to display in the title
+        """
+        for package_path in self.get_packages_paths():
+            self._package_title(path=package_path, message=message)
+
+            # Allow interruption
+            try:
+                if executor_method(cmd=cmd, path=package_path) is None:
+                    self.io.log("Invalid package directory, skipping.", indentation=1)
+            except KeyboardInterrupt:
+                return
+
+    def packages_execute_manager(self, cmd: list[str]):
         from wexample_wex_addon_app.workdir.mixin.app_workdir_mixin import (
             AppWorkdirMixin,
         )
 
-        for package_path in self.get_packages_paths():
-            self._package_title(
-                path=package_path,
-                message=f"Executing command"
-            )
+        self._packages_execute(
+            cmd=cmd,
+            executor_method=AppWorkdirMixin.manager_run_from_path,
+            message="Executing command",
+        )
 
-            # Allow interruption
-            try:
-                if AppWorkdirMixin.manager_run_from_path(cmd=cmd, path=package_path) is None:
-                    self.io.log("Invalid package directory, skipping.", indentation=1)
-
-            except KeyboardInterrupt:
-                return
-
-    def packages_execute_manager(
-            self,
-            cmd: list[str],
-    ):
+    def packages_execute_shell(self, cmd: list[str]):
         from wexample_wex_addon_app.workdir.mixin.app_workdir_mixin import (
             AppWorkdirMixin,
         )
 
-        for package_path in self.get_packages_paths():
-            self._package_title(
-                path=package_path,
-                message=f"Executing shell"
-            )
-
-            # Allow interruption
-            try:
-                if AppWorkdirMixin.shell_run_from_path(cmd=cmd, path=package_path) is None:
-                    self.io.log("Invalid package directory, skipping.", indentation=1)
-
-            except KeyboardInterrupt:
-                return
+        self._packages_execute(
+            cmd=cmd,
+            executor_method=AppWorkdirMixin.shell_run_from_path,
+            message="Executing shell",
+        )
 
         return result
 
