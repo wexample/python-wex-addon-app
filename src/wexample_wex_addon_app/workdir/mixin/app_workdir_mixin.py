@@ -95,11 +95,20 @@ class AppWorkdirMixin(
     def shell_run_from_path(
         cls, path: FileStringOrPath, cmd: list[str] | str
     ) -> None | ShellResult:
-        from wexample_app.const.globals import APP_PATH_BIN_APP_MANAGER
         from wexample_helpers.helpers.shell import shell_run
 
-        if not isinstance(cmd, list):
-            cmd = [cmd]
+        return shell_run(
+            cmd=cmd,
+            cwd=path,
+            inherit_stdio=True,
+        )
+
+    @classmethod
+    def manager_run_from_path(
+        cls, path: FileStringOrPath, cmd: list[str] | str
+    ) -> None | ShellResult:
+        from wexample_app.const.globals import APP_PATH_BIN_APP_MANAGER
+        from wexample_helpers.helpers.shell import shell_run
 
         if not AppWorkdirMixin.is_app_workdir_path_setup(path=path):
             manager_path = path / APP_PATH_APP_MANAGER
@@ -117,6 +126,9 @@ class AppWorkdirMixin(
             else:
                 # This is an undefined directory.
                 return None
+
+        if not isinstance(cmd, list):
+            cmd = [cmd]
 
         full_cmd = [str(APP_PATH_BIN_APP_MANAGER)]
         full_cmd.extend(cmd)

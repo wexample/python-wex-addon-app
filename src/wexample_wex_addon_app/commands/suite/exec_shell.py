@@ -38,6 +38,6 @@ def app__suite__exec_shell(
                 message=f"The app workdir `{workdir.get_path()}` is of type {workdir.__class__.__name__} and not a subclass of packages suite manager."
             )
         else:
-            workdir.packages_execute_manager(
+            workdir.packages_execute_shell(
                 cmd=shell_split_cmd(command)
             )
