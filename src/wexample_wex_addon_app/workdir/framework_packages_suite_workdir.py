@@ -41,7 +41,7 @@ class FrameworkPackageSuiteWorkdir(BasicAppWorkdir):
                         AppWorkdirMixin.shell_run_from_path(cmd=cmd, path=package_path)
                         is None
                 ):
-                    self.io.log("Invalid package directory, aborting")
+                    self.io.log("Invalid package directory, skipping.", indentation=1)
 
             except KeyboardInterrupt:
                 return
@@ -101,7 +101,7 @@ class FrameworkPackageSuiteWorkdir(BasicAppWorkdir):
                         AppWorkdirMixin.shell_run_from_path(cmd=cmd, path=package_path)
                         is None
                 ):
-                    self.io.log("Invalid package directory, aborting")
+                    self.io.log("Invalid package directory, skipping.", indentation=1)
 
             except KeyboardInterrupt:
                 return result
