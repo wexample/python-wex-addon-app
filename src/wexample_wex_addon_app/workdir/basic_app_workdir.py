@@ -1,14 +1,16 @@
 from __future__ import annotations
-
-from wexample_filestate.result.file_state_result import FileStateResult
 from wexample_helpers.decorator.base_class import base_class
 from wexample_wex_addon_app.workdir.mixin.app_workdir_mixin import AppWorkdirMixin
 from wexample_wex_core.workdir.workdir import Workdir
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from wexample_filestate.result.file_state_result import FileStateResult
 
 
 @base_class
 class BasicAppWorkdir(AppWorkdirMixin, Workdir):
     def apply(self, force: bool = False, **kwargs) -> FileStateResult:
+        from wexample_filestate.result.file_state_result import FileStateResult
         from wexample_helpers.helpers.repo import repo_has_changed_since, repo_get_state
 
         registry_file = self.get_registry_file()

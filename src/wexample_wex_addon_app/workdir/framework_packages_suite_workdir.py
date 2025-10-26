@@ -18,67 +18,6 @@ if TYPE_CHECKING:
 
 
 class FrameworkPackageSuiteWorkdir(BasicAppWorkdir):
-    def _package_title(self, path: PathOrString, message: str) -> None:
-        self.io.title(f"📦 {message}: {path.name}")
-
-    def _packages_execute(
-        self,
-        cmd: list[str],
-        executor_method: callable,
-        message: str,
-    ) -> None:
-        """Generic method to execute a command on all packages.
-
-        Args:
-            cmd: Command to execute
-            executor_method: Method to call for execution (e.g., manager_run_from_path or shell_run_from_path)
-            message: Message to display in the title
-        """
-        for package_path in self.get_packages_paths():
-            self._package_title(path=package_path, message=message)
-
-            # Allow interruption
-            try:
-                if executor_method(cmd=cmd, path=package_path) is None:
-                    self.io.log("Invalid package directory, skipping.", indentation=1)
-            except KeyboardInterrupt:
-                return
-
-    def packages_execute_manager(
-        self,
-        command: str,
-        context: ExecutionContext,
-        arguments: None | list[str] = None,
-    ) -> None:
-        from wexample_wex_addon_app.workdir.mixin.app_workdir_mixin import (
-            AppWorkdirMixin,
-        )
-
-        cmd = [command]
-        arguments = arguments or []
-
-        if arguments is not None:
-            cmd.extend(arguments)
-
-        if "--indentation-level" not in cmd:
-            cmd.extend(["--indentation-level", str(context.io.indentation + 1)])
-
-        self._packages_execute(
-            cmd=cmd,
-            executor_method=AppWorkdirMixin.manager_run_from_path,
-            message="Executing command",
-        )
-
-    def packages_execute_shell(self, cmd: list[str]) -> None:
-        from wexample_wex_addon_app.workdir.mixin.app_workdir_mixin import (
-            AppWorkdirMixin,
-        )
-
-        self._packages_execute(
-            cmd=cmd,
-            executor_method=AppWorkdirMixin.shell_run_from_path,
-            message="Executing shell",
-        )
 
     def build_dependencies_map(self) -> dict[str, list[str]]:
         dependencies = {}
@@ -166,6 +105,42 @@ class FrameworkPackageSuiteWorkdir(BasicAppWorkdir):
 
         return resolved
 
+    def packages_execute_manager(
+        self,
+        command: str,
+        context: ExecutionContext,
+        arguments: None | list[str] = None,
+    ) -> None:
+        from wexample_wex_addon_app.workdir.mixin.app_workdir_mixin import (
+            AppWorkdirMixin,
+        )
+
+        cmd = [command]
+        arguments = arguments or []
+
+        if arguments is not None:
+            cmd.extend(arguments)
+
+        if "--indentation-level" not in cmd:
+            cmd.extend(["--indentation-level", str(context.io.indentation + 1)])
+
+        self._packages_execute(
+            cmd=cmd,
+            executor_method=AppWorkdirMixin.manager_run_from_path,
+            message="Executing command",
+        )
+
+    def packages_execute_shell(self, cmd: list[str]) -> None:
+        from wexample_wex_addon_app.workdir.mixin.app_workdir_mixin import (
+            AppWorkdirMixin,
+        )
+
+        self._packages_execute(
+            cmd=cmd,
+            executor_method=AppWorkdirMixin.shell_run_from_path,
+            message="Executing shell",
+        )
+
     def packages_propagate_versions(
         self, progress: ProgressHandle | None = None
     ) -> None:
@@ -232,3 +207,28 @@ class FrameworkPackageSuiteWorkdir(BasicAppWorkdir):
         )
 
         return CodeBaseWorkdir
+    def _package_title(self, path: PathOrString, message: str) -> None:
+        self.io.title(f"📦 {message}: {path.name}")
+
+    def _packages_execute(
+        self,
+        cmd: list[str],
+        executor_method: callable,
+        message: str,
+    ) -> None:
+        """Generic method to execute a command on all packages.
+
+        Args:
+            cmd: Command to execute
+            executor_method: Method to call for execution (e.g., manager_run_from_path or shell_run_from_path)
+            message: Message to display in the title
+        """
+        for package_path in self.get_packages_paths():
+            self._package_title(path=package_path, message=message)
+
+            # Allow interruption
+            try:
+                if executor_method(cmd=cmd, path=package_path) is None:
+                    self.io.log("Invalid package directory, skipping.", indentation=1)
+            except KeyboardInterrupt:
+                return
