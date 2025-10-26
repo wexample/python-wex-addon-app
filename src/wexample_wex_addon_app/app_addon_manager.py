@@ -5,7 +5,9 @@ from typing import TYPE_CHECKING, Any
 
 from wexample_helpers.classes.private_field import private_field
 from wexample_helpers.decorator.base_class import base_class
+from wexample_wex_addon_app.middleware.each_suite_package_middleware import EachSuitePackageMiddleware
 from wexample_wex_core.common.abstract_addon_manager import AbstractAddonManager
+from wexample_wex_core.middleware.abstract_middleware import AbstractMiddleware
 
 if TYPE_CHECKING:
     from wexample_wex_addon_app.workdir.mixin.app_workdir_mixin import AppWorkdirMixin
@@ -60,3 +62,8 @@ class AppAddonManager(AbstractAddonManager):
         )
 
         return self._app_workdir
+
+    def get_middlewares_classes(self) -> list[type[AbstractMiddleware]]:
+        return [
+            EachSuitePackageMiddleware,
+        ]
