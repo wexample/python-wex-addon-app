@@ -13,25 +13,23 @@ class BasicAppWorkdir(AppWorkdirMixin, Workdir):
 
         registry_file = self.get_registry_file()
         registry = registry_file.read_config()
+        last_update_hash = registry.search("file_state.last_update_hash").get_str_or_none()
 
-        last_update_hash = registry.search(
-            "file_state.last_update_hash"
-        ).get_str_or_none()
-        if force or (
-            last_update_hash is None
-            or repo_has_changed_since(
-                previous_state=last_update_hash, cwd=self.get_path()
-            )
-        ):
+        # Reset hash
+        registry.set_by_path("file_state.last_update_hash", None).write_config()
+        if force or (last_update_hash is None or repo_has_changed_since(
+                previous_state=last_update_hash,
+                cwd=self.get_path()
+        )):
             result = super().apply(**kwargs)
 
             # Save hash
             registry.set_by_path(
-                "file_state.last_update_hash", repo_get_state(cwd=self.get_path())
-            )
-            registry_file.write_config()
+                "file_state.last_update_hash",
+                repo_get_state(cwd=self.get_path())
+            ).write_config()
 
             return result
 
-        self.io.log("No change since last pass, skipping.", indentation=1)
+        self.io.log('No change since last pass, skipping.', indentation=1)
         return FileStateResult(state_manager=self)
