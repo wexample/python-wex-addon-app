@@ -16,6 +16,36 @@ class BasicAppWorkdir(AppWorkdirMixin, Workdir):
     def get_package_name(self) -> str:
         return self.get_item_name()
 
+    # Publication helpers
+    def get_publication_tag_name(self) -> str:
+        """Return the conventional tag name for this package publication.
+
+        Format: "{package_name}/v{version}"
+        """
+        return f"{self.get_package_name()}/v{self.get_project_version()}"
+
+    def get_last_publication_tag(self) -> str | None:
+        """Return the last publication tag for this package, or None if none exists."""
+        from wexample_helpers_git.helpers.git import git_last_tag_for_prefix
+
+        prefix = f"{self.get_package_name()}/v*"
+        return git_last_tag_for_prefix(prefix, cwd=self.get_path(), inherit_stdio=False)
+
+    def has_changes_since_last_publication_tag(self) -> bool:
+        """Return True if there are changes in the package directory since the last publication tag.
+
+        If there is no previous tag, returns True (first publication).
+        """
+        from wexample_helpers_git.helpers.git import git_has_changes_since_tag
+
+        last_tag = self.get_last_publication_tag()
+        if last_tag is None:
+            return True
+        # Limit diff to current package folder, run from package cwd using '.'
+        return git_has_changes_since_tag(
+            last_tag, ".", cwd=self.get_path(), inherit_stdio=False
+        )
+
     def apply(
         self,
         force: bool = False,
@@ -76,3 +106,47 @@ class BasicAppWorkdir(AppWorkdirMixin, Workdir):
 
         self.io.log("No change since last pass, skipping.", indentation=1)
         return FileStateResult(state_manager=self)
+
+
+    def bump(self, interactive: bool = False, **kwargs) -> bool:
+        """Create a version-x.y.z branch, update the version number in config. Don't commit changes."""
+        from wexample_helpers.helpers.version import version_increment
+        from wexample_prompt.responses.interactive.confirm_prompt_response import (
+            ConfirmPromptResponse,
+        )
+
+        current_version = self.get_project_version()
+        new_version = version_increment(version=current_version, **kwargs)
+        branch_name = f"version-{new_version}"
+
+        def _bump() -> None:
+            from wexample_helpers_git.helpers.git import git_create_or_switch_branch
+
+            # Create or switch to branch first, so changes are committed on it.
+            git_create_or_switch_branch(
+                branch_name, cwd=self.get_path(), inherit_stdio=True
+            )
+
+            # Change version number on this branch
+            self.get_config_file().write_config_value("global.version", new_version)
+
+            self.success(
+                f'Bumped {self.get_package_name()} from "{current_version}" to "{new_version}" and switched to branch "{branch_name}"'
+            )
+
+        if interactive:
+
+            confirm = self.confirm(
+                f"Do you want to create a new version for package {self.get_package_name()} in {self.get_path()}? "
+                f'This will create/switch to branch "{branch_name}".',
+                choices=ConfirmPromptResponse.MAPPING_PRESET_YES_NO,
+                default="yes",
+            )
+
+            if confirm.is_ok():
+                _bump()
+                return True
+        else:
+            _bump()
+            return True
+        return False

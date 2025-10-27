@@ -75,6 +75,9 @@ class AppAddonManager(AbstractAddonManager):
         from wexample_wex_addon_app.middleware.each_suite_package_middleware import (
             EachSuitePackageMiddleware,
         )
+        from wexample_wex_addon_app.middleware.suite_or_each_package_middleware import (
+            SuiteOrEachPackageMiddleware,
+        )
         from wexample_wex_addon_app.middleware.package_suite_middleware import (
             PackageSuiteMiddleware,
         )
@@ -83,4 +86,5 @@ class AppAddonManager(AbstractAddonManager):
             AppMiddleware,
             EachSuitePackageMiddleware,
             PackageSuiteMiddleware,
+            SuiteOrEachPackageMiddleware
         ]
