@@ -201,45 +201,78 @@ class FrameworkPackageSuiteWorkdir(BasicAppWorkdir):
     def prepare_value(self, raw_value: DictConfig | None = None) -> DictConfig:
         """Prepare file state configuration for package suite.
         
-        Note: This method is kept for backward compatibility with file state manager,
-        but package discovery now primarily uses get_packages() which leverages
-        package_suite.location from config.yml for multi-source support.
+        Builds a recursive tree structure of directories containing packages,
+        based on package_suite.location patterns from config.yml.
         """
+        from pathlib import Path
         from wexample_filestate.const.disk import DiskItemType
-        from wexample_filestate.option.children_filter_option import (
-            ChildrenFilterOption,
-        )
 
         raw_value = super().prepare_value(raw_value=raw_value)
 
         children = raw_value["children"]
 
-        # Add package directories based on configured locations
-        # This supports the file state system but get_packages() is the primary API
-        locations = self.get_config().search("package_suite.location").get_list()
+        # Get all package paths from configured locations
+        package_paths = self.get_packages_paths()
         
-        for location_config in locations:
-            location_pattern = location_config.get_str()
-            # Extract the parent directory from the glob pattern (e.g., "pip/*" -> "pip")
-            parent_dir = location_pattern.split("/")[0] if "/" in location_pattern else location_pattern
-            
-            children.append(
-                {
-                    "name": parent_dir,
-                    "type": DiskItemType.DIRECTORY,
-                    "children": [
-                        ChildrenFilterOption(
-                            filter=self._child_is_package_directory,
-                            pattern={
-                                "class": self._get_children_package_workdir_class(),
-                                "type": DiskItemType.DIRECTORY,
-                            },
-                        )
-                    ],
-                }
-            )
+        # Build a tree structure from the package paths
+        tree = self._build_directory_tree(package_paths)
+        
+        # Convert tree to config format and add to children
+        children.extend(tree)
 
         return raw_value
+    
+    def _build_directory_tree(self, package_paths: list[Path]) -> list[dict]:
+        """Build a recursive directory tree structure from package paths.
+        
+        Args:
+            package_paths: List of absolute paths to packages
+            
+        Returns:
+            List of directory nodes in the format:
+            [{"name": "dir", "type": "directory", "children": [...]}, ...]
+        """
+        from pathlib import Path
+        from wexample_filestate.const.disk import DiskItemType
+        
+        # Get the suite root path
+        suite_root = self.get_path()
+        
+        # Build tree directly in final format
+        root_nodes: dict[str, dict] = {}
+        
+        for package_path in package_paths:
+            # Get relative path from suite root
+            try:
+                rel_path = package_path.relative_to(suite_root)
+            except ValueError:
+                # Package is outside suite root, skip it
+                continue
+            
+            # Navigate/create the tree structure
+            parts = rel_path.parts
+            current_level = root_nodes
+            
+            for part in parts:
+                if part not in current_level:
+                    current_level[part] = {
+                        "name": part,
+                        "type": DiskItemType.DIRECTORY,
+                        "children": {}
+                    }
+                # Navigate to children for next iteration
+                current_level = current_level[part]["children"]
+        
+        # Convert children dicts to lists recursively
+        def finalize_node(node: dict) -> dict:
+            if node["children"]:
+                node["children"] = [finalize_node(child) for child in node["children"].values()]
+            else:
+                # Remove empty children dict
+                del node["children"]
+            return node
+        
+        return [finalize_node(node) for node in root_nodes.values()]
 
     @abstract_method
     def _child_is_package_directory(self, entry: Path) -> bool:
