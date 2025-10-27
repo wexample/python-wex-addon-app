@@ -36,6 +36,4 @@ def app__suite__exec_shell(
 ) -> None:
     from wexample_helpers.helpers.shell import shell_split_cmd
 
-    app_workdir.packages_execute_shell(
-        cmd=shell_split_cmd(command)
-    )
+    app_workdir.packages_execute_shell(cmd=shell_split_cmd(command))

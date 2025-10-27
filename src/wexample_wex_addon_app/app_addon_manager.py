@@ -86,5 +86,5 @@ class AppAddonManager(AbstractAddonManager):
             AppMiddleware,
             EachSuitePackageMiddleware,
             PackageSuiteMiddleware,
-            SuiteOrEachPackageMiddleware
+            SuiteOrEachPackageMiddleware,
         ]

@@ -162,8 +162,7 @@ class AppWorkdirMixin(
 
         # We don't search into the target item tree as this is a low level information.
         config_file = YamlFile.create_from_path(
-            path=self.get_path() / WORKDIR_SETUP_DIR / APP_FILE_APP_CONFIG,
-            io=self.io
+            path=self.get_path() / WORKDIR_SETUP_DIR / APP_FILE_APP_CONFIG, io=self.io
         )
 
         return config_file

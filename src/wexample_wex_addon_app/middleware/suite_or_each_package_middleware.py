@@ -85,6 +85,7 @@ class SuiteOrEachPackageMiddleware(PackageSuiteMiddleware):
 
         # Execute on packages if requested and we have a suite
         if execute_packages and is_suite:
+
             def custom_function(context: ExecutionContext, **kwargs) -> None:
                 suite_workdir = kwargs.get("app_workdir")
                 suite_workdir.packages_execute_manager(
@@ -113,30 +114,32 @@ class SuiteOrEachPackageMiddleware(PackageSuiteMiddleware):
     def _get_middleware_options(self) -> list[dict[str, Any]]:
         """Add options for controlling suite/package execution."""
         options = super()._get_middleware_options()
-        options.extend([
-            {
-                "name": "all_packages",
-                "type": bool,
-                "required": False,
-                "default": False,
-                "is_flag": True,
-                "description": "Execute the command on all packages of the suite (in addition to suite itself unless --packages-only is used)",
-            },
-            {
-                "name": "packages_only",
-                "type": bool,
-                "required": False,
-                "default": False,
-                "is_flag": True,
-                "description": "Execute only on packages, not on the suite itself (implies --all-packages)",
-            },
-            {
-                "name": "suite_only",
-                "type": bool,
-                "required": False,
-                "default": False,
-                "is_flag": True,
-                "description": "Execute only on the suite itself, not on packages",
-            },
-        ])
+        options.extend(
+            [
+                {
+                    "name": "all_packages",
+                    "type": bool,
+                    "required": False,
+                    "default": False,
+                    "is_flag": True,
+                    "description": "Execute the command on all packages of the suite (in addition to suite itself unless --packages-only is used)",
+                },
+                {
+                    "name": "packages_only",
+                    "type": bool,
+                    "required": False,
+                    "default": False,
+                    "is_flag": True,
+                    "description": "Execute only on packages, not on the suite itself (implies --all-packages)",
+                },
+                {
+                    "name": "suite_only",
+                    "type": bool,
+                    "required": False,
+                    "default": False,
+                    "is_flag": True,
+                    "description": "Execute only on the suite itself, not on packages",
+                },
+            ]
+        )
         return options

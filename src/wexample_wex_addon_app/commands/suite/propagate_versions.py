@@ -26,7 +26,7 @@ def app__suite__propagate_versions(
     app_workdir: FrameworkPackageSuiteWorkdir,
 ) -> None:
     context.io.info("Starting version propagation across all packages...")
-    
+
     app_workdir.packages_propagate_versions()
-    
+
     context.io.success("Version propagation completed successfully.")

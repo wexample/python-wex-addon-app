@@ -47,5 +47,5 @@ def app__suite__exec_command(
     app_workdir.packages_execute_manager(
         command=command,
         arguments=shell_split_cmd(arguments) if arguments else None,
-        context=context
+        context=context,
     )

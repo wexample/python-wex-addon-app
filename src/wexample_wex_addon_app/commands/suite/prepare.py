@@ -36,11 +36,11 @@ def app__suite__prepare(
 
     # Propagate versions
     progress.advance(step=10, label="Propagating versions...")
-    app_workdir.packages_propagate_versions(progress=progress.create_range_handle(to=80))
+    app_workdir.packages_propagate_versions(
+        progress=progress.create_range_handle(to=80)
+    )
     context.io.success("Versions propagated successfully.")
 
     progress.finish(color=TerminalColor.GREEN, label="Preparation complete.")
-    
-    context.io.info(
-        "To commit and push changes, run: app::suite/commit-and-push --yes"
-    )
+
+    context.io.info("To commit and push changes, run: app::suite/commit-and-push --yes")

@@ -1,3 +1,209 @@
+## Usage
+
+### Quick Start: Complete Publication Workflow
+
+```bash
+# 1. Rectify code across all packages
+app::file-state/rectify --all-packages
+
+# 2. Bump only packages with changes (excluding suite)
+app::package/bump-changed --packages-only
+
+# 3. Validate dependencies and propagate versions
+app::suite/prepare
+
+# 4. Commit and push all changes
+app::suite/commit-and-push --yes
+
+# 5. Publish packages with changes to PyPI
+app::suite/publish
+```
+
+### File State Management
+* `app::file-state/rectify [--all-packages]`: Normalizes/rectifies code for a single app or across all packages in the suite; no commits.
+
+### Version Management
+
+The version management commands use `SuiteOrEachPackageMiddleware` which provides flexible execution control:
+- **Default**: Executes on the suite (or single package if app_path points to a package)
+- **`--all-packages`**: Executes on both the suite AND all packages
+- **`--packages-only`**: Executes only on packages (excludes suite, implies `--all-packages`)
+- **`--suite-only`**: Executes only on the suite (excludes packages)
+
+Commands:
+* `app::package/bump [--all-packages|--packages-only|--suite-only] [--yes]`: Bumps version for suite and/or packages.
+* `app::package/bump-changed [--all-packages|--packages-only|--suite-only] [--yes]`: Bumps version only for packages/suite that have new content (no current version tag on HEAD).
+* `app::suite/propagate-versions`: Propagates package versions across all dependents in the suite.
+
+### Git Operations
+* `app::suite/commit-and-push [--yes]`: Commits and pushes changes for all packages with uncommitted changes.
+
+### Suite Execution
+* `app::suite/exec-command -c <command> [--arguments "<args>"]`: Executes a manager command on all packages (e.g., `app::info/show`).
+* `app::suite/exec-shell -c "<command>"`: Executes a shell command on all packages.
+
+### Publishing
+* `app::suite/prepare`: Validates internal dependencies and propagates versions across all packages. Follow with `app::suite/commit-and-push --yes` to commit changes.
+* `app::suite/publish`: Publishes packages to PyPI. Only publishes packages with changes since their last publication tag. Automatically creates and pushes publication tags after successful publish.
+
+### Common Workflows
+
+**Bump only packages with changes (excluding suite):**
+```bash
+app::package/bump-changed --packages-only && app::suite/propagate-versions && app::suite/commit-and-push --yes
+```
+
+**Bump suite and all packages:**
+```bash
+app::package/bump --all-packages
+```
+
+**Bump only the suite:**
+```bash
+app::package/bump --suite-only
+```
+
+**Rectify all packages:**
+```bash
+app::file-state/rectify --all-packages
+```
+
+**Get info for all packages:**
+```bash
+app::suite/exec-command -c app::info/show
+```
+
+## API Reference
+
+The wex-addon-app framework provides two distinct patterns for executing commands across package suites, representing an evolution from legacy inline iteration to a more modular, middleware-based approach.
+
+### Pattern 1: Middleware-Based Iteration (Recommended)
+
+This pattern externalizes iteration logic from the command implementation, allowing commands to focus solely on their core functionality while middlewares handle the iteration concerns.
+
+#### How It Works
+
+Commands are decorated with middleware that can optionally iterate over packages:
+
+- **`AppMiddleware`**: Provides the base `app_workdir` context for a single application
+- **`EachSuitePackageMiddleware`**: Extends `AppMiddleware` and adds the `--all-packages` flag
+  - When `--all-packages` is **not** specified: executes the command once on the target application
+  - When `--all-packages` **is** specified: automatically iterates over all packages in the suite, executing the command on each package individually
+
+#### Example: `app::file-state/rectify`
+
+```python
+@middleware(middleware=AppMiddleware)
+@middleware(middleware=EachSuitePackageMiddleware)
+@command(type=COMMAND_TYPE_ADDON)
+def app__file_state__rectify(
+    context: ExecutionContext,
+    app_workdir: BasicAppWorkdir,
+    # ... other options
+) -> None:
+    # Command implementation focuses only on rectifying a single app
+    # Iteration is handled externally by the middleware
+    workdir.apply(...)
+```
+
+**Usage:**
+```bash
+# Rectify only the main suite application
+.wex/bin/app-manager app::file-state/rectify
+
+# Rectify all packages in the suite
+.wex/bin/app-manager app::file-state/rectify --all-packages
+```
+
+**Benefits:**
+- Clean separation of concerns: command logic vs. iteration logic
+- Reusable middleware across multiple commands
+- Consistent iteration behavior
+- Easy to add iteration capability to existing commands
+
+### Pattern 2: Delegated Iteration (For Suite-Specific Commands)
+
+This pattern is used when the command is inherently suite-oriented and always operates on multiple packages. The iteration is delegated to helper methods on the `FrameworkPackageSuiteWorkdir`.
+
+#### How It Works
+
+Commands use `PackageSuiteMiddleware` to ensure they receive a `FrameworkPackageSuiteWorkdir`, then delegate iteration to:
+
+- **`packages_execute_shell(cmd)`**: Execute shell commands on all packages
+- **`packages_execute_manager(command, arguments, context)`**: Execute manager commands (e.g., `app::info/show`) on all packages
+
+#### Example: `app::suite/exec-command`
+
+```python
+@middleware(middleware=PackageSuiteMiddleware)
+@command(type=COMMAND_TYPE_ADDON)
+def app__suite__exec_command(
+    context: ExecutionContext,
+    command: str,
+    app_workdir: FrameworkPackageSuiteWorkdir,
+    arguments: str = None,
+) -> None:
+    # Delegate iteration to the workdir helper
+    app_workdir.packages_execute_manager(
+        command=command,
+        arguments=shell_split_cmd(arguments) if arguments else None,
+        context=context
+    )
+```
+
+**Usage:**
+```bash
+# Execute a manager command on all packages
+.wex/bin/app-manager app::suite/exec-command -c app::info/show
+
+# Execute a shell command on all packages
+.wex/bin/app-manager app::suite/exec-shell -c "ls -la"
+```
+
+**Benefits:**
+- Explicit suite-wide operations
+- Centralized iteration logic in workdir helpers
+- Consistent error handling and progress reporting
+- Suitable for commands that only make sense in a suite context
+
+### Migration Guide: Legacy to Modern Patterns
+
+**Legacy approach** (deprecated):
+```python
+def old_command(context, app_path):
+    suite = get_suite(app_path)
+    for package in suite.get_packages():  # Iteration inside command
+        # Do something with package
+```
+
+**Modern approach** (Pattern 1):
+```python
+@middleware(middleware=EachSuitePackageMiddleware)
+def new_command(context, app_workdir):
+    # Iteration handled by middleware when --all-packages is used
+    # Command only handles single app logic
+```
+
+**Modern approach** (Pattern 2):
+```python
+@middleware(middleware=PackageSuiteMiddleware)
+def suite_command(context, app_workdir: FrameworkPackageSuiteWorkdir):
+    # Delegate iteration to workdir helper
+    app_workdir.packages_execute_manager(...)
+```
+
+### Choosing the Right Pattern
+
+- **Use Pattern 1 (Middleware-Based)** when:
+  - The command can operate on both single apps and suites
+  - You want optional iteration via `--all-packages`
+  - The command logic is app-focused, not suite-focused
+
+- **Use Pattern 2 (Delegated)** when:
+  - The command is inherently suite-oriented
+  - Iteration is always required (no single-app mode)
+  - You're executing shell commands or other manager commands on packages
+
 ## Code Quality & Typing
 
 All Wexample packages follow strict quality standards:

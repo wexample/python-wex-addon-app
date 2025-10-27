@@ -30,25 +30,23 @@ def app__suite__commit_and_push(
 ) -> None:
     packages = list(app_workdir.get_packages())
     has_changes = False
-    
+
     for package in packages:
         package_name = package.get_package_name()
-        
+
         if package.has_working_changes():
             has_changes = True
-            
+
             if yes:
                 context.io.info(f"Committing and pushing changes for {package_name}...")
                 package.commit_changes()
                 package.push_changes()
                 context.io.success(f"Successfully committed and pushed {package_name}.")
             else:
-                context.io.warning(
-                    f"Package {package_name} has uncommitted changes."
-                )
+                context.io.warning(f"Package {package_name} has uncommitted changes.")
         else:
             context.io.log(f"Package {package_name} has no uncommitted changes.")
-    
+
     if has_changes and not yes:
         context.io.warning(
             "Changes detected. Re-run with --yes to commit and push all packages."

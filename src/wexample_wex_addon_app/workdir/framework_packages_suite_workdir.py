@@ -88,13 +88,12 @@ class FrameworkPackageSuiteWorkdir(BasicAppWorkdir):
 
     def get_packages(self) -> list[CodeBaseWorkdir]:
         return self.find_all_by_type(
-            class_type=self._get_children_package_workdir_class(),
-            recursive=True
+            class_type=self._get_children_package_workdir_class(), recursive=True
         )
 
     def _create_package_workdir(self, package_path: Path) -> CodeBaseWorkdir | None:
         """Create a workdir instance for a package at the given path.
-        
+
         This method should be overridden by subclasses to return the appropriate
         workdir type (e.g., PythonPackageWorkdir).
         """
@@ -189,7 +188,7 @@ class FrameworkPackageSuiteWorkdir(BasicAppWorkdir):
 
     def prepare_value(self, raw_value: DictConfig | None = None) -> DictConfig:
         """Prepare file state configuration for package suite.
-        
+
         Builds a recursive tree structure of directories containing packages,
         based on package_suite.location patterns from config.yml.
         """
@@ -202,34 +201,34 @@ class FrameworkPackageSuiteWorkdir(BasicAppWorkdir):
 
         # Get all package paths from configured locations
         package_paths = self.get_packages_paths()
-        
+
         # Build a tree structure from the package paths
         tree = self._build_directory_tree(package_paths)
-        
+
         # Convert tree to config format and add to children
         children.extend(tree)
 
         return raw_value
-    
+
     def _build_directory_tree(self, package_paths: list[Path]) -> list[dict]:
         """Build a recursive directory tree structure from package paths.
-        
+
         Args:
             package_paths: List of absolute paths to packages
-            
+
         Returns:
             List of directory nodes in the format:
             [{"name": "dir", "type": "directory", "children": [...]}, ...]
         """
         from pathlib import Path
         from wexample_filestate.const.disk import DiskItemType
-        
+
         # Get the suite root path
         suite_root = self.get_path()
-        
+
         # Build tree directly in final format
         root_nodes: dict[str, dict] = {}
-        
+
         for package_path in package_paths:
             # Get relative path from suite root
             try:
@@ -237,37 +236,43 @@ class FrameworkPackageSuiteWorkdir(BasicAppWorkdir):
             except ValueError:
                 # Package is outside suite root, skip it
                 continue
-            
+
             # Navigate/create the tree structure
             parts = rel_path.parts
             current_level = root_nodes
-            
+
             for i, part in enumerate(parts):
                 if part not in current_level:
                     node_config = {
                         "name": part,
                         "type": DiskItemType.DIRECTORY,
-                        "children": {}
+                        "children": {},
                     }
-                    
+
                     # If this is the last part (the package itself), add the class
-                    if i == len(parts) - 1 and BasicAppWorkdir.is_app_workdir_path(path=package_path):
-                        node_config["class"] = self._get_children_package_workdir_class()
-                    
+                    if i == len(parts) - 1 and BasicAppWorkdir.is_app_workdir_path(
+                        path=package_path
+                    ):
+                        node_config["class"] = (
+                            self._get_children_package_workdir_class()
+                        )
+
                     current_level[part] = node_config
-                
+
                 # Navigate to children for next iteration
                 current_level = current_level[part]["children"]
-        
+
         # Convert children dicts to lists recursively
         def finalize_node(node: dict) -> dict:
             if node["children"]:
-                node["children"] = [finalize_node(child) for child in node["children"].values()]
+                node["children"] = [
+                    finalize_node(child) for child in node["children"].values()
+                ]
             else:
                 # Remove empty children dict
                 del node["children"]
             return node
-        
+
         return [finalize_node(node) for node in root_nodes.values()]
 
     @abstract_method

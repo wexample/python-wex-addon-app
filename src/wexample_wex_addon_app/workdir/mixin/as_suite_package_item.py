@@ -8,7 +8,9 @@ from wexample_helpers.classes.base_class import BaseClass
 from wexample_helpers.decorator.base_class import base_class
 
 if TYPE_CHECKING:
-    from wexample_wex_addon_app.workdir.framework_packages_suite_workdir import FrameworkPackageSuiteWorkdir
+    from wexample_wex_addon_app.workdir.framework_packages_suite_workdir import (
+        FrameworkPackageSuiteWorkdir,
+    )
 
 
 @base_class
@@ -30,9 +32,7 @@ class AsSuitePackageItem(BaseClass):
         return None
 
     def get_env_parameter_or_suite_fallback(
-            self,
-            key: str,
-            default: str | None = None
+        self, key: str, default: str | None = None
     ) -> str | None:
         value = self.get_env_parameter(
             key=key,
