@@ -7,6 +7,7 @@ from wexample_wex_addon_app.middleware.each_suite_package_middleware import (
     EachSuitePackageMiddleware,
 )
 from wexample_wex_addon_app.workdir.code_base_workdir import CodeBaseWorkdir
+from wexample_wex_addon_app.workdir.framework_packages_suite_workdir import FrameworkPackageSuiteWorkdir
 from wexample_wex_core.const.globals import COMMAND_TYPE_ADDON
 from wexample_wex_core.decorator.command import command
 from wexample_wex_core.decorator.middleware import middleware
@@ -24,19 +25,23 @@ if TYPE_CHECKING:
     description="Bump version only if package has new content (HEAD not tagged). Use --all-packages to check all packages in a suite.",
 )
 def app__package__bump_changed(
-    context: ExecutionContext,
-    app_workdir: CodeBaseWorkdir,
-    yes: bool = False,
+        context: ExecutionContext,
+        app_workdir: CodeBaseWorkdir,
+        yes: bool = False,
+        ignore_suite: bool = False
 ) -> None:
+    if isinstance(app_workdir, FrameworkPackageSuiteWorkdir) and ignore_suite:
+        return
+
     package_name = app_workdir.get_package_name()
-    
+
     # Check if package has changes since last publication tag
     if not app_workdir.has_changes_since_last_publication_tag():
         context.io.log(f"Package {package_name} has no new content to bump.")
         return
-    
+
     context.io.info(f"Package {package_name} has new content. Bumping version...")
-    
+
     if app_workdir.bump(interactive=not yes):
         context.io.success(f"Successfully bumped {package_name}.")
     else:

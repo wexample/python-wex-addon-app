@@ -13,6 +13,9 @@ if TYPE_CHECKING:
 
 @base_class
 class BasicAppWorkdir(AppWorkdirMixin, Workdir):
+    def get_package_name(self) -> str:
+        return self.get_item_name()
+
     def apply(
         self,
         force: bool = False,
