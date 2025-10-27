@@ -24,7 +24,7 @@ Commands:
 * `app::suite/exec-shell -c "<command>"`: Executes a shell command on all packages.
 
 ### Publishing
-* `app::suite/prepare --yes [--all|--package X]`: Validates internal deps, propagates versions, and commits/pushes if needed.
+* `app::suite/prepare`: Validates internal dependencies and propagates versions across all packages. Follow with `app::suite/commit-and-push --yes` to commit changes.
 * `app::suite/publish [--all|--package X]`: Publishes only packages that need it; adds/pushes publication tag after successful publish; never bumps here.
 
 ### Common Workflows
