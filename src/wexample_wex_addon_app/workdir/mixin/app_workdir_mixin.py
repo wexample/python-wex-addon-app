@@ -173,11 +173,13 @@ class AppWorkdirMixin(
         from wexample_filestate.item.file.env_file import EnvFile
         from wexample_app.const.globals import WORKDIR_SETUP_DIR
 
-        config_dir = self.find_by_name(WORKDIR_SETUP_DIR)
-        if config_dir:
-            dot_env = config_dir.find_by_name(EnvFile.EXTENSION_DOT_ENV)
-            if dot_env:
-                return dot_env.read_config()
+        # We don't search into the target item tree as this is a low level information.
+        env_path = self.get_path() / WORKDIR_SETUP_DIR / EnvFile.EXTENSION_DOT_ENV
+
+        if env_path.exists():
+            dot_env = EnvFile.create_from_path(path=env_path, io=self.io)
+            return dot_env.read_config()
+
         return NestedConfigValue(raw={})
 
     def get_env_parameter(self, key: str, default: str | None = None) -> str | None:
