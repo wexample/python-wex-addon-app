@@ -41,7 +41,7 @@ class CodeBaseWorkdir(BasicAppWorkdir):
         """
         return []
 
-    def bump(self, interactive: bool = False, **kwargs) -> None:
+    def bump(self, interactive: bool = False, **kwargs) -> bool:
         """Create a version-x.y.z branch, update the version number in config. Don't commit changes."""
         from wexample_helpers.helpers.version import version_increment
         from wexample_prompt.responses.interactive.confirm_prompt_response import (
@@ -76,10 +76,13 @@ class CodeBaseWorkdir(BasicAppWorkdir):
                 default="yes",
             )
 
-            if confirm.get_answer():
+            if confirm.is_ok():
                 _bump()
+                return True
         else:
             _bump()
+            return True
+        return False
 
     def commit_changes(
         self,
