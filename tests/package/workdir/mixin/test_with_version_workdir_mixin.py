@@ -8,7 +8,7 @@ from wexample_filestate.testing.abstract_workdir_mixin_test import (
 from wexample_helpers.classes.base_class import BaseClass
 from wexample_helpers.decorator.base_class import base_class
 
-from wexample_wex_addon_app.workdir.mixin.with_version_workdir_mixin import (
+from wexample_app.workdir.mixin.with_version_workdir_mixin import (
     WithVersionWorkdirMixin,
 )
 
