@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from wexample_app.const.globals import APP_PATH_APP_MANAGER
+from wexample_app.const.globals import APP_PATH_APP_MANAGER, APP_FILE_APP_CONFIG
 from wexample_helpers.const.types import FileStringOrPath
 from wexample_helpers.decorator.base_class import base_class
 from wexample_helpers.helpers.shell import ShellResult
@@ -159,12 +159,14 @@ class AppWorkdirMixin(
         return NestedConfigValue(raw={})
 
     def get_config_file(self) -> YamlFile:
-        from wexample_app.const.globals import APP_FILE_APP_CONFIG
+        from wexample_filestate.item.file.yaml_file import YamlFile
 
-        config_file = self.find_by_path(
-            path=f"{WORKDIR_SETUP_DIR}/{APP_FILE_APP_CONFIG}"
+        # We don't search into the target item tree as this is a low level information.
+        config_file = YamlFile.create_from_path(
+            path=self.get_path() / WORKDIR_SETUP_DIR / APP_FILE_APP_CONFIG,
+            io=self.io
         )
-        assert config_file is not None
+
         return config_file
 
     def get_env_config(self) -> NestedConfigValue:

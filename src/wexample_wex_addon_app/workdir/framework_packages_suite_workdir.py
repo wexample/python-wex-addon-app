@@ -87,21 +87,11 @@ class FrameworkPackageSuiteWorkdir(BasicAppWorkdir):
         return None
 
     def get_packages(self) -> list[CodeBaseWorkdir]:
-        """Load package workdirs from all configured package suite locations.
-        
-        Returns a list of CodeBaseWorkdir instances (or subclasses) for each package
-        found in the locations defined in package_suite.location config.
-        """
-        packages: list[CodeBaseWorkdir] = []
-        
-        for package_path in self.get_packages_paths():
-            # Create a workdir instance for this package
-            package_workdir = self._create_package_workdir(package_path)
-            if package_workdir:
-                packages.append(package_workdir)
-        
-        return packages
-    
+        return self.find_all_by_type(
+            class_type=self._get_children_package_workdir_class(),
+            recursive=True
+        )
+
     def _create_package_workdir(self, package_path: Path) -> CodeBaseWorkdir | None:
         """Create a workdir instance for a package at the given path.
         
@@ -109,20 +99,19 @@ class FrameworkPackageSuiteWorkdir(BasicAppWorkdir):
         workdir type (e.g., PythonPackageWorkdir).
         """
         from wexample_filestate.utils.file_state_manager import FileStateManager
-        
+
         # Get the workdir class from the child implementation
         workdir_class = self._get_children_package_workdir_class()
-        
+
         # Check if this path is a valid package directory
         if not self._child_is_package_directory(package_path):
             return None
-        
+
         # Create the workdir instance
         return FileStateManager.create_from_path(
             path=package_path,
             config={},
             io=self.io,
-            workdir_class=workdir_class,
         )
 
     def get_packages_paths(self) -> list[Path]:
@@ -253,13 +242,20 @@ class FrameworkPackageSuiteWorkdir(BasicAppWorkdir):
             parts = rel_path.parts
             current_level = root_nodes
             
-            for part in parts:
+            for i, part in enumerate(parts):
                 if part not in current_level:
-                    current_level[part] = {
+                    node_config = {
                         "name": part,
                         "type": DiskItemType.DIRECTORY,
                         "children": {}
                     }
+                    
+                    # If this is the last part (the package itself), add the class
+                    if i == len(parts) - 1 and BasicAppWorkdir.is_app_workdir_path(path=package_path):
+                        node_config["class"] = self._get_children_package_workdir_class()
+                    
+                    current_level[part] = node_config
+                
                 # Navigate to children for next iteration
                 current_level = current_level[part]["children"]
         
