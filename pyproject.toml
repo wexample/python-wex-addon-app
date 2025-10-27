@@ -34,6 +34,7 @@ homepage = "https://github.com/wexample/python-wex-addon-app"
 [project.optional-dependencies]
 dev = [
     "pytest",
+    "pytest-cov",
 ]
 
 [tool.pdm]
@@ -45,3 +46,7 @@ package-dir = "src"
 [[tool.pdm.build.packages]]
 include = "wexample_wex_addon_app"
 from = "src"
+
+[tool.setuptools.packages.find]
+include = ["*"]
+exclude = ["wexample_wex_addon_app.testing*"]
