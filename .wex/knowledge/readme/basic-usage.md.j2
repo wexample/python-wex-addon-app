@@ -1,5 +1,24 @@
 ## Usage
 
+### Quick Start: Complete Publication Workflow
+
+```bash
+# 1. Rectify code across all packages
+app::file-state/rectify --all-packages
+
+# 2. Bump only packages with changes (excluding suite)
+app::package/bump-changed --packages-only
+
+# 3. Validate dependencies and propagate versions
+app::suite/prepare
+
+# 4. Commit and push all changes
+app::suite/commit-and-push --yes
+
+# 5. Publish packages with changes to PyPI
+app::suite/publish
+```
+
 ### File State Management
 * `app::file-state/rectify [--all-packages]`: Normalizes/rectifies code for a single app or across all packages in the suite; no commits.
 
@@ -25,7 +44,7 @@ Commands:
 
 ### Publishing
 * `app::suite/prepare`: Validates internal dependencies and propagates versions across all packages. Follow with `app::suite/commit-and-push --yes` to commit changes.
-* `app::suite/publish [--all|--package X]`: Publishes only packages that need it; adds/pushes publication tag after successful publish; never bumps here.
+* `app::suite/publish`: Publishes packages to PyPI. Only publishes packages with changes since their last publication tag. Automatically creates and pushes publication tags after successful publish.
 
 ### Common Workflows
 
