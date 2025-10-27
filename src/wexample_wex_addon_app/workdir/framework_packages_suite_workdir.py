@@ -87,10 +87,43 @@ class FrameworkPackageSuiteWorkdir(BasicAppWorkdir):
         return None
 
     def get_packages(self) -> list[CodeBaseWorkdir]:
-        pip_dir = self.find_by_name(item_name="pip")
-        if pip_dir:
-            return pip_dir.get_children_list()
-        return []
+        """Load package workdirs from all configured package suite locations.
+        
+        Returns a list of CodeBaseWorkdir instances (or subclasses) for each package
+        found in the locations defined in package_suite.location config.
+        """
+        packages: list[CodeBaseWorkdir] = []
+        
+        for package_path in self.get_packages_paths():
+            # Create a workdir instance for this package
+            package_workdir = self._create_package_workdir(package_path)
+            if package_workdir:
+                packages.append(package_workdir)
+        
+        return packages
+    
+    def _create_package_workdir(self, package_path: Path) -> CodeBaseWorkdir | None:
+        """Create a workdir instance for a package at the given path.
+        
+        This method should be overridden by subclasses to return the appropriate
+        workdir type (e.g., PythonPackageWorkdir).
+        """
+        from wexample_filestate.utils.file_state_manager import FileStateManager
+        
+        # Get the workdir class from the child implementation
+        workdir_class = self._get_children_package_workdir_class()
+        
+        # Check if this path is a valid package directory
+        if not self._child_is_package_directory(package_path):
+            return None
+        
+        # Create the workdir instance
+        return FileStateManager.create_from_path(
+            path=package_path,
+            config={},
+            io=self.io,
+            workdir_class=workdir_class,
+        )
 
     def get_packages_paths(self) -> list[Path]:
         """Return all resolved package paths that are directories only."""
@@ -166,6 +199,12 @@ class FrameworkPackageSuiteWorkdir(BasicAppWorkdir):
         progress.finish()
 
     def prepare_value(self, raw_value: DictConfig | None = None) -> DictConfig:
+        """Prepare file state configuration for package suite.
+        
+        Note: This method is kept for backward compatibility with file state manager,
+        but package discovery now primarily uses get_packages() which leverages
+        package_suite.location from config.yml for multi-source support.
+        """
         from wexample_filestate.const.disk import DiskItemType
         from wexample_filestate.option.children_filter_option import (
             ChildrenFilterOption,
@@ -175,22 +214,30 @@ class FrameworkPackageSuiteWorkdir(BasicAppWorkdir):
 
         children = raw_value["children"]
 
-        # By default, consider each sub folder as a pip package
-        children.append(
-            {
-                "name": self._get_children_package_directory_name(),
-                "type": DiskItemType.DIRECTORY,
-                "children": [
-                    ChildrenFilterOption(
-                        filter=self._child_is_package_directory,
-                        pattern={
-                            "class": self._get_children_package_workdir_class(),
-                            "type": DiskItemType.DIRECTORY,
-                        },
-                    )
-                ],
-            }
-        )
+        # Add package directories based on configured locations
+        # This supports the file state system but get_packages() is the primary API
+        locations = self.get_config().search("package_suite.location").get_list()
+        
+        for location_config in locations:
+            location_pattern = location_config.get_str()
+            # Extract the parent directory from the glob pattern (e.g., "pip/*" -> "pip")
+            parent_dir = location_pattern.split("/")[0] if "/" in location_pattern else location_pattern
+            
+            children.append(
+                {
+                    "name": parent_dir,
+                    "type": DiskItemType.DIRECTORY,
+                    "children": [
+                        ChildrenFilterOption(
+                            filter=self._child_is_package_directory,
+                            pattern={
+                                "class": self._get_children_package_workdir_class(),
+                                "type": DiskItemType.DIRECTORY,
+                            },
+                        )
+                    ],
+                }
+            )
 
         return raw_value
 
