@@ -3,7 +3,6 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from wexample_helpers.classes.abstract_method import abstract_method
-
 from wexample_wex_addon_app.workdir.basic_app_workdir import BasicAppWorkdir
 
 if TYPE_CHECKING:

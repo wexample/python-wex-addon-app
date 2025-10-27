@@ -3,9 +3,8 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from wexample_helpers.decorator.base_class import base_class
-from wexample_wex_core.workdir.workdir import Workdir
-
 from wexample_wex_addon_app.workdir.mixin.app_workdir_mixin import AppWorkdirMixin
+from wexample_wex_core.workdir.workdir import Workdir
 
 if TYPE_CHECKING:
     from wexample_filestate.result.file_state_result import FileStateResult
@@ -123,6 +122,7 @@ class BasicAppWorkdir(AppWorkdirMixin, Workdir):
 
         prefix = f"{self.get_package_name()}/v*"
         return git_last_tag_for_prefix(prefix, cwd=self.get_path(), inherit_stdio=False)
+
     def get_package_name(self) -> str:
         return self.get_item_name()
 

@@ -11,15 +11,14 @@ from wexample_helpers.const.types import FileStringOrPath
 from wexample_helpers.decorator.base_class import base_class
 from wexample_helpers.helpers.shell import ShellResult
 from wexample_prompt.common.io_manager import IoManager
-from wexample_wex_core.workdir.mixin.with_app_version_workdir_mixin import (
-    WithAppVersionWorkdirMixin,
-)
-
 from wexample_wex_addon_app.workdir.mixin.as_suite_package_item import (
     AsSuitePackageItem,
 )
 from wexample_wex_addon_app.workdir.mixin.with_readme_workdir_mixin import (
     WithReadmeWorkdirMixin,
+)
+from wexample_wex_core.workdir.mixin.with_app_version_workdir_mixin import (
+    WithAppVersionWorkdirMixin,
 )
 
 if TYPE_CHECKING:
@@ -256,10 +255,9 @@ class AppWorkdirMixin(
         from wexample_filestate.item.file.env_file import EnvFile
         from wexample_filestate.item.file.yaml_file import YamlFile
         from wexample_filestate.option.text_option import TextOption
+        from wexample_wex_addon_app.app_addon_manager import AppAddonManager
         from wexample_wex_core.const.globals import CORE_DIR_NAME_TMP
         from wexample_wex_core.const.project import PROJECT_GITIGNORE_DEFAULT
-
-        from wexample_wex_addon_app.app_addon_manager import AppAddonManager
 
         raw_value = super().prepare_value(raw_value)
 

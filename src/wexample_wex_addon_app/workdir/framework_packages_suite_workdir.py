@@ -1,16 +1,15 @@
 from __future__ import annotations
+
 from typing import TYPE_CHECKING
 
 from wexample_helpers.classes.abstract_method import abstract_method
 from wexample_helpers.const.types import PathOrString
 from wexample_prompt.common.progress.progress_handle import ProgressHandle
-from wexample_wex_core.context.execution_context import ExecutionContext
-
 from wexample_wex_addon_app.workdir.basic_app_workdir import BasicAppWorkdir
+from wexample_wex_core.context.execution_context import ExecutionContext
 
 if TYPE_CHECKING:
     from wexample_config.const.types import DictConfig
-
     from wexample_wex_addon_app.workdir.code_base_workdir import (
         CodeBaseWorkdir,
     )
@@ -168,7 +167,6 @@ class FrameworkPackageSuiteWorkdir(BasicAppWorkdir):
         Builds a recursive tree structure of directories containing packages,
         based on package_suite.location patterns from config.yml.
         """
-
         raw_value = super().prepare_value(raw_value=raw_value)
 
         children = raw_value["children"]

@@ -10,9 +10,8 @@ if TYPE_CHECKING:
     from pathlib import Path
 
     from wexample_helpers.const.types import PathOrString
-    from wexample_wex_core.middleware.abstract_middleware import AbstractMiddleware
-
     from wexample_wex_addon_app.workdir.mixin.app_workdir_mixin import AppWorkdirMixin
+    from wexample_wex_core.middleware.abstract_middleware import AbstractMiddleware
 
 
 @base_class
@@ -38,7 +37,6 @@ class AppAddonManager(AbstractAddonManager):
 
         from wexample_helpers.helpers.cli import cli_make_clickable_path
         from wexample_helpers.helpers.module import module_load_class_from_file
-
         from wexample_wex_addon_app.workdir.basic_app_workdir import BasicAppWorkdir
         from wexample_wex_addon_app.workdir.mixin.app_workdir_mixin import (
             AppWorkdirMixin,
