@@ -1,0 +1,47 @@
+## Introduction
+
+### App Manager Architecture
+
+The wex-addon-app framework uses a subprocess-based architecture to manage individual packages within a suite. Each package is managed through its own **App Manager** instance, which is a self-contained Python application that handles package-specific operations.
+
+#### How It Works
+
+Each package in a suite has access to an App Manager executable located at `.wex/bin/app-manager`. This manager is automatically installed and configured for each package, providing a consistent interface for executing commands on that specific package.
+
+**Key characteristics:**
+
+- **Isolation**: Each package runs commands in its own subprocess via the App Manager
+- **Custom behavior**: Packages can have specialized classes, imports, and dependencies without affecting others
+- **Consistency**: All packages share the same command interface through their App Manager
+- **Flexibility**: Package-specific configurations and behaviors are encapsulated within each package's context
+
+#### Example Usage
+
+From any package directory, you can execute commands through the App Manager:
+
+```bash
+# Show information about the current package
+.wex/bin/app-manager app::info/show
+
+# Rectify file state for the current package
+.wex/bin/app-manager app::file-state/rectify
+
+# Bump the package version
+.wex/bin/app-manager app::package/bump
+```
+
+The App Manager executable is located at:
+```
+/path/to/package/.wex/bin/app-manager
+```
+
+This architecture enables suite-level operations to delegate work to individual packages while maintaining proper isolation and allowing each package to implement custom behavior as needed.
+
+### Suite-Level Operations
+
+When working with a package suite (a collection of related packages), the framework provides commands that can iterate over all packages, executing the App Manager for each one. This is handled through two main patterns:
+
+1. **Middleware-based iteration** (`EachSuitePackageMiddleware`): Commands that can optionally iterate over all packages using the `--all-packages` flag
+2. **Delegated iteration** (`PackageSuiteMiddleware`): Suite-specific commands that always operate on multiple packages
+
+See the [API Reference](api-reference.md.j2) for detailed information on these patterns.
