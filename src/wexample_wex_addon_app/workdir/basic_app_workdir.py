@@ -13,38 +13,6 @@ if TYPE_CHECKING:
 
 @base_class
 class BasicAppWorkdir(AppWorkdirMixin, Workdir):
-    def get_package_name(self) -> str:
-        return self.get_item_name()
-
-    # Publication helpers
-    def get_publication_tag_name(self) -> str:
-        """Return the conventional tag name for this package publication.
-
-        Format: "{package_name}/v{version}"
-        """
-        return f"{self.get_package_name()}/v{self.get_project_version()}"
-
-    def get_last_publication_tag(self) -> str | None:
-        """Return the last publication tag for this package, or None if none exists."""
-        from wexample_helpers_git.helpers.git import git_last_tag_for_prefix
-
-        prefix = f"{self.get_package_name()}/v*"
-        return git_last_tag_for_prefix(prefix, cwd=self.get_path(), inherit_stdio=False)
-
-    def has_changes_since_last_publication_tag(self) -> bool:
-        """Return True if there are changes in the package directory since the last publication tag.
-
-        If there is no previous tag, returns True (first publication).
-        """
-        from wexample_helpers_git.helpers.git import git_has_changes_since_tag
-
-        last_tag = self.get_last_publication_tag()
-        if last_tag is None:
-            return True
-        # Limit diff to current package folder, run from package cwd using '.'
-        return git_has_changes_since_tag(
-            last_tag, ".", cwd=self.get_path(), inherit_stdio=False
-        )
 
     def apply(
         self,
@@ -149,3 +117,35 @@ class BasicAppWorkdir(AppWorkdirMixin, Workdir):
             _bump()
             return True
         return False
+
+    def get_last_publication_tag(self) -> str | None:
+        """Return the last publication tag for this package, or None if none exists."""
+        from wexample_helpers_git.helpers.git import git_last_tag_for_prefix
+
+        prefix = f"{self.get_package_name()}/v*"
+        return git_last_tag_for_prefix(prefix, cwd=self.get_path(), inherit_stdio=False)
+    def get_package_name(self) -> str:
+        return self.get_item_name()
+
+    # Publication helpers
+    def get_publication_tag_name(self) -> str:
+        """Return the conventional tag name for this package publication.
+
+        Format: "{package_name}/v{version}"
+        """
+        return f"{self.get_package_name()}/v{self.get_project_version()}"
+
+    def has_changes_since_last_publication_tag(self) -> bool:
+        """Return True if there are changes in the package directory since the last publication tag.
+
+        If there is no previous tag, returns True (first publication).
+        """
+        from wexample_helpers_git.helpers.git import git_has_changes_since_tag
+
+        last_tag = self.get_last_publication_tag()
+        if last_tag is None:
+            return True
+        # Limit diff to current package folder, run from package cwd using '.'
+        return git_has_changes_since_tag(
+            last_tag, ".", cwd=self.get_path(), inherit_stdio=False
+        )

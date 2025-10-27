@@ -4,7 +4,6 @@ from typing import TYPE_CHECKING
 
 from wexample_helpers.classes.private_field import private_field
 from wexample_helpers.decorator.base_class import base_class
-
 from wexample_wex_addon_app.middleware.app_middleware import AppMiddleware
 from wexample_wex_addon_app.workdir.basic_app_workdir import BasicAppWorkdir
 
