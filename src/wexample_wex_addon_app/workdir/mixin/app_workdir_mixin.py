@@ -63,7 +63,6 @@ class AppWorkdirMixin(
         from wexample_wex_core.const.globals import (
             CORE_DIR_NAME_TMP,
             CORE_FILE_NAME_REGISTRY,
-            WORKDIR_SETUP_DIR,
         )
 
         return (
@@ -249,7 +248,8 @@ class AppWorkdirMixin(
         from wexample_filestate.item.file.env_file import EnvFile
         from wexample_filestate.item.file.yaml_file import YamlFile
         from wexample_filestate.option.text_option import TextOption
-        from wexample_wex_core.const.globals import CORE_DIR_NAME_TMP, WORKDIR_SETUP_DIR
+        from wexample_wex_core.const.globals import CORE_DIR_NAME_TMP
+        from wexample_app.const.globals import WORKDIR_SETUP_DIR
         from wexample_wex_core.const.project import PROJECT_GITIGNORE_DEFAULT
 
         from wexample_wex_addon_app.app_addon_manager import AppAddonManager
