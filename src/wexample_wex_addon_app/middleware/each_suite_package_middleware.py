@@ -4,6 +4,7 @@ from typing import TYPE_CHECKING, Any
 
 from wexample_helpers.classes.private_field import private_field
 from wexample_helpers.decorator.base_class import base_class
+
 from wexample_wex_addon_app.middleware.package_suite_middleware import (
     PackageSuiteMiddleware,
 )

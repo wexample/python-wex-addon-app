@@ -168,8 +168,6 @@ class FrameworkPackageSuiteWorkdir(BasicAppWorkdir):
         Builds a recursive tree structure of directories containing packages,
         based on package_suite.location patterns from config.yml.
         """
-        from pathlib import Path
-        from wexample_filestate.const.disk import DiskItemType
 
         raw_value = super().prepare_value(raw_value=raw_value)
 
@@ -196,7 +194,6 @@ class FrameworkPackageSuiteWorkdir(BasicAppWorkdir):
             List of directory nodes in the format:
             [{"name": "dir", "type": "directory", "children": [...]}, ...]
         """
-        from pathlib import Path
         from wexample_filestate.const.disk import DiskItemType
 
         # Get the suite root path
@@ -264,7 +261,7 @@ class FrameworkPackageSuiteWorkdir(BasicAppWorkdir):
         from wexample_filestate.utils.file_state_manager import FileStateManager
 
         # Get the workdir class from the child implementation
-        workdir_class = self._get_children_package_workdir_class()
+        self._get_children_package_workdir_class()
 
         # Check if this path is a valid package directory
         if not self._child_is_package_directory(package_path):

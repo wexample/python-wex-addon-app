@@ -13,7 +13,6 @@ if TYPE_CHECKING:
 
 @base_class
 class BasicAppWorkdir(AppWorkdirMixin, Workdir):
-
     def apply(
         self,
         force: bool = False,
