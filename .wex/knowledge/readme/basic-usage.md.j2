@@ -4,8 +4,16 @@
 * `app::file-state/rectify [--all-packages]`: Normalizes/rectifies code for a single app or across all packages in the suite; no commits.
 
 ### Version Management
-* `app::package/bump [--all-packages] [--yes]`: Bumps version for a single package or all packages in the suite.
-* `app::package/bump-changed [--all-packages] [--yes]`: Bumps version only for packages that have new content (no current version tag on HEAD).
+
+The version management commands use `SuiteOrEachPackageMiddleware` which provides flexible execution control:
+- **Default**: Executes on the suite (or single package if app_path points to a package)
+- **`--all-packages`**: Executes on both the suite AND all packages
+- **`--packages-only`**: Executes only on packages (excludes suite, implies `--all-packages`)
+- **`--suite-only`**: Executes only on the suite (excludes packages)
+
+Commands:
+* `app::package/bump [--all-packages|--packages-only|--suite-only] [--yes]`: Bumps version for suite and/or packages.
+* `app::package/bump-changed [--all-packages|--packages-only|--suite-only] [--yes]`: Bumps version only for packages/suite that have new content (no current version tag on HEAD).
 * `app::suite/propagate-versions`: Propagates package versions across all dependents in the suite.
 
 ### Git Operations
@@ -21,9 +29,19 @@
 
 ### Common Workflows
 
-**Bump all changed packages and propagate:**
+**Bump only packages with changes (excluding suite):**
 ```bash
-app::package/bump-changed --all-packages && app::suite/propagate-versions && app::suite/commit-and-push --yes
+app::package/bump-changed --packages-only && app::suite/propagate-versions && app::suite/commit-and-push --yes
+```
+
+**Bump suite and all packages:**
+```bash
+app::package/bump --all-packages
+```
+
+**Bump only the suite:**
+```bash
+app::package/bump --suite-only
 ```
 
 **Rectify all packages:**
