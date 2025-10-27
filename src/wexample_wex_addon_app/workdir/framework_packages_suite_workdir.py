@@ -91,28 +91,6 @@ class FrameworkPackageSuiteWorkdir(BasicAppWorkdir):
             class_type=self._get_children_package_workdir_class(), recursive=True
         )
 
-    def _create_package_workdir(self, package_path: Path) -> CodeBaseWorkdir | None:
-        """Create a workdir instance for a package at the given path.
-
-        This method should be overridden by subclasses to return the appropriate
-        workdir type (e.g., PythonPackageWorkdir).
-        """
-        from wexample_filestate.utils.file_state_manager import FileStateManager
-
-        # Get the workdir class from the child implementation
-        workdir_class = self._get_children_package_workdir_class()
-
-        # Check if this path is a valid package directory
-        if not self._child_is_package_directory(package_path):
-            return None
-
-        # Create the workdir instance
-        return FileStateManager.create_from_path(
-            path=package_path,
-            config={},
-            io=self.io,
-        )
-
     def get_packages_paths(self) -> list[Path]:
         """Return all resolved package paths that are directories only."""
         config = self.get_config().search("package_suite.location").get_list()
@@ -278,6 +256,28 @@ class FrameworkPackageSuiteWorkdir(BasicAppWorkdir):
     @abstract_method
     def _child_is_package_directory(self, entry: Path) -> bool:
         pass
+
+    def _create_package_workdir(self, package_path: Path) -> CodeBaseWorkdir | None:
+        """Create a workdir instance for a package at the given path.
+
+        This method should be overridden by subclasses to return the appropriate
+        workdir type (e.g., PythonPackageWorkdir).
+        """
+        from wexample_filestate.utils.file_state_manager import FileStateManager
+
+        # Get the workdir class from the child implementation
+        workdir_class = self._get_children_package_workdir_class()
+
+        # Check if this path is a valid package directory
+        if not self._child_is_package_directory(package_path):
+            return None
+
+        # Create the workdir instance
+        return FileStateManager.create_from_path(
+            path=package_path,
+            config={},
+            io=self.io,
+        )
 
     def _get_children_package_directory_name(self) -> str:
         return "packages"

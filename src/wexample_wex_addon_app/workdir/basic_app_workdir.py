@@ -106,7 +106,7 @@ class BasicAppWorkdir(AppWorkdirMixin, Workdir):
 
         self.io.log("No change since last pass, skipping.", indentation=1)
         return FileStateResult(state_manager=self)
-    
+
     def bump(self, interactive: bool = False, **kwargs) -> bool:
         """Create a version-x.y.z branch, update the version number in config. Don't commit changes."""
         from wexample_helpers.helpers.version import version_increment

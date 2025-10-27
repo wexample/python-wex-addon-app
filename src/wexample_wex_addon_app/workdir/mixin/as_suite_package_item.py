@@ -20,34 +20,6 @@ class AsSuitePackageItem(BaseClass):
     def _get_children_package_workdir_class(cls) -> type[FrameworkPackageSuiteWorkdir]:
         pass
 
-    def get_suite_workdir(self) -> None | FrameworkPackageSuiteWorkdir:
-        suite_path = self.find_suite_workdir_path()
-
-        if suite_path and suite_path.exists():
-            suite = self._get_children_package_workdir_class().create_from_path(
-                path=suite_path
-            )
-            return suite
-
-        return None
-
-    def get_env_parameter_or_suite_fallback(
-        self, key: str, default: str | None = None
-    ) -> str | None:
-        value = self.get_env_parameter(
-            key=key,
-            default=default,
-        )
-
-        if value is None:
-            suite_workdir = self.get_suite_workdir()
-            if suite_workdir:
-                return suite_workdir.get_env_parameter(
-                    key=key,
-                    default=default,
-                )
-        return value
-
     def find_suite_workdir_path(self) -> Path | None:
         """
         We have to trust the configuration file to know if parent directory is a suite or not,
@@ -75,5 +47,33 @@ class AsSuitePackageItem(BaseClass):
 
         if suite_path:
             return suite_path
+
+        return None
+
+    def get_env_parameter_or_suite_fallback(
+        self, key: str, default: str | None = None
+    ) -> str | None:
+        value = self.get_env_parameter(
+            key=key,
+            default=default,
+        )
+
+        if value is None:
+            suite_workdir = self.get_suite_workdir()
+            if suite_workdir:
+                return suite_workdir.get_env_parameter(
+                    key=key,
+                    default=default,
+                )
+        return value
+
+    def get_suite_workdir(self) -> None | FrameworkPackageSuiteWorkdir:
+        suite_path = self.find_suite_workdir_path()
+
+        if suite_path and suite_path.exists():
+            suite = self._get_children_package_workdir_class().create_from_path(
+                path=suite_path
+            )
+            return suite
 
         return None

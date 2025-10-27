@@ -2,12 +2,15 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from wexample_app.const.globals import APP_PATH_APP_MANAGER, APP_FILE_APP_CONFIG
+from wexample_app.const.globals import (
+    APP_FILE_APP_CONFIG,
+    APP_PATH_APP_MANAGER,
+    WORKDIR_SETUP_DIR,
+)
 from wexample_helpers.const.types import FileStringOrPath
 from wexample_helpers.decorator.base_class import base_class
 from wexample_helpers.helpers.shell import ShellResult
 from wexample_prompt.common.io_manager import IoManager
-from wexample_app.const.globals import WORKDIR_SETUP_DIR
 from wexample_wex_core.workdir.mixin.with_app_version_workdir_mixin import (
     WithAppVersionWorkdirMixin,
 )
@@ -168,9 +171,9 @@ class AppWorkdirMixin(
         return config_file
 
     def get_env_config(self) -> NestedConfigValue:
+        from wexample_app.const.globals import WORKDIR_SETUP_DIR
         from wexample_config.config_value.nested_config_value import NestedConfigValue
         from wexample_filestate.item.file.env_file import EnvFile
-        from wexample_app.const.globals import WORKDIR_SETUP_DIR
 
         # We don't search into the target item tree as this is a low level information.
         env_path = self.get_path() / WORKDIR_SETUP_DIR / EnvFile.EXTENSION_DOT_ENV
@@ -241,7 +244,11 @@ class AppWorkdirMixin(
         return registry
 
     def prepare_value(self, raw_value: DictConfig | None = None) -> DictConfig:
-        from wexample_app.const.globals import APP_FILE_APP_CONFIG, APP_FILE_APP_MANAGER
+        from wexample_app.const.globals import (
+            APP_FILE_APP_CONFIG,
+            APP_FILE_APP_MANAGER,
+            WORKDIR_SETUP_DIR,
+        )
         from wexample_filestate.config_value.file_content_config_value import (
             FileContentConfigValue,
         )
@@ -250,7 +257,6 @@ class AppWorkdirMixin(
         from wexample_filestate.item.file.yaml_file import YamlFile
         from wexample_filestate.option.text_option import TextOption
         from wexample_wex_core.const.globals import CORE_DIR_NAME_TMP
-        from wexample_app.const.globals import WORKDIR_SETUP_DIR
         from wexample_wex_core.const.project import PROJECT_GITIGNORE_DEFAULT
 
         from wexample_wex_addon_app.app_addon_manager import AppAddonManager
