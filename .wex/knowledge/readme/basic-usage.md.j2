@@ -1,7 +1,37 @@
 ## Usage
 
-* `app::file-state/rectify`: Normalizes/rectifies code across the suite; no commits.
-* `app::suite/bump --yes [--all|--package X]`: Bumps packages
-* `app::suite/bump-changed --yes [--all|--package X]`: Bumps only packages that have new content (no current version tag on HEAD), then propagates versions and commits/pushes.
+### File State Management
+* `app::file-state/rectify [--all-packages]`: Normalizes/rectifies code for a single app or across all packages in the suite; no commits.
+
+### Version Management
+* `app::package/bump [--all-packages] [--yes]`: Bumps version for a single package or all packages in the suite.
+* `app::package/bump-changed [--all-packages] [--yes]`: Bumps version only for packages that have new content (no current version tag on HEAD).
+* `app::suite/propagate-versions`: Propagates package versions across all dependents in the suite.
+
+### Git Operations
+* `app::suite/commit-and-push [--yes]`: Commits and pushes changes for all packages with uncommitted changes.
+
+### Suite Execution
+* `app::suite/exec-command -c <command> [--arguments "<args>"]`: Executes a manager command on all packages (e.g., `app::info/show`).
+* `app::suite/exec-shell -c "<command>"`: Executes a shell command on all packages.
+
+### Publishing
 * `app::suite/prepare --yes [--all|--package X]`: Validates internal deps, propagates versions, and commits/pushes if needed.
 * `app::suite/publish [--all|--package X]`: Publishes only packages that need it; adds/pushes publication tag after successful publish; never bumps here.
+
+### Common Workflows
+
+**Bump all changed packages and propagate:**
+```bash
+app::package/bump-changed --all-packages && app::suite/propagate-versions && app::suite/commit-and-push --yes
+```
+
+**Rectify all packages:**
+```bash
+app::file-state/rectify --all-packages
+```
+
+**Get info for all packages:**
+```bash
+app::suite/exec-command -c app::info/show
+```
