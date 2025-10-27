@@ -2,32 +2,35 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from wexample_wex_addon_app.middleware.package_suite_middleware import (
+    PackageSuiteMiddleware,
+)
+from wexample_wex_addon_app.workdir.framework_packages_suite_workdir import (
+    FrameworkPackageSuiteWorkdir,
+)
 from wexample_wex_core.const.globals import COMMAND_TYPE_ADDON
 from wexample_wex_core.decorator.command import command
+from wexample_wex_core.decorator.middleware import middleware
 
 if TYPE_CHECKING:
     from wexample_wex_core.context.execution_context import ExecutionContext
 
-    from wexample_wex_addon_app.workdir.framework_packages_suite_workdir import (
-        FrameworkPackageSuiteWorkdir,
-    )
 
-
-@command(type=COMMAND_TYPE_ADDON, description="Publish the Python package to PyPI.")
+@middleware(middleware=PackageSuiteMiddleware)
+@command(
+    type=COMMAND_TYPE_ADDON,
+    description="Publish packages to PyPI. Only publishes packages with changes since their last publication tag.",
+)
 def app__suite__publish(
     context: ExecutionContext,
+    app_workdir: FrameworkPackageSuiteWorkdir,
 ) -> None:
     from wexample_prompt.enums.terminal_color import TerminalColor
 
     progress = context.get_or_create_progress(total=2, label="Publishing...")
 
-    # Initialization
-    workdir = _init_app_workdir(context, progress)
-    if workdir is None:
-        return
-
     # Determine which packages need publication (changed since last tag)
-    to_publish = workdir.compute_packages_to_publish()
+    to_publish = app_workdir.compute_packages_to_publish()
 
     if not to_publish:
         context.io.info(
@@ -58,23 +61,3 @@ def app__suite__publish(
 
     progress_range.finish()
     progress.finish(color=TerminalColor.GREEN, label="All packages published.")
-
-
-def _init_app_workdir(
-    context: ExecutionContext, progress
-) -> FrameworkPackageSuiteWorkdir | None:
-    """Create an app workdir and ensure its type is valid for a suite.
-
-    Returns the workdir or None if the current path is not a suite manager workdir.
-    """
-    from wexample_wex_addon_app.workdir.framework_packages_suite_workdir import (
-        FrameworkPackageSuiteWorkdir,
-    )
-
-    workdir = context.request.get_addon_manager().create_app_workdir()
-    if not isinstance(workdir, FrameworkPackageSuiteWorkdir):
-        context.io.warning(
-            f"The current path is not a suite manager workdir: {workdir.get_path()}"
-        )
-        return None
-    return workdir
