@@ -35,6 +35,7 @@ def app__suite__exec_shell(
     app_workdir: FrameworkPackageSuiteWorkdir,
 ) -> None:
     from wexample_helpers.helpers.shell import shell_split_cmd
-    from wexample_wex_core.decorator.command import command
 
-    app_workdir.packages_execute_shell(cmd=shell_split_cmd(command))
+    app_workdir.packages_execute_shell(
+        cmd=shell_split_cmd(command)
+    )

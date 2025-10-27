@@ -45,5 +45,7 @@ def app__suite__exec_command(
     from wexample_helpers.helpers.shell import shell_split_cmd
 
     app_workdir.packages_execute_manager(
-        command=command, arguments=shell_split_cmd(arguments), context=context
+        command=command,
+        arguments=shell_split_cmd(arguments) if arguments else None,
+        context=context
     )

@@ -29,7 +29,7 @@ class PackageSuiteMiddleware(AppMiddleware):
         app_workdir = super()._create_app_workdir(request=request, app_path=app_path)
 
         # Validate that app_workdir is a FrameworkPackageSuiteWorkdir
-        if self._fail_if_not_suite_workdir and self._is_package_suite_workdir(
+        if self._fail_if_not_suite_workdir and not self._is_package_suite_workdir(
             workdir=app_workdir
         ):
             raise TypeError(
