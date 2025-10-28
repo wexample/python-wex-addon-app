@@ -6,6 +6,7 @@ from wexample_app.const.globals import (
     APP_FILE_APP_CONFIG,
     APP_PATH_APP_MANAGER,
     WORKDIR_SETUP_DIR,
+    APP_FILE_APP_RUNTIME_CONFIG,
 )
 from wexample_helpers.const.types import FileStringOrPath
 from wexample_helpers.decorator.base_class import base_class
@@ -17,6 +18,7 @@ from wexample_wex_addon_app.workdir.mixin.as_suite_package_item import (
 from wexample_wex_addon_app.workdir.mixin.with_readme_workdir_mixin import (
     WithReadmeWorkdirMixin,
 )
+from wexample_wex_core.const.globals import CORE_DIR_NAME_TMP
 from wexample_wex_core.workdir.mixin.with_app_version_workdir_mixin import (
     WithAppVersionWorkdirMixin,
 )
@@ -169,6 +171,26 @@ class AppWorkdirMixin(
         )
 
         return config_file
+
+    def get_runtime_config_file(self) -> YamlFile:
+        from wexample_filestate.item.file.yaml_file import YamlFile
+
+        # We don't search into the target item tree as this is a low level information.
+        runtime_config_file = YamlFile.create_from_path(
+            path=self.get_path() / WORKDIR_SETUP_DIR / CORE_DIR_NAME_TMP / APP_FILE_APP_RUNTIME_CONFIG,
+            io=self.io
+        )
+
+        return runtime_config_file
+
+    def get_runtime_config(self) -> NestedConfigValue:
+        from wexample_config.config_value.nested_config_value import NestedConfigValue
+
+        runtime_config_file = self.get_runtime_config_file()
+        if runtime_config_file:
+            return runtime_config_file.read_config()
+
+        return NestedConfigValue(raw={})
 
     def get_env_config(self) -> NestedConfigValue:
         from wexample_app.const.globals import WORKDIR_SETUP_DIR

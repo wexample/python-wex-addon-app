@@ -32,8 +32,11 @@ def app__info__show(
     )
 
     # Show local libraries if configured
-    local_libraries = app_workdir.get_local_libraries_paths(env=env)
+    local_libraries = app_workdir.get_local_libraries_paths()
     if local_libraries:
-        context.io.log("Libraries:", indentation=1)
-        for lib_path in local_libraries:
-            context.io.log(f"• {cli_make_clickable_path(lib_path)}", indentation=2)
+        context.io.subtitle("Libraries")
+        for library_config in local_libraries:
+            context.io.log(
+                f"{cli_make_clickable_path(library_config.get_str())}",
+                indentation=1
+            )
