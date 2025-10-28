@@ -23,22 +23,31 @@ class FrameworkPackageSuiteWorkdir(BasicAppWorkdir):
             self,
             env: str | None = None
     ):
-        # Basic app setup.
+        env_label = f" in {env} mode" if env else ""
+        
+        self.io.log(f"Setting up suite{env_label}")
+        
+        # Setup the suite itself
+        self.io.log("Installing suite dependencies", indentation=1)
         super().setup_install(
             env=env
         )
 
-        # Basic setup for every package.
+        # Setup all packages in the suite
+        self.io.log(f"Installing dependencies for all packages", indentation=1)
         self.packages_execute_shell(
             cmd=self._create_setup_command()
         )
 
-        self.packages_execute_manager(
-            command=AddonCommandResolver.build_command_from_function(
-                command_wrapper=app__setup__install
-            ),
-            arguments=["--env", env] if env else []
-        )
+        # If local mode, install editable packages
+        if env:
+            self.io.log(f"Installing local packages in editable mode", indentation=1)
+            self.packages_execute_manager(
+                command=AddonCommandResolver.build_command_from_function(
+                    command_wrapper=app__setup__install
+                ),
+                arguments=["--env", env]
+            )
 
     def build_dependencies_map(self) -> dict[str, list[str]]:
         dependencies = {}
