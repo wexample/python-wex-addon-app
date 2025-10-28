@@ -1,21 +1,48 @@
 ## Usage
 
-### Quick Start: Complete Publication Workflow
+### Setup & Installation
 
+**Initial setup of the development environment:**
 ```bash
-# 1. Rectify code across all packages
+# Install PDM dependencies for all packages in the suite
+app::suite/setup
+
+# Install local editable packages across the suite
+app::suite/setup-local
+```
+
+**For a single package:**
+```bash
+# Install PDM dependencies for current package only
+.wex/bin/app-manager setup
+```
+
+### Complete Development & Publication Workflow
+
+**1. Initial Setup (one-time)**
+```bash
+# Install dependencies and setup local packages
+app::suite/setup && app::suite/setup-local
+```
+
+**2. Development Cycle**
+```bash
+# Rectify code across all packages
 app::file-state/rectify --all-packages
 
-# 2. Bump only packages with changes (excluding suite)
+# Bump only packages with changes (excluding suite)
 app::package/bump-changed --packages-only
 
-# 3. Validate dependencies and propagate versions
+# Validate dependencies and propagate versions
 app::suite/prepare
 
-# 4. Commit and push all changes
+# Commit and push all changes
 app::suite/commit-and-push --yes
+```
 
-# 5. Publish packages with changes to PyPI
+**3. Publication**
+```bash
+# Publish packages with changes to PyPI
 app::suite/publish
 ```
 
@@ -42,11 +69,21 @@ Commands:
 * `app::suite/exec-command -c <command> [--arguments "<args>"]`: Executes a manager command on all packages (e.g., `app::info/show`).
 * `app::suite/exec-shell -c "<command>"`: Executes a shell command on all packages.
 
+### Setup & Installation
+* `app::suite/setup`: Installs PDM dependencies for all packages in the suite by running `pdm install` in each package.
+* `app::suite/setup-local`: Installs local editable packages across the suite (combines `app::suite/setup` + installs packages as editable dependencies).
+* `.wex/bin/app-manager setup`: Installs PDM dependencies for a single package.
+
 ### Publishing
 * `app::suite/prepare`: Validates internal dependencies and propagates versions across all packages. Follow with `app::suite/commit-and-push --yes` to commit changes.
 * `app::suite/publish`: Publishes packages to PyPI. Only publishes packages with changes since their last publication tag. Automatically creates and pushes publication tags after successful publish.
 
 ### Common Workflows
+
+**Setup development environment:**
+```bash
+app::suite/setup && app::suite/setup-local
+```
 
 **Bump only packages with changes (excluding suite):**
 ```bash
