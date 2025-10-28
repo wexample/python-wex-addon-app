@@ -24,9 +24,9 @@ class SuiteOrEachPackageMiddleware(PackageSuiteMiddleware):
     - Only packages, excluding suite (with --all-packages --packages-only)
     - Only suite, excluding packages (with --suite-only)
     """
+
     _fail_if_not_suite_workdir: bool = private_field(
-        default=False,
-        description="Can be called both on suite or package"
+        default=False, description="Can be called both on suite or package"
     )
 
     def build_execution_contexts(

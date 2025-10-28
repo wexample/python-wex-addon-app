@@ -80,7 +80,6 @@ class AsSuitePackageItem(BaseClass):
 
     def search_in_package_or_suite_config(self, key: str):
         """Search for a config value in the package config, fallback to suite config if not found."""
-
         value = self.get_config().search(key)
 
         if value.is_none():

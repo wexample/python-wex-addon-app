@@ -6,8 +6,9 @@ from typing import TYPE_CHECKING
 from wexample_helpers.classes.abstract_method import abstract_method
 from wexample_helpers.const.types import PathOrString
 from wexample_prompt.common.progress.progress_handle import ProgressHandle
-from wexample_wex_addon_app.workdir.basic_app_workdir import BasicAppWorkdir
 from wexample_wex_core.context.execution_context import ExecutionContext
+
+from wexample_wex_addon_app.workdir.basic_app_workdir import BasicAppWorkdir
 
 if TYPE_CHECKING:
     from wexample_config.const.types import DictConfig
@@ -28,10 +29,10 @@ class FrameworkPackageSuiteWorkdir(BasicAppWorkdir):
         return dependencies
 
     def build_dependencies_stack(
-            self,
-            package: CodeBaseWorkdir,
-            dependency: CodeBaseWorkdir,
-            dependencies_map: dict[str, list[str]],
+        self,
+        package: CodeBaseWorkdir,
+        dependency: CodeBaseWorkdir,
+        dependencies_map: dict[str, list[str]],
     ) -> list[CodeBaseWorkdir]:
         """When a package depends on another (uses it in its codebase),
         return the dependency chain to locate the original package that declares the explicit dependency.
@@ -104,11 +105,11 @@ class FrameworkPackageSuiteWorkdir(BasicAppWorkdir):
         return resolved
 
     def packages_execute_manager(
-            self,
-            command: str,
-            context: ExecutionContext,
-            arguments: None | list[str] = None,
-            force: bool = False
+        self,
+        command: str,
+        context: ExecutionContext,
+        arguments: None | list[str] = None,
+        force: bool = False,
     ) -> None:
         from wexample_wex_addon_app.workdir.mixin.app_workdir_mixin import (
             AppWorkdirMixin,
@@ -127,14 +128,10 @@ class FrameworkPackageSuiteWorkdir(BasicAppWorkdir):
             cmd=cmd,
             executor_method=AppWorkdirMixin.manager_run_from_path,
             message="Executing command",
-            force=force
+            force=force,
         )
 
-    def packages_execute_shell(
-            self,
-            cmd: list[str],
-            force: bool = False
-    ) -> None:
+    def packages_execute_shell(self, cmd: list[str], force: bool = False) -> None:
         from wexample_wex_addon_app.workdir.mixin.app_workdir_mixin import (
             AppWorkdirMixin,
         )
@@ -143,19 +140,19 @@ class FrameworkPackageSuiteWorkdir(BasicAppWorkdir):
             cmd=cmd,
             executor_method=AppWorkdirMixin.shell_run_from_path,
             message="Executing shell",
-            force=force
+            force=force,
         )
 
     def packages_propagate_versions(
-            self, progress: ProgressHandle | None = None
+        self, progress: ProgressHandle | None = None
     ) -> None:
         ordered_packages = self.get_ordered_packages()
 
         progress = (
-                progress
-                or self.io.progress(
-            label=f"Starting...", total=len(ordered_packages)
-        ).get_handle()
+            progress
+            or self.io.progress(
+                label=f"Starting...", total=len(ordered_packages)
+            ).get_handle()
         )
 
         for package in ordered_packages:
@@ -231,7 +228,7 @@ class FrameworkPackageSuiteWorkdir(BasicAppWorkdir):
 
                     # If this is the last part (the package itself), add the class
                     if i == len(parts) - 1 and BasicAppWorkdir.is_app_workdir_path(
-                            path=package_path
+                        path=package_path
                     ):
                         node_config["class"] = (
                             self._get_children_package_workdir_class()
@@ -298,11 +295,11 @@ class FrameworkPackageSuiteWorkdir(BasicAppWorkdir):
         self.io.log(f"Path: {cli_make_clickable_path(path)}", indentation=1)
 
     def _packages_execute(
-            self,
-            cmd: list[str],
-            executor_method: callable,
-            message: str,
-            force: bool = False
+        self,
+        cmd: list[str],
+        executor_method: callable,
+        message: str,
+        force: bool = False,
     ) -> None:
         """Generic method to execute a command on all packages.
 
@@ -311,8 +308,9 @@ class FrameworkPackageSuiteWorkdir(BasicAppWorkdir):
             executor_method: Method to call for execution (e.g., manager_run_from_path or shell_run_from_path)
             message: Message to display in the title
         """
-        from wexample_prompt.enums.terminal_color import TerminalColor
         import shlex
+
+        from wexample_prompt.enums.terminal_color import TerminalColor
 
         for package_path in self.get_packages_paths():
             if force or BasicAppWorkdir.is_app_workdir_path(path=package_path):
@@ -323,7 +321,9 @@ class FrameworkPackageSuiteWorkdir(BasicAppWorkdir):
                 # Allow interruption
                 try:
                     if executor_method(cmd=cmd, path=package_path) is None:
-                        self.io.log("Invalid package directory, skipping.", indentation=1)
+                        self.io.log(
+                            "Invalid package directory, skipping.", indentation=1
+                        )
                 except KeyboardInterrupt:
                     return
 
