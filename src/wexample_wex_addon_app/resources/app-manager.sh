@@ -21,6 +21,9 @@ if [ "${1:-}" = "setup" ]; then
   export PDM_IGNORE_ACTIVE_VENV=1
 
   pdm install
+  
+  # Ensure pip is available in the venv
+  "$AM_DIR/.venv/bin/python" -m ensurepip --upgrade 2>/dev/null || true
 else
   exec "$AM_DIR/.venv/bin/python" "$AM_DIR/__main__.py" "${WEX_TASK_ID}" "${@}"
 fi
