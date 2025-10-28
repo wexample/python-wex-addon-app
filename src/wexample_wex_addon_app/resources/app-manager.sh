@@ -6,7 +6,8 @@ AM_DIR="$APP_ROOT/.wex/python/app_manager"
 WEX_TASK_ID="$(date '+%Y%m%d-%H%M%S-%N')-$$"
 
 if [ "${1:-}" = "setup" ]; then
-  echo "setup"
+  cd "$AM_DIR"
+  pdm install
 else
   exec "$AM_DIR/.venv/bin/python" "$AM_DIR/__main__.py" "${WEX_TASK_ID}" "${@}"
 fi
