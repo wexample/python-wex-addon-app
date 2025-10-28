@@ -29,14 +29,13 @@ def app__suite__setup_local(
     from wexample_wex_addon_app.commands.package.setup_local import (
         app__package__setup_local,
     )
-    from wexample_wex_addon_app.commands.suite.setup import app__suite__setup
 
-    # TODO Ensure if we don't need to pass through kernel.
-    app__suite__setup.function(context, app_workdir)
-
-    app_workdir.packages_execute_manager(
-        command=context.request.resolver.build_command_from_function(
-            command_wrapper=app__package__setup_local
-        ),
-        context=context,
-    )
+    # # TODO Ensure if we don't need to pass through kernel.
+    # app__setup__install.function(context, app_workdir)
+    #
+    # app_workdir.packages_execute_manager(
+    #     command=context.request.resolver.build_command_from_function(
+    #         command_wrapper=app__package__setup_local
+    #     ),
+    #     context=context,
+    # )

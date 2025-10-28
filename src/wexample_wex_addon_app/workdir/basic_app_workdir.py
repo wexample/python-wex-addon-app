@@ -3,9 +3,8 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from wexample_helpers.decorator.base_class import base_class
-from wexample_wex_core.workdir.workdir import Workdir
-
 from wexample_wex_addon_app.workdir.mixin.app_workdir_mixin import AppWorkdirMixin
+from wexample_wex_core.workdir.workdir import Workdir
 
 if TYPE_CHECKING:
     from wexample_filestate.result.file_state_result import FileStateResult
@@ -13,14 +12,22 @@ if TYPE_CHECKING:
 
 @base_class
 class BasicAppWorkdir(AppWorkdirMixin, Workdir):
+    def setup_install(self):
+        print(self._create_setup_command())
+        exit()
+        self.shell_run_from_path(
+            path=self.get_path(),
+            cmd=self._create_setup_command()
+        )
+
     def apply(
-        self,
-        force: bool = False,
-        scopes=None,
-        filter_path: str | None = None,
-        filter_operation: str | None = None,
-        max: int = None,
-        **kwargs,
+            self,
+            force: bool = False,
+            scopes=None,
+            filter_path: str | None = None,
+            filter_operation: str | None = None,
+            max: int = None,
+            **kwargs,
     ) -> FileStateResult:
         from wexample_filestate.result.file_state_result import FileStateResult
         from wexample_helpers.helpers.repo import repo_get_state, repo_has_changed_since
@@ -28,10 +35,10 @@ class BasicAppWorkdir(AppWorkdirMixin, Workdir):
         # Hash protection is only active when all filter parameters are None
         # to avoid false positives when apply behavior is modified by parameters
         hash_protection_active = (
-            scopes is None
-            and filter_path is None
-            and filter_operation is None
-            and max is None
+                scopes is None
+                and filter_path is None
+                and filter_operation is None
+                and max is None
         )
 
         registry_file = self.get_registry_file()
@@ -41,14 +48,14 @@ class BasicAppWorkdir(AppWorkdirMixin, Workdir):
         ).get_str_or_none()
 
         if (
-            force
-            or not hash_protection_active
-            or (
+                force
+                or not hash_protection_active
+                or (
                 last_update_hash is None
                 or repo_has_changed_since(
-                    previous_state=last_update_hash, cwd=self.get_path()
-                )
-            )
+            previous_state=last_update_hash, cwd=self.get_path()
+        )
+        )
         ):
             # Reset hash
             registry.set_by_path("file_state.last_update_hash", None)
