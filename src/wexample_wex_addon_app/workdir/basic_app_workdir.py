@@ -17,6 +17,7 @@ class BasicAppWorkdir(AppWorkdirMixin, Workdir):
             self,
             env: str | None = None
     ):
+        self.io.log(f'{self.get_path().name}: Installation setup {env if env else ""}')
         self.shell_run_from_path(
             path=self.get_path(),
             cmd=self._create_setup_command()
@@ -24,25 +25,30 @@ class BasicAppWorkdir(AppWorkdirMixin, Workdir):
 
         if env == ENV_NAME_LOCAL:
             from wexample_app.const.globals import APP_PATH_APP_MANAGER
+            self.io.log(f'Install local suite packages', indentation=1)
 
             suite_workdir = self.get_suite_workdir()
-            app_path = self.get_path()
+            if suite_workdir:
+                app_path = self.get_path()
 
-            # Locally, is app is part of a suite,
-            # Install every local package oh the suite in editable mode.
-            for package in suite_workdir.get_ordered_packages():
-                package_path = package.get_path()
-                self.shell_run_from_path(
-                    path=app_path / APP_PATH_APP_MANAGER,
-                    cmd=[
-                        ".venv/bin/python",
-                        "-m",
-                        "pip",
-                        "install",
-                        "-e",
-                        str(package_path),
-                    ],
-                )
+                # Locally, is app is part of a suite,
+                # Install every local package oh the suite in editable mode.
+                for package in suite_workdir.get_ordered_packages():
+                    package_path = package.get_path()
+
+                    self.io.log(f'Installing {package_path}', indentation=2)
+
+                    self.shell_run_from_path(
+                        path=app_path / APP_PATH_APP_MANAGER,
+                        cmd=[
+                            ".venv/bin/python",
+                            "-m",
+                            "pip",
+                            "install",
+                            "-e",
+                            str(package_path),
+                        ],
+                    )
 
     def _create_setup_command(self) -> list[str]:
         from wexample_app.const.globals import APP_PATH_BIN_APP_MANAGER

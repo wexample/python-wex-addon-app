@@ -142,15 +142,6 @@ class AppWorkdirMixin(
             inherit_stdio=True,
         )
 
-    def setup_install(
-            self,
-            env: str | None = None
-    ):
-        self.shell_run_from_path(
-            path=self.get_path(),
-            cmd=self._create_setup_command()
-        )
-
     def build_registry_value(self) -> NestedConfigValue:
         from wexample_config.config_value.nested_config_value import NestedConfigValue
 

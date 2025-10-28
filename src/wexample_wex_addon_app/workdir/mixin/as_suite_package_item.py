@@ -28,6 +28,8 @@ class AsSuitePackageItem(BaseClass):
         from wexample_helpers.helpers.directory import directory_iterate_parent_dirs
         from wexample_wex_addon_app.workdir.basic_app_workdir import BasicAppWorkdir
 
+        source_path = self.get_path()
+
         def _found(path: Path) -> bool:
             config = BasicAppWorkdir.get_config_from_path(
                 path=path,
@@ -39,10 +41,11 @@ class AsSuitePackageItem(BaseClass):
             return False
 
         suite_path = directory_iterate_parent_dirs(
-            path=self.get_path(), condition=_found
+            path=source_path,
+            condition=_found
         )
 
-        if suite_path:
+        if suite_path and suite_path != source_path:
             return suite_path
 
         return None

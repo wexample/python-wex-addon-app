@@ -9,10 +9,8 @@ from wexample_wex_core.decorator.middleware import middleware
 from wexample_wex_core.decorator.option import option
 
 if TYPE_CHECKING:
+    from wexample_wex_addon_app.workdir.basic_app_workdir import BasicAppWorkdir
     from wexample_wex_core.context.execution_context import ExecutionContext
-    from wexample_wex_addon_app.workdir.framework_packages_suite_workdir import (
-        FrameworkPackageSuiteWorkdir,
-    )
 
 
 @option(name="env", type=str, default=None)
@@ -23,7 +21,7 @@ if TYPE_CHECKING:
 )
 def app__setup__install(
         context: ExecutionContext,
-        app_workdir: FrameworkPackageSuiteWorkdir,
+        app_workdir: BasicAppWorkdir,
         env: str | None = None
 ) -> None:
     app_workdir.setup_install(env)
