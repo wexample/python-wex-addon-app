@@ -44,6 +44,10 @@ class BasicAppWorkdir(AppWorkdirMixin, Workdir):
                     ],
                 )
 
+    def _create_setup_command(self) -> list[str]:
+        from wexample_app.const.globals import APP_PATH_BIN_APP_MANAGER
+        return [str(APP_PATH_BIN_APP_MANAGER), "setup"]
+
     def apply(
             self,
             force: bool = False,

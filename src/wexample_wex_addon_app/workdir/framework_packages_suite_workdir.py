@@ -37,15 +37,8 @@ class FrameworkPackageSuiteWorkdir(BasicAppWorkdir):
             command=AddonCommandResolver.build_command_from_function(
                 command_wrapper=app__setup__install
             ),
-            arguments=[
-                "--env",
-                env
-            ]
+            arguments=["--env", env] if env else []
         )
-
-    def _create_setup_command(self) -> list[str]:
-        from wexample_app.const.globals import APP_PATH_BIN_APP_MANAGER
-        return [str(APP_PATH_BIN_APP_MANAGER), "setup"]
 
     def build_dependencies_map(self) -> dict[str, list[str]]:
         dependencies = {}
