@@ -54,7 +54,6 @@ class EachSuitePackageMiddleware(PackageSuiteMiddleware):
                             command_wrapper=command_wrapper
                         ),
                         arguments=request.arguments,
-                        context=context,
                     )
                     return None
 
