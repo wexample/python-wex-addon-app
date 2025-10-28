@@ -134,19 +134,15 @@ class FrameworkPackageSuiteWorkdir(BasicAppWorkdir):
 
         self._packages_execute(
             cmd=cmd,
-            executor_method=AppWorkdirMixin.manager_run_from_path,
+            executor_method=BasicAppWorkdir.manager_run_from_path,
             message="Executing command",
             force=force,
         )
 
     def packages_execute_shell(self, cmd: list[str], force: bool = False) -> None:
-        from wexample_wex_addon_app.workdir.mixin.app_workdir_mixin import (
-            AppWorkdirMixin,
-        )
-
         self._packages_execute(
             cmd=cmd,
-            executor_method=AppWorkdirMixin.shell_run_from_path,
+            executor_method=BasicAppWorkdir.shell_run_from_path,
             message="Executing shell",
             force=force,
         )
