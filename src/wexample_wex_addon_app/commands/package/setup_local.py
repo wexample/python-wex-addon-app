@@ -28,9 +28,10 @@ def app__package__setup_local(
     suite_workdir = app_workdir.get_suite_workdir()
     app_path = app_workdir.get_path()
 
-    for path in suite_workdir.get_packages_paths():
+    for package in suite_workdir.get_ordered_packages():
+        package_path = package.get_path()
         # Ignore itself
-        if path != app_path:
+        if package_path != app_path:
             context.io.log(str(app_path / APP_PATH_APP_MANAGER))
 
             app_workdir.shell_run_from_path(
@@ -39,5 +40,5 @@ def app__package__setup_local(
                     "pip",
                     "install",
                     "-e",
-                    str(path)
+                    str(package_path)
                 ])
