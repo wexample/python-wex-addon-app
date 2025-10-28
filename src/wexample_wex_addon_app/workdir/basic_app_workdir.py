@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import os
+from pathlib import Path
 from typing import TYPE_CHECKING
 
 from wexample_helpers.decorator.base_class import base_class
@@ -193,3 +195,44 @@ class BasicAppWorkdir(AppWorkdirMixin, Workdir):
         from wexample_app.const.globals import APP_PATH_BIN_APP_MANAGER
 
         return [str(APP_PATH_BIN_APP_MANAGER), "setup"]
+
+    def get_local_libraries_paths(self, env: str | None = None) -> list[Path]:
+        """Get local library paths from config with environment variable resolution.
+
+        Args:
+            env: Environment name (e.g., 'local', 'prod'). If None, uses current environment.
+
+        Returns:
+            List of resolved absolute paths to local libraries.
+        """
+        from wexample_app.const.env import ENV_NAME_LOCAL
+
+        if env is None:
+            env = ENV_NAME_LOCAL
+
+        # Get libraries from config: env.{env}.libraries
+        libraries_config = (
+            self.get_config().search(f"env.{env}.libraries").get_list_or_none()
+        )
+
+        if not libraries_config:
+            return []
+
+        resolved_paths: list[Path] = []
+
+        for lib_config in libraries_config:
+            lib_path_str = lib_config.get_str()
+
+            # Resolve environment variables (e.g., ${LOCAL_WEXAMPLE_PIP_SUITE_PATH})
+            lib_path_str = os.path.expandvars(lib_path_str)
+
+            # Convert to absolute path
+            lib_path = Path(lib_path_str)
+            if not lib_path.is_absolute():
+                lib_path = self.get_path() / lib_path
+
+            # Only add if path exists
+            if lib_path.exists():
+                resolved_paths.append(lib_path.resolve())
+
+        return resolved_paths

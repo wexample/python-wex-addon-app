@@ -43,9 +43,9 @@ class AppAddonManager(AbstractAddonManager):
             Path(path) if path is not None else self.kernel.call_workdir.get_path()
         )
 
-        if not BasicAppWorkdir.is_app_workdir_path_setup(path=app_path):
-            self.kernel.info(
-                f"Application not initialized in {cli_make_clickable_path(app_path)}"
+        if not BasicAppWorkdir.is_app_workdir_path(path=app_path):
+            self.kernel.warn(
+                f"Path does not match with an application directory structure: {cli_make_clickable_path(app_path)}"
             )
             return None
 

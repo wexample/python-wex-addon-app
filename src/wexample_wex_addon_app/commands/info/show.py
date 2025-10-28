@@ -18,6 +18,7 @@ def app__info__show(
     context: ExecutionContext,
     app_workdir: BasicAppWorkdir,
 ) -> None:
+    from wexample_app.const.env import ENV_NAME_LOCAL
     from wexample_helpers.helpers.cli import cli_make_clickable_path
 
     context.io.properties(
@@ -28,3 +29,11 @@ def app__info__show(
         },
         title="Application info",
     )
+
+    # Show local libraries if configured
+    local_libraries = app_workdir.get_local_libraries_paths(env=ENV_NAME_LOCAL)
+    if local_libraries:
+        context.io.title("Environment: local")
+        context.io.log("Libraries:", indentation=1)
+        for lib_path in local_libraries:
+            context.io.log(f"• {cli_make_clickable_path(lib_path)}", indentation=2)
