@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from wexample_app.const.env import ENV_NAME_LOCAL
 from wexample_helpers.decorator.base_class import base_class
 from wexample_wex_addon_app.workdir.mixin.app_workdir_mixin import AppWorkdirMixin
 from wexample_wex_core.workdir.workdir import Workdir
@@ -12,13 +13,36 @@ if TYPE_CHECKING:
 
 @base_class
 class BasicAppWorkdir(AppWorkdirMixin, Workdir):
-    def setup_install(self):
-        print(self._create_setup_command())
-        exit()
+    def setup_install(
+            self,
+            env: str | None = None
+    ):
         self.shell_run_from_path(
             path=self.get_path(),
             cmd=self._create_setup_command()
         )
+
+        if env == ENV_NAME_LOCAL:
+            from wexample_app.const.globals import APP_PATH_APP_MANAGER
+
+            suite_workdir = self.get_suite_workdir()
+            app_path = self.get_path()
+
+            # Locally, is app is part of a suite,
+            # Install every local package oh the suite in editable mode.
+            for package in suite_workdir.get_ordered_packages():
+                package_path = package.get_path()
+                self.shell_run_from_path(
+                    path=app_path / APP_PATH_APP_MANAGER,
+                    cmd=[
+                        ".venv/bin/python",
+                        "-m",
+                        "pip",
+                        "install",
+                        "-e",
+                        str(package_path),
+                    ],
+                )
 
     def apply(
             self,

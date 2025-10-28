@@ -3,11 +3,12 @@ from __future__ import annotations
 from pathlib import Path
 from typing import TYPE_CHECKING
 
+from wexample_wex_core.resolver.addon_command_resolver import AddonCommandResolver
 from wexample_helpers.classes.abstract_method import abstract_method
 from wexample_helpers.const.types import PathOrString
 from wexample_prompt.common.progress.progress_handle import ProgressHandle
+from wexample_wex_addon_app.commands.setup.install import app__setup__install
 from wexample_wex_addon_app.workdir.basic_app_workdir import BasicAppWorkdir
-from wexample_wex_core.context.execution_context import ExecutionContext
 
 if TYPE_CHECKING:
     from wexample_config.const.types import DictConfig
@@ -18,10 +19,29 @@ if TYPE_CHECKING:
 
 
 class FrameworkPackageSuiteWorkdir(BasicAppWorkdir):
-    def setup_install(self):
-        super().setup_install()
+    def setup_install(
+            self,
+            env: str | None = None
+    ):
+        # Basic app setup.
+        super().setup_install(
+            env=env
+        )
 
-        self.packages_execute_shell(cmd=self._create_setup_command())
+        # Basic setup for every package.
+        self.packages_execute_shell(
+            cmd=self._create_setup_command()
+        )
+
+        self.packages_execute_manager(
+            command=AddonCommandResolver.build_command_from_function(
+                command_wrapper=app__setup__install
+            ),
+            arguments=[
+                "--env",
+                env
+            ]
+        )
 
     def _create_setup_command(self) -> list[str]:
         from wexample_app.const.globals import APP_PATH_BIN_APP_MANAGER
@@ -115,13 +135,9 @@ class FrameworkPackageSuiteWorkdir(BasicAppWorkdir):
     def packages_execute_manager(
             self,
             command: str,
-            context: ExecutionContext,
             arguments: None | list[str] = None,
             force: bool = False,
     ) -> None:
-        from wexample_wex_addon_app.workdir.mixin.app_workdir_mixin import (
-            AppWorkdirMixin,
-        )
 
         cmd = [command]
         arguments = arguments or []
@@ -130,7 +146,7 @@ class FrameworkPackageSuiteWorkdir(BasicAppWorkdir):
             cmd.extend(arguments)
 
         if "--indentation-level" not in cmd:
-            cmd.extend(["--indentation-level", str(context.io.indentation + 1)])
+            cmd.extend(["--indentation-level", str(self.io.indentation + 1)])
 
         self._packages_execute(
             cmd=cmd,
