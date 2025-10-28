@@ -327,4 +327,4 @@ class FrameworkPackageSuiteWorkdir(BasicAppWorkdir):
                 except KeyboardInterrupt:
                     return
 
-                self.io.separator()
+                self.io.separator(color=TerminalColor.BLACK)
