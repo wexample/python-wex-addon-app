@@ -38,7 +38,6 @@ def app__package__setup_local(
                 "install",
                 "-e",
                 str(package_path),
-                "--no-deps",
             ],
         )
 
