@@ -77,3 +77,15 @@ class AsSuitePackageItem(BaseClass):
             return suite
 
         return None
+
+    def search_in_package_or_suite_config(self, key: str):
+        """Search for a config value in the package config, fallback to suite config if not found."""
+
+        value = self.get_config().search(key)
+
+        if value.is_none():
+            suite_workdir = self.get_suite_workdir()
+            if suite_workdir:
+                return suite_workdir.get_config().search(key)
+
+        return value
