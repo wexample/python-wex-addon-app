@@ -26,6 +26,7 @@ def app__info__show(
             "Name": app_workdir.get_item_name(),
             "Version": app_workdir.get_project_version(),
             "Path": cli_make_clickable_path(path=app_workdir.get_path()),
+            "Environment": app_workdir.get_app_env(),
         },
         title="Application info",
     )
@@ -33,7 +34,6 @@ def app__info__show(
     # Show local libraries if configured
     local_libraries = app_workdir.get_local_libraries_paths(env=ENV_NAME_LOCAL)
     if local_libraries:
-        context.io.title("Environment: local")
         context.io.log("Libraries:", indentation=1)
         for lib_path in local_libraries:
             context.io.log(f"• {cli_make_clickable_path(lib_path)}", indentation=2)

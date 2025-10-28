@@ -4,6 +4,7 @@ import os
 from pathlib import Path
 from typing import TYPE_CHECKING
 
+from wexample_app.const.env import ENV_NAME_PROD
 from wexample_helpers.decorator.base_class import base_class
 from wexample_wex_addon_app.workdir.mixin.app_workdir_mixin import AppWorkdirMixin
 from wexample_wex_core.workdir.workdir import Workdir
@@ -190,6 +191,14 @@ class BasicAppWorkdir(AppWorkdirMixin, Workdir):
         # Limit diff to current package folder, run from package cwd using '.'
         return git_has_changes_since_tag(
             last_tag, ".", cwd=self.get_path(), inherit_stdio=False
+        )
+
+    def get_app_env(self) -> str:
+        from wexample_app.const.globals import ENV_VAR_NAME_APP_ENV
+
+        return self.get_env_parameter(
+            key=ENV_VAR_NAME_APP_ENV,
+            default=ENV_NAME_PROD
         )
 
     def setup_install(self, env: str | None = None) -> None:
