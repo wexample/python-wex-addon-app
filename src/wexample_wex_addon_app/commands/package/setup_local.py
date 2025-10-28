@@ -29,18 +29,16 @@ def app__package__setup_local(
 
     for package in suite_workdir.get_ordered_packages():
         package_path = package.get_path()
-        # Ignore itself
-        if package_path != app_path:
-            app_workdir.shell_run_from_path(
-                path=app_path / APP_PATH_APP_MANAGER,
-                cmd=[
-                    ".venv/bin/python",
-                    "-m",
-                    "pip",
-                    "install",
-                    "-e",
-                    str(package_path),
-                    "--no-deps",
-                ],
-            )
+        app_workdir.shell_run_from_path(
+            path=app_path / APP_PATH_APP_MANAGER,
+            cmd=[
+                ".venv/bin/python",
+                "-m",
+                "pip",
+                "install",
+                "-e",
+                str(package_path),
+                "--no-deps",
+            ],
+        )
 
