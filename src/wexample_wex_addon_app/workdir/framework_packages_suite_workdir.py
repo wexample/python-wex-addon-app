@@ -310,16 +310,20 @@ class FrameworkPackageSuiteWorkdir(BasicAppWorkdir):
             executor_method: Method to call for execution (e.g., manager_run_from_path or shell_run_from_path)
             message: Message to display in the title
         """
+        from wexample_prompt.enums.terminal_color import TerminalColor
         import shlex
 
         for package_path in self.get_packages_paths():
-            self._package_title(path=package_path, message=message)
-            self.io.log(f"Command: {shlex.join(cmd)}", indentation=1)
-
             if force or BasicAppWorkdir.is_app_workdir_path(path=package_path):
+                self._package_title(path=package_path, message=message)
+                self.io.log(f"Command: {shlex.join(cmd)}", indentation=1)
+                self.io.separator(color=TerminalColor.BLACK)
+
                 # Allow interruption
                 try:
                     if executor_method(cmd=cmd, path=package_path) is None:
                         self.io.log("Invalid package directory, skipping.", indentation=1)
                 except KeyboardInterrupt:
                     return
+
+                self.io.separator()
