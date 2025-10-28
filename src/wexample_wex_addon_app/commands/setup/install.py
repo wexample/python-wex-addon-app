@@ -22,10 +22,8 @@ if TYPE_CHECKING:
     type=COMMAND_TYPE_ADDON,
     description="Install package manager into suite or packages",
 )
-def app__suite__setup(
+def app__setup__install(
     context: ExecutionContext,
     app_workdir: FrameworkPackageSuiteWorkdir,
 ) -> None:
-    from wexample_app.const.globals import APP_PATH_BIN_APP_MANAGER
-
-    app_workdir.packages_execute_shell(cmd=[str(APP_PATH_BIN_APP_MANAGER), "setup"])
+    app_workdir.setup_install()
