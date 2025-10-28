@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from wexample_wex_addon_app.middleware.suite_or_each_package_middleware import SuiteOrEachPackageMiddleware
+from wexample_wex_addon_app.middleware.package_suite_middleware import PackageSuiteMiddleware
 from wexample_wex_addon_app.workdir.framework_packages_suite_workdir import (
     FrameworkPackageSuiteWorkdir,
 )
@@ -14,7 +14,7 @@ if TYPE_CHECKING:
     from wexample_wex_core.context.execution_context import ExecutionContext
 
 
-@middleware(middleware=SuiteOrEachPackageMiddleware)
+@middleware(middleware=PackageSuiteMiddleware)
 @command(
     type=COMMAND_TYPE_ADDON,
     description="Install package manager into suite or packages",

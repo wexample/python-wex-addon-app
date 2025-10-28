@@ -138,7 +138,7 @@ class AppWorkdirMixin(
 
         return shell_run(
             cmd=cmd,
-            cwd=path,
+            cwd=str(path),
             inherit_stdio=True,
         )
 
