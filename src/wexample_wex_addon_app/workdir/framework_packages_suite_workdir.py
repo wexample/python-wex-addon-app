@@ -3,11 +3,10 @@ from __future__ import annotations
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from wexample_wex_core.resolver.addon_command_resolver import AddonCommandResolver
 from wexample_helpers.classes.abstract_method import abstract_method
 from wexample_helpers.const.types import PathOrString
 from wexample_prompt.common.progress.progress_handle import ProgressHandle
-from wexample_wex_addon_app.commands.setup.install import app__setup__install
+
 from wexample_wex_addon_app.workdir.basic_app_workdir import BasicAppWorkdir
 
 if TYPE_CHECKING:
@@ -19,36 +18,6 @@ if TYPE_CHECKING:
 
 
 class FrameworkPackageSuiteWorkdir(BasicAppWorkdir):
-    def setup_install(
-            self,
-            env: str | None = None
-    ):
-        env_label = f" in {env} mode" if env else ""
-        
-        self.io.log(f"Setting up suite{env_label}")
-        
-        # Setup the suite itself
-        self.io.log("Installing suite dependencies", indentation=1)
-        super().setup_install(
-            env=env
-        )
-
-        # Setup all packages in the suite
-        self.io.log(f"Installing dependencies for all packages", indentation=1)
-        self.packages_execute_shell(
-            cmd=self._create_setup_command()
-        )
-
-        # If local mode, install editable packages
-        if env:
-            self.io.log(f"Installing local packages in editable mode", indentation=1)
-            self.packages_execute_manager(
-                command=AddonCommandResolver.build_command_from_function(
-                    command_wrapper=app__setup__install
-                ),
-                arguments=["--env", env]
-            )
-
     def build_dependencies_map(self) -> dict[str, list[str]]:
         dependencies = {}
         for package in self.get_packages():
@@ -59,10 +28,10 @@ class FrameworkPackageSuiteWorkdir(BasicAppWorkdir):
         return dependencies
 
     def build_dependencies_stack(
-            self,
-            package: CodeBaseWorkdir,
-            dependency: CodeBaseWorkdir,
-            dependencies_map: dict[str, list[str]],
+        self,
+        package: CodeBaseWorkdir,
+        dependency: CodeBaseWorkdir,
+        dependencies_map: dict[str, list[str]],
     ) -> list[CodeBaseWorkdir]:
         """When a package depends on another (uses it in its codebase),
         return the dependency chain to locate the original package that declares the explicit dependency.
@@ -135,12 +104,11 @@ class FrameworkPackageSuiteWorkdir(BasicAppWorkdir):
         return resolved
 
     def packages_execute_manager(
-            self,
-            command: str,
-            arguments: None | list[str] = None,
-            force: bool = False,
+        self,
+        command: str,
+        arguments: None | list[str] = None,
+        force: bool = False,
     ) -> None:
-
         cmd = [command]
         arguments = arguments or []
 
@@ -166,15 +134,15 @@ class FrameworkPackageSuiteWorkdir(BasicAppWorkdir):
         )
 
     def packages_propagate_versions(
-            self, progress: ProgressHandle | None = None
+        self, progress: ProgressHandle | None = None
     ) -> None:
         ordered_packages = self.get_ordered_packages()
 
         progress = (
-                progress
-                or self.io.progress(
-            label=f"Starting...", total=len(ordered_packages)
-        ).get_handle()
+            progress
+            or self.io.progress(
+                label=f"Starting...", total=len(ordered_packages)
+            ).get_handle()
         )
 
         for package in ordered_packages:
@@ -209,6 +177,35 @@ class FrameworkPackageSuiteWorkdir(BasicAppWorkdir):
         children.extend(tree)
 
         return raw_value
+
+    def setup_install(self, env: str | None = None) -> None:
+        from wexample_wex_core.resolver.addon_command_resolver import (
+            AddonCommandResolver,
+        )
+
+        from wexample_wex_addon_app.commands.setup.install import app__setup__install
+
+        env_label = f" in {env} mode" if env else ""
+
+        self.io.log(f"Setting up suite{env_label}")
+
+        # Setup the suite itself
+        self.io.log("Installing suite dependencies", indentation=1)
+        super().setup_install(env=env)
+
+        # Setup all packages in the suite
+        self.io.log(f"Installing dependencies for all packages", indentation=1)
+        self.packages_execute_shell(cmd=self._create_setup_command())
+
+        # If local mode, install editable packages
+        if env:
+            self.io.log(f"Installing local packages in editable mode", indentation=1)
+            self.packages_execute_manager(
+                command=AddonCommandResolver.build_command_from_function(
+                    command_wrapper=app__setup__install
+                ),
+                arguments=["--env", env],
+            )
 
     def _build_directory_tree(self, package_paths: list[Path]) -> list[dict]:
         """Build a recursive directory tree structure from package paths.
@@ -250,7 +247,7 @@ class FrameworkPackageSuiteWorkdir(BasicAppWorkdir):
 
                     # If this is the last part (the package itself), add the class
                     if i == len(parts) - 1 and BasicAppWorkdir.is_app_workdir_path(
-                            path=package_path
+                        path=package_path
                     ):
                         node_config["class"] = (
                             self._get_children_package_workdir_class()
@@ -317,11 +314,11 @@ class FrameworkPackageSuiteWorkdir(BasicAppWorkdir):
         self.io.log(f"Path: {cli_make_clickable_path(path)}", indentation=1)
 
     def _packages_execute(
-            self,
-            cmd: list[str],
-            executor_method: callable,
-            message: str,
-            force: bool = False,
+        self,
+        cmd: list[str],
+        executor_method: callable,
+        message: str,
+        force: bool = False,
     ) -> None:
         """Generic method to execute a command on all packages.
 

@@ -2,10 +2,10 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from wexample_app.const.env import ENV_NAME_LOCAL
 from wexample_helpers.decorator.base_class import base_class
-from wexample_wex_addon_app.workdir.mixin.app_workdir_mixin import AppWorkdirMixin
 from wexample_wex_core.workdir.workdir import Workdir
+
+from wexample_wex_addon_app.workdir.mixin.app_workdir_mixin import AppWorkdirMixin
 
 if TYPE_CHECKING:
     from wexample_filestate.result.file_state_result import FileStateResult
@@ -13,59 +13,14 @@ if TYPE_CHECKING:
 
 @base_class
 class BasicAppWorkdir(AppWorkdirMixin, Workdir):
-    def setup_install(
-            self,
-            env: str | None = None
-    ):
-        package_name = self.get_path().name
-        env_label = f" ({env})" if env else ""
-        
-        self.io.log(f"Installing dependencies for {package_name}{env_label}")
-        self.shell_run_from_path(
-            path=self.get_path(),
-            cmd=self._create_setup_command()
-        )
-
-        if env == ENV_NAME_LOCAL:
-            from wexample_app.const.globals import APP_PATH_APP_MANAGER
-            
-            suite_workdir = self.get_suite_workdir()
-            if suite_workdir:
-                app_path = self.get_path()
-                packages = suite_workdir.get_ordered_packages()
-                
-                self.io.log(f"Installing {len(packages)} local suite packages in editable mode", indentation=1)
-
-                # Install every local package of the suite in editable mode
-                for package in packages:
-                    package_path = package.get_path()
-
-                    self.io.log(f"Installing {package_path.name}", indentation=2)
-
-                    self.shell_run_from_path(
-                        path=app_path / APP_PATH_APP_MANAGER,
-                        cmd=[
-                            ".venv/bin/python",
-                            "-m",
-                            "pip",
-                            "install",
-                            "-e",
-                            str(package_path),
-                        ],
-                    )
-
-    def _create_setup_command(self) -> list[str]:
-        from wexample_app.const.globals import APP_PATH_BIN_APP_MANAGER
-        return [str(APP_PATH_BIN_APP_MANAGER), "setup"]
-
     def apply(
-            self,
-            force: bool = False,
-            scopes=None,
-            filter_path: str | None = None,
-            filter_operation: str | None = None,
-            max: int = None,
-            **kwargs,
+        self,
+        force: bool = False,
+        scopes=None,
+        filter_path: str | None = None,
+        filter_operation: str | None = None,
+        max: int = None,
+        **kwargs,
     ) -> FileStateResult:
         from wexample_filestate.result.file_state_result import FileStateResult
         from wexample_helpers.helpers.repo import repo_get_state, repo_has_changed_since
@@ -73,10 +28,10 @@ class BasicAppWorkdir(AppWorkdirMixin, Workdir):
         # Hash protection is only active when all filter parameters are None
         # to avoid false positives when apply behavior is modified by parameters
         hash_protection_active = (
-                scopes is None
-                and filter_path is None
-                and filter_operation is None
-                and max is None
+            scopes is None
+            and filter_path is None
+            and filter_operation is None
+            and max is None
         )
 
         registry_file = self.get_registry_file()
@@ -86,14 +41,14 @@ class BasicAppWorkdir(AppWorkdirMixin, Workdir):
         ).get_str_or_none()
 
         if (
-                force
-                or not hash_protection_active
-                or (
+            force
+            or not hash_protection_active
+            or (
                 last_update_hash is None
                 or repo_has_changed_since(
-            previous_state=last_update_hash, cwd=self.get_path()
-        )
-        )
+                    previous_state=last_update_hash, cwd=self.get_path()
+                )
+            )
         ):
             # Reset hash
             registry.set_by_path("file_state.last_update_hash", None)
@@ -194,3 +149,48 @@ class BasicAppWorkdir(AppWorkdirMixin, Workdir):
         return git_has_changes_since_tag(
             last_tag, ".", cwd=self.get_path(), inherit_stdio=False
         )
+
+    def setup_install(self, env: str | None = None) -> None:
+        from wexample_app.const.env import ENV_NAME_LOCAL
+
+        package_name = self.get_path().name
+        env_label = f" ({env})" if env else ""
+
+        self.io.log(f"Installing dependencies for {package_name}{env_label}")
+        self.shell_run_from_path(path=self.get_path(), cmd=self._create_setup_command())
+
+        if env == ENV_NAME_LOCAL:
+            from wexample_app.const.globals import APP_PATH_APP_MANAGER
+
+            suite_workdir = self.get_suite_workdir()
+            if suite_workdir:
+                app_path = self.get_path()
+                packages = suite_workdir.get_ordered_packages()
+
+                self.io.log(
+                    f"Installing {len(packages)} local suite packages in editable mode",
+                    indentation=1,
+                )
+
+                # Install every local package of the suite in editable mode
+                for package in packages:
+                    package_path = package.get_path()
+
+                    self.io.log(f"Installing {package_path.name}", indentation=2)
+
+                    self.shell_run_from_path(
+                        path=app_path / APP_PATH_APP_MANAGER,
+                        cmd=[
+                            ".venv/bin/python",
+                            "-m",
+                            "pip",
+                            "install",
+                            "-e",
+                            str(package_path),
+                        ],
+                    )
+
+    def _create_setup_command(self) -> list[str]:
+        from wexample_app.const.globals import APP_PATH_BIN_APP_MANAGER
+
+        return [str(APP_PATH_BIN_APP_MANAGER), "setup"]

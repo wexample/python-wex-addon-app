@@ -26,6 +26,7 @@ class AsSuitePackageItem(BaseClass):
         as we cannot directly load suite python class from a different venv.
         """
         from wexample_helpers.helpers.directory import directory_iterate_parent_dirs
+
         from wexample_wex_addon_app.workdir.basic_app_workdir import BasicAppWorkdir
 
         source_path = self.get_path()
@@ -40,10 +41,7 @@ class AsSuitePackageItem(BaseClass):
 
             return False
 
-        suite_path = directory_iterate_parent_dirs(
-            path=source_path,
-            condition=_found
-        )
+        suite_path = directory_iterate_parent_dirs(path=source_path, condition=_found)
 
         if suite_path and suite_path != source_path:
             return suite_path

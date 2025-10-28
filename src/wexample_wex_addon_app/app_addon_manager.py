@@ -9,9 +9,10 @@ from wexample_wex_core.common.abstract_addon_manager import AbstractAddonManager
 if TYPE_CHECKING:
     from pathlib import Path
 
-    from wexample_wex_addon_app.workdir.basic_app_workdir import BasicAppWorkdir
     from wexample_helpers.const.types import PathOrString
     from wexample_wex_core.middleware.abstract_middleware import AbstractMiddleware
+
+    from wexample_wex_addon_app.workdir.basic_app_workdir import BasicAppWorkdir
 
 
 @base_class

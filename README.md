@@ -4,25 +4,28 @@
 
 **Initial setup of the development environment:**
 ```bash
-# Install PDM dependencies for all packages in the suite
-app::suite/setup
+# Install dependencies for the suite and all packages (production mode)
+app::setup/install
 
-# Install local editable packages across the suite
-app::suite/setup-local
+# Install dependencies + local editable packages (development mode)
+app::setup/install --env local
 ```
 
 **For a single package:**
 ```bash
-# Install PDM dependencies for current package only
+# Production: Install PDM dependencies only
 .wex/bin/app-manager setup
+
+# Development: Install dependencies + local editable packages
+.wex/bin/app-manager app::setup/install --env local
 ```
 
 ### Complete Development & Publication Workflow
 
 **1. Initial Setup (one-time)**
 ```bash
-# Install dependencies and setup local packages
-app::suite/setup && app::suite/setup-local
+# Install dependencies and local editable packages for development
+app::setup/install --env local
 ```
 
 **2. Development Cycle**
@@ -70,9 +73,9 @@ Commands:
 * `app::suite/exec-shell -c "<command>"`: Executes a shell command on all packages.
 
 ### Setup & Installation
-* `app::suite/setup`: Installs PDM dependencies for all packages in the suite by running `pdm install` in each package.
-* `app::suite/setup-local`: Installs local editable packages across the suite (combines `app::suite/setup` + installs packages as editable dependencies).
-* `.wex/bin/app-manager setup`: Installs PDM dependencies for a single package.
+* `app::setup/install`: Installs PDM dependencies for the suite and all packages. Runs `pdm install` in the suite and each package.
+* `app::setup/install --env local`: Development mode - installs dependencies + all local packages as editable dependencies (pip install -e) for cross-package development.
+* `.wex/bin/app-manager setup`: Low-level command that runs `pdm install` for a single package (called by app-manager.sh).
 
 ### Publishing
 * `app::suite/prepare`: Validates internal dependencies and propagates versions across all packages. Follow with `app::suite/commit-and-push --yes` to commit changes.
@@ -82,7 +85,8 @@ Commands:
 
 **Setup development environment:**
 ```bash
-app::suite/setup && app::suite/setup-local
+# Full development setup with editable packages
+app::setup/install --env local
 ```
 
 **Bump only packages with changes (excluding suite):**
