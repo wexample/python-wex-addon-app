@@ -31,13 +31,16 @@ def app__package__setup_local(
         package_path = package.get_path()
         # Ignore itself
         if package_path != app_path:
-            context.io.log(str(app_path / APP_PATH_APP_MANAGER))
             app_workdir.shell_run_from_path(
                 path=app_path / APP_PATH_APP_MANAGER,
                 cmd=[
+                    ".venv/bin/python",
+                    "-m",
                     "pip",
                     "install",
                     "-e",
                     str(package_path),
                     "--no-deps",
-                ])
+                ],
+            )
+
