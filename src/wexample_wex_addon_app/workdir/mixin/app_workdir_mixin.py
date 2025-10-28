@@ -11,7 +11,6 @@ from wexample_helpers.const.types import FileStringOrPath
 from wexample_helpers.decorator.base_class import base_class
 from wexample_helpers.helpers.shell import ShellResult
 from wexample_prompt.common.io_manager import IoManager
-from wexample_wex_addon_app.workdir.basic_app_workdir import BasicAppWorkdir
 from wexample_wex_addon_app.workdir.mixin.as_suite_package_item import (
     AsSuitePackageItem,
 )
@@ -99,6 +98,7 @@ class AppWorkdirMixin(
     ) -> None | ShellResult:
         from wexample_app.const.globals import APP_PATH_BIN_APP_MANAGER
         from wexample_helpers.helpers.shell import shell_run
+        from wexample_wex_addon_app.workdir.basic_app_workdir import BasicAppWorkdir
 
         if not BasicAppWorkdir.is_app_workdir_path_setup(path=path):
             manager_path = path / APP_PATH_APP_MANAGER

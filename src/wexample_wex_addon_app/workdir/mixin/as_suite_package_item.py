@@ -6,7 +6,6 @@ from typing import TYPE_CHECKING
 from wexample_helpers.classes.abstract_method import abstract_method
 from wexample_helpers.classes.base_class import BaseClass
 from wexample_helpers.decorator.base_class import base_class
-from wexample_wex_addon_app.workdir.basic_app_workdir import BasicAppWorkdir
 
 if TYPE_CHECKING:
     from wexample_wex_addon_app.workdir.framework_packages_suite_workdir import (
@@ -27,6 +26,7 @@ class AsSuitePackageItem(BaseClass):
         as we cannot directly load suite python class from a different venv.
         """
         from wexample_helpers.helpers.directory import directory_iterate_parent_dirs
+        from wexample_wex_addon_app.workdir.basic_app_workdir import BasicAppWorkdir
 
         def _found(path: Path) -> bool:
             config = BasicAppWorkdir.get_config_from_path(
