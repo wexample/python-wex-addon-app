@@ -23,7 +23,6 @@ def app__package__setup_local(
         context: ExecutionContext,
         app_workdir: FrameworkPackageSuiteWorkdir,
 ) -> None:
-    print('Loading suite...')
     from wexample_app.const.globals import APP_PATH_APP_MANAGER
     suite_workdir = app_workdir.get_suite_workdir()
     app_path = app_workdir.get_path()
@@ -33,12 +32,12 @@ def app__package__setup_local(
         # Ignore itself
         if package_path != app_path:
             context.io.log(str(app_path / APP_PATH_APP_MANAGER))
-
             app_workdir.shell_run_from_path(
                 path=app_path / APP_PATH_APP_MANAGER,
                 cmd=[
                     "pip",
                     "install",
                     "-e",
-                    str(package_path)
+                    str(package_path),
+                    "--no-deps",
                 ])
