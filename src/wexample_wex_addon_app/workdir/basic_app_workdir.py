@@ -126,7 +126,7 @@ class BasicAppWorkdir(AppWorkdirMixin, Workdir):
         return git_last_tag_for_prefix(prefix, cwd=self.get_path(), inherit_stdio=False)
 
     def get_local_libraries_paths(self) -> list[ConfigValue]:
-        return self.get_runtime_config().search(f"libraries").get_list()
+        return self.get_runtime_config().search(f"libraries").get_list_or_default()
 
     def get_package_name(self) -> str:
         return self.get_item_name()
@@ -162,45 +162,21 @@ class BasicAppWorkdir(AppWorkdirMixin, Workdir):
             default=ENV_NAME_PROD
         )
 
+    def app_install(self, env: str | None = None) -> None:
+        pass
+
     def setup_install(self, env: str | None = None) -> None:
-        from wexample_app.const.env import ENV_NAME_LOCAL
 
         package_name = self.get_path().name
         env_label = f" ({env})" if env else ""
 
         self.io.log(f"Installing dependencies for {package_name}{env_label}")
-        self.shell_run_from_path(path=self.get_path(), cmd=self._create_setup_command())
+        self.shell_run_from_path(
+            path=self.get_path(),
+            cmd=self._create_setup_command()
+        )
 
-        if env == ENV_NAME_LOCAL:
-            from wexample_app.const.globals import APP_PATH_APP_MANAGER
-
-            suite_workdir = self.get_suite_workdir()
-            if suite_workdir:
-                app_path = self.get_path()
-                packages = suite_workdir.get_ordered_packages()
-
-                self.io.log(
-                    f"Installing {len(packages)} local suite packages in editable mode",
-                    indentation=1,
-                )
-
-                # Install every local package of the suite in editable mode
-                for package in packages:
-                    package_path = package.get_path()
-
-                    self.io.log(f"Installing {package_path.name}", indentation=2)
-
-                    self.shell_run_from_path(
-                        path=app_path / APP_PATH_APP_MANAGER,
-                        cmd=[
-                            ".venv/bin/python",
-                            "-m",
-                            "pip",
-                            "install",
-                            "-e",
-                            str(package_path),
-                        ],
-                    )
+        self.app_install(env)
 
     def _create_setup_command(self) -> list[str]:
         from wexample_app.const.globals import APP_PATH_BIN_APP_MANAGER

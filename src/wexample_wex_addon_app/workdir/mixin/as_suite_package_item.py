@@ -15,9 +15,9 @@ if TYPE_CHECKING:
 
 @base_class
 class AsSuitePackageItem(BaseClass):
-    @classmethod
+
     @abstract_method
-    def _get_children_package_workdir_class(cls) -> type[FrameworkPackageSuiteWorkdir]:
+    def _get_children_package_workdir_class(self) -> type[FrameworkPackageSuiteWorkdir]:
         pass
 
     def find_suite_workdir_path(self) -> Path | None:

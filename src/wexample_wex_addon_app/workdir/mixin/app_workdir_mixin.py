@@ -8,7 +8,7 @@ from wexample_app.const.globals import (
     WORKDIR_SETUP_DIR,
     APP_FILE_APP_RUNTIME_CONFIG,
 )
-from wexample_helpers.const.types import FileStringOrPath
+from wexample_helpers.const.types import FileStringOrPath, PathOrString
 from wexample_helpers.decorator.base_class import base_class
 from wexample_helpers.helpers.shell import ShellResult
 from wexample_prompt.common.io_manager import IoManager
@@ -51,7 +51,7 @@ class AppWorkdirMixin(
 
     @classmethod
     def get_registry_from_path(
-        cls, path: FileStringOrPath, io: IoManager
+            cls, path: FileStringOrPath, io: IoManager
     ) -> YamlFile | None:
         from wexample_filestate.item.file.yaml_file import YamlFile
 
@@ -70,7 +70,7 @@ class AppWorkdirMixin(
         )
 
         return (
-            Path(path) / WORKDIR_SETUP_DIR / CORE_DIR_NAME_TMP / CORE_FILE_NAME_REGISTRY
+                Path(path) / WORKDIR_SETUP_DIR / CORE_DIR_NAME_TMP / CORE_FILE_NAME_REGISTRY
         )
 
     @classmethod
@@ -90,34 +90,22 @@ class AppWorkdirMixin(
         if cls.is_app_workdir_path(path=path):
             # app-manager exists.
             return (path / APP_PATH_BIN_APP_MANAGER).exists() and (
-                path / APP_PATH_APP_MANAGER / ".venv/bin/python"
+                    path / APP_PATH_APP_MANAGER / ".venv/bin/python"
             ).exists()
         return False
 
     @classmethod
     def manager_run_from_path(
-        cls, path: FileStringOrPath, cmd: list[str] | str
+            cls, path: FileStringOrPath, cmd: list[str] | str
     ) -> None | ShellResult:
         from wexample_app.const.globals import APP_PATH_BIN_APP_MANAGER
         from wexample_helpers.helpers.shell import shell_run
         from wexample_wex_addon_app.workdir.basic_app_workdir import BasicAppWorkdir
 
         if not BasicAppWorkdir.is_app_workdir_path_setup(path=path):
-            manager_path = path / APP_PATH_APP_MANAGER
-            # This is a non installed app.
-            if manager_path.exists():
-                # Install it.
-                shell_run(
-                    cmd=[
-                        "pdm",
-                        "install",
-                    ],
-                    cwd=path / APP_PATH_APP_MANAGER,
-                    inherit_stdio=True,
-                )
-            else:
-                # This is an undefined directory.
-                return None
+            cls.manager_install(
+                path=path
+            )
 
         if not isinstance(cmd, list):
             cmd = [cmd]
@@ -131,6 +119,16 @@ class AppWorkdirMixin(
             cwd=path,
             inherit_stdio=True,
         )
+
+    @classmethod
+    def manager_install(
+            cls, path: FileStringOrPath
+    )-> bool:
+        """
+        The app manager works is in python for every managed app.
+        """
+        from wexample_wex_addon_dev_python.workdir.python_package_workdir import PythonPackageWorkdir
+        return PythonPackageWorkdir.install_python_environment(path=path / APP_PATH_APP_MANAGER)
 
     @classmethod
     def shell_run_from_path(
