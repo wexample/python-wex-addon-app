@@ -162,11 +162,10 @@ class BasicAppWorkdir(AppWorkdirMixin, Workdir):
             default=ENV_NAME_PROD
         )
 
-    def app_install(self, env: str | None = None) -> None:
-        pass
+    def app_install(self, env: str | None = None, force: bool = False) -> bool:
+        return True
 
-    def setup_install(self, env: str | None = None) -> None:
-
+    def setup_install(self, env: str | None = None, force: bool = False) -> None:
         package_name = self.get_path().name
         env_label = f" ({env})" if env else ""
 
@@ -176,7 +175,7 @@ class BasicAppWorkdir(AppWorkdirMixin, Workdir):
             cmd=self._create_setup_command()
         )
 
-        self.app_install(env)
+        self.app_install(env, force=force)
 
     def _create_setup_command(self) -> list[str]:
         from wexample_app.const.globals import APP_PATH_BIN_APP_MANAGER

@@ -13,13 +13,14 @@ if TYPE_CHECKING:
     from wexample_wex_core.context.execution_context import ExecutionContext
 
 
-@option(name="env", type=str, default=None)
+@option(name="env", type=str, default=None, description="Indicate to use environment-specific installation (e.g. local editable packages)")
+@option(name="force", type=bool, default=False, description="Force reinstallation of all packages")
 @middleware(middleware=AppMiddleware)
 @command(
     type=COMMAND_TYPE_ADDON,
     description="Install package manager into suite or packages",
 )
 def app__setup__install(
-    context: ExecutionContext, app_workdir: BasicAppWorkdir, env: str | None = None
+    context: ExecutionContext, app_workdir: BasicAppWorkdir, env: str | None = None, force: bool = False
 ) -> None:
-    app_workdir.setup_install(env)
+    app_workdir.setup_install(env, force=force)

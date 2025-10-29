@@ -176,7 +176,7 @@ class FrameworkPackageSuiteWorkdir(BasicAppWorkdir):
 
         return raw_value
 
-    def setup_install(self, env: str | None = None) -> None:
+    def setup_install(self, env: str | None = None, force: bool = False) -> None:
         from wexample_wex_addon_app.commands.setup.install import app__setup__install
         from wexample_wex_core.resolver.addon_command_resolver import (
             AddonCommandResolver,
