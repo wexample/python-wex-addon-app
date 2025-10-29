@@ -340,7 +340,7 @@ class FrameworkPackageSuiteWorkdir(BasicAppWorkdir):
                         self.io.log(
                             "Invalid package directory, skipping.", indentation=1
                         )
-                except KeyboardInterrupt:
+                except Exception:
                     return
 
                 self.io.separator(color=TerminalColor.BLACK)
