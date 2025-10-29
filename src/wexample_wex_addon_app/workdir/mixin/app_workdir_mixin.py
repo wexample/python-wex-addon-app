@@ -187,24 +187,29 @@ class AppWorkdirMixin(
         from wexample_config.config_value.nested_config_value import NestedConfigValue
 
         runtime_config_file = self.get_runtime_config_file()
-        if runtime_config_file:
+        if runtime_config_file and runtime_config_file.get_path().exists():
             return runtime_config_file.read_config()
 
         return NestedConfigValue(raw={})
 
-    def get_env_config(self) -> NestedConfigValue:
-        from wexample_app.const.globals import WORKDIR_SETUP_DIR
-        from wexample_config.config_value.nested_config_value import NestedConfigValue
+    @classmethod
+    def get_env_config_from_path(cls, path: PathOrString) -> NestedConfigValue:
         from wexample_filestate.item.file.env_file import EnvFile
 
-        # We don't search into the target item tree as this is a low level information.
-        env_path = self.get_path() / WORKDIR_SETUP_DIR / EnvFile.EXTENSION_DOT_ENV
+        env_path = path / WORKDIR_SETUP_DIR / EnvFile.EXTENSION_DOT_ENV
 
         if env_path.exists():
-            dot_env = EnvFile.create_from_path(path=env_path, io=self.io)
+            dot_env = EnvFile.create_from_path(
+                path=env_path,
+            )
             return dot_env.read_config()
 
         return NestedConfigValue(raw={})
+
+    def get_env_config(self) -> NestedConfigValue:
+        return self.get_env_config_from_path(
+            path=self.get_path(),
+        )
 
     def get_env_parameter(self, key: str, default: str | None = None) -> str | None:
         # Search in .env.
