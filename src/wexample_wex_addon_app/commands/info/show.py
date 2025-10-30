@@ -34,4 +34,7 @@ def app__info__show(
     if local_libraries:
         data["Libraries"] = [library_config.get_str() for library_config in local_libraries]
     
-    return DictResponse(kernel=context.kernel, content=data)
+    return DictResponse(
+        kernel=context.kernel,
+        content=data
+    )
