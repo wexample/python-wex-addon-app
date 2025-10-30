@@ -129,7 +129,7 @@ class BasicAppWorkdir(AppWorkdirMixin, Workdir):
         return self.get_runtime_config().search(f"libraries").get_list_or_default()
 
     def get_package_name(self) -> str:
-        return self.get_item_name()
+        return self.get_project_name()
 
     # Publication helpers
     def get_publication_tag_name(self) -> str:
@@ -183,12 +183,11 @@ class BasicAppWorkdir(AppWorkdirMixin, Workdir):
         return [str(APP_PATH_BIN_APP_MANAGER), "setup"]
 
     def libraries_sync(self) -> None:
-        from wexample_wex_addon_app.commands.info.show import app__info__show
+        from wexample_wex_addon_app.commands.dependencies.publish import app__dependencies__publish
 
         for library_path_config in self.get_runtime_config().search("libraries").get_list_or_default():
             if library_path_config.is_str() and BasicAppWorkdir.is_app_workdir_path(path=library_path_config.get_str()):
-                # TODO Get a list of version numbers
-                BasicAppWorkdir.manager_run_command_from_path(
-                    command=app__info__show,
+                dependencies = BasicAppWorkdir.manager_run_command_from_path(
+                    command=app__dependencies__publish,
                     path=library_path_config.get_str()
                 )

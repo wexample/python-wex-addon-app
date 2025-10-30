@@ -272,7 +272,7 @@ class AppWorkdirMixin(
         # Enforce that a project must have a non-empty name; include path for debug
         if not name:
             raise ValueError(
-                f"Project at '{self.get_path()}' must define a non-empty 'name' in {APP_FILE_APP_CONFIG}."
+                f"Project at '{self.get_path()}' must define a non-empty 'global.name' in {APP_FILE_APP_CONFIG}."
             )
         return name
 
