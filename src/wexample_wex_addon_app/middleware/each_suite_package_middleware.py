@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 from wexample_helpers.classes.private_field import private_field
 from wexample_helpers.decorator.base_class import base_class
@@ -13,6 +13,7 @@ if TYPE_CHECKING:
     from wexample_wex_core.common.command_method_wrapper import CommandMethodWrapper
     from wexample_wex_core.common.command_request import CommandRequest
     from wexample_wex_core.context.execution_context import ExecutionContext
+    from wexample_app.command.option import Option
 
 
 @base_class
@@ -70,17 +71,19 @@ class EachSuitePackageMiddleware(PackageSuiteMiddleware):
         # Nothing to execute.
         return []
 
-    def _get_middleware_options(self) -> list[dict[str, Any]]:
+    def _get_middleware_options(self) -> list[Option]:
         """Add the all_packages option."""
+        from wexample_app.command.option import Option
+
         options = super()._get_middleware_options()
         options.append(
-            {
-                "name": "all_packages",
-                "type": bool,
-                "required": False,
-                "default": False,
-                "is_flag": True,
-                "description": "Execute the command on all packages of the suite",
-            }
+            Option(
+                name="all_packages",
+                type=bool,
+                required=False,
+                default=False,
+                is_flag=True,
+                description="Execute the command on all packages of the suite",
+            )
         )
         return options

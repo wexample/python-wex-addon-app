@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 from wexample_helpers.classes.private_field import private_field
 from wexample_helpers.decorator.base_class import base_class
@@ -13,6 +13,7 @@ if TYPE_CHECKING:
     from wexample_wex_core.common.command_method_wrapper import CommandMethodWrapper
     from wexample_wex_core.common.command_request import CommandRequest
     from wexample_wex_core.context.execution_context import ExecutionContext
+    from wexample_app.command.option import Option
 
 
 @base_class
@@ -115,35 +116,37 @@ class SuiteOrEachPackageMiddleware(PackageSuiteMiddleware):
 
         return contexts
 
-    def _get_middleware_options(self) -> list[dict[str, Any]]:
+    def _get_middleware_options(self) -> list[Option]:
         """Add options for controlling suite/package execution."""
+        from wexample_app.command.option import Option
+
         options = super()._get_middleware_options()
         options.extend(
             [
-                {
-                    "name": "all_packages",
-                    "type": bool,
-                    "required": False,
-                    "default": False,
-                    "is_flag": True,
-                    "description": "Execute the command on all packages of the suite (in addition to suite itself unless --packages-only is used)",
-                },
-                {
-                    "name": "packages_only",
-                    "type": bool,
-                    "required": False,
-                    "default": False,
-                    "is_flag": True,
-                    "description": "Execute only on packages, not on the suite itself (implies --all-packages)",
-                },
-                {
-                    "name": "suite_only",
-                    "type": bool,
-                    "required": False,
-                    "default": False,
-                    "is_flag": True,
-                    "description": "Execute only on the suite itself, not on packages",
-                },
+                Option(
+                    name="all_packages",
+                    type=bool,
+                    required=False,
+                    default=False,
+                    is_flag=True,
+                    description="Execute the command on all packages of the suite (in addition to suite itself unless --packages-only is used)",
+                ),
+                Option(
+                    name="packages_only",
+                    type=bool,
+                    required=False,
+                    default=False,
+                    is_flag=True,
+                    description="Execute only on packages, not on the suite itself (implies --all-packages)",
+                ),
+                Option(
+                    name="suite_only",
+                    type=bool,
+                    required=False,
+                    default=False,
+                    is_flag=True,
+                    description="Execute only on the suite itself, not on packages",
+                ),
             ]
         )
         return options

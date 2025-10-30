@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 from wexample_helpers.decorator.base_class import base_class
 from wexample_wex_core.middleware.abstract_middleware import AbstractMiddleware
@@ -10,6 +10,7 @@ if TYPE_CHECKING:
     from wexample_wex_core.common.command_method_wrapper import CommandMethodWrapper
     from wexample_wex_core.common.command_request import CommandRequest
     from wexample_wex_core.context.execution_context import ExecutionContext
+    from wexample_app.command.option import Option
 
 
 @base_class
@@ -39,13 +40,15 @@ class AppMiddleware(AbstractMiddleware):
         """Create and return the app workdir. Can be overridden by subclasses to add validation."""
         return request.get_addon_manager().create_app_workdir(path=app_path)
 
-    def _get_middleware_options(self) -> list[dict[str, Any]]:
+    def _get_middleware_options(self) -> list[Option]:
         """Get the default file option definition."""
+        from wexample_app.command.option import Option
+
         return [
-            {
-                "name": "app_path",
-                "type": str,
-                "required": False,
-                "description": "Path to the app directory (defaults to current directory)",
-            }
+            Option(
+                name="app_path",
+                type=str,
+                required=False,
+                description="Path to the app directory (defaults to current directory)",
+            )
         ]
