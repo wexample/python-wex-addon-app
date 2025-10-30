@@ -7,6 +7,7 @@ from wexample_helpers.classes.abstract_method import abstract_method
 from wexample_helpers.const.types import PathOrString
 from wexample_prompt.common.progress.progress_handle import ProgressHandle
 from wexample_wex_addon_app.workdir.basic_app_workdir import BasicAppWorkdir
+from wexample_wex_core.resolver.addon_command_resolver import AddonCommandResolver
 
 if TYPE_CHECKING:
     from wexample_config.const.types import DictConfig
@@ -104,14 +105,11 @@ class FrameworkPackageSuiteWorkdir(BasicAppWorkdir):
     def packages_execute_manager(
         self,
         command: str,
-        arguments: None | list[str] = None,
+        arguments: list[str] | None = None,
         force: bool = False,
     ) -> None:
-        cmd = [command]
-        arguments = arguments or []
-
-        if arguments is not None:
-            cmd.extend(arguments)
+        """Execute a manager command on all packages."""
+        cmd = [command] + (arguments or [])
 
         if "--indentation-level" not in cmd:
             cmd.extend(["--indentation-level", str(self.io.indentation + 1)])
@@ -124,10 +122,39 @@ class FrameworkPackageSuiteWorkdir(BasicAppWorkdir):
         )
 
     def packages_execute_shell(self, cmd: list[str], force: bool = False) -> None:
+        """Execute a raw shell command on all packages."""
         self._packages_execute(
             cmd=cmd,
             executor_method=BasicAppWorkdir.shell_run_from_path,
             message="Executing shell",
+            force=force,
+        )
+
+    def packages_execute_function(
+        self,
+        command: callable,
+        arguments: list[str] | None = None,
+        force: bool = False,
+    ) -> None:
+        """
+        Execute a Python command function (addon command) on all packages.
+
+        This automatically builds the corresponding manager command
+        using AddonCommandResolver.
+
+        Example:
+            self.packages_execute_function(
+                command=app__setup__install,
+                arguments=["--env", env],
+            )
+        """
+        resolved_command = AddonCommandResolver.build_command_from_function(
+            command_wrapper=command
+        )
+
+        self.packages_execute_manager(
+            command=resolved_command,
+            arguments=arguments,
             force=force,
         )
 
@@ -197,10 +224,8 @@ class FrameworkPackageSuiteWorkdir(BasicAppWorkdir):
         # If local mode, install editable packages
         if env:
             self.io.log(f"Installing local packages in editable mode", indentation=1)
-            self.packages_execute_manager(
-                command=AddonCommandResolver.build_command_from_function(
-                    command_wrapper=app__setup__install
-                ),
+            self.packages_execute_function(
+                command=app__setup__install,
                 arguments=["--env", env],
             )
 
@@ -311,36 +336,40 @@ class FrameworkPackageSuiteWorkdir(BasicAppWorkdir):
         self.io.log(f"Path: {cli_make_clickable_path(path)}", indentation=1)
 
     def _packages_execute(
-        self,
-        cmd: list[str],
-        executor_method: callable,
-        message: str,
-        force: bool = False,
+            self,
+            cmd: list[str],
+            executor_method: callable,
+            message: str,
+            force: bool = False,
     ) -> None:
-        """Generic method to execute a command on all packages.
+        """
+        Generic method to execute a command on all detected packages.
 
         Args:
-            cmd: Command to execute
-            executor_method: Method to call for execution (e.g., manager_run_from_path or shell_run_from_path)
-            message: Message to display in the title
+            cmd: Command to execute (as a list of strings)
+            executor_method: Method used to execute the command (e.g. manager_run_from_path, shell_run_from_path)
+            message: Displayed title message
+            force: If True, run even if directory is not recognized as an app workdir
         """
         import shlex
 
         from wexample_prompt.enums.terminal_color import TerminalColor
 
+
         for package_path in self.get_packages_paths():
-            if force or BasicAppWorkdir.is_app_workdir_path(path=package_path):
-                self._package_title(path=package_path, message=message)
-                self.io.log(f"Command: {shlex.join(cmd)}", indentation=1)
-                self.io.separator(color=TerminalColor.BLACK)
+            if not force and not BasicAppWorkdir.is_app_workdir_path(path=package_path):
+                continue
 
-                # Allow interruption
-                try:
-                    if executor_method(cmd=cmd, path=package_path) is None:
-                        self.io.log(
-                            "Invalid package directory, skipping.", indentation=1
-                        )
-                except Exception:
-                    return
+            self._package_title(path=package_path, message=message)
+            self.io.log(f"Command: {shlex.join(cmd)}", indentation=1)
+            self.io.separator(color=TerminalColor.BLACK)
 
-                self.io.separator(color=TerminalColor.BLACK)
+            try:
+                result = executor_method(cmd=cmd, path=package_path)
+                if result is None:
+                    self.io.log("Invalid package directory, skipping.", indentation=1)
+            except Exception as e:
+                self.io.log(f"Error executing command: {e}", indentation=1)
+                return
+
+            self.io.separator(color=TerminalColor.BLACK)

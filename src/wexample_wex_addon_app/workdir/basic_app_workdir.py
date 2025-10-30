@@ -181,3 +181,14 @@ class BasicAppWorkdir(AppWorkdirMixin, Workdir):
         from wexample_app.const.globals import APP_PATH_BIN_APP_MANAGER
 
         return [str(APP_PATH_BIN_APP_MANAGER), "setup"]
+
+    def libraries_sync(self) -> None:
+        from wexample_wex_addon_app.commands.info.show import app__info__show
+
+        for library_path_config in self.get_runtime_config().search("libraries").get_list_or_default():
+            if library_path_config.is_str() and BasicAppWorkdir.is_app_workdir_path(path=library_path_config.get_str()):
+                # TODO Get a list of version numbers
+                BasicAppWorkdir.manager_run_command_from_path(
+                    command=app__info__show,
+                    path=library_path_config.get_str()
+                )

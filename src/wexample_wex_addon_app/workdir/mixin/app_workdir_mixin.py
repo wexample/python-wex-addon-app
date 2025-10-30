@@ -19,6 +19,7 @@ from wexample_wex_addon_app.workdir.mixin.with_readme_workdir_mixin import (
     WithReadmeWorkdirMixin,
 )
 from wexample_wex_core.const.globals import CORE_DIR_NAME_TMP
+from wexample_wex_core.resolver.addon_command_resolver import AddonCommandResolver
 from wexample_wex_core.workdir.mixin.with_app_version_workdir_mixin import (
     WithAppVersionWorkdirMixin,
 )
@@ -139,6 +140,41 @@ class AppWorkdirMixin(
         return shell_run(
             cmd=cmd,
             cwd=str(path),
+            inherit_stdio=True,
+        )
+
+    @classmethod
+    def manager_run_command_from_path(
+            cls,
+            path: str,
+            command: callable,
+            arguments: list[str] | None = None,
+    ) -> None:
+        """
+        Execute a Python addon command (e.g., app__setup__install) using the app manager,
+        within a specific workdir.
+        """
+        from wexample_app.const.globals import APP_PATH_BIN_APP_MANAGER
+        from wexample_helpers.helpers.shell import shell_run
+        from wexample_wex_addon_app.workdir.basic_app_workdir import BasicAppWorkdir
+
+        # Ensure the workdir is initialized
+        if not BasicAppWorkdir.is_app_workdir_path_setup(path=path):
+            cls.manager_install(path=path)
+
+        # Resolve function to CLI command name
+        resolved_command = AddonCommandResolver.build_command_from_function(
+            command_wrapper=command
+        )
+
+        # Build full command
+        cmd = [resolved_command] + (arguments or [])
+        full_cmd = [str(APP_PATH_BIN_APP_MANAGER)] + cmd
+
+        # Run the manager command in the given workdir
+        return shell_run(
+            cmd=full_cmd,
+            cwd=path,
             inherit_stdio=True,
         )
 
