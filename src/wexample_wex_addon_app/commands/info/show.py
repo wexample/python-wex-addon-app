@@ -19,7 +19,6 @@ def app__info__show(
     app_workdir: BasicAppWorkdir,
 ):
     from wexample_app.response.dict_response import DictResponse
-    from wexample_helpers.helpers.cli import cli_make_clickable_path
 
     env = app_workdir.get_app_env()
     
@@ -35,24 +34,4 @@ def app__info__show(
     if local_libraries:
         data["Libraries"] = [library_config.get_str() for library_config in local_libraries]
     
-    # Display via prompt for human readability
-    context.io.properties(
-        {
-            "Name": data["Name"],
-            "Version": data["Version"],
-            "Path": cli_make_clickable_path(data["Path"]),
-            "Environment": data["Environment"],
-        },
-        title="Application info",
-    )
-    
-    if local_libraries:
-        context.io.subtitle("Libraries")
-        for library_path in data["Libraries"]:
-            context.io.log(
-                f"{cli_make_clickable_path(library_path)}",
-                indentation=1
-            )
-    
-    # Return structured data for programmatic use
     return DictResponse(kernel=context.kernel, content=data)
