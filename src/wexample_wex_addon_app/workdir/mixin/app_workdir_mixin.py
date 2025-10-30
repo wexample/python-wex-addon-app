@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from wexample_app.const.globals import (
     APP_FILE_APP_CONFIG,
@@ -10,6 +10,7 @@ from wexample_app.const.globals import (
 )
 from wexample_helpers.const.types import FileStringOrPath, PathOrString
 from wexample_helpers.decorator.base_class import base_class
+from wexample_helpers.helpers.json import json_parse_if_valid
 from wexample_helpers.helpers.shell import ShellResult
 from wexample_prompt.common.io_manager import IoManager
 from wexample_wex_addon_app.workdir.mixin.as_suite_package_item import (
@@ -124,7 +125,7 @@ class AppWorkdirMixin(
     @classmethod
     def manager_install(
             cls, path: FileStringOrPath
-    )-> bool:
+    ) -> bool:
         """
         The app manager works is in python for every managed app.
         """
@@ -133,7 +134,7 @@ class AppWorkdirMixin(
 
     @classmethod
     def shell_run_from_path(
-        cls, path: FileStringOrPath, cmd: list[str] | str
+            cls, path: FileStringOrPath, cmd: list[str] | str
     ) -> None | ShellResult:
         from wexample_helpers.helpers.shell import shell_run
 
@@ -144,12 +145,27 @@ class AppWorkdirMixin(
         )
 
     @classmethod
+    def manager_run_command_and_parse_from_path(
+            cls,
+            **kwargs
+    ) -> Any:
+        shell_result = cls.manager_run_command_from_path(
+            **kwargs
+        )
+
+        return json_parse_if_valid(
+            shell_result.stdout
+        )
+
+    @classmethod
     def manager_run_command_from_path(
             cls,
             path: str,
             command: callable,
             arguments: list[str] | None = None,
-    ) -> None:
+            output_format: None | str = None,
+            capture_output: bool = False,
+    ) -> ShellResult:
         """
         Execute a Python addon command (e.g., app__setup__install) using the app manager,
         within a specific workdir.
@@ -171,11 +187,27 @@ class AppWorkdirMixin(
         cmd = [resolved_command] + (arguments or [])
         full_cmd = [str(APP_PATH_BIN_APP_MANAGER)] + cmd
 
+        if capture_output:
+            # When capturing, we don't focus on the logs but on the final output response.
+            full_cmd.extend(
+                [
+                    "--quiet",
+                ]
+            )
+
+        if output_format:
+            full_cmd.extend(
+                [
+                    "--output-format",
+                    output_format,
+                ]
+            )
+
         # Run the manager command in the given workdir
         return shell_run(
             cmd=full_cmd,
             cwd=path,
-            inherit_stdio=True,
+            inherit_stdio=(not capture_output),
         )
 
     def build_registry_value(self) -> NestedConfigValue:

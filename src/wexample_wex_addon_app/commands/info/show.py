@@ -33,7 +33,9 @@ def app__info__show(
     # Show local libraries if configured
     local_libraries = app_workdir.get_local_libraries_paths()
     if local_libraries:
-        data["libraries"] = [library_config.get_str() for library_config in local_libraries]
+        for library_config in local_libraries:
+            if library_config.is_str():
+                data["libraries"] = library_config.get_str()
 
     return DictResponse(
         kernel=context.kernel,
