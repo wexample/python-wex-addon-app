@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from wexample_app.const.env import ENV_NAME_PROD
+from wexample_app.const.output import OUTPUT_FORMAT_JSON
 from wexample_config.config_value.config_value import ConfigValue
 from wexample_helpers.decorator.base_class import base_class
 from wexample_wex_addon_app.workdir.mixin.app_workdir_mixin import AppWorkdirMixin
@@ -15,13 +16,13 @@ if TYPE_CHECKING:
 @base_class
 class BasicAppWorkdir(AppWorkdirMixin, Workdir):
     def apply(
-        self,
-        force: bool = False,
-        scopes=None,
-        filter_path: str | None = None,
-        filter_operation: str | None = None,
-        max: int = None,
-        **kwargs,
+            self,
+            force: bool = False,
+            scopes=None,
+            filter_path: str | None = None,
+            filter_operation: str | None = None,
+            max: int = None,
+            **kwargs,
     ) -> FileStateResult:
         from wexample_filestate.result.file_state_result import FileStateResult
         from wexample_helpers.helpers.repo import repo_get_state, repo_has_changed_since
@@ -29,10 +30,10 @@ class BasicAppWorkdir(AppWorkdirMixin, Workdir):
         # Hash protection is only active when all filter parameters are None
         # to avoid false positives when apply behavior is modified by parameters
         hash_protection_active = (
-            scopes is None
-            and filter_path is None
-            and filter_operation is None
-            and max is None
+                scopes is None
+                and filter_path is None
+                and filter_operation is None
+                and max is None
         )
 
         registry_file = self.get_registry_file()
@@ -42,14 +43,14 @@ class BasicAppWorkdir(AppWorkdirMixin, Workdir):
         ).get_str_or_none()
 
         if (
-            force
-            or not hash_protection_active
-            or (
+                force
+                or not hash_protection_active
+                or (
                 last_update_hash is None
                 or repo_has_changed_since(
-                    previous_state=last_update_hash, cwd=self.get_path()
-                )
-            )
+            previous_state=last_update_hash, cwd=self.get_path()
+        )
+        )
         ):
             # Reset hash
             registry.set_by_path("file_state.last_update_hash", None)
@@ -195,7 +196,15 @@ class BasicAppWorkdir(AppWorkdirMixin, Workdir):
 
         for library_path_config in self.get_runtime_config().search("libraries").get_list_or_default():
             if library_path_config.is_str() and BasicAppWorkdir.is_app_workdir_path(path=library_path_config.get_str()):
-                dependencies = BasicAppWorkdir.manager_run_command_from_path(
+                publishable_dependencies = BasicAppWorkdir.manager_run_command_and_parse_from_path(
                     command=app__dependencies__publish,
-                    path=library_path_config.get_str()
+                    path=library_path_config.get_str(),
+                    output_format=OUTPUT_FORMAT_JSON,
+                    capture_output=True
                 )
+
+                self.update_dependencies(publishable_dependencies)
+
+    def update_dependencies(self, dependencies_map: dict[str, str]) -> None:
+        # Let language specific workdir manage how to update.
+        pass

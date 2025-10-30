@@ -178,7 +178,7 @@ class FrameworkPackageSuiteWorkdir(BasicAppWorkdir):
             self.io.indentation_up()
             for dependent in self.get_dependents(package):
                 self.io.log(f"Applying to {dependent.get_package_name()}")
-                dependent.save_dependency(package)
+                dependent.save_dependency_from_package(package)
             self.io.indentation_down()
         progress.finish()
 
