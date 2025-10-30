@@ -25,7 +25,7 @@ def app__info__show(
     data = {
         "Name": app_workdir.get_item_name(),
         "Version": app_workdir.get_project_version(),
-        "Path": app_workdir.get_path(),
+        "Path": str(app_workdir.get_path()),
         "Environment": env,
     }
     
