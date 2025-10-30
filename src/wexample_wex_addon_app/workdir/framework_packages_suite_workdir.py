@@ -335,6 +335,17 @@ class FrameworkPackageSuiteWorkdir(BasicAppWorkdir):
         self.io.title(f"📦 {message}: {path.name}")
         self.io.log(f"Path: {cli_make_clickable_path(path)}", indentation=1)
 
+
+    def publish_dependencies(self) -> dict[str, str]:
+        """The suite provides dependency of package it manages.
+        """
+        dependencies = {}
+
+        for package in self.get_packages():
+            dependencies[package.get_package_name()] = package.get_project_version()
+
+        return dependencies
+
     def _packages_execute(
             self,
             cmd: list[str],

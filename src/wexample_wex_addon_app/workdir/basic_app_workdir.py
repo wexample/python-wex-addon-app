@@ -165,6 +165,14 @@ class BasicAppWorkdir(AppWorkdirMixin, Workdir):
     def app_install(self, env: str | None = None, force: bool = False) -> bool:
         return True
 
+    def publish_dependencies(self) -> dict[str, str]:
+        """Publish witch dependency **current package represents for others**,
+           not the dependencies the current package is dependent on.
+        """
+        return {
+            self.get_package_name(): self.get_project_version()
+        }
+
     def setup_install(self, env: str | None = None, force: bool = False) -> None:
         package_name = self.get_path().name
         env_label = f" ({env})" if env else ""

@@ -23,7 +23,5 @@ def app__dependencies__publish(
 
     return DictResponse(
         kernel=context.kernel,
-        content={
-            app_workdir.get_package_name(): app_workdir.get_project_version()
-        }
+        content=app_workdir.publish_dependencies()
     )
