@@ -34,13 +34,16 @@ app::setup/install --env local
 app::file-state/rectify --all-packages
 
 # Bump only packages with changes (excluding suite)
-app::package/bump-changed --packages-only
+app::package/bump --packages-only --force
 
-# Validate dependencies and propagate versions
-app::suite/prepare
+# Check for circular dependencies
+app::dependencies/check
+
+# Propagate versions across all packages
+app::version/propagate --packages-only
 
 # Commit and push all changes
-app::suite/commit-and-push --yes
+app::package/commit-and-push --all-packages --yes
 ```
 
 **3. Publication**
@@ -61,12 +64,14 @@ The version management commands use `SuiteOrEachPackageMiddleware` which provide
 - **`--suite-only`**: Executes only on the suite (excludes packages)
 
 Commands:
-* `app::package/bump [--all-packages|--packages-only|--suite-only] [--yes]`: Bumps version for suite and/or packages.
-* `app::package/bump-changed [--all-packages|--packages-only|--suite-only] [--yes]`: Bumps version only for packages/suite that have new content (no current version tag on HEAD).
-* `app::suite/propagate-versions`: Propagates package versions across all dependents in the suite.
+* `app::package/bump [--all-packages|--packages-only|--suite-only] [--yes] [--force]`: Bumps version for suite and/or packages. Use `--force` to bump only packages/suite with changes (no current version tag on HEAD).
+* `app::version/propagate [--packages-only]`: Propagates the current package version to other packages in the suite that depend on it. Use `--packages-only` to propagate all versions at once.
 
 ### Git Operations
-* `app::suite/commit-and-push [--yes]`: Commits and pushes changes for all packages with uncommitted changes.
+* `app::package/commit-and-push [--all-packages] [--yes]`: Commits and pushes changes for a single package or all packages with uncommitted changes when using `--all-packages`.
+
+### Dependencies Management
+* `app::dependencies/check`: Validates internal dependencies across the suite to prevent circular dependencies.
 
 ### Suite Execution
 * `app::suite/exec-command -c <command> [--arguments "<args>"]`: Executes a manager command on all packages (e.g., `app::info/show`).
@@ -78,8 +83,7 @@ Commands:
 * `.wex/bin/app-manager setup`: Low-level command that runs `pdm install` for a single package (called by app-manager.sh).
 
 ### Publishing
-* `app::suite/prepare`: Validates internal dependencies and propagates versions across all packages. Follow with `app::suite/commit-and-push --yes` to commit changes.
-* `app::suite/publish`: Publishes packages to PyPI. Only publishes packages with changes since their last publication tag. Automatically creates and pushes publication tags after successful publish.
+* `app::suite/publish`: Publishes packages to PyPI. Only publishes packages with changes since their last publication tag. Automatically bumps versions, rectifies file state, commits, propagates versions, and publishes. Creates and pushes publication tags after successful publish.
 
 ### Common Workflows
 
@@ -91,7 +95,7 @@ app::setup/install --env local
 
 **Bump only packages with changes (excluding suite):**
 ```bash
-app::package/bump-changed --packages-only && app::suite/propagate-versions && app::suite/commit-and-push --yes
+app::package/bump --packages-only --force && app::version/propagate --packages-only && app::package/commit-and-push --all-packages --yes
 ```
 
 **Bump suite and all packages:**
