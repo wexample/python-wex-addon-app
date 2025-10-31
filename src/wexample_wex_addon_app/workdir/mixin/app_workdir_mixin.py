@@ -428,3 +428,6 @@ class AppWorkdirMixin(
         )
 
         return raw_value
+
+    def get_vendor_name(self) -> str:
+        return self.get_config().search("global.vendor").get_str_or_default("acme")
