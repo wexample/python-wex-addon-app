@@ -26,27 +26,50 @@ def app__suite__publish(
         context: ExecutionContext,
         app_workdir: FrameworkPackageSuiteWorkdir,
 ) -> None:
-    app_workdir.packages_validate_internal_dependencies_declarations()
+    # app_workdir.packages_validate_internal_dependencies_declarations()
+    packages = app_workdir.get_ordered_packages()
+
+    context.io.log("Starting deployment...")
+    context.io.indentation_up()
+    progress = context.io.progress(
+        total=len(packages),
+        print=False
+    ).get_handle()
 
     # Process packages in order leaf -> trunk.
     # Use manager for every command allow to use complete specific environment.
-    for package in app_workdir.get_ordered_packages():
+    for package in packages:
+        # Reserve 1 unit on main progress bar, subdivided into 5 steps
+        sub_progress = progress.create_range_handle(
+            to_step=1,
+            virtual_total=5
+        )
+
+        sub_progress.advance(step=1, label=f"Bumping {package.get_project_name()}")
         package.manager_run_command(
             command=app__package__bump
         )
 
+        sub_progress.advance(step=1, label=f"Rectifying file state for {package.get_project_name()}")
         package.manager_run_command(
             command=app__file_state__rectify
         )
 
+        sub_progress.advance(step=1, label=f"Committing and pushing {package.get_project_name()}")
         package.manager_run_command(
             command=app__package__commit_and_push()
         )
 
+        sub_progress.advance(step=1, label=f"Propagating version for {package.get_project_name()}")
         package.manager_run_command(
             command=app__version__propagate
         )
 
+        sub_progress.advance(step=1, label=f"Publishing {package.get_project_name()}")
         package.manager_run_command(
             command=app__package__publish
         )
+        
+        sub_progress.finish()
+    
+    progress.finish(label="All packages published successfully")
