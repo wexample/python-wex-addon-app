@@ -21,4 +21,4 @@ def app__suite__publish(
         context: ExecutionContext,
         app_workdir: CodeBaseWorkdir,
 ) -> None:
-    pass
+    app_workdir.packages_validate_internal_dependencies_declarations()

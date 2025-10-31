@@ -27,4 +27,3 @@ def app__dependencies__check(
 ) -> None:
     # Validate internal dependencies
     app_workdir.packages_validate_internal_dependencies_declarations()
-    context.io.success("Internal dependencies match.")
