@@ -110,9 +110,11 @@ class BasicAppWorkdir(AppWorkdirMixin, Workdir):
             )
 
         if interactive:
-
+            has_changes = self.has_changes_since_last_publication_tag()
+            changes_message = " The project contains changes since last publication." if has_changes else ""
+            
             confirm = self.confirm(
-                f"Do you want to create a new version for package {self.get_package_name()} in {self.get_path()}? "
+                f"Do you want to create a new version for package {self.get_package_name()} in {self.get_path()}?{changes_message} "
                 f'This will create/switch to branch "{branch_name}".',
                 choices=ConfirmPromptResponse.MAPPING_PRESET_YES_NO,
                 default="yes",
