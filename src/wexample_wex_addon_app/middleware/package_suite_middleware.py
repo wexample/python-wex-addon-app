@@ -34,10 +34,12 @@ class PackageSuiteMiddleware(AppMiddleware):
         if self._fail_if_not_suite_workdir and not self._is_package_suite_workdir(
             workdir=app_workdir
         ):
+            suite_path = app_workdir.find_suite_workdir_path()
             raise InvalidWorkdirTypeException(
                 workdir_path=app_workdir.get_path(),
                 actual_type=app_workdir.__class__.__name__,
                 expected_type=FrameworkPackageSuiteWorkdir.__name__,
+                suite_path=suite_path,
             )
 
         return app_workdir
