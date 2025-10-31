@@ -73,15 +73,21 @@ class BasicAppWorkdir(AppWorkdirMixin, Workdir):
 
             return result
 
-        self.io.log("No change since last pass, skipping.", indentation=1)
+        self.log("No change since last pass, skipping.", indentation=1)
         return FileStateResult(state_manager=self)
 
-    def bump(self, interactive: bool = False, **kwargs) -> bool:
+    def bump(self, interactive: bool = False, force: bool = False, **kwargs) -> bool:
         """Create a version-x.y.z branch, update the version number in config. Don't commit changes."""
         from wexample_helpers.helpers.version import version_increment
         from wexample_prompt.responses.interactive.confirm_prompt_response import (
             ConfirmPromptResponse,
         )
+
+        if not force and self.has_changes_since_last_publication_tag():
+            self.log(f"Package {self.get_package_name()} has no new content to bump.")
+            return False
+
+        self.info(f"Bumping version for package: {self.get_package_name()}...")
 
         current_version = self.get_project_version()
         new_version = version_increment(version=current_version, **kwargs)
@@ -99,7 +105,8 @@ class BasicAppWorkdir(AppWorkdirMixin, Workdir):
             self.get_config_file().write_config_value("global.version", new_version)
 
             self.success(
-                f'Bumped {self.get_package_name()} from "{current_version}" to "{new_version}" and switched to branch "{branch_name}"'
+                message=f'Bumped {self.get_package_name()} from "{current_version}" to "{new_version}" and switched to branch "{branch_name}"',
+                indentation=1
             )
 
         if interactive:
@@ -178,7 +185,7 @@ class BasicAppWorkdir(AppWorkdirMixin, Workdir):
         package_name = self.get_path().name
         env_label = f" ({env})" if env else ""
 
-        self.io.log(f"Installing dependencies for {package_name}{env_label}")
+        self.log(f"Installing dependencies for {package_name}{env_label}")
         self.shell_run_from_path(
             path=self.get_path(),
             cmd=self._create_setup_command()

@@ -15,21 +15,22 @@ if TYPE_CHECKING:
     from wexample_wex_core.context.execution_context import ExecutionContext
 
 
+@option(name="force", type=bool, default=False, is_flag=True, description="Force bump even if package has no new content")
 @option(name="yes", type=bool, default=False, is_flag=True)
 @middleware(middleware=SuiteOrEachPackageMiddleware)
 @command(
     type=COMMAND_TYPE_ADDON,
-    description="Bump version for a package or suite. Use --all-packages to bump all packages, --packages-only to exclude suite, --suite-only to exclude packages.",
+    description="Bump version only if package has new content (HEAD not tagged). Use --force to bump regardless of changes. Use --all-packages to bump all packages, --packages-only to exclude suite, --suite-only to exclude packages.",
 )
 def app__package__bump(
     context: ExecutionContext,
     app_workdir: CodeBaseWorkdir,
     yes: bool = False,
+    force: bool = False,
 ) -> None:
     package_name = app_workdir.get_package_name()
-    context.io.info(f"Bumping version for package: {package_name}...")
 
-    if app_workdir.bump(interactive=not yes):
+    if app_workdir.bump(interactive=not yes, force=force):
         context.io.success(f"Successfully bumped {package_name}.")
     else:
-        context.io.log(f"Bump aborted.")
+        context.io.log(f"Bump aborted for {package_name}.")

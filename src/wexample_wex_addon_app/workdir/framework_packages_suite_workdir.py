@@ -187,19 +187,19 @@ class FrameworkPackageSuiteWorkdir(BasicAppWorkdir):
 
         env_label = f" in {env} mode" if env else ""
 
-        self.io.log(f"Setting up suite{env_label}")
+        self.log(f"Setting up suite{env_label}")
 
         # Setup the suite itself
-        self.io.log("Installing suite dependencies", indentation=1)
+        self.log("Installing suite dependencies", indentation=1)
         super().setup_install(env=env)
 
         # Setup all packages in the suite
-        self.io.log(f"Installing dependencies for all packages", indentation=1)
+        self.log(f"Installing dependencies for all packages", indentation=1)
         self.packages_execute_shell(cmd=self._create_setup_command())
 
         # If local mode, install editable packages
         if env:
-            self.io.log(f"Installing local packages in editable mode", indentation=1)
+            self.log(f"Installing local packages in editable mode", indentation=1)
             self.packages_execute_function(
                 command=app__setup__install,
                 arguments=["--env", env],
@@ -308,8 +308,8 @@ class FrameworkPackageSuiteWorkdir(BasicAppWorkdir):
     def _package_title(self, path: PathOrString, message: str) -> None:
         from wexample_helpers.helpers.cli import cli_make_clickable_path
 
-        self.io.title(f"📦 {message}: {path.name}")
-        self.io.log(f"Path: {cli_make_clickable_path(path)}", indentation=1)
+        self.title(f"📦 {message}: {path.name}")
+        self.log(f"Path: {cli_make_clickable_path(path)}", indentation=1)
 
 
     def publish_dependencies(self) -> dict[str, str]:
@@ -348,15 +348,15 @@ class FrameworkPackageSuiteWorkdir(BasicAppWorkdir):
                 continue
 
             self._package_title(path=package_path, message=message)
-            self.io.log(f"Command: {shlex.join(cmd)}", indentation=1)
-            self.io.separator(color=TerminalColor.BLACK)
+            self.log(f"Command: {shlex.join(cmd)}", indentation=1)
+            self.separator(color=TerminalColor.BLACK)
 
             try:
                 result = executor_method(cmd=cmd, path=package_path)
                 if result is None:
-                    self.io.log("Invalid package directory, skipping.", indentation=1)
+                    self.log("Invalid package directory, skipping.", indentation=1)
             except Exception as e:
-                self.io.log(f"Error executing command: {e}", indentation=1)
+                self.log(f"Error executing command: {e}", indentation=1)
                 return
 
-            self.io.separator(color=TerminalColor.BLACK)
+            self.separator(color=TerminalColor.BLACK)

@@ -210,6 +210,15 @@ class AppWorkdirMixin(
             inherit_stdio=(not capture_output),
         )
 
+    def manager_run_command(
+            self,
+            **kwargs
+    ) -> ShellResult:
+        return self.manager_run_command_from_path(
+            path=self.get_path(),
+            **kwargs
+        )
+
     def build_registry_value(self) -> NestedConfigValue:
         from wexample_config.config_value.nested_config_value import NestedConfigValue
 
