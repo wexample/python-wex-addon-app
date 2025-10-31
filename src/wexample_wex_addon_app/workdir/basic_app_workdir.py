@@ -88,7 +88,7 @@ class BasicAppWorkdir(AppWorkdirMixin, Workdir):
             self.log(f"Package {self.get_package_name()} has no new content to bump.")
             return False
 
-        self.info(f"Bumping version for package: {self.get_package_name()}...")
+        self.info(f"Bumping version for package: {self.get_project_name()}...")
 
         current_version = self.get_project_version()
         new_version = version_increment(version=current_version, **kwargs)
