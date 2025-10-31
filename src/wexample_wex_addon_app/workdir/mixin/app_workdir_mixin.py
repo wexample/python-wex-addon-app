@@ -12,6 +12,7 @@ from wexample_helpers.const.types import FileStringOrPath, PathOrString
 from wexample_helpers.decorator.base_class import base_class
 from wexample_helpers.helpers.json import json_parse_if_valid
 from wexample_prompt.common.io_manager import IoManager
+from wexample_wex_addon_app.helpers.python import python_install_environment
 from wexample_wex_addon_app.workdir.mixin.as_suite_package_item import (
     AsSuitePackageItem,
 )
@@ -129,8 +130,7 @@ class AppWorkdirMixin(
         """
         The app manager works is in python for every managed app.
         """
-        from wexample_wex_addon_dev_python.workdir.python_package_workdir import PythonPackageWorkdir
-        return PythonPackageWorkdir.install_python_environment(path=path / APP_PATH_APP_MANAGER)
+        return python_install_environment(path=path / APP_PATH_APP_MANAGER)
 
     @classmethod
     def shell_run_from_path(
