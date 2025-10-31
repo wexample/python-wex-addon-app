@@ -215,6 +215,7 @@ class BasicAppWorkdir(AppWorkdirMixin, Workdir):
                 )
 
                 self.update_dependencies(publishable_dependencies)
+        self.io.success("All libraries versions are up to date.")
 
     def update_dependencies(self, dependencies_map: dict[str, str]) -> None:
         # Let language specific workdir manage how to update.
