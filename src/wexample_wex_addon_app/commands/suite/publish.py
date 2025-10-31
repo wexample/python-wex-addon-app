@@ -46,37 +46,41 @@ def app__suite__publish(
             step=1
         )
 
-        # Reserve 1 unit on main progress bar, subdivided into 5 steps
-        sub_progress = package.io.progress(
-            total=5,
-            color=TerminalColor.YELLOW,
-            indentation=1,
-            print_response=False,
-        ).get_handle()
+        if package.has_changes_since_last_publication_tag():
+            # Reserve 1 unit on main progress bar, subdivided into 5 steps
+            sub_progress = package.io.progress(
+                total=5,
+                color=TerminalColor.YELLOW,
+                indentation=1,
+                print_response=False,
+            ).get_handle()
 
-        sub_progress.advance(step=1, label=f"Bumping {package.get_project_name()}")
-        package.manager_run_command(
-            command=app__package__bump
-        )
+            sub_progress.advance(step=1, label=f"Bumping {package.get_project_name()}")
+            package.manager_run_command(
+                command=app__package__bump,
+                arguments=["--force"]
+            )
 
-        sub_progress.advance(step=1, label=f"Rectifying file state for {package.get_project_name()}")
-        package.manager_run_command(
-            command=app__file_state__rectify
-        )
+            sub_progress.advance(step=1, label=f"Rectifying file state for {package.get_project_name()}")
+            package.manager_run_command(
+                command=app__file_state__rectify
+            )
 
-        sub_progress.advance(step=1, label=f"Committing and pushing {package.get_project_name()}")
-        package.manager_run_command(
-            command=app__package__commit_and_push
-        )
+            sub_progress.advance(step=1, label=f"Committing and pushing {package.get_project_name()}")
+            package.manager_run_command(
+                command=app__package__commit_and_push
+            )
 
-        sub_progress.advance(step=1, label=f"Propagating version for {package.get_project_name()}")
-        package.manager_run_command(
-            command=app__version__propagate
-        )
+            sub_progress.advance(step=1, label=f"Propagating version for {package.get_project_name()}")
+            package.manager_run_command(
+                command=app__version__propagate
+            )
 
-        sub_progress.advance(step=1, label=f"Publishing {package.get_project_name()}")
-        package.manager_run_command(
-            command=app__package__publish
-        )
+            sub_progress.advance(step=1, label=f"Publishing {package.get_project_name()}")
+            package.manager_run_command(
+                command=app__package__publish
+            )
+        else:
+            package.io.log("No change to publish, skipping.")
 
     progress.finish(label="All packages published successfully")
