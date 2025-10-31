@@ -126,6 +126,7 @@ class CodeBaseWorkdir(BasicAppWorkdir):
             git_ensure_upstream,
             git_push_follow_tags,
         )
+        from wexample_wex_addon_app.exception.git_remote_exception import GitRemoteException
 
         cwd = self.get_path()
         progress = (
@@ -133,10 +134,20 @@ class CodeBaseWorkdir(BasicAppWorkdir):
             or self.io.progress(label="Pushing changes...", total=1).get_handle()
         )
 
-        git_current_branch(cwd=cwd, inherit_stdio=False)
-        git_ensure_upstream(cwd=cwd, default_remote="origin", inherit_stdio=True)
-        git_push_follow_tags(cwd=cwd, inherit_stdio=True)
-        progress.finish(label="Pushed")
+        try:
+            branch_name = git_current_branch(cwd=cwd, inherit_stdio=False)
+            git_ensure_upstream(cwd=cwd, default_remote="origin", inherit_stdio=True)
+            git_push_follow_tags(cwd=cwd, inherit_stdio=True)
+            progress.finish(label="Pushed")
+        except Exception as e:
+            raise GitRemoteException(
+                workdir_path=str(cwd),
+                package_name=self.get_package_name(),
+                operation="push",
+                remote_name="origin",
+                branch_name=branch_name if 'branch_name' in locals() else None,
+                cause=e,
+            ) from e
 
     def save_dependency(self, package: CodeBaseWorkdir) -> None:
         """Register a dependency into the configuration file."""
