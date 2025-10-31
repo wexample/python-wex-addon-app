@@ -113,10 +113,7 @@ class CodeBaseWorkdir(BasicAppWorkdir):
         """Check whether the given package is used in this package's codebase."""
         return False
 
-    def publish(
-        self,
-        progress: ProgressHandle | None = None,
-    ) -> None:
+    def publish(self) -> None:
         pass
 
     def push_changes(
