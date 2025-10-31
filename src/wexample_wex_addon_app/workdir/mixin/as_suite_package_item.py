@@ -83,13 +83,14 @@ class AsSuitePackageItem(BaseClass):
 
         if value.is_empty():
             suite_path = self.find_suite_workdir_path()
-            # Also avoid using children tree as method may be executed before configuration process.
-            suite_config_file = BasicAppWorkdir.get_config_from_path(
-                path=suite_path,
-            )
+            if suite_path:
+                # Also avoid using children tree as method may be executed before configuration process.
+                suite_config_file = BasicAppWorkdir.get_config_from_path(
+                    path=suite_path,
+                )
 
-            if suite_config_file:
-                return suite_config_file.read_config().search(key)
+                if suite_config_file:
+                    return suite_config_file.read_config().search(key)
 
         return value
 
