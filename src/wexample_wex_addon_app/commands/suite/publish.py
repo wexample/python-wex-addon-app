@@ -19,13 +19,13 @@ if TYPE_CHECKING:
     from wexample_wex_core.context.execution_context import ExecutionContext
 
 
+@option(name="yes", type=bool, default=False, is_flag=True)
+@option(name="force", type=bool, default=False, is_flag=True)
 @middleware(middleware=PackageSuiteMiddleware)
 @command(
     type=COMMAND_TYPE_ADDON,
     description="Publish package to PyPI. Use --all-packages to publish all packages in suite.",
 )
-@option(name="yes", type=bool, default=False, is_flag=True)
-@option(name="force", type=bool, default=False, is_flag=True)
 def app__suite__publish(
         context: ExecutionContext,
         app_workdir: FrameworkPackageSuiteWorkdir,
