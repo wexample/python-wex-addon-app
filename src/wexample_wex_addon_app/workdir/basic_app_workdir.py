@@ -111,7 +111,6 @@ class BasicAppWorkdir(AppWorkdirMixin, Workdir):
             )
 
         if interactive:
-            has_changes = self.has_changes_since_last_publication_tag()
             changes_message = " The project contains changes since last publication." if has_changes else ""
             
             confirm = self.confirm(
