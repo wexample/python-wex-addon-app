@@ -13,6 +13,7 @@ from wexample_wex_addon_app.workdir.framework_packages_suite_workdir import Fram
 from wexample_wex_core.const.globals import COMMAND_TYPE_ADDON
 from wexample_wex_core.decorator.command import command
 from wexample_wex_core.decorator.middleware import middleware
+from wexample_wex_core.decorator.option import option
 
 if TYPE_CHECKING:
     from wexample_wex_core.context.execution_context import ExecutionContext
@@ -23,9 +24,13 @@ if TYPE_CHECKING:
     type=COMMAND_TYPE_ADDON,
     description="Publish package to PyPI. Use --all-packages to publish all packages in suite.",
 )
+@option(name="yes", type=bool, default=False, is_flag=True)
+@option(name="force", type=bool, default=False, is_flag=True)
 def app__suite__publish(
         context: ExecutionContext,
         app_workdir: FrameworkPackageSuiteWorkdir,
+        yes: bool = False,
+        force: bool = False,
 ) -> None:
     # app_workdir.packages_validate_internal_dependencies_declarations()
     packages = app_workdir.get_ordered_packages()
@@ -56,9 +61,14 @@ def app__suite__publish(
             ).get_handle()
 
             sub_progress.advance(step=1, label=f"Bumping {package.get_project_name()}")
+            bump_args = []
+            if force:
+                bump_args.append("--force")
+            if yes:
+                bump_args.append("--yes")
             package.manager_run_command(
                 command=app__package__bump,
-                arguments=["--force"]
+                arguments=bump_args
             )
 
             sub_progress.advance(step=1, label=f"Rectifying file state for {package.get_project_name()}")
@@ -70,8 +80,12 @@ def app__suite__publish(
             )
 
             sub_progress.advance(step=1, label=f"Committing and pushing {package.get_project_name()}")
+            commit_args = []
+            if yes:
+                commit_args.append("--yes")
             package.manager_run_command(
-                command=app__package__commit_and_push
+                command=app__package__commit_and_push,
+                arguments=commit_args
             )
 
             sub_progress.advance(step=1, label=f"Propagating version for {package.get_project_name()}")
