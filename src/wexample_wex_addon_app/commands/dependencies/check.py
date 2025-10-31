@@ -25,9 +25,6 @@ def app__dependencies__check(
         context: ExecutionContext,
         app_workdir: FrameworkPackageSuiteWorkdir,
 ) -> None:
-    progress = context.get_or_create_progress(total=100)
-
     # Validate internal dependencies
-    progress.advance(step=10, label="Checking internal dependencies...")
     app_workdir.packages_validate_internal_dependencies_declarations()
     context.io.success("Internal dependencies match.")
