@@ -83,7 +83,8 @@ class BasicAppWorkdir(AppWorkdirMixin, Workdir):
             ConfirmPromptResponse,
         )
 
-        if not force and self.has_changes_since_last_publication_tag():
+        has_changes = self.has_changes_since_last_publication_tag()
+        if not force and has_changes:
             self.log(f"Package {self.get_package_name()} has no new content to bump.")
             return False
 
