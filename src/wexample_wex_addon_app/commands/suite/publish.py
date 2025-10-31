@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from wexample_prompt.enums.terminal_color import TerminalColor
 from wexample_wex_addon_app.commands.file_state.rectify import app__file_state__rectify
 from wexample_wex_addon_app.commands.package.bump import app__package__bump
 from wexample_wex_addon_app.commands.package.commit_and_push import app__package__commit_and_push
@@ -33,17 +34,25 @@ def app__suite__publish(
     context.io.indentation_up()
     progress = context.io.progress(
         total=len(packages),
-        print=False
+        print_response=False,
+        color=TerminalColor.CYAN,
     ).get_handle()
 
     # Process packages in order leaf -> trunk.
     # Use manager for every command allow to use complete specific environment.
     for package in packages:
-        # Reserve 1 unit on main progress bar, subdivided into 5 steps
-        sub_progress = progress.create_range_handle(
-            to_step=1,
-            virtual_total=5
+        progress.advance(
+            label=f"Publishing {package.get_project_name()}",
+            step=1
         )
+
+        # Reserve 1 unit on main progress bar, subdivided into 5 steps
+        sub_progress = package.io.progress(
+            total=5,
+            color=TerminalColor.YELLOW,
+            indentation=1,
+            print_response=False,
+        ).get_handle()
 
         sub_progress.advance(step=1, label=f"Bumping {package.get_project_name()}")
         package.manager_run_command(
@@ -57,7 +66,7 @@ def app__suite__publish(
 
         sub_progress.advance(step=1, label=f"Committing and pushing {package.get_project_name()}")
         package.manager_run_command(
-            command=app__package__commit_and_push()
+            command=app__package__commit_and_push
         )
 
         sub_progress.advance(step=1, label=f"Propagating version for {package.get_project_name()}")
@@ -69,7 +78,5 @@ def app__suite__publish(
         package.manager_run_command(
             command=app__package__publish
         )
-        
-        sub_progress.finish()
-    
+
     progress.finish(label="All packages published successfully")
