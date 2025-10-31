@@ -38,7 +38,7 @@ def app__suite__publish(
     yes: bool = False,
     force: bool = False,
 ) -> None:
-    # app_workdir.packages_validate_internal_dependencies_declarations()
+    app_workdir.packages_validate_internal_dependencies_declarations()
     packages = app_workdir.get_ordered_packages()
 
     context.io.log("Starting deployment...")
