@@ -228,26 +228,25 @@ class AppWorkdirMixin(
 
         return NestedConfigValue(raw={})
 
-    def get_config_file(self) -> YamlFile:
+    def get_yaml_file_from_path(self, path: PathOrString) -> YamlFile:
         from wexample_filestate.item.file.yaml_file import YamlFile
 
-        # We don't search into the target item tree as this is a low level information.
-        config_file = YamlFile.create_from_path(
-            path=self.get_path() / WORKDIR_SETUP_DIR / APP_FILE_APP_CONFIG, io=self.io
-        )
-
-        return config_file
-
-    def get_runtime_config_file(self) -> YamlFile:
-        from wexample_filestate.item.file.yaml_file import YamlFile
-
-        # We don't search into the target item tree as this is a low level information.
-        runtime_config_file = YamlFile.create_from_path(
-            path=self.get_path() / WORKDIR_SETUP_DIR / CORE_DIR_NAME_TMP / APP_FILE_APP_RUNTIME_CONFIG,
+        return YamlFile.create_from_path(
+            path=path,
             io=self.io
         )
 
-        return runtime_config_file
+    def get_config_file(self) -> YamlFile:
+        # We don't search into the target item tree as this is a low level information.
+        return self.get_yaml_file_from_path(
+            path=self.get_path() / WORKDIR_SETUP_DIR / APP_FILE_APP_CONFIG
+        )
+
+    def get_runtime_config_file(self) -> YamlFile:
+        # We don't search into the target item tree as this is a low level information.
+        return self.get_yaml_file_from_path(
+            path=self.get_path() / WORKDIR_SETUP_DIR / CORE_DIR_NAME_TMP / APP_FILE_APP_RUNTIME_CONFIG,
+        )
 
     def get_runtime_config(self) -> NestedConfigValue:
         from wexample_config.config_value.nested_config_value import NestedConfigValue
@@ -428,6 +427,3 @@ class AppWorkdirMixin(
         )
 
         return raw_value
-
-    def get_vendor_name(self) -> str:
-        return self.get_config().search("global.vendor").get_str_or_default("acme")

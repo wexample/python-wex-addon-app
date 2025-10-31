@@ -3,6 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import TYPE_CHECKING
 
+from wexample_config.config_value.config_value import ConfigValue
 from wexample_helpers.classes.abstract_method import abstract_method
 from wexample_helpers.classes.base_class import BaseClass
 from wexample_helpers.decorator.base_class import base_class
@@ -48,7 +49,7 @@ class AsSuitePackageItem(BaseClass):
         return None
 
     def get_env_parameter_or_suite_fallback(
-        self, key: str, default: str | None = None
+            self, key: str, default: str | None = None
     ) -> str | None:
         value = self.get_env_parameter(
             key=key,
@@ -75,13 +76,25 @@ class AsSuitePackageItem(BaseClass):
 
         return None
 
-    def search_in_package_or_suite_config(self, key: str):
+    def search_in_package_or_suite_config(self, key: str) -> ConfigValue:
         """Search for a config value in the package config, fallback to suite config if not found."""
+        from wexample_wex_addon_app.workdir.basic_app_workdir import BasicAppWorkdir
+
         value = self.get_config().search(key)
 
-        if value.is_none():
-            suite_workdir = self.get_suite_workdir()
-            if suite_workdir:
-                return suite_workdir.get_config().search(key)
+        if value.is_empty():
+            suite_path = self.find_suite_workdir_path()
+            # Also avoid using children tree as method may be executed before configuration process.
+            suite_config_file = BasicAppWorkdir.get_config_from_path(
+                path=suite_path,
+            )
+
+            if suite_config_file:
+                return suite_config_file.read_config().search(key)
 
         return value
+
+    def get_vendor_name(self) -> str:
+        return self.search_in_package_or_suite_config("global.vendor").get_str_or_default(
+            default="acme"
+        )
