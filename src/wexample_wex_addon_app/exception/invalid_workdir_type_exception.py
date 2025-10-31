@@ -16,6 +16,10 @@ class InvalidWorkdirTypeException(AppRuntimeException):
         cause: Exception | None = None,
         previous: Exception | None = None,
     ) -> None:
+        from wexample_helpers.helpers.cli import cli_make_clickable_path
+
+        clickable_path = cli_make_clickable_path(workdir_path)
+        
         data = {
             "workdir_path": workdir_path,
             "actual_type": actual_type,
@@ -24,7 +28,7 @@ class InvalidWorkdirTypeException(AppRuntimeException):
 
         super().__init__(
             message=(
-                f"The app_workdir `{workdir_path}` is of type {actual_type} "
+                f"The app_workdir {clickable_path} is of type {actual_type} "
                 f"and not a subclass of {expected_type}."
             ),
             data=data,

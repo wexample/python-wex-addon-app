@@ -4,7 +4,6 @@ from typing import TYPE_CHECKING
 
 from wexample_helpers.classes.private_field import private_field
 from wexample_helpers.decorator.base_class import base_class
-from wexample_helpers.helpers.cli import cli_make_clickable_path
 from wexample_wex_addon_app.exception.invalid_workdir_type_exception import (
     InvalidWorkdirTypeException,
 )
@@ -36,7 +35,7 @@ class PackageSuiteMiddleware(AppMiddleware):
             workdir=app_workdir
         ):
             raise InvalidWorkdirTypeException(
-                workdir_path=cli_make_clickable_path(app_workdir.get_path()),
+                workdir_path=app_workdir.get_path(),
                 actual_type=app_workdir.__class__.__name__,
                 expected_type=FrameworkPackageSuiteWorkdir.__name__,
             )
