@@ -63,7 +63,10 @@ def app__suite__publish(
 
             sub_progress.advance(step=1, label=f"Rectifying file state for {package.get_project_name()}")
             package.manager_run_command(
-                command=app__file_state__rectify
+                command=app__file_state__rectify,
+                arguments=[
+                    "--loop"
+                ]
             )
 
             sub_progress.advance(step=1, label=f"Committing and pushing {package.get_project_name()}")
