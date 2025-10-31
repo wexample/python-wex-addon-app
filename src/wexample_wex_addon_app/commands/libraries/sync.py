@@ -17,5 +17,5 @@ if TYPE_CHECKING:
 def app__libraries__sync(
         context: ExecutionContext,
         app_workdir: BasicAppWorkdir,
-):
+) -> None:
     app_workdir.libraries_sync()

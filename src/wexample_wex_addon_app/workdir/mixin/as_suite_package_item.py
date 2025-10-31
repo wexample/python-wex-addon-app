@@ -16,7 +16,6 @@ if TYPE_CHECKING:
 
 @base_class
 class AsSuitePackageItem(BaseClass):
-
     @abstract_method
     def _get_children_package_workdir_class(self) -> type[FrameworkPackageSuiteWorkdir]:
         pass

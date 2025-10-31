@@ -18,8 +18,10 @@ class DependencyViolationException(AppRuntimeException):
     ) -> None:
         from wexample_helpers.helpers.cli import cli_make_clickable_path
 
-        imports_details = "\n".join(f" - {cli_make_clickable_path(loc)}" for loc in import_locations)
-        
+        imports_details = "\n".join(
+            f" - {cli_make_clickable_path(loc)}" for loc in import_locations
+        )
+
         data = {
             "package_name": package_name,
             "imported_package": imported_package,

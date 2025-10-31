@@ -126,7 +126,9 @@ class CodeBaseWorkdir(BasicAppWorkdir):
             git_ensure_upstream,
             git_push_follow_tags,
         )
-        from wexample_wex_addon_app.exception.git_remote_exception import GitRemoteException
+        from wexample_wex_addon_app.exception.git_remote_exception import (
+            GitRemoteException,
+        )
 
         cwd = self.get_path()
         progress = (
@@ -145,7 +147,7 @@ class CodeBaseWorkdir(BasicAppWorkdir):
                 package_name=self.get_package_name(),
                 operation="push",
                 remote_name="origin",
-                branch_name=branch_name if 'branch_name' in locals() else None,
+                branch_name=branch_name if "branch_name" in locals() else None,
                 cause=e,
             ) from e
 

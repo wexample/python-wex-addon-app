@@ -16,13 +16,13 @@ if TYPE_CHECKING:
 @base_class
 class BasicAppWorkdir(AppWorkdirMixin, Workdir):
     def apply(
-            self,
-            force: bool = False,
-            scopes=None,
-            filter_path: str | None = None,
-            filter_operation: str | None = None,
-            max: int = None,
-            **kwargs,
+        self,
+        force: bool = False,
+        scopes=None,
+        filter_path: str | None = None,
+        filter_operation: str | None = None,
+        max: int = None,
+        **kwargs,
     ) -> FileStateResult:
         from wexample_filestate.result.file_state_result import FileStateResult
         from wexample_helpers.helpers.repo import repo_get_state, repo_has_changed_since
@@ -30,10 +30,10 @@ class BasicAppWorkdir(AppWorkdirMixin, Workdir):
         # Hash protection is only active when all filter parameters are None
         # to avoid false positives when apply behavior is modified by parameters
         hash_protection_active = (
-                scopes is None
-                and filter_path is None
-                and filter_operation is None
-                and max is None
+            scopes is None
+            and filter_path is None
+            and filter_operation is None
+            and max is None
         )
 
         registry_file = self.get_registry_file()
@@ -43,14 +43,14 @@ class BasicAppWorkdir(AppWorkdirMixin, Workdir):
         ).get_str_or_none()
 
         if (
-                force
-                or not hash_protection_active
-                or (
+            force
+            or not hash_protection_active
+            or (
                 last_update_hash is None
                 or repo_has_changed_since(
-            previous_state=last_update_hash, cwd=self.get_path()
-        )
-        )
+                    previous_state=last_update_hash, cwd=self.get_path()
+                )
+            )
         ):
             # Reset hash
             registry.set_by_path("file_state.last_update_hash", None)
@@ -107,12 +107,16 @@ class BasicAppWorkdir(AppWorkdirMixin, Workdir):
 
             self.success(
                 message=f'Bumped {self.get_package_name()} from "{current_version}" to "{new_version}" and switched to branch "{branch_name}"',
-                indentation=1
+                indentation=1,
             )
 
         if interactive:
-            changes_message = " The project contains changes since last publication." if has_changes else ""
-            
+            changes_message = (
+                " The project contains changes since last publication."
+                if has_changes
+                else ""
+            )
+
             confirm = self.confirm(
                 f"Do you want to create a new version for package {self.get_package_name()} in {self.get_path()}?{changes_message} "
                 f'This will create/switch to branch "{branch_name}".',
@@ -160,38 +164,28 @@ class BasicAppWorkdir(AppWorkdirMixin, Workdir):
         if last_tag is None:
             return True
         # Limit diff to current package folder, run from package cwd using '.'
-        return git_has_changes_since_tag(
-            last_tag, ".", cwd=self.get_path()
-        )
+        return git_has_changes_since_tag(last_tag, ".", cwd=self.get_path())
 
     def get_app_env(self) -> str:
         from wexample_app.const.globals import ENV_VAR_NAME_APP_ENV
 
-        return self.get_env_parameter(
-            key=ENV_VAR_NAME_APP_ENV,
-            default=ENV_NAME_PROD
-        )
+        return self.get_env_parameter(key=ENV_VAR_NAME_APP_ENV, default=ENV_NAME_PROD)
 
     def app_install(self, env: str | None = None, force: bool = False) -> bool:
         return True
 
     def publish_dependencies(self) -> dict[str, str]:
         """Publish witch dependency **current package represents for others**,
-           not the dependencies the current package is dependent on.
+        not the dependencies the current package is dependent on.
         """
-        return {
-            self.get_package_name(): self.get_project_version()
-        }
+        return {self.get_package_name(): self.get_project_version()}
 
     def setup_install(self, env: str | None = None, force: bool = False) -> None:
         package_name = self.get_path().name
         env_label = f" ({env})" if env else ""
 
         self.log(f"Installing dependencies for {package_name}{env_label}")
-        self.shell_run_from_path(
-            path=self.get_path(),
-            cmd=self._create_setup_command()
-        )
+        self.shell_run_from_path(path=self.get_path(), cmd=self._create_setup_command())
 
         self.app_install(env, force=force)
 
@@ -201,15 +195,23 @@ class BasicAppWorkdir(AppWorkdirMixin, Workdir):
         return [str(APP_PATH_BIN_APP_MANAGER), "setup"]
 
     def libraries_sync(self) -> None:
-        from wexample_wex_addon_app.commands.dependencies.publish import app__dependencies__publish
+        from wexample_wex_addon_app.commands.dependencies.publish import (
+            app__dependencies__publish,
+        )
 
-        for library_path_config in self.get_runtime_config().search("libraries").get_list_or_default():
-            if library_path_config.is_str() and BasicAppWorkdir.is_app_workdir_path(path=library_path_config.get_str()):
-                publishable_dependencies = BasicAppWorkdir.manager_run_command_and_parse_from_path(
-                    command=app__dependencies__publish,
-                    path=library_path_config.get_str(),
-                    output_format=OUTPUT_FORMAT_JSON,
-                    capture_output=True
+        for library_path_config in (
+            self.get_runtime_config().search("libraries").get_list_or_default()
+        ):
+            if library_path_config.is_str() and BasicAppWorkdir.is_app_workdir_path(
+                path=library_path_config.get_str()
+            ):
+                publishable_dependencies = (
+                    BasicAppWorkdir.manager_run_command_and_parse_from_path(
+                        command=app__dependencies__publish,
+                        path=library_path_config.get_str(),
+                        output_format=OUTPUT_FORMAT_JSON,
+                        capture_output=True,
+                    )
                 )
 
                 self.update_dependencies(publishable_dependencies)

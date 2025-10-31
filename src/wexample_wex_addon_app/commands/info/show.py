@@ -16,8 +16,8 @@ if TYPE_CHECKING:
 @middleware(middleware=AppMiddleware)
 @command(type=COMMAND_TYPE_ADDON)
 def app__info__show(
-        context: ExecutionContext,
-        app_workdir: BasicAppWorkdir,
+    context: ExecutionContext,
+    app_workdir: BasicAppWorkdir,
 ) -> DictResponse:
     from wexample_app.response.dict_response import DictResponse
 
@@ -37,7 +37,4 @@ def app__info__show(
             if library_config.is_str():
                 data["libraries"] = library_config.get_str()
 
-    return DictResponse(
-        kernel=context.kernel,
-        content=data
-    )
+    return DictResponse(kernel=context.kernel, content=data)

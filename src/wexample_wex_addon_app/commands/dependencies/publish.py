@@ -16,12 +16,11 @@ if TYPE_CHECKING:
 @middleware(middleware=AppMiddleware)
 @command(type=COMMAND_TYPE_ADDON)
 def app__dependencies__publish(
-        context: ExecutionContext,
-        app_workdir: BasicAppWorkdir,
+    context: ExecutionContext,
+    app_workdir: BasicAppWorkdir,
 ) -> DictResponse:
     from wexample_app.response.dict_response import DictResponse
 
     return DictResponse(
-        kernel=context.kernel,
-        content=app_workdir.publish_dependencies()
+        kernel=context.kernel, content=app_workdir.publish_dependencies()
     )

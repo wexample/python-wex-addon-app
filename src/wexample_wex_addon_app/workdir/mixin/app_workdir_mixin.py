@@ -54,7 +54,7 @@ class AppWorkdirMixin(
 
     @classmethod
     def get_registry_from_path(
-            cls, path: FileStringOrPath, io: IoManager
+        cls, path: FileStringOrPath, io: IoManager
     ) -> YamlFile | None:
         from wexample_filestate.item.file.yaml_file import YamlFile
 
@@ -73,7 +73,7 @@ class AppWorkdirMixin(
         )
 
         return (
-                Path(path) / WORKDIR_SETUP_DIR / CORE_DIR_NAME_TMP / CORE_FILE_NAME_REGISTRY
+            Path(path) / WORKDIR_SETUP_DIR / CORE_DIR_NAME_TMP / CORE_FILE_NAME_REGISTRY
         )
 
     @classmethod
@@ -93,22 +93,20 @@ class AppWorkdirMixin(
         if cls.is_app_workdir_path(path=path):
             # app-manager exists.
             return (path / APP_PATH_BIN_APP_MANAGER).exists() and (
-                    path / APP_PATH_APP_MANAGER / ".venv/bin/python"
+                path / APP_PATH_APP_MANAGER / ".venv/bin/python"
             ).exists()
         return False
 
     @classmethod
     def manager_run_from_path(
-            cls, path: FileStringOrPath, cmd: list[str] | str
+        cls, path: FileStringOrPath, cmd: list[str] | str
     ) -> None | ShellResult:
         from wexample_app.const.globals import APP_PATH_BIN_APP_MANAGER
         from wexample_helpers.helpers.shell import shell_run
         from wexample_wex_addon_app.workdir.basic_app_workdir import BasicAppWorkdir
 
         if not BasicAppWorkdir.is_app_workdir_path_setup(path=path):
-            cls.manager_install(
-                path=path
-            )
+            cls.manager_install(path=path)
 
         if not isinstance(cmd, list):
             cmd = [cmd]
@@ -124,9 +122,7 @@ class AppWorkdirMixin(
         )
 
     @classmethod
-    def manager_install(
-            cls, path: FileStringOrPath
-    ) -> bool:
+    def manager_install(cls, path: FileStringOrPath) -> bool:
         """
         The app manager works is in python for every managed app.
         """
@@ -134,7 +130,7 @@ class AppWorkdirMixin(
 
     @classmethod
     def shell_run_from_path(
-            cls, path: FileStringOrPath, cmd: list[str] | str
+        cls, path: FileStringOrPath, cmd: list[str] | str
     ) -> None | ShellResult:
         from wexample_helpers.helpers.shell import shell_run
 
@@ -145,26 +141,19 @@ class AppWorkdirMixin(
         )
 
     @classmethod
-    def manager_run_command_and_parse_from_path(
-            cls,
-            **kwargs
-    ) -> Any:
-        shell_result = cls.manager_run_command_from_path(
-            **kwargs
-        )
+    def manager_run_command_and_parse_from_path(cls, **kwargs) -> Any:
+        shell_result = cls.manager_run_command_from_path(**kwargs)
 
-        return json_parse_if_valid(
-            shell_result.stdout
-        )
+        return json_parse_if_valid(shell_result.stdout)
 
     @classmethod
     def manager_run_command_from_path(
-            cls,
-            path: str,
-            command: callable,
-            arguments: list[str] | None = None,
-            output_format: None | str = None,
-            capture_output: bool = False,
+        cls,
+        path: str,
+        command: callable,
+        arguments: list[str] | None = None,
+        output_format: None | str = None,
+        capture_output: bool = False,
     ) -> ShellResult:
         """
         Execute a Python addon command (e.g., app__setup__install) using the app manager,
@@ -210,14 +199,8 @@ class AppWorkdirMixin(
             inherit_stdio=(not capture_output),
         )
 
-    def manager_run_command(
-            self,
-            **kwargs
-    ) -> ShellResult:
-        return self.manager_run_command_from_path(
-            path=self.get_path(),
-            **kwargs
-        )
+    def manager_run_command(self, **kwargs) -> ShellResult:
+        return self.manager_run_command_from_path(path=self.get_path(), **kwargs)
 
     def build_registry_value(self) -> NestedConfigValue:
         from wexample_config.config_value.nested_config_value import NestedConfigValue
@@ -240,10 +223,7 @@ class AppWorkdirMixin(
     def get_yaml_file_from_path(self, path: PathOrString) -> YamlFile:
         from wexample_filestate.item.file.yaml_file import YamlFile
 
-        return YamlFile.create_from_path(
-            path=path,
-            io=self.io
-        )
+        return YamlFile.create_from_path(path=path, io=self.io)
 
     def get_config_file(self) -> YamlFile:
         # We don't search into the target item tree as this is a low level information.
@@ -254,7 +234,10 @@ class AppWorkdirMixin(
     def get_runtime_config_file(self) -> YamlFile:
         # We don't search into the target item tree as this is a low level information.
         return self.get_yaml_file_from_path(
-            path=self.get_path() / WORKDIR_SETUP_DIR / CORE_DIR_NAME_TMP / APP_FILE_APP_RUNTIME_CONFIG,
+            path=self.get_path()
+            / WORKDIR_SETUP_DIR
+            / CORE_DIR_NAME_TMP
+            / APP_FILE_APP_RUNTIME_CONFIG,
         )
 
     def get_runtime_config(self) -> NestedConfigValue:

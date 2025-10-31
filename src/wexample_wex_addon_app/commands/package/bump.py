@@ -15,7 +15,13 @@ if TYPE_CHECKING:
     from wexample_wex_core.context.execution_context import ExecutionContext
 
 
-@option(name="force", type=bool, default=False, is_flag=True, description="Force bump even if package has no new content")
+@option(
+    name="force",
+    type=bool,
+    default=False,
+    is_flag=True,
+    description="Force bump even if package has no new content",
+)
 @option(name="yes", type=bool, default=False, is_flag=True)
 @middleware(middleware=SuiteOrEachPackageMiddleware)
 @command(

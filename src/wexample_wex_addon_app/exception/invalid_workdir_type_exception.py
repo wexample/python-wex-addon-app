@@ -20,7 +20,7 @@ class InvalidWorkdirTypeException(AppRuntimeException):
         from wexample_helpers.helpers.cli import cli_make_clickable_path
 
         clickable_path = cli_make_clickable_path(workdir_path)
-        
+
         data = {
             "workdir_path": workdir_path,
             "actual_type": actual_type,

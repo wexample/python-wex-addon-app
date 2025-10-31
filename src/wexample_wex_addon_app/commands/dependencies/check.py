@@ -22,8 +22,8 @@ if TYPE_CHECKING:
     description="Validate internal dependencies and propagate versions across all packages in the suite.",
 )
 def app__dependencies__check(
-        context: ExecutionContext,
-        app_workdir: FrameworkPackageSuiteWorkdir,
+    context: ExecutionContext,
+    app_workdir: FrameworkPackageSuiteWorkdir,
 ) -> None:
     # Validate internal dependencies
     app_workdir.packages_validate_internal_dependencies_declarations()

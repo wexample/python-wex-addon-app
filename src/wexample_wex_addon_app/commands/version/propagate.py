@@ -20,8 +20,8 @@ if TYPE_CHECKING:
     description="Validate internal dependencies and propagate versions across all packages in the suite.",
 )
 def app__version__propagate(
-        context: ExecutionContext,
-        app_workdir: FrameworkPackageSuiteWorkdir,
+    context: ExecutionContext,
+    app_workdir: FrameworkPackageSuiteWorkdir,
 ) -> None:
     # Propagate versions
     app_workdir.propagate_version()
