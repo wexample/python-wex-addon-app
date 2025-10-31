@@ -11,7 +11,6 @@ from wexample_app.const.globals import (
 from wexample_helpers.const.types import FileStringOrPath, PathOrString
 from wexample_helpers.decorator.base_class import base_class
 from wexample_helpers.helpers.json import json_parse_if_valid
-from wexample_helpers.helpers.shell import ShellResult
 from wexample_prompt.common.io_manager import IoManager
 from wexample_wex_addon_app.workdir.mixin.as_suite_package_item import (
     AsSuitePackageItem,
@@ -26,6 +25,7 @@ from wexample_wex_core.workdir.mixin.with_app_version_workdir_mixin import (
 )
 
 if TYPE_CHECKING:
+    from wexample_helpers.classes.shell_result import ShellResult
     from wexample_config.config_value.nested_config_value import NestedConfigValue
     from wexample_config.const.types import DictConfig
     from wexample_filestate.item.file.yaml_file import YamlFile
