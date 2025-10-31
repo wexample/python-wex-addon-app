@@ -98,3 +98,15 @@ class AsSuitePackageItem(BaseClass):
         return self.search_in_package_or_suite_config("global.vendor").get_str_or_default(
             default="acme"
         )
+
+    def propagate_version(self) -> None:
+        suite_workdir = self.get_suite_workdir()
+        self.io.log(f"Propagating app version {self.get_project_name()} {self.get_project_version()}")
+        self.io.indentation_up()
+
+        for dependent in suite_workdir.get_dependents(self):
+            self.io.log(f"Applying to {dependent.get_package_name()}")
+            dependent.save_dependency_from_package(self)
+
+        self.io.success("Versions propagation completed")
+        self.io.indentation_down()
