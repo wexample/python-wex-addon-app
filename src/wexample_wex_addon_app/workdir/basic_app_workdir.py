@@ -161,7 +161,7 @@ class BasicAppWorkdir(AppWorkdirMixin, Workdir):
             return True
         # Limit diff to current package folder, run from package cwd using '.'
         return git_has_changes_since_tag(
-            last_tag, ".", cwd=self.get_path(), inherit_stdio=False
+            last_tag, ".", cwd=self.get_path()
         )
 
     def get_app_env(self) -> str:
