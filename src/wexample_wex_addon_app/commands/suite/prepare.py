@@ -19,7 +19,7 @@ if TYPE_CHECKING:
 @middleware(middleware=PackageSuiteMiddleware)
 @command(
     type=COMMAND_TYPE_ADDON,
-    description="Validate internal dependencies and propagate versions across all packages in the suite. Use app::suite/commit-and-push afterwards to commit changes.",
+    description="Validate internal dependencies and propagate versions across all packages in the suite.",
 )
 def app__suite__prepare(
     context: ExecutionContext,
