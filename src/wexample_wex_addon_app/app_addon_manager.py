@@ -46,7 +46,7 @@ class AppAddonManager(AbstractAddonManager):
         )
 
         if not BasicAppWorkdir.is_app_workdir_path(path=app_path):
-            self.kernel.warn(
+            self.kernel.warning(
                 f"Path does not match with an application directory structure: {cli_make_clickable_path(app_path)}"
             )
             return None
