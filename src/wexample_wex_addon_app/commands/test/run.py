@@ -20,6 +20,4 @@ def app__test__run(
         context: ExecutionContext,
         app_workdir: AppMiddleware,
 ) -> None:
-    app_workdir.shell_run_for_app(
-        cmd=app_workdir.test_get_command()
-    )
+    app_workdir.test_run()
