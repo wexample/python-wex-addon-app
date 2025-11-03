@@ -6,6 +6,7 @@ from wexample_app.const.env import ENV_COLORS
 from wexample_app.response.abstract_response import AbstractResponse
 from wexample_helpers.classes.field import public_field
 from wexample_helpers.decorator.base_class import base_class
+from wexample_prompt.enums.terminal_color import TerminalColor
 from wexample_prompt.responses.abstract_prompt_response import AbstractPromptResponse
 from wexample_prompt.responses.data.multiple_prompt_response import MultiplePromptResponse
 from wexample_prompt.responses.interactive.progress_prompt_response import ProgressPromptResponse
@@ -36,6 +37,10 @@ class AppInfoResponse(AbstractResponse):
                 if library_config.is_str():
                     data["libraries"] = library_config.get_str()
 
+        config = self.app_workdir.get_config().search("test.coverage.last_report").get_dict_or_default()
+
+        total = config.get("total")
+        covered = config.get("covered")
         return MultiplePromptResponse.create_multiple(
             responses=[
                 PropertiesPromptResponse(
@@ -47,9 +52,10 @@ class AppInfoResponse(AbstractResponse):
                     },
                 ),
                 ProgressPromptResponse(
-                    total=100,
-                    current=10,
-                    label="Test"
+                    total=total.get_int() if total else 0,
+                    current=covered.get_int() if covered else 0,
+                    label="Test coverage",
+                    color=TerminalColor.RED
                 )
             ]
         )
