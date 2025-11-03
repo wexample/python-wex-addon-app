@@ -10,6 +10,7 @@ from wexample_prompt.enums.terminal_color import TerminalColor
 from wexample_prompt.responses.abstract_prompt_response import AbstractPromptResponse
 from wexample_prompt.responses.data.multiple_prompt_response import MultiplePromptResponse
 from wexample_prompt.responses.interactive.progress_prompt_response import ProgressPromptResponse
+from wexample_prompt.responses.titles.separator_prompt_response import SeparatorPromptResponse
 from wexample_wex_addon_app.workdir.basic_app_workdir import BasicAppWorkdir
 
 if TYPE_CHECKING:
@@ -39,15 +40,20 @@ class AppInfoResponse(AbstractResponse):
 
         config = self.app_workdir.get_config().search("test.coverage.last_report").get_dict_or_default()
 
-        total = config.get("total")
-        covered = config.get("covered")
+        if config:
+            total = config.get("total")
+            covered = config.get("covered")
 
-        total_int = total.get_int() if total else 0
-        covered_int = covered.get_int() if covered else 0
+            total_int = total.get_int() if total else 0
+            covered_int = covered.get_int() if covered else 0
 
-        coverage_ratio = (covered_int / total_int) if total_int else 0.0
-        clamped_ratio = min(max(coverage_ratio, 0.0), 1.0)
-        coverage_percent = int(round(clamped_ratio * 100))
+            coverage_ratio = (covered_int / total_int) if total_int else 0.0
+            clamped_ratio = min(max(coverage_ratio, 0.0), 1.0)
+            coverage_percent = int(round(clamped_ratio * 100))
+        else:
+            total_int = 100
+            covered_int = 0
+            coverage_percent = 0
 
         if coverage_percent >= 80:
             coverage_color = TerminalColor.GREEN
@@ -56,8 +62,6 @@ class AppInfoResponse(AbstractResponse):
         else:
             coverage_color = TerminalColor.RED
 
-        progress_total = total_int if total_int > 0 else 100
-        progress_current = covered_int if total_int > 0 else 0
         return MultiplePromptResponse.create_multiple(
             responses=[
                 PropertiesPromptResponse(
@@ -69,11 +73,12 @@ class AppInfoResponse(AbstractResponse):
                     },
                 ),
                 ProgressPromptResponse(
-                    total=progress_total,
-                    current=progress_current,
+                    total=total_int,
+                    current=covered_int,
                     label=f"Test coverage ({covered_int}/{total_int})",
                     color=coverage_color,
                     show_percentage=True,
-                )
+                ),
+                SeparatorPromptResponse()
             ]
         )
