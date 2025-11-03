@@ -146,6 +146,15 @@ class AppWorkdirMixin(
 
         return json_parse_if_valid(shell_result.stdout)
 
+    def shell_run_for_app(
+            self,
+            **kwargs
+    ) -> ShellResult:
+        return self.shell_run_from_path(
+            path=self.get_path(),
+            **kwargs
+        )
+
     @classmethod
     def manager_run_command_from_path(
         cls,
