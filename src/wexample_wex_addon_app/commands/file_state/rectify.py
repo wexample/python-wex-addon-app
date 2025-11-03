@@ -53,6 +53,7 @@ def app__file_state__rectify(
 
             # Remove remote.
             scopes = (set(Scope) - {Scope.REMOTE}) if no_remote else None
+
             result = workdir.apply(
                 interactive=(not yes),
                 force=force,
