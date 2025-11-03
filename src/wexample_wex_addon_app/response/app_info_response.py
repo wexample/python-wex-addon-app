@@ -11,7 +11,6 @@ from wexample_prompt.responses.abstract_prompt_response import AbstractPromptRes
 from wexample_prompt.responses.data.multiple_prompt_response import MultiplePromptResponse
 from wexample_prompt.responses.echo_prompt_response import EchoPromptResponse
 from wexample_prompt.responses.interactive.progress_prompt_response import ProgressPromptResponse
-from wexample_prompt.responses.log_prompt_response import LogPromptResponse
 from wexample_prompt.responses.titles.separator_prompt_response import SeparatorPromptResponse
 from wexample_wex_addon_app.workdir.basic_app_workdir import BasicAppWorkdir
 
@@ -86,12 +85,17 @@ class AppInfoResponse(AbstractResponse):
                               color=coverage_color,
                               show_percentage=True,
                           ),
-                          SeparatorPromptResponse.create_separator(
-                              label="Libraries"
-                          )
-                      ] + libraries + [
+                      ] + (([
+                                SeparatorPromptResponse.create_separator(
+                                    label="Libraries"
+                                )] + libraries) if len(libraries) else [])
+                      + [
+                          PropertiesPromptResponse(properties={
+                              "Has one test": "@color:red{No}",
+                              "Has a README.md": "@color:red{No}",
+                          }),
                           SeparatorPromptResponse(
                               character="▄"
-                          )
+                          ),
                       ]
         )
