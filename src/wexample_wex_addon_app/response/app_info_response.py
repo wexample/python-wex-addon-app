@@ -9,7 +9,9 @@ from wexample_helpers.decorator.base_class import base_class
 from wexample_prompt.enums.terminal_color import TerminalColor
 from wexample_prompt.responses.abstract_prompt_response import AbstractPromptResponse
 from wexample_prompt.responses.data.multiple_prompt_response import MultiplePromptResponse
+from wexample_prompt.responses.echo_prompt_response import EchoPromptResponse
 from wexample_prompt.responses.interactive.progress_prompt_response import ProgressPromptResponse
+from wexample_prompt.responses.log_prompt_response import LogPromptResponse
 from wexample_prompt.responses.titles.separator_prompt_response import SeparatorPromptResponse
 from wexample_wex_addon_app.workdir.basic_app_workdir import BasicAppWorkdir
 
@@ -30,13 +32,17 @@ class AppInfoResponse(AbstractResponse):
 
         env = self.app_workdir.get_app_env()
 
-        data = {}
+        libraries = []
         # Show local libraries if configured
         local_libraries = self.app_workdir.get_local_libraries_paths()
         if local_libraries:
             for library_config in local_libraries:
                 if library_config.is_str():
-                    data["libraries"] = library_config.get_str()
+                    libraries.append(
+                        EchoPromptResponse.create_echo(
+                            message=f"@path{{{library_config.get_str()}}}"
+                        )
+                    )
 
         config = self.app_workdir.get_config().search("test.coverage.last_report").get_dict_or_default()
 
@@ -64,21 +70,28 @@ class AppInfoResponse(AbstractResponse):
 
         return MultiplePromptResponse.create_multiple(
             responses=[
-                PropertiesPromptResponse(
-                    properties={
-                        "name": f"@color:blue{{{self.app_workdir.get_item_name()}}}",
-                        "version": self.app_workdir.get_project_version(),
-                        "path": f"@path{{{self.app_workdir.get_path()}}}",
-                        "environment": f"@color:{ENV_COLORS[env]}{{{env}}}",
-                    },
-                ),
-                ProgressPromptResponse(
-                    total=total_int,
-                    current=covered_int,
-                    label=f"Test coverage ({covered_int}/{total_int})",
-                    color=coverage_color,
-                    show_percentage=True,
-                ),
-                SeparatorPromptResponse()
-            ]
+                          PropertiesPromptResponse(
+                              title="Project info",
+                              properties={
+                                  "name": f"@color:blue{{{self.app_workdir.get_item_name()}}}",
+                                  "version": self.app_workdir.get_project_version(),
+                                  "path": f"@path{{{self.app_workdir.get_path()}}}",
+                                  "environment": f"@color:{ENV_COLORS[env]}{{{env}}}",
+                              },
+                          ),
+                          ProgressPromptResponse(
+                              total=total_int,
+                              current=covered_int,
+                              label=f"Test coverage ({covered_int}/{total_int})",
+                              color=coverage_color,
+                              show_percentage=True,
+                          ),
+                          SeparatorPromptResponse.create_separator(
+                              label="Libraries"
+                          )
+                      ] + libraries + [
+                          SeparatorPromptResponse(
+                              character="▄"
+                          )
+                      ]
         )
