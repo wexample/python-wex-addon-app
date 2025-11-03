@@ -41,6 +41,22 @@ class AppInfoResponse(AbstractResponse):
 
         total = config.get("total")
         covered = config.get("covered")
+
+        total_int = total.get_int() if total else 0
+        covered_int = covered.get_int() if covered else 0
+
+        coverage_ratio = (covered_int / total_int) if total_int else 0.0
+        coverage_percent = int(round(coverage_ratio * 100))
+
+        if coverage_percent >= 80:
+            coverage_color = TerminalColor.GREEN
+        elif coverage_percent > 0:
+            coverage_color = TerminalColor.YELLOW
+        else:
+            coverage_color = TerminalColor.RED
+
+        progress_total = total_int if total_int > 0 else 100
+        progress_current = covered_int if total_int > 0 else 0
         return MultiplePromptResponse.create_multiple(
             responses=[
                 PropertiesPromptResponse(
@@ -52,10 +68,11 @@ class AppInfoResponse(AbstractResponse):
                     },
                 ),
                 ProgressPromptResponse(
-                    total=total.get_int() if total else 0,
-                    current=covered.get_int() if covered else 0,
-                    label="Test coverage",
-                    color=TerminalColor.RED
+                    total=progress_total,
+                    current=progress_current,
+                    label=f"Test coverage ({coverage_percent}%)",
+                    color=coverage_color,
+                    show_percentage=True,
                 )
             ]
         )
