@@ -46,7 +46,8 @@ class AppInfoResponse(AbstractResponse):
         covered_int = covered.get_int() if covered else 0
 
         coverage_ratio = (covered_int / total_int) if total_int else 0.0
-        coverage_percent = int(round(coverage_ratio * 100))
+        clamped_ratio = min(max(coverage_ratio, 0.0), 1.0)
+        coverage_percent = int(round(clamped_ratio * 100))
 
         if coverage_percent >= 80:
             coverage_color = TerminalColor.GREEN
@@ -70,7 +71,7 @@ class AppInfoResponse(AbstractResponse):
                 ProgressPromptResponse(
                     total=progress_total,
                     current=progress_current,
-                    label=f"Test coverage ({coverage_percent}%)",
+                    label=f"Test coverage ({covered_int}/{total_int})",
                     color=coverage_color,
                     show_percentage=True,
                 )
