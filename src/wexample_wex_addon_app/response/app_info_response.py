@@ -91,8 +91,11 @@ class AppInfoResponse(AbstractResponse):
                                 )] + libraries) if len(libraries) else [])
                       + [
                           PropertiesPromptResponse(properties={
+                              # TODO
                               "Has one test": "@color:red{No}",
                               "Has a README.md": "@color:red{No}",
+                              "Has change from last coverage": "@color:red{Yes}",
+                              "Has change from last version": "@color:red{Yes}",
                           }),
                           SeparatorPromptResponse(
                               character="▄"
