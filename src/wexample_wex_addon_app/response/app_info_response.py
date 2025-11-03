@@ -68,7 +68,7 @@ class AppInfoResponse(AbstractResponse):
                     properties={
                         "name": f"@color:blue{{{self.app_workdir.get_item_name()}}}",
                         "version": self.app_workdir.get_project_version(),
-                        "path": str(self.app_workdir.get_path()),
+                        "path": f"@path{{{self.app_workdir.get_path()}}}",
                         "environment": f"@color:{ENV_COLORS[env]}{{{env}}}",
                     },
                 ),
