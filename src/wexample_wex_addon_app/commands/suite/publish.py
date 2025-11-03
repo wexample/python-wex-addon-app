@@ -84,11 +84,8 @@ def app__suite__publish(
             sub_progress.advance(
                 step=1, label=f"Committing and pushing {package.get_project_name()}"
             )
-            commit_args = []
-            if yes:
-                commit_args.append("--yes")
             package.manager_run_command(
-                command=app__package__commit_and_push, arguments=commit_args
+                command=app__package__commit_and_push
             )
 
             sub_progress.advance(
