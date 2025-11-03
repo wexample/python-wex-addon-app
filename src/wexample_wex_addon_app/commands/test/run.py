@@ -17,7 +17,7 @@ if TYPE_CHECKING:
     description="Bump version for one or all package of the suite.",
 )
 def app__test__run(
-        context: ExecutionContext,
-        app_workdir: AppMiddleware,
+    context: ExecutionContext,
+    app_workdir: AppMiddleware,
 ) -> None:
     app_workdir.test_run()

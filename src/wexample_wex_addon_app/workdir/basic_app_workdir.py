@@ -15,6 +15,9 @@ if TYPE_CHECKING:
 
 @base_class
 class BasicAppWorkdir(AppWorkdirMixin, Workdir):
+
+    def app_install(self, env: str | None = None, force: bool = False) -> bool:
+        return True
     def apply(
         self,
         force: bool = False,
@@ -132,6 +135,11 @@ class BasicAppWorkdir(AppWorkdirMixin, Workdir):
             return True
         return False
 
+    def get_app_env(self) -> str:
+        from wexample_app.const.globals import ENV_VAR_NAME_APP_ENV
+
+        return self.get_env_parameter(key=ENV_VAR_NAME_APP_ENV, default=ENV_NAME_PROD)
+
     def get_last_publication_tag(self) -> str | None:
         """Return the last publication tag for this package, or None if none exists."""
         from wexample_helpers_git.helpers.git import git_last_tag_for_prefix
@@ -166,34 +174,6 @@ class BasicAppWorkdir(AppWorkdirMixin, Workdir):
         # Limit diff to current package folder, run from package cwd using '.'
         return git_has_changes_since_tag(last_tag, ".", cwd=self.get_path())
 
-    def get_app_env(self) -> str:
-        from wexample_app.const.globals import ENV_VAR_NAME_APP_ENV
-
-        return self.get_env_parameter(key=ENV_VAR_NAME_APP_ENV, default=ENV_NAME_PROD)
-
-    def app_install(self, env: str | None = None, force: bool = False) -> bool:
-        return True
-
-    def publish_dependencies(self) -> dict[str, str]:
-        """Publish witch dependency **current package represents for others**,
-        not the dependencies the current package is dependent on.
-        """
-        return {self.get_package_name(): self.get_project_version()}
-
-    def setup_install(self, env: str | None = None, force: bool = False) -> None:
-        package_name = self.get_path().name
-        env_label = f" ({env})" if env else ""
-
-        self.log(f"Installing dependencies for {package_name}{env_label}")
-        self.shell_run_from_path(path=self.get_path(), cmd=self._create_setup_command())
-
-        self.app_install(env, force=force)
-
-    def _create_setup_command(self) -> list[str]:
-        from wexample_app.const.globals import APP_PATH_BIN_APP_MANAGER
-
-        return [str(APP_PATH_BIN_APP_MANAGER), "setup"]
-
     def libraries_sync(self) -> None:
         from wexample_wex_addon_app.commands.dependencies.publish import (
             app__dependencies__publish,
@@ -217,6 +197,26 @@ class BasicAppWorkdir(AppWorkdirMixin, Workdir):
                 self.update_dependencies(publishable_dependencies)
         self.io.success("All libraries versions are up to date.")
 
+    def publish_dependencies(self) -> dict[str, str]:
+        """Publish witch dependency **current package represents for others**,
+        not the dependencies the current package is dependent on.
+        """
+        return {self.get_package_name(): self.get_project_version()}
+
+    def setup_install(self, env: str | None = None, force: bool = False) -> None:
+        package_name = self.get_path().name
+        env_label = f" ({env})" if env else ""
+
+        self.log(f"Installing dependencies for {package_name}{env_label}")
+        self.shell_run_from_path(path=self.get_path(), cmd=self._create_setup_command())
+
+        self.app_install(env, force=force)
+
     def update_dependencies(self, dependencies_map: dict[str, str]) -> None:
         # Let language specific workdir manage how to update.
         pass
+
+    def _create_setup_command(self) -> list[str]:
+        from wexample_app.const.globals import APP_PATH_BIN_APP_MANAGER
+
+        return [str(APP_PATH_BIN_APP_MANAGER), "setup"]

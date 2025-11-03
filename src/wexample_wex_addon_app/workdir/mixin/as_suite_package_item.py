@@ -48,7 +48,7 @@ class AsSuitePackageItem(BaseClass):
         return None
 
     def get_env_parameter_or_suite_fallback(
-            self, key: str, default: str | None = None
+        self, key: str, default: str | None = None
     ) -> str | None:
         value = self.get_env_parameter(
             key=key,
@@ -95,19 +95,23 @@ class AsSuitePackageItem(BaseClass):
         return value
 
     def get_vendor_name(self) -> str:
-        return self.search_in_package_or_suite_config("global.vendor").get_str_or_default(
-            default="acme"
-        )
+        return self.search_in_package_or_suite_config(
+            "global.vendor"
+        ).get_str_or_default(default="acme")
 
     def propagate_version(self) -> None:
         from wexample_helpers.helpers.cli import cli_make_clickable_path
 
         suite_workdir = self.get_suite_workdir()
-        self.io.log(f"Propagating app version {self.get_project_name()} {self.get_project_version()}")
+        self.io.log(
+            f"Propagating app version {self.get_project_name()} {self.get_project_version()}"
+        )
         self.io.indentation_up()
 
         for dependent in suite_workdir.get_dependents(self):
-            self.io.log(f"Applying to {cli_make_clickable_path(dependent.get_path(), dependent.get_package_name())}")
+            self.io.log(
+                f"Applying to {cli_make_clickable_path(dependent.get_path(), dependent.get_package_name())}"
+            )
             dependent.save_dependency_from_package(self)
 
         self.io.success("Versions propagation completed")

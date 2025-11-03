@@ -310,10 +310,9 @@ class FrameworkPackageSuiteWorkdir(BasicAppWorkdir):
 
         self.title(f"📦 {message}: {path.name}")
         self.log(f"Path: {cli_make_clickable_path(path)}", indentation=1)
-    
+
     def publish_dependencies(self) -> dict[str, str]:
-        """The suite provides dependency of package it manages.
-        """
+        """The suite provides dependency of package it manages."""
         dependencies = {}
 
         for package in self.get_packages():
@@ -322,11 +321,11 @@ class FrameworkPackageSuiteWorkdir(BasicAppWorkdir):
         return dependencies
 
     def _packages_execute(
-            self,
-            cmd: list[str],
-            executor_method: callable,
-            message: str,
-            force: bool = False,
+        self,
+        cmd: list[str],
+        executor_method: callable,
+        message: str,
+        force: bool = False,
     ) -> None:
         """
         Generic method to execute a command on all detected packages.
@@ -340,7 +339,7 @@ class FrameworkPackageSuiteWorkdir(BasicAppWorkdir):
         import shlex
 
         from wexample_prompt.enums.terminal_color import TerminalColor
-        
+
         for package_path in self.get_packages_paths():
             if not force and not BasicAppWorkdir.is_app_workdir_path(path=package_path):
                 continue

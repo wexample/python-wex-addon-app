@@ -15,7 +15,7 @@ if TYPE_CHECKING:
 @middleware(middleware=AppMiddleware)
 @command(type=COMMAND_TYPE_ADDON)
 def app__libraries__sync(
-        context: ExecutionContext,
-        app_workdir: BasicAppWorkdir,
+    context: ExecutionContext,
+    app_workdir: BasicAppWorkdir,
 ) -> None:
     app_workdir.libraries_sync()

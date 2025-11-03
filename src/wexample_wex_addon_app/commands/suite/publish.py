@@ -84,9 +84,7 @@ def app__suite__publish(
             sub_progress.advance(
                 step=1, label=f"Committing and pushing {package.get_project_name()}"
             )
-            package.manager_run_command(
-                command=app__package__commit_and_push
-            )
+            package.manager_run_command(command=app__package__commit_and_push)
 
             sub_progress.advance(
                 step=1, label=f"Propagating version for {package.get_project_name()}"
