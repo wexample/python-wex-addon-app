@@ -42,15 +42,15 @@ class AppInfoResponse(AbstractResponse):
                         )
                     )
 
-        config = (
+        coverage_last_report = (
             self.app_workdir.get_config()
             .search("test.coverage.last_report")
             .get_dict_or_default()
         )
 
-        if config:
-            total = config.get("total")
-            covered = config.get("covered")
+        if coverage_last_report:
+            total = coverage_last_report.get("total")
+            covered = coverage_last_report.get("covered")
 
             total_int = total.get_int() if total else 0
             covered_int = covered.get_int() if covered else 0
