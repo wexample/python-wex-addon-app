@@ -4,6 +4,7 @@ from typing import TYPE_CHECKING, ClassVar
 
 from wexample_helpers.classes.base_class import BaseClass
 from wexample_helpers.decorator.base_class import base_class
+from wexample_wex_addon_app.const.path import APP_PATH_README
 
 if TYPE_CHECKING:
     from wexample_config.const.types import DictConfig
@@ -14,15 +15,13 @@ if TYPE_CHECKING:
 
 @base_class
 class WithReadmeWorkdirMixin(BaseClass):
-    README_FILENAME: ClassVar[str] = "README.md"
-
     def append_readme(self, config: DictConfig | None = None) -> DictConfig:
         from wexample_filestate.const.disk import DiskItemType
         from wexample_filestate.option.text_option import TextOption
 
         config.get("children").append(
             {
-                "name": self.README_FILENAME,
+                "name": APP_PATH_README,
                 "type": DiskItemType.FILE,
                 "should_exist": True,
                 "content": self._get_readme_content(),
@@ -38,3 +37,6 @@ class WithReadmeWorkdirMixin(BaseClass):
         )
 
         return ReadmeContentConfigValue()
+
+    def has_readme(self) -> bool:
+        return self.find_by_name(APP_PATH_README) is not None

@@ -6,6 +6,7 @@ from wexample_app.const.env import ENV_NAME_PROD
 from wexample_config.config_value.config_value import ConfigValue
 from wexample_helpers.decorator.base_class import base_class
 from wexample_prompt.enums.terminal_color import TerminalColor
+from wexample_wex_addon_app.const.path import APP_PATH_TEST
 from wexample_wex_addon_app.workdir.mixin.app_workdir_mixin import AppWorkdirMixin
 from wexample_wex_core.workdir.workdir import Workdir
 
@@ -290,6 +291,8 @@ class BasicAppWorkdir(AppWorkdirMixin, Workdir):
                 command=app__file_state__rectify, arguments=rectify_args
             )
 
+            # TODO running test
+
             sub_progress.advance(
                 step=1, label=f"Committing and pushing {self.get_project_name()}"
             )
@@ -306,3 +309,7 @@ class BasicAppWorkdir(AppWorkdirMixin, Workdir):
             self.manager_run_command(command=app__package__publish)
         else:
             self.io.log("No change to publish, skipping.")
+
+    def has_a_test(self) -> bool:
+        test_dir = self.find_by_name(APP_PATH_TEST)
+        return test_dir and test_dir.is_directory() and any(test_dir.get_path().rglob("*.py"))

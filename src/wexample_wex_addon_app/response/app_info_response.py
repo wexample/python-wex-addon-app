@@ -100,9 +100,8 @@ class AppInfoResponse(AbstractResponse):
             + [
                 PropertiesPromptResponse(
                     properties={
-                        # TODO
-                        "Has one test": "@color:red{No}",
-                        "Has a README.md": "@color:red{No}",
+                        "Has one test": "@color:green{Yes}" if self.app_workdir.has_a_test() else "@color:red{No}",
+                        "Has a README.md": "@color:green{Yes}" if self.app_workdir.has_readme() else "@color:red{No}",
                         "Has change from last coverage": "@color:red{Yes}",
                         "Has change from last version": "@color:red{Yes}",
                     }
