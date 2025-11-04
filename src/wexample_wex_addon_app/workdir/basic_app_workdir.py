@@ -15,7 +15,6 @@ if TYPE_CHECKING:
 
 @base_class
 class BasicAppWorkdir(AppWorkdirMixin, Workdir):
-
     def app_install(self, env: str | None = None, force: bool = False) -> bool:
         return True
 

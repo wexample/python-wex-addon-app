@@ -26,10 +26,10 @@ if TYPE_CHECKING:
     description="Publish package to PyPI. Use --all-packages to publish all packages in suite.",
 )
 def app__suite__publish(
-        context: ExecutionContext,
-        app_workdir: FrameworkPackageSuiteWorkdir,
-        yes: bool = False,
-        force: bool = False,
+    context: ExecutionContext,
+    app_workdir: FrameworkPackageSuiteWorkdir,
+    yes: bool = False,
+    force: bool = False,
 ) -> None:
     app_workdir.packages_validate_internal_dependencies_declarations()
     packages = app_workdir.get_ordered_packages()
@@ -46,9 +46,6 @@ def app__suite__publish(
     # Use manager for every command allow to use complete specific environment.
     for package in packages:
         progress.advance(label=f"Publishing {package.get_project_name()}", step=1)
-        package.publish_bumped(
-            force=force,
-            interactive=not yes
-        )
+        package.publish_bumped(force=force, interactive=not yes)
 
     progress.finish(label="All packages published successfully")

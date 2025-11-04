@@ -48,7 +48,7 @@ class AsSuitePackageItem(BaseClass):
         return None
 
     def get_env_parameter_or_suite_fallback(
-            self, key: str, default: str | None = None
+        self, key: str, default: str | None = None
     ) -> str | None:
         value = self.get_env_parameter(
             key=key,
@@ -101,30 +101,25 @@ class AsSuitePackageItem(BaseClass):
 
     def propagate_version(self) -> None:
         suite_workdir = self.get_suite_workdir()
-        self.log(
-            f"Propagating app version {self.get_project_version()}",
-            prefix=True
-        )
+        self.log(f"Propagating app version {self.get_project_version()}", prefix=True)
         self.io.indentation_up()
 
         for dependent in suite_workdir.get_dependents(self):
             self.log(
-                f"Updating dependency to {dependent.get_project_name()}",
-                prefix=False
+                f"Updating dependency to {dependent.get_project_name()}", prefix=False
             )
             io = dependent.ensure_io_manager()
             io.indentation = self.io.indentation + 1
 
             dependent.save_dependency_from_package(self)
-            dependent.bump(
-                force=True,
-                interactive=False
-            )
+            dependent.bump(force=True, interactive=False)
 
         self.io.indentation_down()
         self.success("Versions propagation completed")
 
-    def save_dependency_from_package(self, package: FrameworkPackageSuiteWorkdir) -> None:
+    def save_dependency_from_package(
+        self, package: FrameworkPackageSuiteWorkdir
+    ) -> None:
         """Add a dependency from another package, use strict version as this is the intended internal management."""
         self.save_dependency(
             package_name=package.get_package_name(),

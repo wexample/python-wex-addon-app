@@ -30,10 +30,10 @@ if TYPE_CHECKING:
     description="Bump version only if package has new content (HEAD not tagged). Use --force to bump regardless of changes. Use --all-packages to bump all packages, --packages-only to exclude suite, --suite-only to exclude packages.",
 )
 def app__package__bump(
-        context: ExecutionContext,
-        app_workdir: CodeBaseWorkdir,
-        yes: bool = False,
-        force: bool = False,
+    context: ExecutionContext,
+    app_workdir: CodeBaseWorkdir,
+    yes: bool = False,
+    force: bool = False,
 ) -> BooleanResponse:
     package_name = app_workdir.get_package_name()
     bumped = app_workdir.bump(interactive=not yes, force=force)

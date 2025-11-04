@@ -56,7 +56,7 @@ class AppWorkdirMixin(
 
     @classmethod
     def get_registry_from_path(
-            cls, path: FileStringOrPath, io: IoManager
+        cls, path: FileStringOrPath, io: IoManager
     ) -> YamlFile | None:
         from wexample_filestate.item.file.yaml_file import YamlFile
 
@@ -75,7 +75,7 @@ class AppWorkdirMixin(
         )
 
         return (
-                Path(path) / WORKDIR_SETUP_DIR / CORE_DIR_NAME_TMP / CORE_FILE_NAME_REGISTRY
+            Path(path) / WORKDIR_SETUP_DIR / CORE_DIR_NAME_TMP / CORE_FILE_NAME_REGISTRY
         )
 
     @classmethod
@@ -95,13 +95,13 @@ class AppWorkdirMixin(
         if cls.is_app_workdir_path(path=path):
             # app-manager exists.
             return (path / APP_PATH_BIN_APP_MANAGER).exists() and (
-                    path / APP_PATH_APP_MANAGER / ".venv/bin/python"
+                path / APP_PATH_APP_MANAGER / ".venv/bin/python"
             ).exists()
         return False
 
     @classmethod
     def manager_run_from_path(
-            cls, path: FileStringOrPath, cmd: list[str] | str
+        cls, path: FileStringOrPath, cmd: list[str] | str
     ) -> None | ShellResult:
         from wexample_app.const.globals import APP_PATH_BIN_APP_MANAGER
         from wexample_helpers.helpers.shell import shell_run
@@ -132,7 +132,7 @@ class AppWorkdirMixin(
 
     @classmethod
     def shell_run_from_path(
-            cls, path: FileStringOrPath, cmd: list[str] | str
+        cls, path: FileStringOrPath, cmd: list[str] | str
     ) -> None | ShellResult:
         from wexample_helpers.helpers.shell import shell_run
 
@@ -147,10 +147,10 @@ class AppWorkdirMixin(
 
     @classmethod
     def manager_run_command_from_path(
-            cls,
-            path: str,
-            command: callable,
-            arguments: list[str] | None = None,
+        cls,
+        path: str,
+        command: callable,
+        arguments: list[str] | None = None,
     ) -> AppManagerShellResult:
         """
         Execute a Python addon command (e.g., app__setup__install) using the app manager,
@@ -174,23 +174,19 @@ class AppWorkdirMixin(
         # Build full command
         cmd = [resolved_command] + (arguments or [])
         full_cmd = [
-                       str(APP_PATH_BIN_APP_MANAGER),
-                       "--force-request-id",
-                       request_id,
-                       "--output-format",
-                       OUTPUT_FORMAT_JSON,
-                       "--output-target",
-                       OUTPUT_TARGET_FILE,
-                   ] + cmd
+            str(APP_PATH_BIN_APP_MANAGER),
+            "--force-request-id",
+            request_id,
+            "--output-format",
+            OUTPUT_FORMAT_JSON,
+            "--output-target",
+            OUTPUT_TARGET_FILE,
+        ] + cmd
 
         # Run the manager command in the given workdir
         return AppManagerShellResult.from_shell_result(
             request_id=request_id,
-            result=shell_run(
-                cmd=full_cmd,
-                cwd=path,
-                inherit_stdio=True
-            )
+            result=shell_run(cmd=full_cmd, cwd=path, inherit_stdio=True),
         )
 
     def manager_run_command(self, **kwargs) -> AppManagerShellResult:
@@ -229,9 +225,9 @@ class AppWorkdirMixin(
         # We don't search into the target item tree as this is a low level information.
         return self.get_yaml_file_from_path(
             path=self.get_path()
-                 / WORKDIR_SETUP_DIR
-                 / CORE_DIR_NAME_TMP
-                 / APP_FILE_APP_RUNTIME_CONFIG,
+            / WORKDIR_SETUP_DIR
+            / CORE_DIR_NAME_TMP
+            / APP_FILE_APP_RUNTIME_CONFIG,
         )
 
     def get_runtime_config(self) -> NestedConfigValue:

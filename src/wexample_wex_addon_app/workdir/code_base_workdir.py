@@ -18,10 +18,7 @@ class CodeBaseWorkdir(BasicAppWorkdir):
         from wexample_helpers.helpers.cli import cli_make_clickable_path
 
         """Get the prefix to prepend to messages (e.g., '[child]')."""
-        return cli_make_clickable_path(
-            self.get_path(),
-            self.get_project_name()
-        )
+        return cli_make_clickable_path(self.get_path(), self.get_project_name())
 
     def get_io_context_prefix_format(self) -> str:
         return "‹› {prefix} | "

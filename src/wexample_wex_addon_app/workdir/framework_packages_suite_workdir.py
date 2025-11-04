@@ -102,34 +102,6 @@ class FrameworkPackageSuiteWorkdir(BasicAppWorkdir):
 
         return resolved
 
-    def packages_execute_manager(
-        self,
-        command: str,
-        arguments: list[str] | None = None,
-        force: bool = False,
-    ) -> None:
-        """Execute a manager command on all packages."""
-        cmd = [command] + (arguments or [])
-
-        if "--indentation-level" not in cmd:
-            cmd.extend(["--indentation-level", str(self.io.indentation + 1)])
-
-        self._packages_execute(
-            cmd=cmd,
-            executor_method=BasicAppWorkdir.manager_run_from_path,
-            message="Executing command",
-            force=force,
-        )
-
-    def packages_execute_shell(self, cmd: list[str], force: bool = False) -> None:
-        """Execute a raw shell command on all packages."""
-        self._packages_execute(
-            cmd=cmd,
-            executor_method=BasicAppWorkdir.shell_run_from_path,
-            message="Executing shell",
-            force=force,
-        )
-
     def packages_execute_function(
         self,
         command: callable,
@@ -158,6 +130,34 @@ class FrameworkPackageSuiteWorkdir(BasicAppWorkdir):
             force=force,
         )
 
+    def packages_execute_manager(
+        self,
+        command: str,
+        arguments: list[str] | None = None,
+        force: bool = False,
+    ) -> None:
+        """Execute a manager command on all packages."""
+        cmd = [command] + (arguments or [])
+
+        if "--indentation-level" not in cmd:
+            cmd.extend(["--indentation-level", str(self.io.indentation + 1)])
+
+        self._packages_execute(
+            cmd=cmd,
+            executor_method=BasicAppWorkdir.manager_run_from_path,
+            message="Executing command",
+            force=force,
+        )
+
+    def packages_execute_shell(self, cmd: list[str], force: bool = False) -> None:
+        """Execute a raw shell command on all packages."""
+        self._packages_execute(
+            cmd=cmd,
+            executor_method=BasicAppWorkdir.shell_run_from_path,
+            message="Executing shell",
+            force=force,
+        )
+
     def prepare_value(self, raw_value: DictConfig | None = None) -> DictConfig:
         """Prepare file state configuration for package suite.
 
@@ -178,6 +178,15 @@ class FrameworkPackageSuiteWorkdir(BasicAppWorkdir):
         children.extend(tree)
 
         return raw_value
+
+    def publish_dependencies(self) -> dict[str, str]:
+        """The suite provides dependency of package it manages."""
+        dependencies = {}
+
+        for package in self.get_packages():
+            dependencies[package.get_package_name()] = package.get_project_version()
+
+        return dependencies
 
     def setup_install(self, env: str | None = None, force: bool = False) -> None:
         from wexample_wex_addon_app.commands.setup.install import app__setup__install
@@ -310,15 +319,6 @@ class FrameworkPackageSuiteWorkdir(BasicAppWorkdir):
 
         self.title(f"📦 {message}: {path.name}")
         self.log(f"Path: {cli_make_clickable_path(path)}", indentation=1)
-
-    def publish_dependencies(self) -> dict[str, str]:
-        """The suite provides dependency of package it manages."""
-        dependencies = {}
-
-        for package in self.get_packages():
-            dependencies[package.get_package_name()] = package.get_project_version()
-
-        return dependencies
 
     def _packages_execute(
         self,

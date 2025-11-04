@@ -22,8 +22,8 @@ if TYPE_CHECKING:
     description="Publish package to PyPI. Use --all-packages to publish all packages in suite.",
 )
 def app__package__publish(
-        context: ExecutionContext,
-        app_workdir: CodeBaseWorkdir,
-        force: bool = False,
+    context: ExecutionContext,
+    app_workdir: CodeBaseWorkdir,
+    force: bool = False,
 ) -> None:
     app_workdir.publish(force=force)
