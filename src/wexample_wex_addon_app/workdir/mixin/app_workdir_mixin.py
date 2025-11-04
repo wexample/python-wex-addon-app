@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 from wexample_app.const.globals import (
     APP_FILE_APP_CONFIG,
@@ -8,9 +8,10 @@ from wexample_app.const.globals import (
     WORKDIR_SETUP_DIR,
     APP_FILE_APP_RUNTIME_CONFIG,
 )
+from wexample_app.const.output import OUTPUT_FORMAT_JSON, OUTPUT_TARGET_FILE
+from wexample_app.helpers.request import request_build_id
 from wexample_helpers.const.types import FileStringOrPath, PathOrString
 from wexample_helpers.decorator.base_class import base_class
-from wexample_helpers.helpers.json import json_parse_if_valid
 from wexample_prompt.common.io_manager import IoManager
 from wexample_wex_addon_app.helpers.python import python_install_environment
 from wexample_wex_addon_app.workdir.mixin.as_suite_package_item import (
@@ -19,6 +20,7 @@ from wexample_wex_addon_app.workdir.mixin.as_suite_package_item import (
 from wexample_wex_addon_app.workdir.mixin.with_readme_workdir_mixin import (
     WithReadmeWorkdirMixin,
 )
+from wexample_wex_core.common.app_manager_shell_result import AppManagerShellResult
 from wexample_wex_core.const.globals import CORE_DIR_NAME_TMP
 from wexample_wex_core.resolver.addon_command_resolver import AddonCommandResolver
 from wexample_wex_core.workdir.mixin.with_app_version_workdir_mixin import (
@@ -54,7 +56,7 @@ class AppWorkdirMixin(
 
     @classmethod
     def get_registry_from_path(
-        cls, path: FileStringOrPath, io: IoManager
+            cls, path: FileStringOrPath, io: IoManager
     ) -> YamlFile | None:
         from wexample_filestate.item.file.yaml_file import YamlFile
 
@@ -73,7 +75,7 @@ class AppWorkdirMixin(
         )
 
         return (
-            Path(path) / WORKDIR_SETUP_DIR / CORE_DIR_NAME_TMP / CORE_FILE_NAME_REGISTRY
+                Path(path) / WORKDIR_SETUP_DIR / CORE_DIR_NAME_TMP / CORE_FILE_NAME_REGISTRY
         )
 
     @classmethod
@@ -93,13 +95,13 @@ class AppWorkdirMixin(
         if cls.is_app_workdir_path(path=path):
             # app-manager exists.
             return (path / APP_PATH_BIN_APP_MANAGER).exists() and (
-                path / APP_PATH_APP_MANAGER / ".venv/bin/python"
+                    path / APP_PATH_APP_MANAGER / ".venv/bin/python"
             ).exists()
         return False
 
     @classmethod
     def manager_run_from_path(
-        cls, path: FileStringOrPath, cmd: list[str] | str
+            cls, path: FileStringOrPath, cmd: list[str] | str
     ) -> None | ShellResult:
         from wexample_app.const.globals import APP_PATH_BIN_APP_MANAGER
         from wexample_helpers.helpers.shell import shell_run
@@ -130,7 +132,7 @@ class AppWorkdirMixin(
 
     @classmethod
     def shell_run_from_path(
-        cls, path: FileStringOrPath, cmd: list[str] | str
+            cls, path: FileStringOrPath, cmd: list[str] | str
     ) -> None | ShellResult:
         from wexample_helpers.helpers.shell import shell_run
 
@@ -140,24 +142,16 @@ class AppWorkdirMixin(
             inherit_stdio=True,
         )
 
-    @classmethod
-    def manager_run_command_and_parse_from_path(cls, **kwargs) -> Any:
-        shell_result = cls.manager_run_command_from_path(**kwargs)
-
-        return json_parse_if_valid(shell_result.stdout)
-
     def shell_run_for_app(self, **kwargs) -> ShellResult:
         return self.shell_run_from_path(path=self.get_path(), **kwargs)
 
     @classmethod
     def manager_run_command_from_path(
-        cls,
-        path: str,
-        command: callable,
-        arguments: list[str] | None = None,
-        output_format: None | str = None,
-        capture_output: bool = False,
-    ) -> ShellResult:
+            cls,
+            path: str,
+            command: callable,
+            arguments: list[str] | None = None,
+    ) -> AppManagerShellResult:
         """
         Execute a Python addon command (e.g., app__setup__install) using the app manager,
         within a specific workdir.
@@ -175,34 +169,31 @@ class AppWorkdirMixin(
             command_wrapper=command
         )
 
+        request_id = request_build_id()
+
         # Build full command
         cmd = [resolved_command] + (arguments or [])
-        full_cmd = [str(APP_PATH_BIN_APP_MANAGER)] + cmd
-
-        if capture_output:
-            # When capturing, we don't focus on the logs but on the final output response.
-            full_cmd.extend(
-                [
-                    "--quiet",
-                ]
-            )
-
-        if output_format:
-            full_cmd.extend(
-                [
-                    "--output-format",
-                    output_format,
-                ]
-            )
+        full_cmd = [
+                       str(APP_PATH_BIN_APP_MANAGER),
+                       "--force-request-id",
+                       request_id,
+                       "--output-format",
+                       OUTPUT_FORMAT_JSON,
+                       "--output-target",
+                       OUTPUT_TARGET_FILE,
+                   ] + cmd
 
         # Run the manager command in the given workdir
-        return shell_run(
-            cmd=full_cmd,
-            cwd=path,
-            inherit_stdio=(not capture_output),
+        return AppManagerShellResult.from_shell_result(
+            request_id=request_id,
+            result=shell_run(
+                cmd=full_cmd,
+                cwd=path,
+                inherit_stdio=True
+            )
         )
 
-    def manager_run_command(self, **kwargs) -> ShellResult:
+    def manager_run_command(self, **kwargs) -> AppManagerShellResult:
         return self.manager_run_command_from_path(path=self.get_path(), **kwargs)
 
     def build_registry_value(self) -> NestedConfigValue:
@@ -238,9 +229,9 @@ class AppWorkdirMixin(
         # We don't search into the target item tree as this is a low level information.
         return self.get_yaml_file_from_path(
             path=self.get_path()
-            / WORKDIR_SETUP_DIR
-            / CORE_DIR_NAME_TMP
-            / APP_FILE_APP_RUNTIME_CONFIG,
+                 / WORKDIR_SETUP_DIR
+                 / CORE_DIR_NAME_TMP
+                 / APP_FILE_APP_RUNTIME_CONFIG,
         )
 
     def get_runtime_config(self) -> NestedConfigValue:

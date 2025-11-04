@@ -15,15 +15,20 @@ if TYPE_CHECKING:
     from wexample_wex_core.context.execution_context import ExecutionContext
 
 
-@option(name="force", type=bool, default=False, is_flag=True)
 @middleware(middleware=SuiteOrEachPackageMiddleware)
+@option(name="yes", type=bool, default=False, is_flag=True)
+@option(name="force", type=bool, default=False, is_flag=True)
 @command(
     type=COMMAND_TYPE_ADDON,
     description="Publish package to PyPI. Use --all-packages to publish all packages in suite.",
 )
-def app__package__publish(
+def app__package__publish_bumped(
         context: ExecutionContext,
         app_workdir: CodeBaseWorkdir,
+        yes: bool = False,
         force: bool = False,
 ) -> None:
-    app_workdir.publish(force=force)
+    app_workdir.publish_bumped(
+        interactive=not yes,
+        force=force,
+    )

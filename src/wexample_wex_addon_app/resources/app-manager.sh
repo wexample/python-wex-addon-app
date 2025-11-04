@@ -3,7 +3,7 @@ set -euo pipefail
 
 APP_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 AM_DIR="$APP_ROOT/.wex/python/app_manager"
-WEX_TASK_ID="$(date '+%Y%m%d-%H%M%S-%N')-$$"
+REQUEST_ID="$(date '+%Y%m%d-%H%M%S-%N')-$$"
 
 if [ "${1:-}" = "setup" ]; then
   # Create directory if missing
@@ -25,5 +25,5 @@ if [ "${1:-}" = "setup" ]; then
   # Ensure pip is available in the venv
   "$AM_DIR/.venv/bin/python" -m ensurepip --upgrade 2>/dev/null || true
 else
-  exec "$AM_DIR/.venv/bin/python" "$AM_DIR/__main__.py" "${WEX_TASK_ID}" "${@}"
+  exec "$AM_DIR/.venv/bin/python" "$AM_DIR/__main__.py" "${REQUEST_ID}" "${@}"
 fi

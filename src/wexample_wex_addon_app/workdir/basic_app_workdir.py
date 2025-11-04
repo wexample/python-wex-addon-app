@@ -3,9 +3,9 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from wexample_app.const.env import ENV_NAME_PROD
-from wexample_app.const.output import OUTPUT_FORMAT_JSON
 from wexample_config.config_value.config_value import ConfigValue
 from wexample_helpers.decorator.base_class import base_class
+from wexample_prompt.enums.terminal_color import TerminalColor
 from wexample_wex_addon_app.workdir.mixin.app_workdir_mixin import AppWorkdirMixin
 from wexample_wex_core.workdir.workdir import Workdir
 
@@ -18,14 +18,15 @@ class BasicAppWorkdir(AppWorkdirMixin, Workdir):
 
     def app_install(self, env: str | None = None, force: bool = False) -> bool:
         return True
+
     def apply(
-        self,
-        force: bool = False,
-        scopes=None,
-        filter_path: str | None = None,
-        filter_operation: str | None = None,
-        max: int = None,
-        **kwargs,
+            self,
+            force: bool = False,
+            scopes=None,
+            filter_path: str | None = None,
+            filter_operation: str | None = None,
+            max: int = None,
+            **kwargs,
     ) -> FileStateResult:
         from wexample_filestate.result.file_state_result import FileStateResult
         from wexample_helpers.helpers.repo import repo_get_state, repo_has_changed_since
@@ -33,10 +34,10 @@ class BasicAppWorkdir(AppWorkdirMixin, Workdir):
         # Hash protection is only active when all filter parameters are None
         # to avoid false positives when apply behavior is modified by parameters
         hash_protection_active = (
-            scopes is None
-            and filter_path is None
-            and filter_operation is None
-            and max is None
+                scopes is None
+                and filter_path is None
+                and filter_operation is None
+                and max is None
         )
 
         registry_file = self.get_registry_file()
@@ -46,14 +47,14 @@ class BasicAppWorkdir(AppWorkdirMixin, Workdir):
         ).get_str_or_none()
 
         if (
-            force
-            or not hash_protection_active
-            or (
+                force
+                or not hash_protection_active
+                or (
                 last_update_hash is None
                 or repo_has_changed_since(
-                    previous_state=last_update_hash, cwd=self.get_path()
-                )
-            )
+            previous_state=last_update_hash, cwd=self.get_path()
+        )
+        )
         ):
             # Reset hash
             registry.set_by_path("file_state.last_update_hash", None)
@@ -121,7 +122,7 @@ class BasicAppWorkdir(AppWorkdirMixin, Workdir):
             )
 
             confirm = self.confirm(
-                f"Do you want to create a new version for package {self.get_package_name()} in {self.get_path()}?{changes_message} "
+                f"Do you want to create a new version for package {self.get_package_name()} in @path{{{self.get_path()}}}?{changes_message} "
                 f'This will create/switch to branch "{branch_name}".',
                 choices=ConfirmPromptResponse.MAPPING_PRESET_YES_NO,
                 default="yes",
@@ -180,18 +181,16 @@ class BasicAppWorkdir(AppWorkdirMixin, Workdir):
         )
 
         for library_path_config in (
-            self.get_runtime_config().search("libraries").get_list_or_default()
+                self.get_runtime_config().search("libraries").get_list_or_default()
         ):
             if library_path_config.is_str() and BasicAppWorkdir.is_app_workdir_path(
-                path=library_path_config.get_str()
+                    path=library_path_config.get_str()
             ):
                 publishable_dependencies = (
-                    BasicAppWorkdir.manager_run_command_and_parse_from_path(
+                    BasicAppWorkdir.manager_run_command_from_path(
                         command=app__dependencies__publish,
-                        path=library_path_config.get_str(),
-                        output_format=OUTPUT_FORMAT_JSON,
-                        capture_output=True,
-                    )
+                        path=library_path_config.get_str()
+                    ).read_output()
                 )
 
                 self.update_dependencies(publishable_dependencies)
@@ -220,3 +219,82 @@ class BasicAppWorkdir(AppWorkdirMixin, Workdir):
         from wexample_app.const.globals import APP_PATH_BIN_APP_MANAGER
 
         return [str(APP_PATH_BIN_APP_MANAGER), "setup"]
+
+    def should_be_published(self, force: bool = False) -> bool:
+        current_tag = self.get_publication_tag_name()
+        last_tag = self.get_last_publication_tag()
+        if not force and last_tag == current_tag:
+            self.log(f"{self.get_package_name()} already published as {current_tag}.")
+            return False
+        return True
+
+    def _publish(self, force: bool = False) -> None:
+        """Internal publication process"""
+
+    def publish(self, force: bool = False) -> None:
+        if not self.should_be_published(force=force):
+            return
+
+        self._publish(force=force)
+        self.success(f"Published {self.get_package_name()} as {self.get_publication_tag_name()}.")
+        self.add_publication_tag()
+
+    def publish_bumped(self, force: bool = False, interactive: bool = True) -> None:
+        from wexample_wex_addon_app.commands.file_state.rectify import app__file_state__rectify
+        from wexample_wex_addon_app.commands.package.bump import app__package__bump
+        from wexample_wex_addon_app.commands.package.commit_and_push import (
+            app__package__commit_and_push,
+        )
+        from wexample_wex_addon_app.commands.package.publish import app__package__publish
+        from wexample_wex_addon_app.commands.version.propagate import app__version__propagate
+
+        if force or self.has_changes_since_last_publication_tag():
+            # Reserve 1 unit on main progress bar, subdivided into 5 steps
+            sub_progress = self.io.progress(
+                total=5,
+                color=TerminalColor.YELLOW,
+                indentation=1,
+                print_response=False,
+            ).get_handle()
+
+            sub_progress.advance(step=1, label=f"Bumping {self.get_project_name()}")
+            bump_args = []
+            if force:
+                bump_args.append("--force")
+            if not interactive:
+                bump_args.append("--yes")
+            bump_response = self.manager_run_command(
+                command=app__package__bump,
+                arguments=bump_args
+            ).get_output_value()
+
+            # Bump cancelled.
+            if not bump_response.is_true():
+                return
+
+            sub_progress.advance(
+                step=1, label=f"Rectifying file state for {self.get_project_name()}"
+            )
+            rectify_args = ["--loop"]
+            if not interactive:
+                rectify_args.append("--yes")
+            self.manager_run_command(
+                command=app__file_state__rectify, arguments=rectify_args
+            )
+
+            sub_progress.advance(
+                step=1, label=f"Committing and pushing {self.get_project_name()}"
+            )
+            self.manager_run_command(command=app__package__commit_and_push)
+
+            sub_progress.advance(
+                step=1, label=f"Propagating version for {self.get_project_name()}"
+            )
+            self.manager_run_command(command=app__version__propagate)
+
+            sub_progress.advance(
+                step=1, label=f"Publishing {self.get_project_name()}"
+            )
+            self.manager_run_command(command=app__package__publish)
+        else:
+            self.io.log("No change to publish, skipping.")
