@@ -10,30 +10,38 @@ from wexample_prompt.responses.abstract_prompt_response import AbstractPromptRes
 from wexample_wex_addon_app.workdir.basic_app_workdir import BasicAppWorkdir
 
 if TYPE_CHECKING:
-    pass
+    from wexample_prompt.responses.echo_prompt_response import EchoPromptResponse
 
 
 @base_class
 class AppInfoResponse(AbstractResponse):
     app_workdir: BasicAppWorkdir = public_field(
-        description="The application the information is about"
+        description="The application workdir to display information about"
     )
 
-    def _get_formatted_prompt_response(self) -> AbstractPromptResponse:
-        from wexample_prompt.responses.interactive.progress_prompt_response import ProgressPromptResponse
-        from wexample_prompt.responses.data.multiple_prompt_response import MultiplePromptResponse
-        from wexample_prompt.responses.titles.separator_prompt_response import SeparatorPromptResponse
+    @staticmethod
+    def _format_yes_no(condition: bool) -> str:
+        """Format a boolean condition as colored Yes/No.
+        
+        Args:
+            condition: True for green Yes, False for red No
+            
+        Returns:
+            Formatted string with color markup
+        """
+        return "@color:green{Yes}" if condition else "@color:red{No}"
+
+    def _get_libraries_responses(self) -> list[EchoPromptResponse]:
+        """Get list of library path responses.
+        
+        Returns:
+            List of EchoPromptResponse for each local library
+        """
         from wexample_prompt.responses.echo_prompt_response import EchoPromptResponse
-        from wexample_app.const.env import ENV_COLORS
-        from wexample_prompt.responses.data.properties_prompt_response import (
-            PropertiesPromptResponse,
-        )
-
-        env = self.app_workdir.get_app_env()
-
+        
         libraries = []
-        # Show local libraries if configured
         local_libraries = self.app_workdir.get_local_libraries_paths()
+        
         if local_libraries:
             for library_config in local_libraries:
                 if library_config.is_str():
@@ -42,7 +50,15 @@ class AppInfoResponse(AbstractResponse):
                             message=f"@path{{{library_config.get_str()}}}"
                         )
                     )
+        
+        return libraries
 
+    def _get_coverage_data(self) -> tuple[int, int, int, TerminalColor]:
+        """Extract and calculate coverage data from config.
+        
+        Returns:
+            Tuple of (total, covered, percent, color)
+        """
         coverage_last_report = (
             self.app_workdir.get_config()
             .search("test.coverage.last_report")
@@ -64,60 +80,85 @@ class AppInfoResponse(AbstractResponse):
             covered_int = 0
             coverage_percent = 0
 
+        # Determine color based on coverage percentage
         if coverage_percent >= 80:
             coverage_color = TerminalColor.GREEN
         elif coverage_percent > 0:
             coverage_color = TerminalColor.YELLOW
         else:
             coverage_color = TerminalColor.RED
+        
+        return total_int, covered_int, coverage_percent, coverage_color
 
-        return MultiplePromptResponse.create_multiple(
-            responses=[
-                          PropertiesPromptResponse(
-                              title="Project info",
-                              properties={
-                                  "name": f"@color:blue{{{self.app_workdir.get_item_name()}}}",
-                                  "version": self.app_workdir.get_project_version(),
-                                  "path": f"@path{{{self.app_workdir.get_path()}}}",
-                                  "environment": f"@color:{ENV_COLORS[env]}{{{env}}}",
-                              },
-                          ),
-                          ProgressPromptResponse(
-                              total=total_int,
-                              current=covered_int,
-                              label=f"Test coverage ({covered_int}/{total_int})",
-                              color=coverage_color,
-                              show_percentage=True,
-                          ),
-                      ]
-                      + (
-                          (
-                                  [SeparatorPromptResponse.create_separator(label="Libraries")]
-                                  + libraries
-                          )
-                          if len(libraries)
-                          else []
-                      )
-                      + [
-                          PropertiesPromptResponse(
-                              title="Files",
-                              properties={
-                                  "Has a README.md": "@color:green{Yes}" if self.app_workdir.has_readme() else "@color:red{No}",
-                              }
-                          ),
-                          PropertiesPromptResponse(
-                              title="Repository",
-                              properties={
-                                  "No change since last version": "@color:green{Yes}" if not self.app_workdir.has_changes_since_last_publication_tag() else "@color:red{No}",
-                              }
-                          ),
-                          PropertiesPromptResponse(
-                              title="Testing",
-                              properties={
-                                  "Has one test": "@color:green{Yes}" if self.app_workdir.has_a_test() else "@color:red{No}",
-                                  "No change since last coverage": "@color:green{Yes}" if not self.app_workdir.has_changes_since_last_coverage() else "@color:red{No}",
-                              }
-                          ),
-                          SeparatorPromptResponse(character="▄"),
-                      ]
-        )
+    def _get_formatted_prompt_response(self) -> AbstractPromptResponse:
+        """Build the complete app info response with all sections.
+        
+        Returns:
+            MultiplePromptResponse containing all info sections
+        """
+        from wexample_app.const.env import ENV_COLORS
+        from wexample_prompt.responses.data.multiple_prompt_response import MultiplePromptResponse
+        from wexample_prompt.responses.data.properties_prompt_response import PropertiesPromptResponse
+        from wexample_prompt.responses.interactive.progress_prompt_response import ProgressPromptResponse
+        from wexample_prompt.responses.titles.separator_prompt_response import SeparatorPromptResponse
+
+        env = self.app_workdir.get_app_env()
+        libraries = self._get_libraries_responses()
+        total_int, covered_int, coverage_percent, coverage_color = self._get_coverage_data()
+
+        # Build response sections
+        responses = [
+            # Project information
+            PropertiesPromptResponse(
+                title="Project Info",
+                properties={
+                    "Name": f"@color:blue{{{self.app_workdir.get_item_name()}}}",
+                    "Version": self.app_workdir.get_project_version(),
+                    "Path": f"@path{{{self.app_workdir.get_path()}}}",
+                    "Environment": f"@color:{ENV_COLORS[env]}{{{env}}}",
+                },
+            ),
+            # Test coverage progress bar
+            ProgressPromptResponse(
+                total=total_int,
+                current=covered_int,
+                label=f"Test coverage ({covered_int}/{total_int})",
+                color=coverage_color,
+                show_percentage=True,
+            ),
+        ]
+
+        # Add libraries section if any
+        if libraries:
+            responses.append(SeparatorPromptResponse.create_separator(label="Libraries"))
+            responses.extend(libraries)
+
+        # Add status sections
+        responses.extend([
+            PropertiesPromptResponse(
+                title="Files",
+                properties={
+                    "Has README.md": self._format_yes_no(self.app_workdir.has_readme()),
+                },
+            ),
+            PropertiesPromptResponse(
+                title="Repository",
+                properties={
+                    "Clean since last version": self._format_yes_no(
+                        not self.app_workdir.has_changes_since_last_publication_tag()
+                    ),
+                },
+            ),
+            PropertiesPromptResponse(
+                title="Testing",
+                properties={
+                    "Has tests": self._format_yes_no(self.app_workdir.has_a_test()),
+                    "Clean since last coverage": self._format_yes_no(
+                        not self.app_workdir.has_changes_since_last_coverage()
+                    ),
+                },
+            ),
+            SeparatorPromptResponse(character="▄"),
+        ])
+
+        return MultiplePromptResponse.create_multiple(responses=responses)
