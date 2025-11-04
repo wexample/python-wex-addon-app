@@ -152,14 +152,16 @@ class AppInfoResponse(AbstractResponse):
             PropertiesPromptResponse(
                 title="Files",
                 properties={
+                    "Source files": f"@color:magenta{{{self.app_workdir.count_source_files()}}}",
+                    "Test files": f"@color:magenta{{{self.app_workdir.count_test_files()}}}",
                     "Has README.md": self._format_yes_no(has_readme),
                 },
             ),
             PropertiesPromptResponse(
                 title="Code",
                 properties={
-                    "Lines of code in source": f"@color+magenta{{{self.app_workdir.count_source_code_lines()}}}",
-                    "Lines of code in test": f"@color+magenta{{{self.app_workdir.count_test_code_lines()}}}",
+                    "Lines in source": f"@color:magenta{{{self.app_workdir.count_source_code_lines()}}}",
+                    "Lines in tests": f"@color:magenta{{{self.app_workdir.count_test_code_lines()}}}",
                 },
             ),
             PropertiesPromptResponse(

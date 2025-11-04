@@ -346,20 +346,51 @@ class BasicAppWorkdir(AppWorkdirMixin, Workdir):
     def get_main_code_file_extension(self) -> str:
         pass
 
+    def count_source_files(self) -> int:
+        """Count number of source code files."""
+        return self._count_files(
+            directories=self._get_source_code_directories()
+        )
+
+    def count_test_files(self) -> int:
+        """Count number of test code files."""
+        return self._count_files(
+            directories=self._get_test_code_directories()
+        )
+
     def count_source_code_lines(self) -> int:
+        """Count total lines in source code files."""
         return self._count_code_lines(
             directories=self._get_source_code_directories()
         )
 
     def count_test_code_lines(self) -> int:
+        """Count total lines in test code files."""
         return self._count_code_lines(
             directories=self._get_test_code_directories()
         )
+
+    def _count_files(
+            self,
+            directories: list[TargetFileOrDirectoryType],
+    ) -> int:
+        """Count files matching the main code extension in given directories."""
+        total = 0
+        extension = self.get_main_code_file_extension()
+
+        for item in directories:
+            path = item.get_path()
+            if path.exists() and path.is_dir():
+                # Count files with the main code extension
+                total += len(list(path.rglob(f"*{extension}")))
+
+        return total
 
     def _count_code_lines(
             self,
             directories: list[TargetFileOrDirectoryType],
     ) -> int:
+        """Count total lines in files matching the main code extension."""
         total = 0
 
         for item in directories:
