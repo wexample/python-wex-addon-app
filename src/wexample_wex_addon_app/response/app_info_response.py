@@ -105,6 +105,20 @@ class AppInfoResponse(AbstractResponse):
         env = self.app_workdir.get_app_env()
         libraries = self._get_libraries_responses()
         total_int, covered_int, coverage_percent, coverage_color = self._get_coverage_data()
+        
+        # Check all conditions for publishability
+        has_readme = self.app_workdir.has_readme()
+        is_clean_since_version = not self.app_workdir.has_changes_since_last_publication_tag()
+        has_tests = self.app_workdir.has_a_test()
+        is_clean_since_coverage = not self.app_workdir.has_changes_since_last_coverage()
+        
+        # App is publishable only if ALL conditions are met
+        is_publishable = all([
+            has_readme,
+            is_clean_since_version,
+            has_tests,
+            is_clean_since_coverage,
+        ])
 
         # Build response sections
         responses = [
@@ -138,24 +152,26 @@ class AppInfoResponse(AbstractResponse):
             PropertiesPromptResponse(
                 title="Files",
                 properties={
-                    "Has README.md": self._format_yes_no(self.app_workdir.has_readme()),
+                    "Has README.md": self._format_yes_no(has_readme),
                 },
             ),
             PropertiesPromptResponse(
                 title="Repository",
                 properties={
-                    "Clean since last version": self._format_yes_no(
-                        not self.app_workdir.has_changes_since_last_publication_tag()
-                    ),
+                    "Clean since last version": self._format_yes_no(is_clean_since_version),
                 },
             ),
             PropertiesPromptResponse(
                 title="Testing",
                 properties={
-                    "Has tests": self._format_yes_no(self.app_workdir.has_a_test()),
-                    "Clean since last coverage": self._format_yes_no(
-                        not self.app_workdir.has_changes_since_last_coverage()
-                    ),
+                    "Has tests": self._format_yes_no(has_tests),
+                    "Clean since last coverage": self._format_yes_no(is_clean_since_coverage),
+                },
+            ),
+            PropertiesPromptResponse(
+                title="Status",
+                properties={
+                    "Ready to publish": self._format_yes_no(is_publishable),
                 },
             ),
             SeparatorPromptResponse(character="▄"),
