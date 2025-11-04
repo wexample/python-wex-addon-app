@@ -18,7 +18,10 @@ def python_install_environment(path: PathOrString) -> bool:
 
         # Ensure we start from a clean environment
         if venv_path.exists():
-            shutil.rmtree(venv_path, ignore_errors=True)
+            if venv_path.is_dir():
+                shutil.rmtree(venv_path, ignore_errors=True)
+            else:
+                venv_path.unlink(missing_ok=True)
         if lock_path.exists():
             lock_path.unlink()
 
