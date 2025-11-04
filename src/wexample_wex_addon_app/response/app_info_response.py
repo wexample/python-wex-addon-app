@@ -108,14 +108,14 @@ class AppInfoResponse(AbstractResponse):
                           PropertiesPromptResponse(
                               title="Repository",
                               properties={
-                                  "No change since last version": "@color:green{Yes}" if self.app_workdir.has_changes_since_last_publication_tag() else "@color:red{No}",
+                                  "No change since last version": "@color:green{Yes}" if not self.app_workdir.has_changes_since_last_publication_tag() else "@color:red{No}",
                               }
                           ),
                           PropertiesPromptResponse(
                               title="Testing",
                               properties={
                                   "Has one test": "@color:green{Yes}" if self.app_workdir.has_a_test() else "@color:red{No}",
-                                  "No change since last coverage": "@color:green{Yes}" if self.app_workdir.has_changes_since_last_coverage() else "@color:red{No}",
+                                  "No change since last coverage": "@color:green{Yes}" if not self.app_workdir.has_changes_since_last_coverage() else "@color:red{No}",
                               }
                           ),
                           SeparatorPromptResponse(character="▄"),
