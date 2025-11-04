@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING
 from wexample_app.const.env import ENV_NAME_PROD
 from wexample_config.config_value.config_value import ConfigValue
 from wexample_helpers.decorator.base_class import base_class
+from wexample_helpers_git.helpers.git import git_has_changes_since_tag
 from wexample_prompt.enums.terminal_color import TerminalColor
 from wexample_wex_addon_app.const.path import APP_PATH_TEST
 from wexample_wex_addon_app.workdir.mixin.app_workdir_mixin import AppWorkdirMixin
@@ -181,6 +182,24 @@ class BasicAppWorkdir(AppWorkdirMixin, Workdir):
             return True
         # Limit diff to current package folder, run from package cwd using '.'
         return git_has_changes_since_tag(last_tag, ".", cwd=self.get_path())
+
+    def has_changes_since_last_coverage(self) -> bool:
+        """Return True if there are any changes (committed or not) since last coverage."""
+        from wexample_helpers_git.helpers.git import git_has_uncommitted_changes
+
+        last_commit = (
+            self.get_config()
+            .search("test.coverage.last_report.commit_hash")
+            .get_str_or_default()
+        )
+
+        if not last_commit:
+            return True
+
+        return (
+                git_has_uncommitted_changes(cwd=self.get_path()) or
+                git_has_changes_since_tag(last_commit, cwd=self.get_path())
+        )
 
     def libraries_sync(self) -> None:
         from wexample_wex_addon_app.commands.dependencies.publish import (
