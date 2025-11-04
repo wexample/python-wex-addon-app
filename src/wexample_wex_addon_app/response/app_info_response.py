@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
+
 from wexample_app.response.abstract_response import AbstractResponse
 from wexample_helpers.classes.field import public_field
 from wexample_helpers.decorator.base_class import base_class
@@ -72,40 +73,52 @@ class AppInfoResponse(AbstractResponse):
 
         return MultiplePromptResponse.create_multiple(
             responses=[
-                PropertiesPromptResponse(
-                    title="Project info",
-                    properties={
-                        "name": f"@color:blue{{{self.app_workdir.get_item_name()}}}",
-                        "version": self.app_workdir.get_project_version(),
-                        "path": f"@path{{{self.app_workdir.get_path()}}}",
-                        "environment": f"@color:{ENV_COLORS[env]}{{{env}}}",
-                    },
-                ),
-                ProgressPromptResponse(
-                    total=total_int,
-                    current=covered_int,
-                    label=f"Test coverage ({covered_int}/{total_int})",
-                    color=coverage_color,
-                    show_percentage=True,
-                ),
-            ]
-            + (
-                (
-                    [SeparatorPromptResponse.create_separator(label="Libraries")]
-                    + libraries
-                )
-                if len(libraries)
-                else []
-            )
-            + [
-                PropertiesPromptResponse(
-                    properties={
-                        "Has one test": "@color:green{Yes}" if self.app_workdir.has_a_test() else "@color:red{No}",
-                        "Has a README.md": "@color:green{Yes}" if self.app_workdir.has_readme() else "@color:red{No}",
-                        "Has change from last coverage": "@color:red{Yes}",
-                        "Has change from last version": "@color:red{Yes}",
-                    }
-                ),
-                SeparatorPromptResponse(character="▄"),
-            ]
+                          PropertiesPromptResponse(
+                              title="Project info",
+                              properties={
+                                  "name": f"@color:blue{{{self.app_workdir.get_item_name()}}}",
+                                  "version": self.app_workdir.get_project_version(),
+                                  "path": f"@path{{{self.app_workdir.get_path()}}}",
+                                  "environment": f"@color:{ENV_COLORS[env]}{{{env}}}",
+                              },
+                          ),
+                          ProgressPromptResponse(
+                              total=total_int,
+                              current=covered_int,
+                              label=f"Test coverage ({covered_int}/{total_int})",
+                              color=coverage_color,
+                              show_percentage=True,
+                          ),
+                      ]
+                      + (
+                          (
+                                  [SeparatorPromptResponse.create_separator(label="Libraries")]
+                                  + libraries
+                          )
+                          if len(libraries)
+                          else []
+                      )
+                      + [
+                          PropertiesPromptResponse(
+                              title="Files",
+                              properties={
+                                  "Has a README.md": "@color:green{Yes}" if self.app_workdir.has_readme() else "@color:red{No}",
+                              }
+                          ),
+                          PropertiesPromptResponse(
+                              title="Repository",
+                              properties={
+                                  "No change from last version": "@color:red{Yes}" if self.has_changes_since_last_publication_tag() else "@color:green{No}",
+                              }
+                          ),
+                          PropertiesPromptResponse(
+                              title="Testing",
+                              properties={
+                                  "Has one test": "@color:green{Yes}" if self.app_workdir.has_a_test() else "@color:red{No}",
+                                  # TODO
+                                  "No change from last coverage": "@color:red{No}",
+                              }
+                          ),
+                          SeparatorPromptResponse(character="▄"),
+                      ]
         )
