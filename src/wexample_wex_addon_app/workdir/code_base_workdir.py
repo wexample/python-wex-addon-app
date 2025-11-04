@@ -24,7 +24,7 @@ class CodeBaseWorkdir(BasicAppWorkdir):
         )
 
     def get_io_context_prefix_format(self) -> str:
-        return "</> {prefix} ➜ "
+        return "‹› {prefix} | "
 
     def add_publication_tag(self) -> None:
         from wexample_helpers_git.helpers.git import (

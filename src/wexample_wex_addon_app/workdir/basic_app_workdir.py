@@ -92,11 +92,14 @@ class BasicAppWorkdir(AppWorkdirMixin, Workdir):
             self.log(f"Package {self.get_package_name()} has no new content to bump.")
             return False
 
-        self.info(f"Bumping version for package: {self.get_project_name()}...")
-
         current_version = self.get_project_version()
         new_version = version_increment(version=current_version, **kwargs)
         branch_name = f"version-{new_version}"
+
+        self.info(
+            f"Bumping version to {new_version}",
+            prefix=True
+        )
 
         def _bump() -> None:
             from wexample_helpers_git.helpers.git import git_create_or_switch_branch
@@ -105,13 +108,17 @@ class BasicAppWorkdir(AppWorkdirMixin, Workdir):
             git_create_or_switch_branch(
                 branch_name, cwd=self.get_path(), inherit_stdio=True
             )
+            self.log(
+                message=f'Switched to branch "{branch_name}"',
+                indentation=1
+            )
 
             # Change version number on this branch
             self.get_config_file().write_config_value("global.version", new_version)
 
-            self.success(
-                message=f'Bumped {self.get_package_name()} from "{current_version}" to "{new_version}" and switched to branch "{branch_name}"',
-                indentation=1,
+            self.log(
+                message=f'Bumped from "{current_version}" to "{new_version}"',
+                indentation=1
             )
 
         if interactive:
