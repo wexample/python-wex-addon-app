@@ -252,7 +252,7 @@ class BasicAppWorkdir(AppWorkdirMixin, Workdir):
 
         if force or self.has_changes_since_last_publication_tag():
             # Reserve 1 unit on main progress bar, subdivided into 5 steps
-            sub_progress = self.io.progress(
+            sub_progress = self.progress(
                 total=5,
                 color=TerminalColor.YELLOW,
                 indentation=1,
