@@ -203,10 +203,9 @@ class BasicAppWorkdir(AppWorkdirMixin, Workdir):
         return {self.get_package_name(): self.get_project_version()}
 
     def setup_install(self, env: str | None = None, force: bool = False) -> None:
-        package_name = self.get_path().name
-        env_label = f" ({env})" if env else ""
+        env_label = f" in {env} environment" if env else ""
 
-        self.log(f"Installing dependencies for {package_name}{env_label}")
+        self.log(f"Installing dependencies{env_label}")
         self.shell_run_from_path(
             path=self.get_path(),
             cmd=self._create_setup_command()
