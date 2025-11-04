@@ -158,7 +158,8 @@ class AppInfoResponse(AbstractResponse):
             PropertiesPromptResponse(
                 title="Code",
                 properties={
-                    "Lines of code in source": f"@color+magenta{{{self.app_workdir.count_code_lines()}}}",
+                    "Lines of code in source": f"@color+magenta{{{self.app_workdir.count_source_code_lines()}}}",
+                    "Lines of code in test": f"@color+magenta{{{self.app_workdir.count_test_code_lines()}}}",
                 },
             ),
             PropertiesPromptResponse(

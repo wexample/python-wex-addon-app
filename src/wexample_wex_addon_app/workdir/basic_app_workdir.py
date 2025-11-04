@@ -336,17 +336,33 @@ class BasicAppWorkdir(AppWorkdirMixin, Workdir):
         test_dir = self.find_by_name(APP_PATH_TEST)
         return test_dir and test_dir.is_directory() and any(test_dir.get_path().rglob("*.py"))
 
-    def _get_code_source_directories(self) -> [TargetFileOrDirectoryType]:
+    def _get_source_code_directories(self) -> [TargetFileOrDirectoryType]:
+        return []
+
+    def _get_test_code_directories(self) -> [TargetFileOrDirectoryType]:
         return []
 
     @abstract_method
     def get_main_code_file_extension(self) -> str:
         pass
 
-    def count_code_lines(self) -> int:
+    def count_source_code_lines(self) -> int:
+        return self._count_code_lines(
+            directories=self._get_source_code_directories()
+        )
+
+    def count_test_code_lines(self) -> int:
+        return self._count_code_lines(
+            directories=self._get_test_code_directories()
+        )
+
+    def _count_code_lines(
+            self,
+            directories: list[TargetFileOrDirectoryType],
+    ) -> int:
         total = 0
 
-        for item in self._get_code_source_directories():
+        for item in directories:
             total += line_count_recursive(
                 path=item.get_path(),
                 pattern=f"*{self.get_main_code_file_extension()}"
