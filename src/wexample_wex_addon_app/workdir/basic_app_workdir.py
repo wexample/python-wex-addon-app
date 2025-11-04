@@ -4,6 +4,9 @@ from typing import TYPE_CHECKING
 
 from wexample_app.const.env import ENV_NAME_PROD
 from wexample_config.config_value.config_value import ConfigValue
+from wexample_file.helper.line import line_count_recursive
+from wexample_filestate.const.types_state_items import TargetFileOrDirectoryType
+from wexample_helpers.classes.abstract_method import abstract_method
 from wexample_helpers.decorator.base_class import base_class
 from wexample_helpers_git.helpers.git import git_has_changes_since_tag
 from wexample_prompt.enums.terminal_color import TerminalColor
@@ -332,3 +335,21 @@ class BasicAppWorkdir(AppWorkdirMixin, Workdir):
     def has_a_test(self) -> bool:
         test_dir = self.find_by_name(APP_PATH_TEST)
         return test_dir and test_dir.is_directory() and any(test_dir.get_path().rglob("*.py"))
+
+    def _get_code_source_directories(self) -> [TargetFileOrDirectoryType]:
+        return []
+
+    @abstract_method
+    def get_main_code_file_extension(self) -> str:
+        pass
+
+    def count_code_lines(self) -> int:
+        total = 0
+
+        for item in self._get_code_source_directories():
+            total += line_count_recursive(
+                path=item.get_path(),
+                pattern=f"*{self.get_main_code_file_extension()}"
+            )
+
+        return total

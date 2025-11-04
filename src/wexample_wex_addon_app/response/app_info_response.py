@@ -38,10 +38,10 @@ class AppInfoResponse(AbstractResponse):
             List of EchoPromptResponse for each local library
         """
         from wexample_prompt.responses.echo_prompt_response import EchoPromptResponse
-        
+
         libraries = []
         local_libraries = self.app_workdir.get_local_libraries_paths()
-        
+
         if local_libraries:
             for library_config in local_libraries:
                 if library_config.is_str():
@@ -50,7 +50,7 @@ class AppInfoResponse(AbstractResponse):
                             message=f"@path{{{library_config.get_str()}}}"
                         )
                     )
-        
+
         return libraries
 
     def _get_coverage_data(self) -> tuple[int, int, int, TerminalColor]:
@@ -87,7 +87,7 @@ class AppInfoResponse(AbstractResponse):
             coverage_color = TerminalColor.YELLOW
         else:
             coverage_color = TerminalColor.RED
-        
+
         return total_int, covered_int, coverage_percent, coverage_color
 
     def _get_formatted_prompt_response(self) -> AbstractPromptResponse:
@@ -105,13 +105,13 @@ class AppInfoResponse(AbstractResponse):
         env = self.app_workdir.get_app_env()
         libraries = self._get_libraries_responses()
         total_int, covered_int, coverage_percent, coverage_color = self._get_coverage_data()
-        
+
         # Check all conditions for publishability
         has_readme = self.app_workdir.has_readme()
         is_clean_since_version = not self.app_workdir.has_changes_since_last_publication_tag()
         has_tests = self.app_workdir.has_a_test()
         is_clean_since_coverage = not self.app_workdir.has_changes_since_last_coverage()
-        
+
         # App is publishable only if ALL conditions are met
         is_publishable = all([
             has_readme,
@@ -153,6 +153,12 @@ class AppInfoResponse(AbstractResponse):
                 title="Files",
                 properties={
                     "Has README.md": self._format_yes_no(has_readme),
+                },
+            ),
+            PropertiesPromptResponse(
+                title="Code",
+                properties={
+                    "Lines of code in source": f"@color+magenta{{{self.app_workdir.count_code_lines()}}}",
                 },
             ),
             PropertiesPromptResponse(
