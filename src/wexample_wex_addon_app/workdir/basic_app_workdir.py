@@ -207,7 +207,10 @@ class BasicAppWorkdir(AppWorkdirMixin, Workdir):
         env_label = f" ({env})" if env else ""
 
         self.log(f"Installing dependencies for {package_name}{env_label}")
-        self.shell_run_from_path(path=self.get_path(), cmd=self._create_setup_command())
+        self.shell_run_from_path(
+            path=self.get_path(),
+            cmd=self._create_setup_command()
+        )
 
         self.app_install(env, force=force)
 
