@@ -411,7 +411,7 @@ class AppWorkdirMixin(
         raw_value["children"].append(
             {
                 # .iml
-                "class": ImlFile,
+                "class": self._get_iml_file_class(),
                 "name": ImlFile.get_dotted_extension(),
                 "type": DiskItemType.FILE,
                 "should_exist": True,
@@ -419,3 +419,6 @@ class AppWorkdirMixin(
         )
 
         return raw_value
+
+    def _get_iml_file_class(self) -> type[ImlFile]:
+        return ImlFile
