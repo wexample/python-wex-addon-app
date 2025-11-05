@@ -31,12 +31,12 @@ class WithReadmeWorkdirMixin(BaseClass):
 
         return config
 
+    def has_readme(self) -> bool:
+        return self.find_by_name(APP_PATH_README) is not None
+
     def _get_readme_content(self) -> ReadmeContentConfigValue:
         from wexample_filestate.config_value.readme_content_config_value import (
             ReadmeContentConfigValue,
         )
 
         return ReadmeContentConfigValue()
-
-    def has_readme(self) -> bool:
-        return self.find_by_name(APP_PATH_README) is not None

@@ -1,8 +1,6 @@
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
-
-from wexample_prompt.enums.terminal_color import TerminalColor
 from wexample_wex_addon_app.middleware.package_suite_middleware import (
     PackageSuiteMiddleware,
 )
@@ -31,6 +29,7 @@ def app__suite__publish(
     yes: bool = False,
     force: bool = False,
 ) -> None:
+    from wexample_prompt.enums.terminal_color import TerminalColor
     app_workdir.packages_validate_internal_dependencies_declarations()
     packages = app_workdir.get_ordered_packages()
 

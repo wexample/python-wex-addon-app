@@ -14,14 +14,6 @@ if TYPE_CHECKING:
 
 
 class CodeBaseWorkdir(BasicAppWorkdir):
-    def get_io_context_prefix(self) -> str | None:
-        from wexample_helpers.helpers.cli import cli_make_clickable_path
-
-        """Get the prefix to prepend to messages (e.g., '[child]')."""
-        return cli_make_clickable_path(self.get_path(), self.get_project_name())
-
-    def get_io_context_prefix_format(self) -> str:
-        return "‹› {prefix} | "
 
     def add_publication_tag(self) -> None:
         from wexample_helpers_git.helpers.git import (
@@ -97,6 +89,14 @@ class CodeBaseWorkdir(BasicAppWorkdir):
     @abstract_method
     def get_dependencies(self) -> list[str]:
         pass
+    def get_io_context_prefix(self) -> str | None:
+        from wexample_helpers.helpers.cli import cli_make_clickable_path
+
+        """Get the prefix to prepend to messages (e.g., '[child]')."""
+        return cli_make_clickable_path(self.get_path(), self.get_project_name())
+
+    def get_io_context_prefix_format(self) -> str:
+        return "‹› {prefix} | "
 
     def get_options_providers(self) -> list[type[AbstractOptionsProvider]]:
         from wexample_filestate.options_provider.default_options_provider import (

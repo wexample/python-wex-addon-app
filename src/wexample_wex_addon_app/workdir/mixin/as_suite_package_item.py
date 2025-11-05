@@ -16,9 +16,6 @@ if TYPE_CHECKING:
 
 @base_class
 class AsSuitePackageItem(BaseClass):
-    @abstract_method
-    def _get_children_package_workdir_class(self) -> type[FrameworkPackageSuiteWorkdir]:
-        pass
 
     def find_suite_workdir_path(self) -> Path | None:
         """
@@ -75,25 +72,6 @@ class AsSuitePackageItem(BaseClass):
 
         return None
 
-    def search_in_package_or_suite_config(self, key: str) -> ConfigValue:
-        """Search for a config value in the package config, fallback to suite config if not found."""
-        from wexample_wex_addon_app.workdir.basic_app_workdir import BasicAppWorkdir
-
-        value = self.get_config().search(key)
-
-        if value.is_empty():
-            suite_path = self.find_suite_workdir_path()
-            if suite_path:
-                # Also avoid using children tree as method may be executed before configuration process.
-                suite_config_file = BasicAppWorkdir.get_config_from_path(
-                    path=suite_path,
-                )
-
-                if suite_config_file:
-                    return suite_config_file.read_config().search(key)
-
-        return value
-
     def get_vendor_name(self) -> str:
         return self.search_in_package_or_suite_config(
             "global.vendor"
@@ -125,3 +103,25 @@ class AsSuitePackageItem(BaseClass):
             package_name=package.get_package_name(),
             version=package.get_project_version(),
         )
+
+    def search_in_package_or_suite_config(self, key: str) -> ConfigValue:
+        """Search for a config value in the package config, fallback to suite config if not found."""
+        from wexample_wex_addon_app.workdir.basic_app_workdir import BasicAppWorkdir
+
+        value = self.get_config().search(key)
+
+        if value.is_empty():
+            suite_path = self.find_suite_workdir_path()
+            if suite_path:
+                # Also avoid using children tree as method may be executed before configuration process.
+                suite_config_file = BasicAppWorkdir.get_config_from_path(
+                    path=suite_path,
+                )
+
+                if suite_config_file:
+                    return suite_config_file.read_config().search(key)
+
+        return value
+    @abstract_method
+    def _get_children_package_workdir_class(self) -> type[FrameworkPackageSuiteWorkdir]:
+        pass

@@ -5,7 +5,6 @@ from typing import TYPE_CHECKING
 
 from wexample_helpers.classes.abstract_method import abstract_method
 from wexample_helpers.const.types import PathOrString
-from wexample_prompt.common.progress.progress_handle import ProgressHandle
 from wexample_wex_addon_app.workdir.basic_app_workdir import BasicAppWorkdir
 from wexample_wex_core.resolver.addon_command_resolver import AddonCommandResolver
 
@@ -190,9 +189,6 @@ class FrameworkPackageSuiteWorkdir(BasicAppWorkdir):
 
     def setup_install(self, env: str | None = None, force: bool = False) -> None:
         from wexample_wex_addon_app.commands.setup.install import app__setup__install
-        from wexample_wex_core.resolver.addon_command_resolver import (
-            AddonCommandResolver,
-        )
 
         env_label = f" in {env} mode" if env else ""
 

@@ -20,4 +20,5 @@ def app__info__show(
     app_workdir: BasicAppWorkdir,
 ) -> DictResponse:
     from wexample_wex_addon_app.response.app_info_response import AppInfoResponse
+
     return AppInfoResponse(app_workdir=app_workdir, kernel=context.kernel)

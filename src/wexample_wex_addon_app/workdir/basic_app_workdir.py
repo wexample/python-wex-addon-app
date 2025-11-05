@@ -24,13 +24,13 @@ class BasicAppWorkdir(AppWorkdirMixin, Workdir):
         return True
 
     def apply(
-            self,
-            force: bool = False,
-            scopes=None,
-            filter_path: str | None = None,
-            filter_operation: str | None = None,
-            max: int = None,
-            **kwargs,
+        self,
+        force: bool = False,
+        scopes=None,
+        filter_path: str | None = None,
+        filter_operation: str | None = None,
+        max: int = None,
+        **kwargs,
     ) -> FileStateResult:
         from wexample_filestate.result.file_state_result import FileStateResult
         from wexample_helpers.helpers.repo import repo_get_state, repo_has_changed_since
@@ -38,10 +38,10 @@ class BasicAppWorkdir(AppWorkdirMixin, Workdir):
         # Hash protection is only active when all filter parameters are None
         # to avoid false positives when apply behavior is modified by parameters
         hash_protection_active = (
-                scopes is None
-                and filter_path is None
-                and filter_operation is None
-                and max is None
+            scopes is None
+            and filter_path is None
+            and filter_operation is None
+            and max is None
         )
 
         registry_file = self.get_registry_file()
@@ -51,14 +51,14 @@ class BasicAppWorkdir(AppWorkdirMixin, Workdir):
         ).get_str_or_none()
 
         if (
-                force
-                or not hash_protection_active
-                or (
+            force
+            or not hash_protection_active
+            or (
                 last_update_hash is None
                 or repo_has_changed_since(
-            previous_state=last_update_hash, cwd=self.get_path()
-        )
-        )
+                    previous_state=last_update_hash, cwd=self.get_path()
+                )
+            )
         ):
             # Reset hash
             registry.set_by_path("file_state.last_update_hash", None)
@@ -100,10 +100,7 @@ class BasicAppWorkdir(AppWorkdirMixin, Workdir):
         new_version = version_increment(version=current_version, **kwargs)
         branch_name = f"version-{new_version}"
 
-        self.info(
-            f"Bumping version to {new_version}",
-            prefix=True
-        )
+        self.info(f"Bumping version to {new_version}", prefix=True)
 
         def _bump() -> None:
             from wexample_helpers_git.helpers.git import git_create_or_switch_branch
@@ -112,17 +109,14 @@ class BasicAppWorkdir(AppWorkdirMixin, Workdir):
             git_create_or_switch_branch(
                 branch_name, cwd=self.get_path(), inherit_stdio=True
             )
-            self.log(
-                message=f'Switched to branch "{branch_name}"',
-                indentation=1
-            )
+            self.log(message=f'Switched to branch "{branch_name}"', indentation=1)
 
             # Change version number on this branch
             self.get_config_file().write_config_value("global.version", new_version)
 
             self.log(
                 message=f'Bumped from "{current_version}" to "{new_version}"',
-                indentation=1
+                indentation=1,
             )
 
         if interactive:
@@ -199,10 +193,9 @@ class BasicAppWorkdir(AppWorkdirMixin, Workdir):
         if not last_commit:
             return True
 
-        return (
-                git_has_uncommitted_changes(cwd=self.get_path()) or
-                git_has_changes_since_tag(last_commit, cwd=self.get_path())
-        )
+        return git_has_uncommitted_changes(
+            cwd=self.get_path()
+        ) or git_has_changes_since_tag(last_commit, cwd=self.get_path())
 
     def libraries_sync(self) -> None:
         from wexample_wex_addon_app.commands.dependencies.publish import (
@@ -210,15 +203,15 @@ class BasicAppWorkdir(AppWorkdirMixin, Workdir):
         )
 
         for library_path_config in (
-                self.get_runtime_config().search("libraries").get_list_or_default()
+            self.get_runtime_config().search("libraries").get_list_or_default()
         ):
             if library_path_config.is_str() and BasicAppWorkdir.is_app_workdir_path(
-                    path=library_path_config.get_str()
+                path=library_path_config.get_str()
             ):
                 publishable_dependencies = (
                     BasicAppWorkdir.manager_run_command_from_path(
                         command=app__dependencies__publish,
-                        path=library_path_config.get_str()
+                        path=library_path_config.get_str(),
                     ).read_output()
                 )
 
@@ -235,10 +228,7 @@ class BasicAppWorkdir(AppWorkdirMixin, Workdir):
         env_label = f" in {env} environment" if env else ""
 
         self.log(f"Installing dependencies{env_label}")
-        self.shell_run_from_path(
-            path=self.get_path(),
-            cmd=self._create_setup_command()
-        )
+        self.shell_run_from_path(path=self.get_path(), cmd=self._create_setup_command())
 
         self.app_install(env, force=force)
 
@@ -267,17 +257,25 @@ class BasicAppWorkdir(AppWorkdirMixin, Workdir):
             return
 
         self._publish(force=force)
-        self.success(f"Published {self.get_package_name()} as {self.get_publication_tag_name()}.")
+        self.success(
+            f"Published {self.get_package_name()} as {self.get_publication_tag_name()}."
+        )
         self.add_publication_tag()
 
     def publish_bumped(self, force: bool = False, interactive: bool = True) -> None:
-        from wexample_wex_addon_app.commands.file_state.rectify import app__file_state__rectify
+        from wexample_wex_addon_app.commands.file_state.rectify import (
+            app__file_state__rectify,
+        )
         from wexample_wex_addon_app.commands.package.bump import app__package__bump
         from wexample_wex_addon_app.commands.package.commit_and_push import (
             app__package__commit_and_push,
         )
-        from wexample_wex_addon_app.commands.package.publish import app__package__publish
-        from wexample_wex_addon_app.commands.version.propagate import app__version__propagate
+        from wexample_wex_addon_app.commands.package.publish import (
+            app__package__publish,
+        )
+        from wexample_wex_addon_app.commands.version.propagate import (
+            app__version__propagate,
+        )
 
         if force or self.has_changes_since_last_publication_tag():
             # Reserve 1 unit on main progress bar, subdivided into 5 steps
@@ -295,8 +293,7 @@ class BasicAppWorkdir(AppWorkdirMixin, Workdir):
             if not interactive:
                 bump_args.append("--yes")
             bump_response = self.manager_run_command(
-                command=app__package__bump,
-                arguments=bump_args
+                command=app__package__bump, arguments=bump_args
             ).get_output_value()
 
             # Bump cancelled.
@@ -325,16 +322,18 @@ class BasicAppWorkdir(AppWorkdirMixin, Workdir):
             )
             self.manager_run_command(command=app__version__propagate)
 
-            sub_progress.advance(
-                step=1, label=f"Publishing {self.get_project_name()}"
-            )
+            sub_progress.advance(step=1, label=f"Publishing {self.get_project_name()}")
             self.manager_run_command(command=app__package__publish)
         else:
             self.io.log("No change to publish, skipping.")
 
     def has_a_test(self) -> bool:
         test_dir = self.find_by_name(APP_PATH_TEST)
-        return test_dir and test_dir.is_directory() and any(test_dir.get_path().rglob("*.py"))
+        return (
+            test_dir
+            and test_dir.is_directory()
+            and any(test_dir.get_path().rglob("*.py"))
+        )
 
     def _get_source_code_directories(self) -> [TargetFileOrDirectoryType]:
         return []
@@ -348,31 +347,23 @@ class BasicAppWorkdir(AppWorkdirMixin, Workdir):
 
     def count_source_files(self) -> int:
         """Count number of source code files."""
-        return self._count_files(
-            directories=self._get_source_code_directories()
-        )
+        return self._count_files(directories=self._get_source_code_directories())
 
     def count_test_files(self) -> int:
         """Count number of test code files."""
-        return self._count_files(
-            directories=self._get_test_code_directories()
-        )
+        return self._count_files(directories=self._get_test_code_directories())
 
     def count_source_code_lines(self) -> int:
         """Count total lines in source code files."""
-        return self._count_code_lines(
-            directories=self._get_source_code_directories()
-        )
+        return self._count_code_lines(directories=self._get_source_code_directories())
 
     def count_test_code_lines(self) -> int:
         """Count total lines in test code files."""
-        return self._count_code_lines(
-            directories=self._get_test_code_directories()
-        )
+        return self._count_code_lines(directories=self._get_test_code_directories())
 
     def _count_files(
-            self,
-            directories: list[TargetFileOrDirectoryType],
+        self,
+        directories: list[TargetFileOrDirectoryType],
     ) -> int:
         """Count files matching the main code extension in given directories."""
         total = 0
@@ -387,16 +378,15 @@ class BasicAppWorkdir(AppWorkdirMixin, Workdir):
         return total
 
     def _count_code_lines(
-            self,
-            directories: list[TargetFileOrDirectoryType],
+        self,
+        directories: list[TargetFileOrDirectoryType],
     ) -> int:
         """Count total lines in files matching the main code extension."""
         total = 0
 
         for item in directories:
             total += line_count_recursive(
-                path=item.get_path(),
-                pattern=f"*{self.get_main_code_file_extension()}"
+                path=item.get_path(), pattern=f"*{self.get_main_code_file_extension()}"
             )
 
         return total

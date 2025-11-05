@@ -37,6 +37,4 @@ class PythonAppImlFile(ImlFile):
         )
 
     def _default_order_entries(self) -> Iterable[dict[str, Any]]:
-        return (
-            {"@type": "sourceFolder", "@forTests": "false"},
-        )
+        return ({"@type": "sourceFolder", "@forTests": "false"},)

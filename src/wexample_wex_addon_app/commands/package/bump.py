@@ -1,8 +1,6 @@
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
-
-from wexample_app.response.boolean_response import BooleanResponse
 from wexample_wex_addon_app.middleware.suite_or_each_package_middleware import (
     SuiteOrEachPackageMiddleware,
 )
@@ -14,6 +12,7 @@ from wexample_wex_core.decorator.option import option
 
 if TYPE_CHECKING:
     from wexample_wex_core.context.execution_context import ExecutionContext
+    from wexample_app.response.boolean_response import BooleanResponse
 
 
 @option(
@@ -35,6 +34,7 @@ def app__package__bump(
     yes: bool = False,
     force: bool = False,
 ) -> BooleanResponse:
+    from wexample_app.response.boolean_response import BooleanResponse
     package_name = app_workdir.get_package_name()
     bumped = app_workdir.bump(interactive=not yes, force=force)
 

@@ -406,7 +406,8 @@ class AppWorkdirMixin(
                 "should_exist": True,
                 TextOption.get_name(): {"end_new_line": True},
                 "should_contain_lines": PROJECT_GITIGNORE_DEFAULT,
-            })
+            }
+        )
 
         raw_value["children"].append(
             {

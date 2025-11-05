@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 import shutil
 
 from wexample_helpers.const.types import PathOrString
@@ -6,6 +7,7 @@ from wexample_helpers.const.types import PathOrString
 
 def python_install_environment(path: PathOrString) -> bool:
     from pathlib import Path
+
     from wexample_helpers.helpers.shell import shell_run
 
     project_path = Path(path)

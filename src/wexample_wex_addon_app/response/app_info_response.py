@@ -22,10 +22,10 @@ class AppInfoResponse(AbstractResponse):
     @staticmethod
     def _format_yes_no(condition: bool) -> str:
         """Format a boolean condition as colored Yes/No.
-        
+
         Args:
             condition: True for green Yes, False for red No
-            
+
         Returns:
             Formatted string with color markup
         """
@@ -33,7 +33,7 @@ class AppInfoResponse(AbstractResponse):
 
     def _get_libraries_responses(self) -> list[EchoPromptResponse]:
         """Get list of library path responses.
-        
+
         Returns:
             List of EchoPromptResponse for each local library
         """
@@ -55,7 +55,7 @@ class AppInfoResponse(AbstractResponse):
 
     def _get_coverage_data(self) -> tuple[int, int, int, TerminalColor]:
         """Extract and calculate coverage data from config.
-        
+
         Returns:
             Tuple of (total, covered, percent, color)
         """
@@ -92,33 +92,47 @@ class AppInfoResponse(AbstractResponse):
 
     def _get_formatted_prompt_response(self) -> AbstractPromptResponse:
         """Build the complete app info response with all sections.
-        
+
         Returns:
             MultiplePromptResponse containing all info sections
         """
         from wexample_app.const.env import ENV_COLORS
-        from wexample_prompt.responses.data.multiple_prompt_response import MultiplePromptResponse
-        from wexample_prompt.responses.data.properties_prompt_response import PropertiesPromptResponse
-        from wexample_prompt.responses.interactive.progress_prompt_response import ProgressPromptResponse
-        from wexample_prompt.responses.titles.separator_prompt_response import SeparatorPromptResponse
+        from wexample_prompt.responses.data.multiple_prompt_response import (
+            MultiplePromptResponse,
+        )
+        from wexample_prompt.responses.data.properties_prompt_response import (
+            PropertiesPromptResponse,
+        )
+        from wexample_prompt.responses.interactive.progress_prompt_response import (
+            ProgressPromptResponse,
+        )
+        from wexample_prompt.responses.titles.separator_prompt_response import (
+            SeparatorPromptResponse,
+        )
 
         env = self.app_workdir.get_app_env()
         libraries = self._get_libraries_responses()
-        total_int, covered_int, coverage_percent, coverage_color = self._get_coverage_data()
+        total_int, covered_int, coverage_percent, coverage_color = (
+            self._get_coverage_data()
+        )
 
         # Check all conditions for publishability
         has_readme = self.app_workdir.has_readme()
-        is_clean_since_version = not self.app_workdir.has_changes_since_last_publication_tag()
+        is_clean_since_version = (
+            not self.app_workdir.has_changes_since_last_publication_tag()
+        )
         has_tests = self.app_workdir.has_a_test()
         is_clean_since_coverage = not self.app_workdir.has_changes_since_last_coverage()
 
         # App is publishable only if ALL conditions are met
-        is_publishable = all([
-            has_readme,
-            is_clean_since_version,
-            has_tests,
-            is_clean_since_coverage,
-        ])
+        is_publishable = all(
+            [
+                has_readme,
+                is_clean_since_version,
+                has_tests,
+                is_clean_since_coverage,
+            ]
+        )
 
         # Build response sections
         responses = [
@@ -144,46 +158,54 @@ class AppInfoResponse(AbstractResponse):
 
         # Add libraries section if any
         if libraries:
-            responses.append(SeparatorPromptResponse.create_separator(label="Libraries"))
+            responses.append(
+                SeparatorPromptResponse.create_separator(label="Libraries")
+            )
             responses.extend(libraries)
 
         # Add status sections
-        responses.extend([
-            PropertiesPromptResponse(
-                title="Files",
-                properties={
-                    "Source files": f"@color:magenta{{{self.app_workdir.count_source_files()}}}",
-                    "Test files": f"@color:magenta{{{self.app_workdir.count_test_files()}}}",
-                    "Has README.md": self._format_yes_no(has_readme),
-                },
-            ),
-            PropertiesPromptResponse(
-                title="Code",
-                properties={
-                    "Lines in source": f"@color:magenta{{{self.app_workdir.count_source_code_lines()}}}",
-                    "Lines in tests": f"@color:magenta{{{self.app_workdir.count_test_code_lines()}}}",
-                },
-            ),
-            PropertiesPromptResponse(
-                title="Repository",
-                properties={
-                    "Clean since last version": self._format_yes_no(is_clean_since_version),
-                },
-            ),
-            PropertiesPromptResponse(
-                title="Testing",
-                properties={
-                    "Has tests": self._format_yes_no(has_tests),
-                    "Clean since last coverage": self._format_yes_no(is_clean_since_coverage),
-                },
-            ),
-            PropertiesPromptResponse(
-                title="Status",
-                properties={
-                    "Ready to publish": self._format_yes_no(is_publishable),
-                },
-            ),
-            SeparatorPromptResponse(character="▄"),
-        ])
+        responses.extend(
+            [
+                PropertiesPromptResponse(
+                    title="Files",
+                    properties={
+                        "Source files": f"@color:magenta{{{self.app_workdir.count_source_files()}}}",
+                        "Test files": f"@color:magenta{{{self.app_workdir.count_test_files()}}}",
+                        "Has README.md": self._format_yes_no(has_readme),
+                    },
+                ),
+                PropertiesPromptResponse(
+                    title="Code",
+                    properties={
+                        "Lines in source": f"@color:magenta{{{self.app_workdir.count_source_code_lines()}}}",
+                        "Lines in tests": f"@color:magenta{{{self.app_workdir.count_test_code_lines()}}}",
+                    },
+                ),
+                PropertiesPromptResponse(
+                    title="Repository",
+                    properties={
+                        "Clean since last version": self._format_yes_no(
+                            is_clean_since_version
+                        ),
+                    },
+                ),
+                PropertiesPromptResponse(
+                    title="Testing",
+                    properties={
+                        "Has tests": self._format_yes_no(has_tests),
+                        "Clean since last coverage": self._format_yes_no(
+                            is_clean_since_coverage
+                        ),
+                    },
+                ),
+                PropertiesPromptResponse(
+                    title="Status",
+                    properties={
+                        "Ready to publish": self._format_yes_no(is_publishable),
+                    },
+                ),
+                SeparatorPromptResponse(character="▄"),
+            ]
+        )
 
         return MultiplePromptResponse.create_multiple(responses=responses)
