@@ -412,7 +412,7 @@ class AppWorkdirMixin(
             {
                 # .iml
                 "class": ImlFile,
-                "name": ImlFile.EXTENSION_DOT_ENV,
+                "name": ImlFile.get_dotted_extension(),
                 "type": DiskItemType.FILE,
                 "should_exist": True,
             },
