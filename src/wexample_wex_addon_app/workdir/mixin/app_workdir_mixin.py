@@ -10,6 +10,8 @@ from wexample_app.const.globals import (
 )
 from wexample_app.const.output import OUTPUT_FORMAT_JSON, OUTPUT_TARGET_FILE
 from wexample_app.helpers.request import request_build_id
+from wexample_filestate.item.file.iml_file import ImlFile
+from wexample_filestate.option.text.end_new_line_option import EndNewLineOption
 from wexample_helpers.const.types import FileStringOrPath, PathOrString
 from wexample_helpers.decorator.base_class import base_class
 from wexample_prompt.common.io_manager import IoManager
@@ -405,7 +407,16 @@ class AppWorkdirMixin(
                 "should_exist": True,
                 TextOption.get_name(): {"end_new_line": True},
                 "should_contain_lines": PROJECT_GITIGNORE_DEFAULT,
-            }
+            })
+
+        raw_value["children"].append(
+            {
+                # .iml
+                "class": ImlFile,
+                "name": ImlFile.EXTENSION_DOT_ENV,
+                "type": DiskItemType.FILE,
+                "should_exist": True,
+            },
         )
 
         return raw_value
