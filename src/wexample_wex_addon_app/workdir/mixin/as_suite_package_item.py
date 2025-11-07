@@ -79,27 +79,13 @@ class AsSuitePackageItem(BaseClass):
 
     def propagate_version(self) -> None:
         suite_workdir = self.get_suite_workdir()
-        self.log(f"Propagating app version {self.get_project_version()}", prefix=True)
-        self.io.indentation_up()
-
-        for dependent in suite_workdir.get_dependents(self):
-            self.log(
-                f"Updating dependency to {dependent.get_project_name()}", prefix=False
-            )
-            io = dependent.ensure_io_manager()
-            io.indentation = self.io.indentation + 1
-
-            dependent.save_dependency_from_package(self)
-            dependent.bump(force=True, interactive=False)
-
-        self.io.indentation_down()
-        self.success("Versions propagation completed")
+        suite_workdir.propagate_version_of(package=self)
 
     def save_dependency_from_package(
         self, package: FrameworkPackageSuiteWorkdir
-    ) -> None:
+    ) -> bool:
         """Add a dependency from another package, use strict version as this is the intended internal management."""
-        self.save_dependency(
+        return self.save_dependency(
             package_name=package.get_package_name(),
             version=package.get_project_version(),
         )

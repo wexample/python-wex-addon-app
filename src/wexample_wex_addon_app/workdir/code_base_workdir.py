@@ -89,6 +89,7 @@ class CodeBaseWorkdir(BasicAppWorkdir):
     @abstract_method
     def get_dependencies(self) -> list[str]:
         pass
+
     def get_io_context_prefix(self) -> str | None:
         from wexample_helpers.helpers.cli import cli_make_clickable_path
 
@@ -159,5 +160,6 @@ class CodeBaseWorkdir(BasicAppWorkdir):
                 cause=e,
             ) from e
 
-    def save_dependency(self, package: CodeBaseWorkdir) -> None:
+    def save_dependency(self, package: CodeBaseWorkdir) -> bool:
         """Register a dependency into the configuration file."""
+        return True

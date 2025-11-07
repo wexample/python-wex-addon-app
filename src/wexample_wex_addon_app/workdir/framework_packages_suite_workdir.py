@@ -10,6 +10,7 @@ from wexample_wex_core.resolver.addon_command_resolver import AddonCommandResolv
 
 if TYPE_CHECKING:
     from wexample_config.const.types import DictConfig
+    from wexample_wex_addon_app.workdir.mixin.as_suite_package_item import AsSuitePackageItem
     from wexample_wex_addon_app.workdir.code_base_workdir import (
         CodeBaseWorkdir,
     )
@@ -25,11 +26,30 @@ class FrameworkPackageSuiteWorkdir(BasicAppWorkdir):
 
         return dependencies
 
+    def propagate_packages_versions(self) -> None:
+        for package in self.get_ordered_packages():
+            self.propagate_version_of(package=package)
+
+    def propagate_version_of(self, package: AsSuitePackageItem) -> None:
+        package.log(f"Propagating version {package.get_project_version()}", prefix=True)
+        package.io.indentation_up()
+
+        for dependent in self.get_dependents(package):
+            updated = dependent.save_dependency_from_package(package)
+            if updated:
+                package.log(
+                    f"Updated {dependent.get_project_name()} dependencies",
+                )
+
+        package.success("Packages version has been propagated across suite")
+        package.io.indentation_down()
+
+
     def build_dependencies_stack(
-        self,
-        package: CodeBaseWorkdir,
-        dependency: CodeBaseWorkdir,
-        dependencies_map: dict[str, list[str]],
+            self,
+            package: CodeBaseWorkdir,
+            dependency: CodeBaseWorkdir,
+            dependencies_map: dict[str, list[str]],
     ) -> list[CodeBaseWorkdir]:
         """When a package depends on another (uses it in its codebase),
         return the dependency chain to locate the original package that declares the explicit dependency.
@@ -102,10 +122,10 @@ class FrameworkPackageSuiteWorkdir(BasicAppWorkdir):
         return resolved
 
     def packages_execute_function(
-        self,
-        command: callable,
-        arguments: list[str] | None = None,
-        force: bool = False,
+            self,
+            command: callable,
+            arguments: list[str] | None = None,
+            force: bool = False,
     ) -> None:
         """
         Execute a Python command function (addon command) on all packages.
@@ -130,10 +150,10 @@ class FrameworkPackageSuiteWorkdir(BasicAppWorkdir):
         )
 
     def packages_execute_manager(
-        self,
-        command: str,
-        arguments: list[str] | None = None,
-        force: bool = False,
+            self,
+            command: str,
+            arguments: list[str] | None = None,
+            force: bool = False,
     ) -> None:
         """Execute a manager command on all packages."""
         cmd = [command] + (arguments or [])
@@ -250,7 +270,7 @@ class FrameworkPackageSuiteWorkdir(BasicAppWorkdir):
 
                     # If this is the last part (the package itself), add the class
                     if i == len(parts) - 1 and BasicAppWorkdir.is_app_workdir_path(
-                        path=package_path
+                            path=package_path
                     ):
                         node_config["class"] = (
                             self._get_children_package_workdir_class()
@@ -317,11 +337,11 @@ class FrameworkPackageSuiteWorkdir(BasicAppWorkdir):
         self.log(f"Path: {cli_make_clickable_path(path)}", indentation=1)
 
     def _packages_execute(
-        self,
-        cmd: list[str],
-        executor_method: callable,
-        message: str,
-        force: bool = False,
+            self,
+            cmd: list[str],
+            executor_method: callable,
+            message: str,
+            force: bool = False,
     ) -> None:
         """
         Generic method to execute a command on all detected packages.
