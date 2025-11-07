@@ -156,13 +156,8 @@ class FrameworkPackageSuiteWorkdir(BasicAppWorkdir):
             force: bool = False,
     ) -> None:
         """Execute a manager command on all packages."""
-        cmd = [command] + (arguments or [])
-
-        if "--indentation-level" not in cmd:
-            cmd.extend(["--indentation-level", str(self.io.indentation + 1)])
-
         self._packages_execute(
-            cmd=cmd,
+            cmd=[command] + (arguments or []),
             executor_method=BasicAppWorkdir.manager_run_from_path,
             message="Executing command",
             force=force,
