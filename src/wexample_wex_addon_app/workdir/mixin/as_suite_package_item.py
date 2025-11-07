@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING
 from wexample_config.config_value.config_value import ConfigValue
 from wexample_helpers.classes.abstract_method import abstract_method
 from wexample_helpers.classes.base_class import BaseClass
+from wexample_helpers.classes.field import public_field
 from wexample_helpers.decorator.base_class import base_class
 
 if TYPE_CHECKING:
@@ -16,6 +17,14 @@ if TYPE_CHECKING:
 
 @base_class
 class AsSuitePackageItem(BaseClass):
+    _suite_workdir: None | False | FrameworkPackageSuiteWorkdir = public_field(
+        default=None,
+        description="Cache reference to the parent suite"
+    )
+    _suite_workdir_path: None | False | Path = public_field(
+        default=None,
+        description="Cache reference to the parent suite"
+    )
 
     def find_suite_workdir_path(self) -> Path | None:
         """
@@ -25,24 +34,26 @@ class AsSuitePackageItem(BaseClass):
         from wexample_helpers.helpers.directory import directory_iterate_parent_dirs
         from wexample_wex_addon_app.workdir.basic_app_workdir import BasicAppWorkdir
 
-        source_path = self.get_path()
+        if self._suite_workdir_path is None:
+            source_path = self.get_path()
+            self._suite_workdir_path = False
 
-        def _found(path: Path) -> bool:
-            config = BasicAppWorkdir.get_config_from_path(
-                path=path,
-            )
-            if config:
-                if not config.read_config().search("package_suite").is_none():
-                    return True
+            def _found(path: Path) -> bool:
+                config = BasicAppWorkdir.get_config_from_path(
+                    path=path,
+                )
+                if config:
+                    if not config.read_config().search("package_suite").is_none():
+                        return True
 
-            return False
+                return False
 
-        suite_path = directory_iterate_parent_dirs(path=source_path, condition=_found)
+            suite_path = directory_iterate_parent_dirs(path=source_path, condition=_found)
 
-        if suite_path and suite_path != source_path:
-            return suite_path
+            if suite_path and suite_path != source_path:
+                self._suite_workdir_path = suite_path
 
-        return None
+        return self._suite_workdir_path
 
     def get_env_parameter_or_suite_fallback(
         self, key: str, default: str | None = None
@@ -53,7 +64,7 @@ class AsSuitePackageItem(BaseClass):
         )
 
         if value is None:
-            suite_workdir = self.get_suite_workdir()
+            suite_workdir = self.get_shallow_suite_workdir()
             if suite_workdir:
                 return suite_workdir.get_env_parameter(
                     key=key,
@@ -61,16 +72,19 @@ class AsSuitePackageItem(BaseClass):
                 )
         return value
 
-    def get_suite_workdir(self) -> None | FrameworkPackageSuiteWorkdir:
-        suite_path = self.find_suite_workdir_path()
+    def get_shallow_suite_workdir(self, reload: bool = False) -> False | FrameworkPackageSuiteWorkdir:
+        if reload or self._suite_workdir is None:
+            suite_path = self.find_suite_workdir_path()
+            self._suite_workdir = False
 
-        if suite_path and suite_path.exists():
-            suite = self._get_children_package_workdir_class().create_from_path(
-                path=suite_path
-            )
-            return suite
+            if suite_path and suite_path.exists():
+                # For performance, the suite should be configured manually if needed.
+                self._suite_workdir = self._get_children_package_workdir_class().create_from_path(
+                    path=suite_path,
+                    configure=False
+                )
 
-        return None
+        return self._suite_workdir
 
     def get_vendor_name(self) -> str:
         return self.search_in_package_or_suite_config(
@@ -78,7 +92,7 @@ class AsSuitePackageItem(BaseClass):
         ).get_str_or_default(default="acme")
 
     def propagate_version(self) -> None:
-        suite_workdir = self.get_suite_workdir()
+        suite_workdir = self.get_shallow_suite_workdir()
         suite_workdir.propagate_version_of(package=self)
 
     def save_dependency_from_package(
