@@ -96,10 +96,8 @@ class AsSuitePackageItem(BaseClass):
         suite_path = self.find_suite_workdir_path()
 
         if suite_path and suite_path.exists():
-            return (
-                self._get_children_package_workdir_class().create_from_path(
-                    path=suite_path, configure=False
-                )
+            return self._get_children_package_workdir_class().create_from_path(
+                path=suite_path, configure=False
             )
 
     def get_vendor_name(self) -> str:
