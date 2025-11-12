@@ -163,7 +163,7 @@ class CodeBaseWorkdir(BasicAppWorkdir):
             # Step 1: Merge main into current branch to ensure compatibility
             self.info(f"Merging {GIT_BRANCH_MAIN} into {current_branch}...")
             shell_run(
-                ["git", "merge", GIT_BRANCH_MAIN, "--no-ff"],
+                ["git", "merge", GIT_BRANCH_MAIN, "--no-ff", "-m", f"Merge branch '{GIT_BRANCH_MAIN}' into {current_branch}"],
                 inherit_stdio=True,
                 cwd=cwd,
             )
@@ -175,7 +175,7 @@ class CodeBaseWorkdir(BasicAppWorkdir):
             # Step 3: Merge current branch into main
             self.info(f"Merging {current_branch} into {GIT_BRANCH_MAIN}...")
             shell_run(
-                ["git", "merge", current_branch, "--no-ff"],
+                ["git", "merge", current_branch, "--no-ff", "-m", f"Merge branch '{current_branch}' into {GIT_BRANCH_MAIN}"],
                 inherit_stdio=True,
                 cwd=cwd,
             )
