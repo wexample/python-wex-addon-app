@@ -312,7 +312,7 @@ class BasicAppWorkdir(AppWorkdirMixin, Workdir):
                 command=app__file_state__rectify, arguments=rectify_args
             )
 
-            # TODO running test
+            # TODO run tests
 
             sub_progress.advance(
                 step=1, label=f"Committing and pushing {self.get_project_name()}"
