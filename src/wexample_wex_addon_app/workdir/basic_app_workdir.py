@@ -241,7 +241,7 @@ class BasicAppWorkdir(AppWorkdirMixin, Workdir):
                     BasicAppWorkdir.manager_run_command_from_path(
                         command=app__dependencies__publish,
                         path=library_path_config.get_str(),
-                    ).read_output()
+                    ).get_output()
                 )
 
                 self.update_dependencies(publishable_dependencies)
