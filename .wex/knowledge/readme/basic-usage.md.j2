@@ -1,0 +1,119 @@
+## Usage
+
+### Setup & Installation
+
+**Initial setup of the development environment:**
+```bash
+# Install dependencies for the suite and all packages (production mode)
+app::setup/install
+
+# Install dependencies + local editable packages (development mode)
+app::setup/install --env local
+```
+
+**For a single package:**
+```bash
+# Production: Install PDM dependencies only
+.wex/bin/app-manager setup
+
+# Development: Install dependencies + local editable packages
+.wex/bin/app-manager app::setup/install --env local
+```
+
+### Complete Development & Publication Workflow
+
+**1. Initial Setup (one-time)**
+```bash
+# Install dependencies and local editable packages for development
+app::setup/install --env local
+```
+
+**2. Development Cycle**
+```bash
+# Rectify code across all packages
+app::file-state/rectify --all-packages
+
+# Bump only packages with changes (excluding suite)
+app::package/bump --packages-only --force
+
+# Check for circular dependencies
+app::dependencies/check
+
+# Propagate versions across all packages
+app::version/propagate --packages-only
+
+# Commit and push all changes
+app::package/commit-and-push --all-packages --yes
+```
+
+**3. Publication**
+```bash
+# Publish packages with changes to PyPI
+app::suite/publish
+```
+
+### File State Management
+* `app::file-state/rectify [--all-packages]`: Normalizes/rectifies code for a single app or across all packages in the suite; no commits.
+
+### Version Management
+
+The version management commands use `SuiteOrEachPackageMiddleware` which provides flexible execution control:
+- **Default**: Executes on the suite (or single package if app_path points to a package)
+- **`--all-packages`**: Executes on both the suite AND all packages
+- **`--packages-only`**: Executes only on packages (excludes suite, implies `--all-packages`)
+- **`--suite-only`**: Executes only on the suite (excludes packages)
+
+Commands:
+* `app::package/bump [--all-packages|--packages-only|--suite-only] [--yes] [--force]`: Bumps version for suite and/or packages. Use `--force` to bump only packages/suite with changes (no current version tag on HEAD).
+* `app::version/propagate [--packages-only]`: Propagates the current package version to other packages in the suite that depend on it. Use `--packages-only` to propagate all versions at once.
+
+### Git Operations
+* `app::package/commit-and-push [--all-packages] [--yes]`: Commits and pushes changes for a single package or all packages with uncommitted changes when using `--all-packages`.
+
+### Dependencies Management
+* `app::dependencies/check`: Validates internal dependencies across the suite to prevent circular dependencies.
+
+### Suite Execution
+* `app::suite/exec-command -c <command> [--arguments "<args>"]`: Executes a manager command on all packages (e.g., `app::info/show`).
+* `app::suite/exec-shell -c "<command>"`: Executes a shell command on all packages.
+
+### Setup & Installation
+* `app::setup/install`: Installs PDM dependencies for the suite and all packages. Runs `pdm install` in the suite and each package.
+* `app::setup/install --env local`: Development mode - installs dependencies + all local packages as editable dependencies (pip install -e) for cross-package development.
+* `.wex/bin/app-manager setup`: Low-level command that runs `pdm install` for a single package (called by app-manager.sh).
+
+### Publishing
+* `app::suite/publish`: Publishes packages to PyPI. Only publishes packages with changes since their last publication tag. Automatically bumps versions, rectifies file state, commits, propagates versions, and publishes. Creates and pushes publication tags after successful publish.
+
+### Common Workflows
+
+**Setup development environment:**
+```bash
+# Full development setup with editable packages
+app::setup/install --env local
+```
+
+**Bump only packages with changes (excluding suite):**
+```bash
+app::package/bump --packages-only --force && app::version/propagate --packages-only && app::package/commit-and-push --all-packages --yes
+```
+
+**Bump suite and all packages:**
+```bash
+app::package/bump --all-packages
+```
+
+**Bump only the suite:**
+```bash
+app::package/bump --suite-only
+```
+
+**Rectify all packages:**
+```bash
+app::file-state/rectify --all-packages
+```
+
+**Get info for all packages:**
+```bash
+app::suite/exec-command -c app::info/show
+```

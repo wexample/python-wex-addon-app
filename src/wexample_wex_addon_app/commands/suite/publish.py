@@ -2,10 +2,15 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from wexample_prompt.enums.terminal_color import TerminalColor
+from wexample_wex_core.const.globals import COMMAND_TYPE_ADDON
 from wexample_wex_core.decorator.command import command
+from wexample_wex_core.decorator.middleware import middleware
 from wexample_wex_core.decorator.option import option
-from wexample_wex_core.workdir.framework_packages_suite_workdir import (
+
+from wexample_wex_addon_app.middleware.package_suite_middleware import (
+    PackageSuiteMiddleware,
+)
+from wexample_wex_addon_app.workdir.framework_packages_suite_workdir import (
     FrameworkPackageSuiteWorkdir,
 )
 
@@ -14,59 +19,35 @@ if TYPE_CHECKING:
 
 
 @option(name="yes", type=bool, default=False, is_flag=True)
-@command(description="Publish the Python package to PyPI.")
+@option(name="force", type=bool, default=False, is_flag=True)
+@middleware(middleware=PackageSuiteMiddleware)
+@command(
+    type=COMMAND_TYPE_ADDON,
+    description="Publish package to PyPI. Use --all-packages to publish all packages in suite.",
+)
 def app__suite__publish(
-        context: ExecutionContext,
-        yes: bool = False,
+    context: ExecutionContext,
+    app_workdir: FrameworkPackageSuiteWorkdir,
+    yes: bool = False,
+    force: bool = False,
 ) -> None:
-    progress = context.get_or_create_progress(total=2, label="Publishing...")
+    from wexample_prompt.enums.terminal_color import TerminalColor
 
-    # Initialization
-    workdir = _init_app_workdir(context, progress)
-    if workdir is None:
-        return
+    app_workdir.packages_validate_internal_dependencies_declarations()
+    packages = app_workdir.get_ordered_packages()
 
-    # Determine which packages need publication (changed since last tag)
-    to_publish = workdir.compute_packages_to_publish()
+    context.io.log("Starting deployment...")
+    context.io.indentation_up()
+    progress = context.io.progress(
+        total=len(packages),
+        print_response=False,
+        color=TerminalColor.CYAN,
+    ).get_handle()
 
-    if not to_publish:
-        context.io.info("No packages to publish (no changes since last publication tags).")
-        progress.finish(color=TerminalColor.GREEN, label="Nothing to publish.")
-        return
+    # Process packages in order leaf -> trunk.
+    # Use manager for every command allow to use complete specific environment.
+    for package in packages:
+        progress.advance(label=f"Publishing {package.get_project_name()}", step=1)
+        package.publish_bumped(force=force, interactive=not yes)
 
-    # Publish only, no bump/propagation/commit here; skip if already tagged for current version
-    progress_range = progress.create_range_handle(to_step=2, total=len(to_publish))
-    for package in to_publish:
-        current_tag = package.get_publication_tag_name()
-        last_tag = package.get_last_publication_tag()
-
-        if last_tag == current_tag:
-            context.io.info(f"{package.get_package_name()} already published as {current_tag}; skipping.")
-            progress_range.advance(step=1)
-            continue
-
-        package.publish(
-            progress=progress_range.create_range_handle(to_step=1),
-        )
-        # Tag after successful publication
-        package.add_publication_tag()
-        progress_range.advance(step=1)
-
-    progress_range.finish()
-    progress.finish(color=TerminalColor.GREEN, label="All packages published.")
-
-
-def _init_app_workdir(context: ExecutionContext, progress) -> FrameworkPackageSuiteWorkdir | None:
-    """Create an app workdir and ensure its type is valid for a suite.
-
-    Returns the workdir or None if the current path is not a suite manager workdir.
-    """
-    workdir = context.request.get_addon_manager().app_workdir(
-        progress=progress.create_range_handle(to_step=2)
-    )
-    if not isinstance(workdir, FrameworkPackageSuiteWorkdir):
-        context.io.warning(
-            f"The current path is not a suite manager workdir: {workdir.get_path()}"
-        )
-        return None
-    return workdir
+    progress.finish(label="All packages published successfully")

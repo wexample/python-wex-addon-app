@@ -4,20 +4,15 @@ build-backend = "pdm.backend"
 
 [project]
 name = "wexample-wex-addon-app"
-version = "0.0.39"
+version = "0.0.52"
 description = "App management with wex"
-authors = [
-    { name = "weeger", email = "contact@wexample.com" },
-]
+authors = [{name = "weeger", email = "contact@wexample.com"}]
 requires-python = ">=3.10"
-classifiers = [
-    "Programming Language :: Python :: 3",
-    "License :: OSI Approved :: MIT License",
-    "Operating System :: OS Independent",
-]
+classifiers = ["Programming Language :: Python :: 3", "License :: OSI Approved :: MIT License", "Operating System :: OS Independent"]
 dependencies = [
-    "pydantic>=2,<3",
-    "wexample-wex-core==6.0.41",
+    "attrs>=23.1.0",
+    "cattrs>=23.1.0",
+    "wexample-wex-core==6.0.63",
 ]
 
 [project.readme]
@@ -33,17 +28,30 @@ homepage = "https://github.com/wexample/python-wex-addon-app"
 [project.optional-dependencies]
 dev = [
     "pytest",
+    "pytest-cov",
 ]
+
+[tool.setuptools.packages.find]
+include = ["*"]
+exclude = ["wexample_wex_addon_app.testing*"]
 
 [tool.pdm]
 distribution = true
 
 [tool.pdm.build]
-includes = [
-    "src/wexample_wex_addon_app/py.typed",
-]
 package-dir = "src"
 
 [[tool.pdm.build.packages]]
 include = "wexample_wex_addon_app"
 from = "src"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+
+[tool.coverage.run]
+source = ["wexample_wex_addon_app"]
+omit = ["*/tests/*", "*/.venv/*", "*/venv/*"]
+
+[tool.coverage.report]
+exclude_lines = ["pragma: no cover", "def __repr__", "raise AssertionError", "raise NotImplementedError", "if __name__ == .__main__.:", "if TYPE_CHECKING:", "@abstractmethod"]
