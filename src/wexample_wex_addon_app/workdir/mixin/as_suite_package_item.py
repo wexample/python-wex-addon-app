@@ -58,7 +58,7 @@ class AsSuitePackageItem(BaseClass):
         return self._suite_workdir_path
 
     def get_env_parameter_or_suite_fallback(
-            self, key: str, default: str | None = None
+        self, key: str, default: str | None = None
     ) -> str | None:
         value = self.get_env_parameter(
             key=key,
@@ -75,7 +75,7 @@ class AsSuitePackageItem(BaseClass):
         return value
 
     def get_suite_workdir(
-            self, reload: bool = False
+        self, reload: bool = False
     ) -> False | FrameworkPackageSuiteWorkdir:
         if reload or self._suite_workdir is None:
             suite_path = self.find_suite_workdir_path()
@@ -90,9 +90,7 @@ class AsSuitePackageItem(BaseClass):
 
         return self._suite_workdir
 
-    def get_shallow_suite_workdir(
-            self
-    ) -> False | FrameworkPackageSuiteWorkdir:
+    def get_shallow_suite_workdir(self) -> False | FrameworkPackageSuiteWorkdir:
         suite_path = self.find_suite_workdir_path()
 
         if suite_path and suite_path.exists():
@@ -109,7 +107,7 @@ class AsSuitePackageItem(BaseClass):
         self.get_suite_workdir().propagate_version_of(package=self)
 
     def save_dependency_from_package(
-            self, package: FrameworkPackageSuiteWorkdir
+        self, package: FrameworkPackageSuiteWorkdir
     ) -> bool:
         """Add a dependency from another package, use strict version as this is the intended internal management."""
         return self.save_dependency(

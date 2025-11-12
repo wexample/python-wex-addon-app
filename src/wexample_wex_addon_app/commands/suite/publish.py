@@ -26,11 +26,11 @@ if TYPE_CHECKING:
     description="Publish package to PyPI. Use --all-packages to publish all packages in suite.",
 )
 def app__suite__publish(
-        context: ExecutionContext,
-        app_workdir: FrameworkPackageSuiteWorkdir,
-        yes: bool = False,
-        force: bool = False,
-        ignore_dependencies: bool = False
+    context: ExecutionContext,
+    app_workdir: FrameworkPackageSuiteWorkdir,
+    yes: bool = False,
+    force: bool = False,
+    ignore_dependencies: bool = False,
 ) -> None:
     from wexample_prompt.enums.terminal_color import TerminalColor
 
