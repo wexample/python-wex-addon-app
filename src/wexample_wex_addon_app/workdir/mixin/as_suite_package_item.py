@@ -4,6 +4,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 from wexample_config.config_value.config_value import ConfigValue
+
 from wexample_helpers.classes.abstract_method import abstract_method
 from wexample_helpers.classes.base_class import BaseClass
 from wexample_helpers.classes.field import public_field
@@ -73,7 +74,7 @@ class AsSuitePackageItem(BaseClass):
                 )
         return value
 
-    def get_shallow_suite_workdir(
+    def get_suite_workdir(
         self, reload: bool = False
     ) -> False | FrameworkPackageSuiteWorkdir:
         if reload or self._suite_workdir is None:
@@ -81,14 +82,21 @@ class AsSuitePackageItem(BaseClass):
             self._suite_workdir = False
 
             if suite_path and suite_path.exists():
-                # For performance, the suite should be configured manually if needed.
                 self._suite_workdir = (
                     self._get_children_package_workdir_class().create_from_path(
-                        path=suite_path, configure=False
+                        path=suite_path
                     )
                 )
 
         return self._suite_workdir
+
+    def get_shallow_suite_workdir(self) -> False | FrameworkPackageSuiteWorkdir:
+        suite_path = self.find_suite_workdir_path()
+
+        if suite_path and suite_path.exists():
+            return self._get_children_package_workdir_class().create_from_path(
+                path=suite_path, configure=False
+            )
 
     def get_vendor_name(self) -> str:
         return self.search_in_package_or_suite_config(
@@ -96,8 +104,7 @@ class AsSuitePackageItem(BaseClass):
         ).get_str_or_default(default="acme")
 
     def propagate_version(self) -> None:
-        suite_workdir = self.get_shallow_suite_workdir()
-        suite_workdir.propagate_version_of(package=self)
+        self.get_suite_workdir().propagate_version_of(package=self)
 
     def save_dependency_from_package(
         self, package: FrameworkPackageSuiteWorkdir
