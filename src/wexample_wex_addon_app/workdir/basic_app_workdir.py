@@ -10,9 +10,10 @@ from wexample_helpers.classes.abstract_method import abstract_method
 from wexample_helpers.decorator.base_class import base_class
 from wexample_helpers_git.helpers.git import git_has_changes_since_tag
 from wexample_prompt.enums.terminal_color import TerminalColor
+from wexample_wex_core.workdir.workdir import Workdir
+
 from wexample_wex_addon_app.const.path import APP_PATH_TEST
 from wexample_wex_addon_app.workdir.mixin.app_workdir_mixin import AppWorkdirMixin
-from wexample_wex_core.workdir.workdir import Workdir
 
 if TYPE_CHECKING:
     from wexample_filestate.result.file_state_result import FileStateResult
@@ -141,6 +142,22 @@ class BasicAppWorkdir(AppWorkdirMixin, Workdir):
             return True
         return False
 
+    def count_source_code_lines(self) -> int:
+        """Count total lines in source code files."""
+        return self._count_code_lines(directories=self._get_source_code_directories())
+
+    def count_source_files(self) -> int:
+        """Count number of source code files."""
+        return self._count_files(directories=self._get_source_code_directories())
+
+    def count_test_code_lines(self) -> int:
+        """Count total lines in test code files."""
+        return self._count_code_lines(directories=self._get_test_code_directories())
+
+    def count_test_files(self) -> int:
+        """Count number of test code files."""
+        return self._count_files(directories=self._get_test_code_directories())
+
     def get_app_env(self) -> str:
         from wexample_app.const.globals import ENV_VAR_NAME_APP_ENV
 
@@ -156,6 +173,10 @@ class BasicAppWorkdir(AppWorkdirMixin, Workdir):
     def get_local_libraries_paths(self) -> list[ConfigValue]:
         return self.get_runtime_config().search(f"libraries").get_list_or_default()
 
+    @abstract_method
+    def get_main_code_file_extension(self) -> str:
+        pass
+
     def get_package_name(self) -> str:
         return self.get_project_name()
 
@@ -167,18 +188,13 @@ class BasicAppWorkdir(AppWorkdirMixin, Workdir):
         """
         return f"{self.get_package_name()}/v{self.get_project_version()}"
 
-    def has_changes_since_last_publication_tag(self) -> bool:
-        """Return True if there are changes in the package directory since the last publication tag.
-
-        If there is no previous tag, returns True (first publication).
-        """
-        from wexample_helpers_git.helpers.git import git_has_changes_since_tag
-
-        last_tag = self.get_last_publication_tag()
-        if last_tag is None:
-            return True
-        # Limit diff to current package folder, run from package cwd using '.'
-        return git_has_changes_since_tag(last_tag, ".", cwd=self.get_path())
+    def has_a_test(self) -> bool:
+        test_dir = self.find_by_name(APP_PATH_TEST)
+        return (
+            test_dir
+            and test_dir.is_directory()
+            and any(test_dir.get_path().rglob("*.py"))
+        )
 
     def has_changes_since_last_coverage(self) -> bool:
         """Return True if there are any changes (committed or not) since last coverage."""
@@ -196,6 +212,19 @@ class BasicAppWorkdir(AppWorkdirMixin, Workdir):
         return git_has_uncommitted_changes(
             cwd=self.get_path()
         ) or git_has_changes_since_tag(last_commit, cwd=self.get_path())
+
+    def has_changes_since_last_publication_tag(self) -> bool:
+        """Return True if there are changes in the package directory since the last publication tag.
+
+        If there is no previous tag, returns True (first publication).
+        """
+        from wexample_helpers_git.helpers.git import git_has_changes_since_tag
+
+        last_tag = self.get_last_publication_tag()
+        if last_tag is None:
+            return True
+        # Limit diff to current package folder, run from package cwd using '.'
+        return git_has_changes_since_tag(last_tag, ".", cwd=self.get_path())
 
     def libraries_sync(self) -> None:
         from wexample_wex_addon_app.commands.dependencies.publish import (
@@ -217,42 +246,6 @@ class BasicAppWorkdir(AppWorkdirMixin, Workdir):
 
                 self.update_dependencies(publishable_dependencies)
         self.io.success("All libraries versions are up to date.")
-
-    def publish_dependencies(self) -> dict[str, str]:
-        """Publish witch dependency **current package represents for others**,
-        not the dependencies the current package is dependent on.
-        """
-        return {self.get_package_name(): self.get_project_version()}
-
-    def setup_install(self, env: str | None = None, force: bool = False) -> None:
-        # TODO Two ways
-        #      - Simplify to only install "app" here, not "app_manager"
-        #      - Install both of them, but trigger event allowing suite to complete installation (version propagation / -e install / etc.
-        # env_label = f" in {env} environment" if env else ""
-        # self.log(f"Installing dependencies{env_label}")
-        # self.shell_run_from_path(path=self.get_path(), cmd=self._create_setup_command())
-
-        self.app_install(env, force=force)
-
-    def update_dependencies(self, dependencies_map: dict[str, str]) -> None:
-        # Let language specific workdir manage how to update.
-        pass
-
-    def _create_setup_command(self) -> list[str]:
-        from wexample_app.const.globals import APP_PATH_BIN_APP_MANAGER
-
-        return [str(APP_PATH_BIN_APP_MANAGER), "setup"]
-
-    def should_be_published(self, force: bool = False) -> bool:
-        current_tag = self.get_publication_tag_name()
-        last_tag = self.get_last_publication_tag()
-        if not force and last_tag == current_tag:
-            self.log(f"{self.get_package_name()} already published as {current_tag}.")
-            return False
-        return True
-
-    def _publish(self, force: bool = False) -> None:
-        """Internal publication process"""
 
     def publish(self, force: bool = False) -> None:
         if not self.should_be_published(force=force):
@@ -330,39 +323,46 @@ class BasicAppWorkdir(AppWorkdirMixin, Workdir):
         else:
             self.io.log("No change to publish, skipping.")
 
-    def has_a_test(self) -> bool:
-        test_dir = self.find_by_name(APP_PATH_TEST)
-        return (
-            test_dir
-            and test_dir.is_directory()
-            and any(test_dir.get_path().rglob("*.py"))
-        )
+    def publish_dependencies(self) -> dict[str, str]:
+        """Publish witch dependency **current package represents for others**,
+        not the dependencies the current package is dependent on.
+        """
+        return {self.get_package_name(): self.get_project_version()}
 
-    def _get_source_code_directories(self) -> [TargetFileOrDirectoryType]:
-        return []
+    def setup_install(self, env: str | None = None, force: bool = False) -> None:
+        # TODO Two ways
+        #      - Simplify to only install "app" here, not "app_manager"
+        #      - Install both of them, but trigger event allowing suite to complete installation (version propagation / -e install / etc.
+        # env_label = f" in {env} environment" if env else ""
+        # self.log(f"Installing dependencies{env_label}")
+        # self.shell_run_from_path(path=self.get_path(), cmd=self._create_setup_command())
+        self.app_install(env, force=force)
 
-    def _get_test_code_directories(self) -> [TargetFileOrDirectoryType]:
-        return []
+    def should_be_published(self, force: bool = False) -> bool:
+        current_tag = self.get_publication_tag_name()
+        last_tag = self.get_last_publication_tag()
+        if not force and last_tag == current_tag:
+            self.log(f"{self.get_package_name()} already published as {current_tag}.")
+            return False
+        return True
 
-    @abstract_method
-    def get_main_code_file_extension(self) -> str:
+    def update_dependencies(self, dependencies_map: dict[str, str]) -> None:
+        # Let language specific workdir manage how to update.
         pass
 
-    def count_source_files(self) -> int:
-        """Count number of source code files."""
-        return self._count_files(directories=self._get_source_code_directories())
+    def _count_code_lines(
+        self,
+        directories: list[TargetFileOrDirectoryType],
+    ) -> int:
+        """Count total lines in files matching the main code extension."""
+        total = 0
 
-    def count_test_files(self) -> int:
-        """Count number of test code files."""
-        return self._count_files(directories=self._get_test_code_directories())
+        for item in directories:
+            total += line_count_recursive(
+                path=item.get_path(), pattern=f"*{self.get_main_code_file_extension()}"
+            )
 
-    def count_source_code_lines(self) -> int:
-        """Count total lines in source code files."""
-        return self._count_code_lines(directories=self._get_source_code_directories())
-
-    def count_test_code_lines(self) -> int:
-        """Count total lines in test code files."""
-        return self._count_code_lines(directories=self._get_test_code_directories())
+        return total
 
     def _count_files(
         self,
@@ -380,16 +380,16 @@ class BasicAppWorkdir(AppWorkdirMixin, Workdir):
 
         return total
 
-    def _count_code_lines(
-        self,
-        directories: list[TargetFileOrDirectoryType],
-    ) -> int:
-        """Count total lines in files matching the main code extension."""
-        total = 0
+    def _create_setup_command(self) -> list[str]:
+        from wexample_app.const.globals import APP_PATH_BIN_APP_MANAGER
 
-        for item in directories:
-            total += line_count_recursive(
-                path=item.get_path(), pattern=f"*{self.get_main_code_file_extension()}"
-            )
+        return [str(APP_PATH_BIN_APP_MANAGER), "setup"]
 
-        return total
+    def _get_source_code_directories(self) -> [TargetFileOrDirectoryType]:
+        return []
+
+    def _get_test_code_directories(self) -> [TargetFileOrDirectoryType]:
+        return []
+
+    def _publish(self, force: bool = False) -> None:
+        """Internal publication process"""

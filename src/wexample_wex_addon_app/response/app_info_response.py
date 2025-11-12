@@ -7,6 +7,7 @@ from wexample_helpers.classes.field import public_field
 from wexample_helpers.decorator.base_class import base_class
 from wexample_prompt.enums.terminal_color import TerminalColor
 from wexample_prompt.responses.abstract_prompt_response import AbstractPromptResponse
+
 from wexample_wex_addon_app.workdir.basic_app_workdir import BasicAppWorkdir
 
 if TYPE_CHECKING:
@@ -30,28 +31,6 @@ class AppInfoResponse(AbstractResponse):
             Formatted string with color markup
         """
         return "@color:green{Yes}" if condition else "@color:red{No}"
-
-    def _get_libraries_responses(self) -> list[EchoPromptResponse]:
-        """Get list of library path responses.
-
-        Returns:
-            List of EchoPromptResponse for each local library
-        """
-        from wexample_prompt.responses.echo_prompt_response import EchoPromptResponse
-
-        libraries = []
-        local_libraries = self.app_workdir.get_local_libraries_paths()
-
-        if local_libraries:
-            for library_config in local_libraries:
-                if library_config.is_str():
-                    libraries.append(
-                        EchoPromptResponse.create_echo(
-                            message=f"@path{{{library_config.get_str()}}}"
-                        )
-                    )
-
-        return libraries
 
     def _get_coverage_data(self) -> tuple[int, int, int, TerminalColor]:
         """Extract and calculate coverage data from config.
@@ -209,3 +188,25 @@ class AppInfoResponse(AbstractResponse):
         )
 
         return MultiplePromptResponse.create_multiple(responses=responses)
+
+    def _get_libraries_responses(self) -> list[EchoPromptResponse]:
+        """Get list of library path responses.
+
+        Returns:
+            List of EchoPromptResponse for each local library
+        """
+        from wexample_prompt.responses.echo_prompt_response import EchoPromptResponse
+
+        libraries = []
+        local_libraries = self.app_workdir.get_local_libraries_paths()
+
+        if local_libraries:
+            for library_config in local_libraries:
+                if library_config.is_str():
+                    libraries.append(
+                        EchoPromptResponse.create_echo(
+                            message=f"@path{{{library_config.get_str()}}}"
+                        )
+                    )
+
+        return libraries

@@ -18,12 +18,10 @@ if TYPE_CHECKING:
 @base_class
 class AsSuitePackageItem(BaseClass):
     _suite_workdir: None | False | FrameworkPackageSuiteWorkdir = public_field(
-        default=None,
-        description="Cache reference to the parent suite"
+        default=None, description="Cache reference to the parent suite"
     )
     _suite_workdir_path: None | False | Path = public_field(
-        default=None,
-        description="Cache reference to the parent suite"
+        default=None, description="Cache reference to the parent suite"
     )
 
     def find_suite_workdir_path(self) -> Path | None:
@@ -32,6 +30,7 @@ class AsSuitePackageItem(BaseClass):
         as we cannot directly load suite python class from a different venv.
         """
         from wexample_helpers.helpers.directory import directory_iterate_parent_dirs
+
         from wexample_wex_addon_app.workdir.basic_app_workdir import BasicAppWorkdir
 
         if self._suite_workdir_path is None:
@@ -48,7 +47,9 @@ class AsSuitePackageItem(BaseClass):
 
                 return False
 
-            suite_path = directory_iterate_parent_dirs(path=source_path, condition=_found)
+            suite_path = directory_iterate_parent_dirs(
+                path=source_path, condition=_found
+            )
 
             if suite_path and suite_path != source_path:
                 self._suite_workdir_path = suite_path
@@ -72,16 +73,19 @@ class AsSuitePackageItem(BaseClass):
                 )
         return value
 
-    def get_shallow_suite_workdir(self, reload: bool = False) -> False | FrameworkPackageSuiteWorkdir:
+    def get_shallow_suite_workdir(
+        self, reload: bool = False
+    ) -> False | FrameworkPackageSuiteWorkdir:
         if reload or self._suite_workdir is None:
             suite_path = self.find_suite_workdir_path()
             self._suite_workdir = False
 
             if suite_path and suite_path.exists():
                 # For performance, the suite should be configured manually if needed.
-                self._suite_workdir = self._get_children_package_workdir_class().create_from_path(
-                    path=suite_path,
-                    configure=False
+                self._suite_workdir = (
+                    self._get_children_package_workdir_class().create_from_path(
+                        path=suite_path, configure=False
+                    )
                 )
 
         return self._suite_workdir
@@ -122,6 +126,7 @@ class AsSuitePackageItem(BaseClass):
                     return suite_config_file.read_config().search(key)
 
         return value
+
     @abstract_method
     def _get_children_package_workdir_class(self) -> type[FrameworkPackageSuiteWorkdir]:
         pass

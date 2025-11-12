@@ -1,6 +1,6 @@
 # wexample-wex-addon-app
 
-Version: 0.0.49
+Version: 0.0.51
 
 App management with wex
 
