@@ -263,6 +263,7 @@ class BasicAppWorkdir(AppWorkdirMixin, Workdir):
             f"Published {self.get_package_name()} as {self.get_publication_tag_name()}."
         )
         self.add_publication_tag()
+        self.merge_to_main()
 
     def publish_bumped(self, force: bool = False, interactive: bool = True) -> None:
         from wexample_wex_addon_app.commands.file_state.rectify import (

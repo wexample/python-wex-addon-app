@@ -14,7 +14,6 @@ if TYPE_CHECKING:
 
 
 class CodeBaseWorkdir(BasicAppWorkdir):
-
     def add_publication_tag(self) -> None:
         from wexample_helpers_git.helpers.git import (
             git_push_tag,
@@ -29,10 +28,75 @@ class CodeBaseWorkdir(BasicAppWorkdir):
         if not git_tag_exists(tag, cwd=cwd, inherit_stdio=False):
             git_tag_annotated(tag, f"Release {tag}", cwd=cwd, inherit_stdio=True)
         else:
-            self.io.warning(f"Tag {tag} already exists locally; pushing it.")
+            self.warning(f"Tag {tag} already exists locally; pushing it.")
 
         # Push the tag explicitly to the remote to ensure it's published.
         git_push_tag(tag, cwd=cwd, inherit_stdio=True)
+
+
+    def merge_to_main(self) -> None:
+        """Merge current branch into main, then return to the original branch.
+        
+        This method:
+        1. Saves the current branch name
+        2. Merges main into the current branch (to ensure compatibility)
+        3. Switches to main
+        4. Merges the current branch into main
+        5. Returns to the original branch
+        
+        Raises if there are uncommitted changes or merge conflicts.
+        """
+        from wexample_helpers.helpers.shell import shell_run
+        from wexample_helpers_git.const.common import GIT_BRANCH_MAIN
+        from wexample_helpers_git.helpers.git import (
+            git_current_branch,
+            git_has_uncommitted_changes,
+            git_switch_branch,
+        )
+
+        cwd = self.get_path()
+
+        # Ensure no uncommitted changes before starting
+        if git_has_uncommitted_changes(cwd=cwd):
+            raise RuntimeError(
+                "Cannot merge to main: uncommitted changes detected. "
+                "Please commit or stash your changes first."
+            )
+
+        # Save current branch name
+        current_branch = git_current_branch(cwd=cwd, inherit_stdio=False)
+
+        if current_branch == GIT_BRANCH_MAIN:
+            self.warning("Already on main branch, nothing to merge.")
+            return
+
+        try:
+            # Step 1: Merge main into current branch to ensure compatibility
+            self.info(f"Merging {GIT_BRANCH_MAIN} into {current_branch}...")
+            shell_run(
+                ["git", "merge", GIT_BRANCH_MAIN, "--no-ff"],
+                inherit_stdio=True,
+                cwd=cwd,
+            )
+
+            # Step 2: Switch to main
+            self.info(f"Switching to {GIT_BRANCH_MAIN}...")
+            git_switch_branch(GIT_BRANCH_MAIN, cwd=cwd, inherit_stdio=True)
+
+            # Step 3: Merge current branch into main
+            self.info(f"Merging {current_branch} into {GIT_BRANCH_MAIN}...")
+            shell_run(
+                ["git", "merge", current_branch, "--no-ff"],
+                inherit_stdio=True,
+                cwd=cwd,
+            )
+
+            self.success(f"Successfully merged {current_branch} into {GIT_BRANCH_MAIN}")
+
+        finally:
+            # Step 4: Always return to the original branch
+            self.info(f"Returning to {current_branch}...")
+            git_switch_branch(current_branch, cwd=cwd, inherit_stdio=True)
 
     def build_dependencies_stack(
         self, package: CodeBaseWorkdir, dependency: CodeBaseWorkdir
@@ -59,7 +123,7 @@ class CodeBaseWorkdir(BasicAppWorkdir):
         cwd = self.get_path()
         progress = (
             progress
-            or self.io.progress(label="Committing changes...", total=3).get_handle()
+            or self.progress(label="Committing changes...", total=3).get_handle()
         )
 
         git_current_branch(cwd=cwd, inherit_stdio=False)
@@ -142,7 +206,7 @@ class CodeBaseWorkdir(BasicAppWorkdir):
         cwd = self.get_path()
         progress = (
             progress
-            or self.io.progress(label="Pushing changes...", total=1).get_handle()
+            or self.progress(label="Pushing changes...", total=1).get_handle()
         )
 
         try:
