@@ -41,6 +41,7 @@ if [[ "${1:-}" = "setup" ]]; then
     echo "ℹ️  No venv created here — using central one."
 
     echo "📥 Installing dependencies for app_manager using shared venv..."
+    # TODO Ensuire requirements.txt is up to date as we user pyproject.toml
     "$PYTHON_BIN" -m pip install -r "$AM_DIR/requirements.txt" 2>/dev/null || true
 
     echo "✅ Setup complete (using shared venv)"
