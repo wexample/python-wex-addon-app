@@ -3,19 +3,17 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from wexample_app.const.globals import (
-    APP_FILE_APP_CONFIG,
-    APP_FILE_APP_RUNTIME_CONFIG,
     APP_PATH_APP_MANAGER,
     WORKDIR_SETUP_DIR,
 )
 from wexample_app.const.output import OUTPUT_FORMAT_JSON, OUTPUT_TARGET_FILE
 from wexample_app.helpers.request import request_build_id
 from wexample_app.item.file.iml_file import ImlFile
+from wexample_app.workdir.mixin.with_runtime_config_mixin import WithRuntimeConfigMixin
 from wexample_helpers.const.types import FileStringOrPath, PathOrString
 from wexample_helpers.decorator.base_class import base_class
 from wexample_prompt.common.io_manager import IoManager
 from wexample_wex_core.common.app_manager_shell_result import AppManagerShellResult
-from wexample_wex_core.const.globals import CORE_DIR_NAME_TMP
 from wexample_wex_core.resolver.addon_command_resolver import AddonCommandResolver
 from wexample_wex_core.workdir.mixin.with_app_version_workdir_mixin import (
     WithAppVersionWorkdirMixin,
@@ -38,23 +36,11 @@ if TYPE_CHECKING:
 
 @base_class
 class AppWorkdirMixin(
-    AsSuitePackageItem, WithReadmeWorkdirMixin, WithAppVersionWorkdirMixin
+    AsSuitePackageItem,
+    WithReadmeWorkdirMixin,
+    WithAppVersionWorkdirMixin,
+    WithRuntimeConfigMixin
 ):
-    @classmethod
-    def get_config_from_path(cls, path: FileStringOrPath) -> YamlFile | None:
-        from pathlib import Path
-
-        from wexample_app.const.globals import APP_FILE_APP_CONFIG
-        from wexample_filestate.item.file.yaml_file import YamlFile
-
-        setup_config_path = Path(path) / WORKDIR_SETUP_DIR / APP_FILE_APP_CONFIG
-
-        if setup_config_path.exists():
-            return YamlFile.create_from_path(
-                path=setup_config_path,
-            )
-
-        return None
 
     @classmethod
     def get_env_config_from_path(cls, path: PathOrString) -> NestedConfigValue:
@@ -213,21 +199,6 @@ class AppWorkdirMixin(
             }
         )
 
-    def get_config(self) -> NestedConfigValue:
-        from wexample_config.config_value.nested_config_value import NestedConfigValue
-
-        config_file = self.get_config_file()
-        if config_file:
-            return config_file.read_config()
-
-        return NestedConfigValue(raw={})
-
-    def get_config_file(self) -> YamlFile:
-        # We don't search into the target item tree as this is a low level information.
-        return self.get_yaml_file_from_path(
-            path=self.get_path() / WORKDIR_SETUP_DIR / APP_FILE_APP_CONFIG
-        )
-
     def get_env_config(self) -> NestedConfigValue:
         return self.get_env_config_from_path(
             path=self.get_path(),
@@ -291,29 +262,6 @@ class AppWorkdirMixin(
             registry.write_config(self.build_registry_value())
 
         return registry
-
-    def get_runtime_config(self) -> NestedConfigValue:
-        from wexample_config.config_value.nested_config_value import NestedConfigValue
-
-        runtime_config_file = self.get_runtime_config_file()
-        if runtime_config_file and runtime_config_file.get_path().exists():
-            return runtime_config_file.read_config()
-
-        return NestedConfigValue(raw={})
-
-    def get_runtime_config_file(self) -> YamlFile:
-        # We don't search into the target item tree as this is a low level information.
-        return self.get_yaml_file_from_path(
-            path=self.get_path()
-            / WORKDIR_SETUP_DIR
-            / CORE_DIR_NAME_TMP
-            / APP_FILE_APP_RUNTIME_CONFIG,
-        )
-
-    def get_yaml_file_from_path(self, path: PathOrString) -> YamlFile:
-        from wexample_filestate.item.file.yaml_file import YamlFile
-
-        return YamlFile.create_from_path(path=path, io=self.io)
 
     def manager_run_command(self, **kwargs) -> AppManagerShellResult:
         return self.manager_run_command_from_path(path=self.get_path(), **kwargs)
