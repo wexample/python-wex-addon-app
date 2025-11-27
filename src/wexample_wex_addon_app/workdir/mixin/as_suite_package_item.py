@@ -49,7 +49,7 @@ class AsSuitePackageItem(BaseClass):
                 return False
 
             suite_path = directory_iterate_parent_dirs(
-                path=source_path, condition=_found
+                path=source_path.parent, condition=_found
             )
 
             if suite_path and suite_path != source_path:

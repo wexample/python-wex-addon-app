@@ -10,7 +10,7 @@ from wexample_app.const.output import OUTPUT_FORMAT_JSON, OUTPUT_TARGET_FILE
 from wexample_app.helpers.request import request_build_id
 from wexample_app.item.file.iml_file import ImlFile
 from wexample_app.workdir.mixin.with_runtime_config_mixin import WithRuntimeConfigMixin
-from wexample_helpers.const.types import FileStringOrPath, PathOrString
+from wexample_helpers.const.types import FileStringOrPath
 from wexample_helpers.decorator.base_class import base_class
 from wexample_prompt.common.io_manager import IoManager
 from wexample_wex_core.common.app_manager_shell_result import AppManagerShellResult
@@ -41,21 +41,6 @@ class AppWorkdirMixin(
     WithAppVersionWorkdirMixin,
     WithRuntimeConfigMixin
 ):
-
-    @classmethod
-    def get_env_config_from_path(cls, path: PathOrString) -> NestedConfigValue:
-        from wexample_filestate.item.file.env_file import EnvFile
-
-        env_path = path / WORKDIR_SETUP_DIR / EnvFile.EXTENSION_DOT_ENV
-
-        if env_path.exists():
-            dot_env = EnvFile.create_from_path(
-                path=env_path,
-            )
-            return dot_env.read_config()
-
-        return NestedConfigValue(raw={})
-
     @classmethod
     def get_registry_from_path(
         cls, path: FileStringOrPath, io: IoManager
@@ -187,27 +172,6 @@ class AppWorkdirMixin(
                 "config": self.get_config(),
             }
         )
-
-    def get_env_config(self) -> NestedConfigValue:
-        return self.get_env_config_from_path(
-            path=self.get_path(),
-        )
-
-    def get_env_parameter(self, key: str, default: str | None = None) -> str | None:
-        # Search in .env.
-        value = (
-            self.get_env_config()
-            .get_config_item(key=key, default=default)
-            .get_str_or_none()
-        )
-
-        if value is None:
-            return super().get_env_parameter(
-                key=key,
-                default=default,
-            )
-
-        return value
 
     def get_project_name(self) -> str:
         from wexample_app.const.globals import APP_FILE_APP_CONFIG
