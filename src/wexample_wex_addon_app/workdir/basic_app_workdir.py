@@ -17,10 +17,27 @@ from wexample_wex_addon_app.workdir.mixin.app_workdir_mixin import AppWorkdirMix
 
 if TYPE_CHECKING:
     from wexample_filestate.result.file_state_result import FileStateResult
+    from wexample_config.const.types import DictConfig
 
 
 @base_class
 class BasicAppWorkdir(AppWorkdirMixin, Workdir):
+    def configure(self, config: DictConfig) -> None:
+        super().configure(config=config)
+
+        self._init_env(
+            env_dict=self.get_env_parameters().to_dict()
+        )
+
+    def search_app_or_suite_runtime_config(self, key_path: str) -> ConfigValue:
+        value = self.get_runtime_config().search(path=key_path)
+        if value.is_none():
+            suite_workdir = self.get_shallow_suite_workdir()
+            if suite_workdir:
+                return suite_workdir.search_app_or_suite_runtime_config(key_path=key_path)
+
+        return value
+
     def app_install(self, env: str | None = None, force: bool = False) -> bool:
         return True
 
