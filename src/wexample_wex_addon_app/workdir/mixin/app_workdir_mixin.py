@@ -122,10 +122,6 @@ class AppWorkdirMixin(
 
         from wexample_wex_addon_app.workdir.basic_app_workdir import BasicAppWorkdir
 
-        # Ensure the workdir is initialized
-        if not BasicAppWorkdir.is_app_workdir_path_setup(path=path):
-            cls.manager_install(path=path)
-
         # Resolve function to CLI command name
         resolved_command = AddonCommandResolver.build_command_from_function(
             command_wrapper=command
@@ -157,11 +153,6 @@ class AppWorkdirMixin(
     ) -> None | ShellResult:
         from wexample_app.const.globals import APP_PATH_BIN_APP_MANAGER
         from wexample_helpers.helpers.shell import shell_run
-
-        from wexample_wex_addon_app.workdir.basic_app_workdir import BasicAppWorkdir
-
-        if not BasicAppWorkdir.is_app_workdir_path_setup(path=path):
-            cls.manager_install(path=path)
 
         if not isinstance(cmd, list):
             cmd = [cmd]
