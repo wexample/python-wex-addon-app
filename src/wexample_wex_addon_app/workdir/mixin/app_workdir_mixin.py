@@ -96,9 +96,7 @@ class AppWorkdirMixin(
         path = Path(path)
         if cls.is_app_workdir_path(path=path):
             # app-manager exists.
-            return (path / APP_PATH_BIN_APP_MANAGER).exists() and (
-                path / APP_PATH_APP_MANAGER / ".venv/bin/python"
-            ).exists()
+            return (path / APP_PATH_BIN_APP_MANAGER).exists()
         return False
 
     @classmethod
