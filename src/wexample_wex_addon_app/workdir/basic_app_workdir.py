@@ -382,6 +382,52 @@ class BasicAppWorkdir(AppWorkdirMixin, Workdir):
             return False
         return True
 
+    def _override_pyproject_dependencies_by_current_distribution_versions(self):
+        import tomli
+        from wexample_helpers.helpers.module import module_get_distribution_map
+
+        installed = module_get_distribution_map()
+        pyproject_path = Path(self.get_path() / APP_PATH_APP_MANAGER / "pyproject.toml")
+        pyproject = tomli.loads(pyproject_path.read_text())
+        deps = pyproject.get("project", {}).get("dependencies", [])
+        declared = {}
+
+        for dep in deps:
+            # Expected patterns:
+            #   "package"
+            #   "package==1.2.3"
+            #   "package>=1.2.3" (we will override anyway)
+            #   "package<=1.2.3"
+
+            if "==" in dep:
+                name, version = dep.split("==", 1)
+            elif ">=" in dep:
+                name, version = dep.split(">=", 1)
+            elif "<=" in dep:
+                name, version = dep.split("<=", 1)
+            else:
+                # No version declared → ignore, because we cannot normalize it
+                continue
+
+            declared[name.strip().lower()] = version.strip()
+
+        for pkg_name, declared_version in declared.items():
+            installed_version = installed.get(pkg_name)
+
+            if not installed_version:
+                continue  # not installed → skip
+
+            if installed_version != declared_version:
+                self.log(
+                    f"{pkg_name}: pyproject={declared_version} → installed={installed_version}"
+                )
+
+                # Always rewrite using == installed_version
+                self.shell_run_from_path(
+                    cmd=["pdm", "add", "-u", f"{pkg_name}=={installed_version}"],
+                    path=pyproject_path.parent
+                )
+
     def ensure_app_manager_setup(self):
         # Symlink did not exist
         if not self.ensure_app_manager():
