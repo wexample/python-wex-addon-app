@@ -406,7 +406,7 @@ class BasicAppWorkdir(AppWorkdirMixin, Workdir):
         deps = doc.get("project", {}).get("dependencies", [])
 
         updated = False
-        new_deps = tomlkit.array()  # preserves formatting
+        new_deps = tomlkit.array().multiline(True)
 
         for dep in deps:
             dep_str = str(dep)
@@ -462,16 +462,18 @@ class BasicAppWorkdir(AppWorkdirMixin, Workdir):
         )
 
     def ensure_app_manager_setup(self):
-        # Symlink did not exist
-        if not self.ensure_app_manager():
-            self.log(f"Setting up app manager")
-            self.shell_run_for_app(
-                cmd=self._create_setup_command()
-            )
+        from wexample_app.const.globals import APP_PATH_BIN_APP_MANAGER
+
+        self._override_pyproject_dependencies_by_current_distribution_versions()
+        self.ensure_app_manager()
+
+        self.shell_run_for_app(
+            cmd=[str(APP_PATH_BIN_APP_MANAGER), "setup"]
+        )
 
     def setup_install(self, env: str | None = None, force: bool = False) -> None:
         self.ensure_app_manager_setup()
-        self.app_install(env, force=force)
+        # self.app_install(env, force=force)
 
     def should_be_published(self, force: bool = False) -> bool:
         current_tag = self.get_publication_tag_name()
