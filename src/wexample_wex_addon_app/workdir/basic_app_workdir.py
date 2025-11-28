@@ -347,12 +347,6 @@ class BasicAppWorkdir(AppWorkdirMixin, Workdir):
         return {self.get_package_name(): self.get_project_version()}
 
     def setup_install(self, env: str | None = None, force: bool = False) -> None:
-        # TODO Two ways
-        #      - Simplify to only install "app" here, not "app_manager"
-        #      - Install both of them, but trigger event allowing suite to complete installation (version propagation / -e install / etc.
-        # env_label = f" in {env} environment" if env else ""
-        # self.log(f"Installing dependencies{env_label}")
-        # self.shell_run_from_path(path=self.get_path(), cmd=self._create_setup_command())
         self.app_install(env, force=force)
 
     def should_be_published(self, force: bool = False) -> bool:
