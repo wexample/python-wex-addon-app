@@ -383,50 +383,63 @@ class BasicAppWorkdir(AppWorkdirMixin, Workdir):
         return True
 
     def _override_pyproject_dependencies_by_current_distribution_versions(self):
-        import tomli
         from wexample_helpers.helpers.module import module_get_distribution_map
+        from pathlib import Path
+        import tomlkit
 
         installed = module_get_distribution_map()
-        pyproject_path = Path(self.get_path() / APP_PATH_APP_MANAGER / "pyproject.toml")
-        pyproject = tomli.loads(pyproject_path.read_text())
-        deps = pyproject.get("project", {}).get("dependencies", [])
-        declared = {}
+
+        pyproject_path = Path(
+            self.get_path() / APP_PATH_APP_MANAGER / "pyproject.toml"
+        )
+
+        # Read raw text for tomlkit (to preserve comments)
+        raw = pyproject_path.read_text()
+
+        # Parse with tomlkit
+        doc = tomlkit.parse(raw)
+
+        # "project.dependencies" is a TOML array with preserved formatting
+        deps = doc.get("project", {}).get("dependencies", [])
+
+        updated = False
+        new_deps = tomlkit.array()  # preserves formatting
 
         for dep in deps:
-            # Expected patterns:
-            #   "package"
-            #   "package==1.2.3"
-            #   "package>=1.2.3" (we will override anyway)
-            #   "package<=1.2.3"
+            dep_str = str(dep)
 
-            if "==" in dep:
-                name, version = dep.split("==", 1)
-            elif ">=" in dep:
-                name, version = dep.split(">=", 1)
-            elif "<=" in dep:
-                name, version = dep.split("<=", 1)
+            # Parse dependency into (name, version)
+            if "==" in dep_str:
+                name, _ = dep_str.split("==", 1)
+            elif ">=" in dep_str:
+                name, _ = dep_str.split(">=", 1)
+            elif "<=" in dep_str:
+                name, _ = dep_str.split("<=", 1)
             else:
-                # No version declared → ignore, because we cannot normalize it
+                # keep untouched (no version specified)
+                new_deps.append(dep)
                 continue
 
-            declared[name.strip().lower()] = version.strip()
-
-        for pkg_name, declared_version in declared.items():
+            pkg_name = name.strip().lower()
             installed_version = installed.get(pkg_name)
 
-            if not installed_version:
-                continue  # not installed → skip
+            if installed_version:
+                new_dep = f"{pkg_name}=={installed_version}"
+                if dep_str != new_dep:
+                    self.log(f"{dep_str} → {new_dep}")
+                    updated = True
+                new_deps.append(new_dep)
+            else:
+                new_deps.append(dep)
 
-            if installed_version != declared_version:
-                self.log(
-                    f"{pkg_name}: pyproject={declared_version} → installed={installed_version}"
-                )
+        # If changed, replace the array in the document
+        if updated:
+            doc["project"]["dependencies"] = new_deps
 
-                # Always rewrite using == installed_version
-                self.shell_run_from_path(
-                    cmd=["pdm", "add", "-u", f"{pkg_name}=={installed_version}"],
-                    path=pyproject_path.parent
-                )
+            # Write back, preserving original formatting + comments
+            pyproject_path.write_text(tomlkit.dumps(doc))
+
+            self.log("✓ pyproject.toml updated")
 
     def ensure_app_manager_setup(self):
         # Symlink did not exist
@@ -481,11 +494,6 @@ class BasicAppWorkdir(AppWorkdirMixin, Workdir):
                 total += len(list(path.rglob(f"*{extension}")))
 
         return total
-
-    def _create_setup_command(self) -> list[str]:
-        from wexample_app.const.globals import APP_PATH_BIN_APP_MANAGER
-
-        return [str(APP_PATH_BIN_APP_MANAGER), "setup"]
 
     def _get_source_code_directories(self) -> [TargetFileOrDirectoryType]:
         return []
