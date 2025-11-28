@@ -87,19 +87,20 @@ def python_install_dependency_in_venv(venv_path: Path, name: str, editable: bool
         inherit_stdio=True,
     )
 
-
 def python_is_package_installed_editable_in_venv(
         venv_path: Path,
         package_name: str,
         package_path,
 ) -> bool:
-    """Check if a package is already installed in editable mode at the correct path."""
+    """Return True if the package is installed in editable mode at the given path."""
     import subprocess
+    from pathlib import Path
+
+    python_bin = venv_path / "bin" / "python"
 
     try:
         result = subprocess.run(
-            [f"{venv_path}/bin/python", "-m", "pip", "show", package_name],
-            cwd=venv_path.parent,
+            [str(python_bin), "-m", "pip", "show", package_name],
             capture_output=True,
             text=True,
             timeout=5,
@@ -108,25 +109,17 @@ def python_is_package_installed_editable_in_venv(
         if result.returncode != 0:
             return False
 
-        # Parse pip show output
-        output_lines = result.stdout.strip().split("\n")
-        location = None
         editable_location = None
 
-        for line in output_lines:
-            if line.startswith("Location:"):
-                location = line.split(":", 1)[1].strip()
-            elif line.startswith("Editable project location:"):
+        for line in result.stdout.splitlines():
+            if line.startswith("Editable project location:"):
                 editable_location = line.split(":", 1)[1].strip()
+                break
 
-        # Check if installed in editable mode at the correct path
-        if editable_location:
-            from pathlib import Path
+        if not editable_location:
+            return False
 
-            return Path(editable_location).resolve() == Path(package_path).resolve()
+        return Path(editable_location).resolve() == Path(package_path).resolve()
 
-        return False
-
-    except Exception:
-        # If any error occurs, assume not installed
+    except (subprocess.SubprocessError, OSError):
         return False
