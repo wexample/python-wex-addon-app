@@ -212,16 +212,16 @@ class FrameworkPackageSuiteWorkdir(BasicAppWorkdir):
 
         self.log(f"Setting up suite{env_label}")
 
-        # Setup the suite itself
+        # Set up the suite itself
         self.log("Installing suite dependencies", indentation=1)
         super().setup_install(env=env)
 
-        # Setup all packages in the suite
-        self.log(f"Installing dependencies for all packages", indentation=1)
-        self.packages_execute_shell(cmd=self._create_setup_command())
-
         # If local mode, install editable packages
         if env:
+            self.log(f"Ensuring managers installations", indentation=1)
+            for package in self.get_packages():
+                package.ensure_app_manager_setup()
+
             self.log(f"Installing local packages in editable mode", indentation=1)
             self.packages_execute_function(
                 command=app__setup__install,

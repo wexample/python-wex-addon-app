@@ -364,19 +364,34 @@ class BasicAppWorkdir(AppWorkdirMixin, Workdir):
         """
         return {self.get_package_name(): self.get_project_version()}
 
-    def ensure_app_manager(self):
+    def ensure_app_manager(self) -> bool:
         from wexample_app.const.globals import APP_PATH_BIN_APP_MANAGER
         current_app_manager_path = self.get_path() / APP_PATH_BIN_APP_MANAGER
 
         if current_app_manager_path.exists():
-            return  current_app_manager_path
+            return True
 
         closest_app_manager_path = self.search_closest_app_manager_bin_path()
         if closest_app_manager_path != current_app_manager_path:
+            self.log(f"Creating symlink: {current_app_manager_path}")
+
+            # Remove if symlink already exists but point to a missing file.
+            current_app_manager_path.unlink()
             current_app_manager_path.symlink_to(closest_app_manager_path.resolve())
+            # False says newly created.
+            return False
+        return True
+
+    def ensure_app_manager_setup(self):
+        # Symlink did not exist
+        if not self.ensure_app_manager():
+            self.log(f"Setting up app manager")
+            self.shell_run_for_app(
+                cmd=self._create_setup_command()
+            )
 
     def setup_install(self, env: str | None = None, force: bool = False) -> None:
-        self.ensure_app_manager()
+        self.ensure_app_manager_setup()
         self.app_install(env, force=force)
 
     def should_be_published(self, force: bool = False) -> bool:

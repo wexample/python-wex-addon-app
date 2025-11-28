@@ -82,10 +82,8 @@ class AsSuitePackageItem(BaseClass):
             self._suite_workdir = False
 
             if suite_path and suite_path.exists():
-                self._suite_workdir = (
-                    self._get_children_package_workdir_class().create_from_path(
-                        path=suite_path
-                    )
+                self._suite_workdir = self._get_suite_package_workdir_class().create_from_path(
+                    path=suite_path
                 )
 
         return self._suite_workdir
@@ -94,7 +92,7 @@ class AsSuitePackageItem(BaseClass):
         suite_path = self.find_suite_workdir_path()
 
         if suite_path and suite_path.exists():
-            return self._get_children_package_workdir_class().create_from_path(
+            return self._get_suite_package_workdir_class().create_from_path(
                 path=suite_path, configure=False
             )
 
@@ -135,5 +133,5 @@ class AsSuitePackageItem(BaseClass):
         return value
 
     @abstract_method
-    def _get_children_package_workdir_class(self) -> type[FrameworkPackageSuiteWorkdir]:
+    def _get_suite_package_workdir_class(self) -> type[FrameworkPackageSuiteWorkdir]:
         pass
