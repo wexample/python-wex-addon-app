@@ -57,7 +57,7 @@ def python_ensure_pip_or_fail(venv_path: Path) -> bool:
     return True
 
 
-def python_install_dependencies_in_venv(venv_path: Path, names: list[str], editable: bool = False) -> None:
+def python_install_dependencies_in_venv(venv_path: Path, names: list[PathOrString], editable: bool = False) -> None:
     for dependency_name in names:
         python_install_dependency_in_venv(
             venv_path=venv_path,
@@ -66,7 +66,7 @@ def python_install_dependencies_in_venv(venv_path: Path, names: list[str], edita
         )
 
 
-def python_install_dependency_in_venv(venv_path: Path, name: str, editable: bool = False) -> None:
+def python_install_dependency_in_venv(venv_path: Path, name: PathOrString, editable: bool = False) -> None:
     from wexample_helpers.helpers.shell import shell_run
 
     cmd = [
@@ -79,7 +79,7 @@ def python_install_dependency_in_venv(venv_path: Path, name: str, editable: bool
     if editable:
         cmd.append("-e")
 
-    cmd.append(name)
+    cmd.append(str(name))
 
     shell_run(
         cmd=cmd,
