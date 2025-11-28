@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from pathlib import Path
+from typing import TYPE_CHECKING, Any
 
 from wexample_app.const.env import ENV_NAME_PROD
 from wexample_config.config_value.config_value import ConfigValue
@@ -10,10 +11,9 @@ from wexample_helpers.classes.abstract_method import abstract_method
 from wexample_helpers.decorator.base_class import base_class
 from wexample_helpers_git.helpers.git import git_has_changes_since_tag
 from wexample_prompt.enums.terminal_color import TerminalColor
-from wexample_wex_core.workdir.workdir import Workdir
-
 from wexample_wex_addon_app.const.path import APP_PATH_TEST
 from wexample_wex_addon_app.workdir.mixin.app_workdir_mixin import AppWorkdirMixin
+from wexample_wex_core.workdir.workdir import Workdir
 
 if TYPE_CHECKING:
     from wexample_filestate.result.file_state_result import FileStateResult
@@ -29,14 +29,32 @@ class BasicAppWorkdir(AppWorkdirMixin, Workdir):
             env_dict=self.get_env_parameters().to_dict()
         )
 
-    def search_app_or_suite_runtime_config(self, key_path: str) -> ConfigValue:
-        value = self.get_runtime_config().search(path=key_path)
-        if value.is_none():
-            suite_workdir = self.get_shallow_suite_workdir()
-            if suite_workdir:
-                return suite_workdir.search_app_or_suite_runtime_config(key_path=key_path)
+    def search_closest_app_manager_bin_path(self) -> Path | None:
+        def _test_path(workdir) -> Path | None:
+            from wexample_app.const.globals import APP_PATH_BIN_APP_MANAGER
+            manager_bin_path = (workdir.get_path() / APP_PATH_BIN_APP_MANAGER)
 
-        return value
+            if manager_bin_path.exists():
+                return manager_bin_path
+
+        return self.search_closest(_test_path)
+
+    def search_app_or_suite_runtime_config(self, key_path: str) -> Any:
+        return self.search_closest(
+            lambda workdir: workdir.get_runtime_config().search(path=key_path)
+        )
+
+    def search_closest(self, callback) -> Any:
+        workdir = self
+
+        while workdir:
+            result = callback(workdir)
+            if result is not None:
+                return result
+
+            workdir = workdir.get_shallow_suite_workdir()
+
+        return None
 
     def app_install(self, env: str | None = None, force: bool = False) -> bool:
         return True
@@ -346,7 +364,19 @@ class BasicAppWorkdir(AppWorkdirMixin, Workdir):
         """
         return {self.get_package_name(): self.get_project_version()}
 
+    def ensure_app_manager(self):
+        from wexample_app.const.globals import APP_PATH_BIN_APP_MANAGER
+        current_app_manager_path = self.get_path() / APP_PATH_BIN_APP_MANAGER
+
+        if current_app_manager_path.exists():
+            return  current_app_manager_path
+
+        closest_app_manager_path = self.search_closest_app_manager_bin_path()
+        if closest_app_manager_path != current_app_manager_path:
+            current_app_manager_path.symlink_to(closest_app_manager_path.resolve())
+
     def setup_install(self, env: str | None = None, force: bool = False) -> None:
+        self.ensure_app_manager()
         self.app_install(env, force=force)
 
     def should_be_published(self, force: bool = False) -> bool:
