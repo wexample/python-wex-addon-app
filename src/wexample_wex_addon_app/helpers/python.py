@@ -2,11 +2,12 @@ from __future__ import annotations
 
 import shutil
 from pathlib import Path
+
 from wexample_helpers.const.types import PathOrString
 from wexample_helpers.helpers.shell import shell_run
 
 
-def python_install_environment(path: PathOrString) -> bool:
+def python_install_environment(path: PathOrString) -> Path:
     project_path = Path(path)
 
     venv_path = project_path / ".venv"
@@ -37,4 +38,51 @@ def python_install_environment(path: PathOrString) -> bool:
             inherit_stdio=True,
         )
 
+    return venv_path
+
+
+def python_ensure_pip_or_fail(venv_path: Path) -> bool:
+    # Ensure pip is installed in the venv
+    shell_run(
+        cmd=[
+            f"{venv_path}/bin/python",
+            "-m",
+            "ensurepip",
+            "--upgrade",
+        ],
+        cwd=venv_path.parent,
+        inherit_stdio=True,
+    )
+
     return True
+
+
+def python_install_dependencies_in_venv(venv_path: Path, names: list[str], editable: bool = False) -> None:
+    for dependency_name in names:
+        python_install_dependency_in_venv(
+            venv_path=venv_path,
+            name=dependency_name,
+            editable=editable
+        )
+
+
+def python_install_dependency_in_venv(venv_path: Path, name: str, editable: bool = False) -> None:
+    from wexample_helpers.helpers.shell import shell_run
+
+    cmd = [
+        f"{venv_path}/bin/python",
+        "-m",
+        "pip",
+        "install",
+    ]
+
+    if editable:
+        cmd.append("-e")
+
+    cmd.append(name)
+
+    shell_run(
+        cmd=cmd,
+        cwd=venv_path.parent,
+        inherit_stdio=True,
+    )
