@@ -3,7 +3,10 @@ from __future__ import annotations
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
+from wexample_wex_core.workdir.workdir import Workdir
+
 from wexample_app.const.env import ENV_NAME_PROD
+from wexample_app.const.globals import APP_PATH_APP_MANAGER
 from wexample_config.config_value.config_value import ConfigValue
 from wexample_file.helper.line import line_count_recursive
 from wexample_filestate.const.types_state_items import TargetFileOrDirectoryType
@@ -13,7 +16,6 @@ from wexample_helpers_git.helpers.git import git_has_changes_since_tag
 from wexample_prompt.enums.terminal_color import TerminalColor
 from wexample_wex_addon_app.const.path import APP_PATH_TEST
 from wexample_wex_addon_app.workdir.mixin.app_workdir_mixin import AppWorkdirMixin
-from wexample_wex_core.workdir.workdir import Workdir
 
 if TYPE_CHECKING:
     from wexample_filestate.result.file_state_result import FileStateResult
@@ -60,13 +62,13 @@ class BasicAppWorkdir(AppWorkdirMixin, Workdir):
         return True
 
     def apply(
-        self,
-        force: bool = False,
-        scopes=None,
-        filter_path: str | None = None,
-        filter_operation: str | None = None,
-        max: int = None,
-        **kwargs,
+            self,
+            force: bool = False,
+            scopes=None,
+            filter_path: str | None = None,
+            filter_operation: str | None = None,
+            max: int = None,
+            **kwargs,
     ) -> FileStateResult:
         from wexample_filestate.result.file_state_result import FileStateResult
         from wexample_helpers.helpers.repo import repo_get_state, repo_has_changed_since
@@ -74,10 +76,10 @@ class BasicAppWorkdir(AppWorkdirMixin, Workdir):
         # Hash protection is only active when all filter parameters are None
         # to avoid false positives when apply behavior is modified by parameters
         hash_protection_active = (
-            scopes is None
-            and filter_path is None
-            and filter_operation is None
-            and max is None
+                scopes is None
+                and filter_path is None
+                and filter_operation is None
+                and max is None
         )
 
         registry_file = self.get_registry_file()
@@ -87,14 +89,14 @@ class BasicAppWorkdir(AppWorkdirMixin, Workdir):
         ).get_str_or_none()
 
         if (
-            force
-            or not hash_protection_active
-            or (
+                force
+                or not hash_protection_active
+                or (
                 last_update_hash is None
                 or repo_has_changed_since(
-                    previous_state=last_update_hash, cwd=self.get_path()
-                )
-            )
+            previous_state=last_update_hash, cwd=self.get_path()
+        )
+        )
         ):
             # Reset hash
             registry.set_by_path("file_state.last_update_hash", None)
@@ -226,9 +228,9 @@ class BasicAppWorkdir(AppWorkdirMixin, Workdir):
     def has_a_test(self) -> bool:
         test_dir = self.find_by_name(APP_PATH_TEST)
         return (
-            test_dir
-            and test_dir.is_directory()
-            and any(test_dir.get_path().rglob("*.py"))
+                test_dir
+                and test_dir.is_directory()
+                and any(test_dir.get_path().rglob("*.py"))
         )
 
     def has_changes_since_last_coverage(self) -> bool:
@@ -267,10 +269,10 @@ class BasicAppWorkdir(AppWorkdirMixin, Workdir):
         )
 
         for library_path_config in (
-            self.get_runtime_config().search("libraries").get_list_or_default()
+                self.get_runtime_config().search("libraries").get_list_or_default()
         ):
             if library_path_config.is_str() and BasicAppWorkdir.is_app_workdir_path(
-                path=library_path_config.get_str()
+                    path=library_path_config.get_str()
             ):
                 publishable_dependencies = (
                     BasicAppWorkdir.manager_run_command_from_path(
@@ -389,8 +391,9 @@ class BasicAppWorkdir(AppWorkdirMixin, Workdir):
 
         installed = module_get_distribution_map()
 
+        manager_path = self.get_path() / APP_PATH_APP_MANAGER
         pyproject_path = Path(
-            self.get_path() / APP_PATH_APP_MANAGER / "pyproject.toml"
+            manager_path / "pyproject.toml"
         )
 
         # Read raw text for tomlkit (to preserve comments)
@@ -439,7 +442,24 @@ class BasicAppWorkdir(AppWorkdirMixin, Workdir):
             # Write back, preserving original formatting + comments
             pyproject_path.write_text(tomlkit.dumps(doc))
 
+            self._python_export_dependencies(
+                path=manager_path
+            )
+
             self.log("✓ pyproject.toml updated")
+
+    def _python_export_dependencies(self, path: Path):
+        import sys
+
+        self.shell_run_from_path(
+            cmd=[
+                f"{sys.prefix}/bin/pip-compile",
+                f"{path}/pyproject.toml",
+                "--output-file",
+                f"{path}/requirements.txt"
+            ],
+            path=path
+        )
 
     def ensure_app_manager_setup(self):
         # Symlink did not exist
@@ -466,8 +486,8 @@ class BasicAppWorkdir(AppWorkdirMixin, Workdir):
         pass
 
     def _count_code_lines(
-        self,
-        directories: list[TargetFileOrDirectoryType],
+            self,
+            directories: list[TargetFileOrDirectoryType],
     ) -> int:
         """Count total lines in files matching the main code extension."""
         total = 0
@@ -480,8 +500,8 @@ class BasicAppWorkdir(AppWorkdirMixin, Workdir):
         return total
 
     def _count_files(
-        self,
-        directories: list[TargetFileOrDirectoryType],
+            self,
+            directories: list[TargetFileOrDirectoryType],
     ) -> int:
         """Count files matching the main code extension in given directories."""
         total = 0
