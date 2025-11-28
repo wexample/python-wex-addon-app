@@ -3,7 +3,6 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from wexample_app.const.globals import (
-    APP_PATH_APP_MANAGER,
     WORKDIR_SETUP_DIR,
 )
 from wexample_app.const.output import OUTPUT_FORMAT_JSON, OUTPUT_TARGET_FILE
@@ -13,18 +12,16 @@ from wexample_app.workdir.mixin.with_runtime_config_mixin import WithRuntimeConf
 from wexample_helpers.const.types import FileStringOrPath
 from wexample_helpers.decorator.base_class import base_class
 from wexample_prompt.common.io_manager import IoManager
-from wexample_wex_core.common.app_manager_shell_result import AppManagerShellResult
-from wexample_wex_core.resolver.addon_command_resolver import AddonCommandResolver
-from wexample_wex_core.workdir.mixin.with_app_version_workdir_mixin import (
-    WithAppVersionWorkdirMixin,
-)
-
-from wexample_wex_addon_app.helpers.python import python_install_environment
 from wexample_wex_addon_app.workdir.mixin.as_suite_package_item import (
     AsSuitePackageItem,
 )
 from wexample_wex_addon_app.workdir.mixin.with_readme_workdir_mixin import (
     WithReadmeWorkdirMixin,
+)
+from wexample_wex_core.common.app_manager_shell_result import AppManagerShellResult
+from wexample_wex_core.resolver.addon_command_resolver import AddonCommandResolver
+from wexample_wex_core.workdir.mixin.with_app_version_workdir_mixin import (
+    WithAppVersionWorkdirMixin,
 )
 
 if TYPE_CHECKING:
@@ -85,13 +82,6 @@ class AppWorkdirMixin(
         return False
 
     @classmethod
-    def manager_install(cls, path: FileStringOrPath) -> bool:
-        """
-        The app manager works is in python for every managed app.
-        """
-        return python_install_environment(path=path / APP_PATH_APP_MANAGER)
-
-    @classmethod
     def manager_run_command_from_path(
         cls,
         path: str,
@@ -104,8 +94,6 @@ class AppWorkdirMixin(
         """
         from wexample_app.const.globals import APP_PATH_BIN_APP_MANAGER
         from wexample_helpers.helpers.shell import shell_run
-
-        from wexample_wex_addon_app.workdir.basic_app_workdir import BasicAppWorkdir
 
         # Resolve function to CLI command name
         resolved_command = AddonCommandResolver.build_command_from_function(
