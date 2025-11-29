@@ -131,7 +131,3 @@ class AsSuitePackageItem(BaseClass):
                     return suite_config_file.read_config().search(key)
 
         return value
-
-    @abstract_method
-    def _get_suite_package_workdir_class(self) -> type[FrameworkPackageSuiteWorkdir]:
-        pass
