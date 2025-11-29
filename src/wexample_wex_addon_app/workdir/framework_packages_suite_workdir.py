@@ -208,25 +208,17 @@ class FrameworkPackageSuiteWorkdir(BasicAppWorkdir):
     def setup_install(self, env: str | None = None, force: bool = False) -> None:
         from wexample_wex_addon_app.commands.setup.install import app__setup__install
 
-        env_label = f" in {env} mode" if env else ""
-
-        self.log(f"Setting up suite{env_label}")
-
-        # Set up the suite itself
-        self.log("Installing suite dependencies", indentation=1)
+        self.subtitile(f"Installing suite app")
         super().setup_install(env=env)
 
-        # If local mode, install editable packages
-        if env:
-            self.log(f"Ensuring managers installations", indentation=1)
-            for package in self.get_packages():
-                package.ensure_app_manager_setup()
+        self.subtitile(f"Installing local packages")
+        for package in self.get_packages():
+            package.ensure_app_manager_setup()
 
-            self.log(f"Installing local packages in editable mode", indentation=1)
-            self.packages_execute_function(
-                command=app__setup__install,
-                arguments=["--env", env],
-            )
+        self.packages_execute_function(
+            command=app__setup__install,
+            arguments=["--env", env],
+        )
 
     def _build_directory_tree(self, package_paths: list[Path]) -> list[dict]:
         """Build a recursive directory tree structure from package paths.
