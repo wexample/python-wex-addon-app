@@ -208,10 +208,10 @@ class FrameworkPackageSuiteWorkdir(BasicAppWorkdir):
     def setup_install(self, env: str | None = None, force: bool = False) -> None:
         from wexample_wex_addon_app.commands.setup.install import app__setup__install
 
-        self.subtitile(f"Installing suite app")
+        self.subtitle(f"Installing suite app")
         super().setup_install(env=env)
 
-        self.subtitile(f"Installing local packages")
+        self.subtitle(f"Installing local packages")
         for package in self.get_packages():
             package.ensure_app_manager_setup()
 
