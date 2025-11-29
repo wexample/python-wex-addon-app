@@ -484,7 +484,7 @@ class BasicAppWorkdir(AppWorkdirMixin, Workdir):
 
     def setup_install(self, env: str | None = None, force: bool = False) -> None:
         env = env or self.get_app_env()
-        self.log(f"Set app environment to {env}...")
+        self.log(f"Set app environment to @🔵+bold{{{env}}}...")
         self.set_app_env(env=env)
 
         self.log("Check manager setup...")
@@ -535,10 +535,10 @@ class BasicAppWorkdir(AppWorkdirMixin, Workdir):
 
         return total
 
-    def _get_source_code_directories(self) -> [TargetFileOrDirectoryType]:
+    def _get_source_code_directories(self) -> list[TargetFileOrDirectoryType]:
         return []
 
-    def _get_test_code_directories(self) -> [TargetFileOrDirectoryType]:
+    def _get_test_code_directories(self) -> list[TargetFileOrDirectoryType]:
         return []
 
     def _publish(self, force: bool = False) -> None:
