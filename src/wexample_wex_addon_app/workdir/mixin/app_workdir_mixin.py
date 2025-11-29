@@ -2,30 +2,27 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from wexample_app.const.globals import (
-    WORKDIR_SETUP_DIR,
-)
-from wexample_app.const.output import OUTPUT_FORMAT_JSON, OUTPUT_TARGET_FILE
-from wexample_app.helpers.request import request_build_id
-from wexample_app.item.file.iml_file import ImlFile
-from wexample_app.workdir.mixin.with_runtime_config_mixin import WithRuntimeConfigMixin
-from wexample_helpers.const.types import FileStringOrPath
-from wexample_helpers.decorator.base_class import base_class
-from wexample_prompt.common.io_manager import IoManager
-from wexample_wex_addon_app.workdir.mixin.as_suite_package_item import (
-    AsSuitePackageItem,
-)
-from wexample_wex_addon_app.workdir.mixin.with_readme_workdir_mixin import (
-    WithReadmeWorkdirMixin,
-)
 from wexample_wex_core.common.app_manager_shell_result import AppManagerShellResult
 from wexample_wex_core.resolver.addon_command_resolver import AddonCommandResolver
 from wexample_wex_core.workdir.mixin.with_app_version_workdir_mixin import (
     WithAppVersionWorkdirMixin,
 )
 
+from wexample_app.const.output import OUTPUT_FORMAT_JSON, OUTPUT_TARGET_FILE
+from wexample_app.helpers.request import request_build_id
+from wexample_app.item.file.iml_file import ImlFile
+from wexample_app.workdir.mixin.with_runtime_config_mixin import WithRuntimeConfigMixin
+from wexample_helpers.const.types import FileStringOrPath
+from wexample_helpers.decorator.base_class import base_class
+from wexample_wex_addon_app.workdir.mixin.as_suite_package_item import (
+    AsSuitePackageItem,
+)
+from wexample_wex_addon_app.workdir.mixin.with_app_registry_mixin import WithAppRegistryMixin
+from wexample_wex_addon_app.workdir.mixin.with_readme_workdir_mixin import (
+    WithReadmeWorkdirMixin,
+)
+
 if TYPE_CHECKING:
-    from wexample_config.config_value.nested_config_value import NestedConfigValue
     from wexample_config.const.types import DictConfig
     from wexample_filestate.item.file.yaml_file import YamlFile
     from wexample_helpers.classes.shell_result import ShellResult
@@ -36,32 +33,9 @@ class AppWorkdirMixin(
     AsSuitePackageItem,
     WithReadmeWorkdirMixin,
     WithAppVersionWorkdirMixin,
-    WithRuntimeConfigMixin
+    WithRuntimeConfigMixin,
+    WithAppRegistryMixin
 ):
-    @classmethod
-    def get_registry_from_path(
-        cls, path: FileStringOrPath, io: IoManager
-    ) -> YamlFile | None:
-        from wexample_filestate.item.file.yaml_file import YamlFile
-
-        registry_path = cls.get_registry_path_from_path(path=path)
-        if registry_path.exists():
-            return YamlFile.create_from_path(path=registry_path, io=io)
-        return None
-
-    @classmethod
-    def get_registry_path_from_path(cls, path: FileStringOrPath) -> FileStringOrPath:
-        from pathlib import Path
-
-        from wexample_wex_core.const.globals import (
-            CORE_DIR_NAME_TMP,
-            CORE_FILE_NAME_REGISTRY,
-        )
-
-        return (
-            Path(path) / WORKDIR_SETUP_DIR / CORE_DIR_NAME_TMP / CORE_FILE_NAME_REGISTRY
-        )
-
     @classmethod
     def is_app_workdir_path(cls, path: FileStringOrPath) -> bool:
         config = cls.get_config_from_path(path=path)
@@ -83,10 +57,10 @@ class AppWorkdirMixin(
 
     @classmethod
     def manager_run_command_from_path(
-        cls,
-        path: str,
-        command: callable,
-        arguments: list[str] | None = None,
+            cls,
+            path: str,
+            command: callable,
+            arguments: list[str] | None = None,
     ) -> AppManagerShellResult:
         """
         Execute a Python addon command (e.g., app__setup__install) using the app manager,
@@ -105,14 +79,14 @@ class AppWorkdirMixin(
         # Build full command
         cmd = [resolved_command] + (arguments or [])
         full_cmd = [
-            str(APP_PATH_BIN_APP_MANAGER),
-            "--force-request-id",
-            request_id,
-            "--output-format",
-            OUTPUT_FORMAT_JSON,
-            "--output-target",
-            OUTPUT_TARGET_FILE,
-        ] + cmd
+                       str(APP_PATH_BIN_APP_MANAGER),
+                       "--force-request-id",
+                       request_id,
+                       "--output-format",
+                       OUTPUT_FORMAT_JSON,
+                       "--output-target",
+                       OUTPUT_TARGET_FILE,
+                   ] + cmd
 
         # Run the manager command in the given workdir
         return AppManagerShellResult.from_shell_result(
@@ -122,7 +96,7 @@ class AppWorkdirMixin(
 
     @classmethod
     def manager_run_from_path(
-        cls, path: FileStringOrPath, cmd: list[str] | str
+            cls, path: FileStringOrPath, cmd: list[str] | str
     ) -> None | ShellResult:
         from wexample_app.const.globals import APP_PATH_BIN_APP_MANAGER
         from wexample_helpers.helpers.shell import shell_run
@@ -142,7 +116,7 @@ class AppWorkdirMixin(
 
     @classmethod
     def shell_run_from_path(
-        cls, path: FileStringOrPath, cmd: list[str] | str
+            cls, path: FileStringOrPath, cmd: list[str] | str
     ) -> None | ShellResult:
         from wexample_helpers.helpers.shell import shell_run
 
@@ -150,15 +124,6 @@ class AppWorkdirMixin(
             cmd=cmd,
             cwd=str(path),
             inherit_stdio=True,
-        )
-
-    def build_registry_value(self) -> NestedConfigValue:
-        from wexample_config.config_value.nested_config_value import NestedConfigValue
-
-        return NestedConfigValue(
-            raw={
-                "config": self.get_config(),
-            }
         )
 
     def get_project_name(self) -> str:
@@ -188,21 +153,6 @@ class AppWorkdirMixin(
                 f"Project at '{self.get_path()}' must define a non-empty 'version' number in {APP_FILE_APP_CONFIG}."
             )
         return str(version).strip()
-
-    def get_registry(self, rebuild: bool = False) -> NestedConfigValue:
-        registry = self.get_registry_file(rebuild=rebuild)
-        return registry.read_config()
-
-    def get_registry_file(self, rebuild: bool = False) -> YamlFile:
-        from wexample_filestate.item.file.yaml_file import YamlFile
-
-        registry_path = self.get_registry_path_from_path(path=self.get_path())
-        registry = YamlFile.create_from_path(path=registry_path, io=self.io)
-
-        if rebuild or not registry.get_path().exists():
-            registry.write_config(self.build_registry_value())
-
-        return registry
 
     def manager_run_command(self, **kwargs) -> AppManagerShellResult:
         return self.manager_run_command_from_path(path=self.get_path(), **kwargs)
