@@ -18,6 +18,7 @@ from wexample_wex_addon_app.const.path import APP_PATH_TEST
 from wexample_wex_addon_app.workdir.mixin.app_workdir_mixin import AppWorkdirMixin
 
 if TYPE_CHECKING:
+    from wexample_wex_addon_app.workdir.framework_packages_suite_workdir import FrameworkPackageSuiteWorkdir
     from wexample_filestate.result.file_state_result import FileStateResult
     from wexample_config.const.types import DictConfig
 
@@ -525,3 +526,9 @@ class BasicAppWorkdir(AppWorkdirMixin, Workdir):
 
     def _publish(self, force: bool = False) -> None:
         """Internal publication process"""
+
+    def _get_suite_package_workdir_class(self) -> type[FrameworkPackageSuiteWorkdir]:
+        from wexample_wex_addon_app.workdir.framework_packages_suite_workdir import FrameworkPackageSuiteWorkdir
+
+        """ A suite can be a sub-suite"""
+        return FrameworkPackageSuiteWorkdir

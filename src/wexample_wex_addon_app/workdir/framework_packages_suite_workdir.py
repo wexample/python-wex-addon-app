@@ -371,7 +371,3 @@ class FrameworkPackageSuiteWorkdir(BasicAppWorkdir):
                 return
 
             self.separator(color=TerminalColor.BLACK)
-
-    def _get_suite_package_workdir_class(self) -> type[FrameworkPackageSuiteWorkdir]:
-        """ A suite can be a sub-suite"""
-        return FrameworkPackageSuiteWorkdir
