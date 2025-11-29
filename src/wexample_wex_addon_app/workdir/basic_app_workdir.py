@@ -40,11 +40,19 @@ class BasicAppWorkdir(AppWorkdirMixin, Workdir):
             if manager_bin_path.exists():
                 return manager_bin_path
 
-        return self.search_closest(_test_path)
+        return self.search_closest(
+            callback=_test_path
+        )
 
     def search_app_or_suite_runtime_config(self, key_path: str) -> Any:
+        def _test_path(workdir) -> Path | None:
+            config = workdir.get_runtime_config().search(path=key_path)
+            if not config.is_none():
+                return config
+            return None
+
         return self.search_closest(
-            lambda workdir: workdir.get_runtime_config().search(path=key_path)
+            callback=_test_path
         )
 
     def search_closest(self, callback) -> Any:
