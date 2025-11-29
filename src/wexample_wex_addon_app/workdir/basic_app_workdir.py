@@ -196,6 +196,16 @@ class BasicAppWorkdir(AppWorkdirMixin, Workdir):
         """Count number of test code files."""
         return self._count_files(directories=self._get_test_code_directories())
 
+    def set_app_env(self, env: str | None):
+        from wexample_app.const.globals import ENV_VAR_NAME_APP_ENV
+
+        self.set_env_parameter(
+            key=ENV_VAR_NAME_APP_ENV,
+            value=env
+        )
+
+        self.get_registry(rebuild=True)
+
     def get_app_env(self) -> str:
         from wexample_app.const.globals import ENV_VAR_NAME_APP_ENV
 
@@ -473,8 +483,15 @@ class BasicAppWorkdir(AppWorkdirMixin, Workdir):
         )
 
     def setup_install(self, env: str | None = None, force: bool = False) -> None:
+        env = env or self.get_app_env()
+        self.log(f"Set app environment to {env}...")
+        self.set_app_env(env=env)
+
+        self.log("Check manager setup...")
         self.ensure_app_manager_setup()
-        # self.app_install(env, force=force)
+
+        self.log("Install app...")
+        self.app_install(env, force=force)
 
     def should_be_published(self, force: bool = False) -> bool:
         current_tag = self.get_publication_tag_name()
