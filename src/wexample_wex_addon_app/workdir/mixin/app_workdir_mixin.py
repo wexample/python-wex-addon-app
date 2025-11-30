@@ -2,29 +2,30 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from wexample_wex_core.common.app_manager_shell_result import AppManagerShellResult
-from wexample_wex_core.resolver.addon_command_resolver import AddonCommandResolver
-from wexample_wex_core.workdir.mixin.with_app_version_workdir_mixin import (
-    WithAppVersionWorkdirMixin,
-)
-
 from wexample_app.const.output import OUTPUT_FORMAT_JSON, OUTPUT_TARGET_FILE
 from wexample_app.helpers.request import request_build_id
 from wexample_app.item.file.iml_file import ImlFile
 from wexample_app.workdir.mixin.with_runtime_config_mixin import WithRuntimeConfigMixin
 from wexample_helpers.const.types import FileStringOrPath
 from wexample_helpers.decorator.base_class import base_class
+from wexample_wex_core.common.app_manager_shell_result import AppManagerShellResult
+from wexample_wex_core.resolver.addon_command_resolver import AddonCommandResolver
+from wexample_wex_core.workdir.mixin.with_app_version_workdir_mixin import (
+    WithAppVersionWorkdirMixin,
+)
+
 from wexample_wex_addon_app.workdir.mixin.as_suite_package_item import (
     AsSuitePackageItem,
 )
-from wexample_wex_addon_app.workdir.mixin.with_app_registry_mixin import WithAppRegistryMixin
+from wexample_wex_addon_app.workdir.mixin.with_app_registry_mixin import (
+    WithAppRegistryMixin,
+)
 from wexample_wex_addon_app.workdir.mixin.with_readme_workdir_mixin import (
     WithReadmeWorkdirMixin,
 )
 
 if TYPE_CHECKING:
     from wexample_config.const.types import DictConfig
-    from wexample_filestate.item.file.yaml_file import YamlFile
     from wexample_helpers.classes.shell_result import ShellResult
 
 
@@ -34,7 +35,7 @@ class AppWorkdirMixin(
     WithReadmeWorkdirMixin,
     WithAppVersionWorkdirMixin,
     WithRuntimeConfigMixin,
-    WithAppRegistryMixin
+    WithAppRegistryMixin,
 ):
     @classmethod
     def is_app_workdir_path(cls, path: FileStringOrPath) -> bool:
@@ -57,10 +58,10 @@ class AppWorkdirMixin(
 
     @classmethod
     def manager_run_command_from_path(
-            cls,
-            path: str,
-            command: callable,
-            arguments: list[str] | None = None,
+        cls,
+        path: str,
+        command: callable,
+        arguments: list[str] | None = None,
     ) -> AppManagerShellResult:
         """
         Execute a Python addon command (e.g., app__setup__install) using the app manager,
@@ -79,14 +80,14 @@ class AppWorkdirMixin(
         # Build full command
         cmd = [resolved_command] + (arguments or [])
         full_cmd = [
-                       str(APP_PATH_BIN_APP_MANAGER),
-                       "--force-request-id",
-                       request_id,
-                       "--output-format",
-                       OUTPUT_FORMAT_JSON,
-                       "--output-target",
-                       OUTPUT_TARGET_FILE,
-                   ] + cmd
+            str(APP_PATH_BIN_APP_MANAGER),
+            "--force-request-id",
+            request_id,
+            "--output-format",
+            OUTPUT_FORMAT_JSON,
+            "--output-target",
+            OUTPUT_TARGET_FILE,
+        ] + cmd
 
         # Run the manager command in the given workdir
         return AppManagerShellResult.from_shell_result(
@@ -96,7 +97,7 @@ class AppWorkdirMixin(
 
     @classmethod
     def manager_run_from_path(
-            cls, path: FileStringOrPath, cmd: list[str] | str
+        cls, path: FileStringOrPath, cmd: list[str] | str
     ) -> None | ShellResult:
         from wexample_app.const.globals import APP_PATH_BIN_APP_MANAGER
         from wexample_helpers.helpers.shell import shell_run
@@ -116,7 +117,7 @@ class AppWorkdirMixin(
 
     @classmethod
     def shell_run_from_path(
-            cls, path: FileStringOrPath, cmd: list[str] | str
+        cls, path: FileStringOrPath, cmd: list[str] | str
     ) -> None | ShellResult:
         from wexample_helpers.helpers.shell import shell_run
 

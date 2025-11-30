@@ -16,7 +16,7 @@ if TYPE_CHECKING:
 class WithAppRegistryMixin(BaseClass):
     @classmethod
     def get_registry_from_path(
-            cls, path: FileStringOrPath, io: IoManager
+        cls, path: FileStringOrPath, io: IoManager
     ) -> YamlFile | None:
         from wexample_filestate.item.file.yaml_file import YamlFile
 
@@ -36,7 +36,7 @@ class WithAppRegistryMixin(BaseClass):
         )
 
         return (
-                Path(path) / WORKDIR_SETUP_DIR / CORE_DIR_NAME_TMP / CORE_FILE_NAME_REGISTRY
+            Path(path) / WORKDIR_SETUP_DIR / CORE_DIR_NAME_TMP / CORE_FILE_NAME_REGISTRY
         )
 
     def build_registry_value(self) -> NestedConfigValue:
