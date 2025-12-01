@@ -85,10 +85,6 @@ class CodeBaseWorkdir(BasicAppWorkdir):
         """Check if current package depends on given one."""
         return False
 
-    @abstract_method
-    def get_dependencies(self) -> list[str]:
-        pass
-
     def get_io_context_prefix(self) -> str | None:
         from wexample_helpers.helpers.cli import cli_make_clickable_path
 

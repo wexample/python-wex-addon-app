@@ -202,6 +202,9 @@ class BasicAppWorkdir(AppWorkdirMixin, Workdir):
 
         return self.get_env_parameter(key=ENV_VAR_NAME_APP_ENV, default=ENV_NAME_PROD)
 
+    def get_dependencies(self) -> list[str]:
+        return []
+
     def get_last_publication_tag(self) -> str | None:
         """Return the last publication tag for this package, or None if none exists."""
         from wexample_helpers_git.helpers.git import git_last_tag_for_prefix

@@ -5,7 +5,6 @@ from typing import TYPE_CHECKING
 from wexample_filestate.config_value.readme_content_config_value import (
     ReadmeContentConfigValue,
 )
-from wexample_helpers.classes.abstract_method import abstract_method
 from wexample_helpers.classes.field import public_field
 from wexample_helpers.decorator.base_class import base_class
 
@@ -28,20 +27,14 @@ class AppReadmeConfigValue(ReadmeContentConfigValue):
 
     workdir = public_field(description="The application workdir")
 
-    @abstract_method
-    def _get_app_description(self) -> list[str]:
-        pass
+    def _get_app_description(self) -> str | None:
+        return None
 
     def _get_app_homepage(self) -> str | None:
         return None
 
-    def _get_project_license(self) -> str:
-        """Extract license information from pyproject.toml."""
-        project = self.workdir.get_app_config()
-        license_field = project.get("license", {})
-        if isinstance(license_field, dict):
-            return license_field.get("text", "") or license_field.get("file", "")
-        return str(license_field) if license_field else ""
+    def _get_project_license(self) -> str | None:
+        return None
 
     def _get_readme_search_paths(self) -> list[Path]:
         """Return list of paths to search for README templates.
