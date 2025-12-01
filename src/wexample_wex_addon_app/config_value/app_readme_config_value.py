@@ -16,13 +16,13 @@ if TYPE_CHECKING:
 @base_class
 class AppReadmeConfigValue(ReadmeContentConfigValue):
     """README generation for applications with workdir and suite support.
-    
+
     This class handles all common operations for app-based READMEs:
     - Workdir-based template search paths
     - Suite-level template inheritance
     - Predefined section list
     - Common project metadata extraction
-    
+
     Subclasses only need to implement language-specific methods.
     """
 
