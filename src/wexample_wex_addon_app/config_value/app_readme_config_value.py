@@ -36,6 +36,9 @@ class AppReadmeConfigValue(ReadmeContentConfigValue):
     def _get_project_license(self) -> str | None:
         return None
 
+    def _get_dependencies(self) -> dict[str, str]:
+        return {}
+
     def _get_readme_search_paths(self) -> list[Path]:
         """Return list of paths to search for README templates.
 
@@ -138,7 +141,7 @@ class AppReadmeConfigValue(ReadmeContentConfigValue):
         """
         return {
             # filestate: python-iterable-sort
-            "dependencies": self.workdir.get_dependencies(),
+            "dependencies": self._get_dependencies(),
             "description": self._get_app_description(),
             "homepage": self._get_app_homepage(),
             "license_info": self._get_project_license(),

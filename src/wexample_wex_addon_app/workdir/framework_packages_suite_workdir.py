@@ -25,7 +25,7 @@ class FrameworkPackageSuiteWorkdir(BasicAppWorkdir):
         dependencies = {}
         for package in self.get_packages():
             dependencies[package.get_package_name()] = self.filter_local_packages(
-                package.get_dependencies()
+                package.list_dependency_names()
             )
 
         return dependencies
