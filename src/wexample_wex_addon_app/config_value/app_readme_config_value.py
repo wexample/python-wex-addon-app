@@ -28,46 +28,44 @@ class AppReadmeConfigValue(ReadmeContentConfigValue):
 
     workdir = public_field(description="The application workdir")
 
-    def _get_bundled_templates_path(self) -> Path | None:
-        """Return the path to bundled default templates.
+    def _get_bundled_templates_path(self):
+        """Return path to bundled Python README templates."""
+        from pathlib import Path
 
-        Must be implemented by subclasses.
-        """
-        raise NotImplementedError(
-            "Subclasses must implement _get_bundled_templates_path()"
-        )
-
-    def _get_project_dependencies(self) -> list[str]:
-        """Return the list of project dependencies.
-
-        Must be implemented by subclasses.
-        """
-        raise NotImplementedError(
-            "Subclasses must implement _get_project_dependencies()"
-        )
+        return Path(__file__).parent.parent / "resources" / "readme_templates"
 
     def _get_project_description(self) -> str:
-        """Return the project description.
+        """Extract description from pyproject.toml."""
+        return self._get_project_config().get("description", "")
 
-        Must be implemented by subclasses.
-        """
-        raise NotImplementedError(
-            "Subclasses must implement _get_project_description()"
-        )
+    def _get_project_dependencies(self) -> list[str]:
+        """Extract dependencies from pyproject.toml."""
+        return self._get_project_config().get("dependencies", [])
 
     def _get_project_homepage(self) -> str:
-        """Return the project homepage URL.
+        """Extract homepage URL from pyproject.toml."""
+        project = self._get_project_config()
+        urls = (
+            project.get("urls", {}) if isinstance(project.get("urls", {}), dict) else {}
+        )
+        return urls.get("homepage") or urls.get("Homepage") or ""
 
-        Must be implemented by subclasses.
+    def _get_project_config(self) -> dict:
+        """Get the pyproject.toml configuration.
+
+        Returns:
+            The project configuration dictionary
         """
-        raise NotImplementedError("Subclasses must implement _get_project_homepage()")
+        doc = self.workdir.get_project_config()
+        return doc.get("project", {}) if isinstance(doc, dict) else {}
 
     def _get_project_license(self) -> str:
-        """Return the project license information.
-
-        Must be implemented by subclasses.
-        """
-        raise NotImplementedError("Subclasses must implement _get_project_license()")
+        """Extract license information from pyproject.toml."""
+        project = self._get_project_config()
+        license_field = project.get("license", {})
+        if isinstance(license_field, dict):
+            return license_field.get("text", "") or license_field.get("file", "")
+        return str(license_field) if license_field else ""
 
     def _get_readme_search_paths(self) -> list[Path]:
         """Return list of paths to search for README templates.
