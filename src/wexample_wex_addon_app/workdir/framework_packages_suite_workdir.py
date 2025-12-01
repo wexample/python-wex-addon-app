@@ -240,11 +240,7 @@ class FrameworkPackageSuiteWorkdir(BasicAppWorkdir):
 
         for package_path in package_paths:
             # Get relative path from suite root
-            try:
-                rel_path = package_path.relative_to(suite_root)
-            except ValueError:
-                # Package is outside suite root, skip it
-                continue
+            rel_path = package_path.relative_to(suite_root)
 
             # Navigate/create the tree structure
             parts = rel_path.parts
