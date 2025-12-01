@@ -58,17 +58,17 @@ class AppReadmeConfigValue(ReadmeContentConfigValue):
             workdir_path / WORKDIR_SETUP_DIR / "knowledge" / "readme",
         ]
 
-        # Default templates (bundled)
-        self._append_template_path_from_module(
-            module=__name__,
-            search_paths=search_paths
-        )
-
-        # Called from a child class
+        # Language package specific template
         if __name__ != self.__module__:
             self._append_template_path_from_module(
                 module=self.__module__,
                 search_paths=search_paths)
+
+        # App package template
+        self._append_template_path_from_module(
+            module=__name__,
+            search_paths=search_paths
+        )
 
         def _get_template(workdir):
             search_paths.append(
@@ -76,7 +76,10 @@ class AppReadmeConfigValue(ReadmeContentConfigValue):
             )
 
         search_paths.extend(
-            self.workdir.collect_stack_in_suites_tree(callback=_get_template)
+            self.workdir.collect_stack_in_suites_tree(
+                callback=_get_template,
+                include_self=False
+            )
         )
 
         return search_paths

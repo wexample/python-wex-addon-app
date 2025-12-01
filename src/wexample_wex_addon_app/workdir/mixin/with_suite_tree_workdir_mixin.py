@@ -35,12 +35,16 @@ class WithSuiteTreeWorkdirMixin(BaseClass):
 
         return None
 
-    def collect_stack_in_suites_tree(self, callback: Callable[[Any], Any]) -> list[Any]:
+    def collect_stack_in_suites_tree(
+            self,
+            callback: Callable[[Any], Any],
+            include_self: bool = True
+    ) -> list[Any]:
         """
         Walk the suite tree from the current workdir and collect callback results.
-        Returns a list starting with the app, then each parent suite up the chain.
+        Optionally ignore the current workdir ("self") as starting point.
         """
-        workdir = self
+        workdir = self if include_self else self.get_shallow_suite_workdir()
         stack: list[Any] = []
 
         while workdir:
