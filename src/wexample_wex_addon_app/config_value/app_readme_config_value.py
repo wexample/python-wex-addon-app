@@ -27,18 +27,31 @@ class AppReadmeConfigValue(ReadmeContentConfigValue):
 
     workdir = public_field(description="The application workdir")
 
+    def _append_template_path_from_module(
+        self, module, search_paths: list[str]
+    ) -> str | None:
+        from wexample_helpers.helpers.module import module_get_path
+
+        """Consider the template directory and the module files are placed at the same relative location into the module directory"""
+        template_path = (
+            module_get_path(module).parent / "resources" / "readme_templates"
+        )
+
+        if template_path.exists():
+            search_paths.append(template_path)
+
     def _get_app_description(self) -> str | None:
         return None
 
     def _get_app_homepage(self) -> str | None:
         return None
 
-    def _get_project_license(self) -> str | None:
-        return None
-
     def _get_dependencies(self) -> dict[str, str]:
         """Extract dependencies from pyproject.toml."""
         return self.workdir.get_dependencies_versions()
+
+    def _get_project_license(self) -> str | None:
+        return None
 
     def _get_readme_search_paths(self) -> list[Path]:
         """Return list of paths to search for README templates.
@@ -61,37 +74,26 @@ class AppReadmeConfigValue(ReadmeContentConfigValue):
         # Language package specific template
         if __name__ != self.__module__:
             self._append_template_path_from_module(
-                module=self.__module__,
-                search_paths=search_paths)
+                module=self.__module__, search_paths=search_paths
+            )
 
         # App package template
         self._append_template_path_from_module(
-            module=__name__,
-            search_paths=search_paths
+            module=__name__, search_paths=search_paths
         )
 
-        def _get_template(workdir):
+        def _get_template(workdir) -> None:
             search_paths.append(
                 workdir.get_path() / WORKDIR_SETUP_DIR / "knowledge" / "package-readme"
             )
 
         search_paths.extend(
             self.workdir.collect_stack_in_suites_tree(
-                callback=_get_template,
-                include_self=False
+                callback=_get_template, include_self=False
             )
         )
 
         return search_paths
-
-    def _append_template_path_from_module(self, module, search_paths: list[str]) -> str | None:
-        from wexample_helpers.helpers.module import module_get_path
-
-        """Consider the template directory and the module files are placed at the same relative location into the module directory"""
-        template_path = module_get_path(module).parent / "resources" / "readme_templates"
-
-        if template_path.exists():
-            search_paths.append(template_path)
 
     def _get_section_names(self) -> list[str]:
         """Return the list of section names to include in the README.

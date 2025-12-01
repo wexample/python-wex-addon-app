@@ -225,12 +225,14 @@ class FrameworkPackageSuiteWorkdir(BasicAppWorkdir):
 
         packages_config = []
         for package_path in package_paths:
-            packages_config.append({
-                "name": package_path.name,
-                "class": self._get_children_package_workdir_class(),
-                "type": DiskItemType.DIRECTORY,
-                "active": False,
-            })
+            packages_config.append(
+                {
+                    "name": package_path.name,
+                    "class": self._get_children_package_workdir_class(),
+                    "type": DiskItemType.DIRECTORY,
+                    "active": False,
+                }
+            )
 
         return packages_config
 

@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from tomlkit import TOMLDocument
-
 from wexample_filestate.item.file.structured_content_file import StructuredContentFile
 from wexample_helpers.classes.abstract_method import abstract_method
 from wexample_helpers.classes.base_class import BaseClass

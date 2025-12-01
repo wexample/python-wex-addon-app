@@ -1,7 +1,8 @@
 from __future__ import annotations
 
+from collections.abc import Callable
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Callable
+from typing import TYPE_CHECKING, Any
 
 from wexample_config.config_value.config_value import ConfigValue
 from wexample_helpers.classes.base_class import BaseClass
@@ -23,22 +24,8 @@ class WithSuiteTreeWorkdirMixin(BaseClass):
         default=None, description="Cache reference to the parent suite"
     )
 
-    def search_closest_in_suites_tree(self, callback) -> Any:
-        workdir = self
-
-        while workdir:
-            result = callback(workdir)
-            if result is not None:
-                return result
-
-            workdir = workdir.get_shallow_suite_workdir()
-
-        return None
-
     def collect_stack_in_suites_tree(
-            self,
-            callback: Callable[[Any], Any],
-            include_self: bool = True
+        self, callback: Callable[[Any], Any], include_self: bool = True
     ) -> list[Any]:
         """
         Walk the suite tree from the current workdir and collect callback results.
@@ -145,6 +132,18 @@ class WithSuiteTreeWorkdirMixin(BaseClass):
             package_name=package.get_package_name(),
             version=package.get_project_version(),
         )
+
+    def search_closest_in_suites_tree(self, callback) -> Any:
+        workdir = self
+
+        while workdir:
+            result = callback(workdir)
+            if result is not None:
+                return result
+
+            workdir = workdir.get_shallow_suite_workdir()
+
+        return None
 
     def search_in_package_or_suite_config(self, key: str) -> ConfigValue:
         """Search for a config value in the package config, fallback to suite config if not found."""
