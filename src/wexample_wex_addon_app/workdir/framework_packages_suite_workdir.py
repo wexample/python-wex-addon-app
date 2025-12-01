@@ -252,15 +252,15 @@ class FrameworkPackageSuiteWorkdir(BasicAppWorkdir):
                         "name": part,
                         "type": DiskItemType.DIRECTORY,
                         "children": {},
+                        "active": False
                     }
 
                     # If this is the last part (the package itself), add the class
                     if i == len(parts) - 1 and BasicAppWorkdir.is_app_workdir_path(
                         path=package_path
                     ):
-                        node_config["class"] = (
-                            self._get_children_package_workdir_class()
-                        )
+                        node_config["class"] = self._get_children_package_workdir_class()
+                        # print(node_config["class"])
 
                     current_level[part] = node_config
 
