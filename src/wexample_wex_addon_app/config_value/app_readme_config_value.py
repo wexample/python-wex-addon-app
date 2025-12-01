@@ -41,13 +41,13 @@ class AppReadmeConfigValue(ReadmeContentConfigValue):
         """
         from wexample_app.const.globals import WORKDIR_SETUP_DIR
 
-        workdir_path = self._get_workdir_path()
+        workdir_path = self.workdir.get_path()
         search_paths = [
             workdir_path / WORKDIR_SETUP_DIR / "knowledge" / "readme",
         ]
 
         # Suite-level templates
-        suite_path = self._get_suite_workdir_path()
+        suite_path = self.workdir.find_suite_workdir_path()
         if suite_path is not None:
             search_paths.append(
                 suite_path / WORKDIR_SETUP_DIR / "knowledge" / "package-readme"
@@ -121,26 +121,11 @@ class AppReadmeConfigValue(ReadmeContentConfigValue):
             "description": self._get_project_description(),
             "homepage": self._get_project_homepage(),
             "license_info": self._get_project_license(),
-            "package_name": self._get_package_name(),
-            "project_name": self._get_project_name(),
-            "version": self._get_project_version(),
+            "package_name": self.workdir.get_package_name(),
+            "project_name": self.workdir.get_project_name(),
+            "version": self.workdir.get_project_version(),
             "workdir": self.workdir,
         }
-
-    # Abstract methods for workdir paths
-    def _get_workdir_path(self) -> Path:
-        """Return the workdir path.
-
-        Default implementation uses self.workdir.get_path().
-        """
-        return self.workdir.get_path()
-
-    def _get_suite_workdir_path(self) -> Path | None:
-        """Return the suite workdir path if available.
-
-        Default implementation uses self.workdir.find_suite_workdir_path().
-        """
-        return self.workdir.find_suite_workdir_path()
 
     def _get_bundled_templates_path(self) -> Path | None:
         """Return the path to bundled default templates.
@@ -150,28 +135,6 @@ class AppReadmeConfigValue(ReadmeContentConfigValue):
         raise NotImplementedError(
             "Subclasses must implement _get_bundled_templates_path()"
         )
-
-    # Abstract methods for project metadata
-    def _get_package_name(self) -> str:
-        """Return the package name.
-
-        Default implementation uses self.workdir.get_package_name().
-        """
-        return self.workdir.get_package_name()
-
-    def _get_project_name(self) -> str:
-        """Return the project name.
-
-        Default implementation uses self.workdir.get_project_name().
-        """
-        return self.workdir.get_project_name()
-
-    def _get_project_version(self) -> str:
-        """Return the project version.
-
-        Default implementation uses self.workdir.get_project_version().
-        """
-        return self.workdir.get_project_version()
 
     def _get_project_description(self) -> str:
         """Return the project description.
