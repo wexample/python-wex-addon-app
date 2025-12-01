@@ -221,64 +221,18 @@ class FrameworkPackageSuiteWorkdir(BasicAppWorkdir):
         )
 
     def _build_directory_tree(self, package_paths: list[Path]) -> list[dict]:
-        """Build a recursive directory tree structure from package paths.
-
-        Args:
-            package_paths: List of absolute paths to packages
-
-        Returns:
-            List of directory nodes in the format:
-            [{"name": "dir", "type": "directory", "children": [...]}, ...]
-        """
         from wexample_filestate.const.disk import DiskItemType
 
-        # Get the suite root path
-        suite_root = self.get_path()
-
-        # Build tree directly in final format
-        root_nodes: dict[str, dict] = {}
-
+        packages_config = []
         for package_path in package_paths:
-            # Get relative path from suite root
-            rel_path = package_path.relative_to(suite_root)
+            packages_config.append({
+                "name": package_path.name,
+                "class": self._get_children_package_workdir_class(),
+                "type": DiskItemType.DIRECTORY,
+                "active": False,
+            })
 
-            # Navigate/create the tree structure
-            parts = rel_path.parts
-            current_level = root_nodes
-
-            for i, part in enumerate(parts):
-                if part not in current_level:
-                    node_config = {
-                        "name": part,
-                        "type": DiskItemType.DIRECTORY,
-                        "children": {},
-                        "active": False
-                    }
-
-                    # If this is the last part (the package itself), add the class
-                    if i == len(parts) - 1 and BasicAppWorkdir.is_app_workdir_path(
-                        path=package_path
-                    ):
-                        node_config["class"] = self._get_children_package_workdir_class()
-                        # print(node_config["class"])
-
-                    current_level[part] = node_config
-
-                # Navigate to children for next iteration
-                current_level = current_level[part]["children"]
-
-        # Convert children dicts to lists recursively
-        def finalize_node(node: dict) -> dict:
-            if node["children"]:
-                node["children"] = [
-                    finalize_node(child) for child in node["children"].values()
-                ]
-            else:
-                # Remove empty children dict
-                del node["children"]
-            return node
-
-        return [finalize_node(node) for node in root_nodes.values()]
+        return packages_config
 
     @abstract_method
     def _child_is_package_directory(self, entry: Path) -> bool:
