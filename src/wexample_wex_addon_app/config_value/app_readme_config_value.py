@@ -37,7 +37,8 @@ class AppReadmeConfigValue(ReadmeContentConfigValue):
         return None
 
     def _get_dependencies(self) -> dict[str, str]:
-        return {}
+        """Extract dependencies from pyproject.toml."""
+        return self.workdir.get_dependencies_versions()
 
     def _get_readme_search_paths(self) -> list[Path]:
         """Return list of paths to search for README templates.
