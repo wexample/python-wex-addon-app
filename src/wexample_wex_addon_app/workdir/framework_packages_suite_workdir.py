@@ -15,8 +15,8 @@ if TYPE_CHECKING:
     from wexample_wex_addon_app.workdir.code_base_workdir import (
         CodeBaseWorkdir,
     )
-    from wexample_wex_addon_app.workdir.mixin.as_suite_package_item import (
-        AsSuitePackageItem,
+    from wexample_wex_addon_app.workdir.mixin.with_suite_tree_workdir_mixin import (
+        WithSuiteTreeWorkdirMixin,
     )
 
 
@@ -182,7 +182,7 @@ class FrameworkPackageSuiteWorkdir(BasicAppWorkdir):
         for package in self.get_ordered_packages():
             self.propagate_version_of(package=package)
 
-    def propagate_version_of(self, package: AsSuitePackageItem) -> None:
+    def propagate_version_of(self, package: WithSuiteTreeWorkdirMixin) -> None:
         package.log(f"Propagating version {package.get_project_version()}", prefix=True)
         package.io.indentation_up()
 

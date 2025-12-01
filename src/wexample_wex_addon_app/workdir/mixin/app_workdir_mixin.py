@@ -14,8 +14,8 @@ from wexample_wex_core.workdir.mixin.with_app_version_workdir_mixin import (
     WithAppVersionWorkdirMixin,
 )
 
-from wexample_wex_addon_app.workdir.mixin.as_suite_package_item import (
-    AsSuitePackageItem,
+from wexample_wex_addon_app.workdir.mixin.with_suite_tree_workdir_mixin import (
+    WithSuiteTreeWorkdirMixin,
 )
 from wexample_wex_addon_app.workdir.mixin.with_app_registry_mixin import (
     WithAppRegistryMixin,
@@ -31,7 +31,7 @@ if TYPE_CHECKING:
 
 @base_class
 class AppWorkdirMixin(
-    AsSuitePackageItem,
+    WithSuiteTreeWorkdirMixin,
     WithReadmeWorkdirMixin,
     WithAppVersionWorkdirMixin,
     WithRuntimeConfigMixin,

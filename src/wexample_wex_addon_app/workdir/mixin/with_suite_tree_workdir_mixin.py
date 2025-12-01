@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from wexample_config.config_value.config_value import ConfigValue
 from wexample_helpers.classes.base_class import BaseClass
@@ -15,13 +15,25 @@ if TYPE_CHECKING:
 
 
 @base_class
-class AsSuitePackageItem(BaseClass):
+class WithSuiteTreeWorkdirMixin(BaseClass):
     _suite_workdir: None | False | FrameworkPackageSuiteWorkdir = public_field(
         default=None, description="Cache reference to the parent suite"
     )
     _suite_workdir_path: None | False | Path = public_field(
         default=None, description="Cache reference to the parent suite"
     )
+
+    def search_closest_in_suites_tree(self, callback) -> Any:
+        workdir = self
+
+        while workdir:
+            result = callback(workdir)
+            if result is not None:
+                return result
+
+            workdir = workdir.get_shallow_suite_workdir()
+
+        return None
 
     def find_suite_workdir_path(self) -> Path | None:
         """

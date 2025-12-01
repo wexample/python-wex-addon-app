@@ -375,19 +375,7 @@ class BasicAppWorkdir(AppWorkdirMixin, Workdir):
                 return config
             return None
 
-        return self.search_closest(callback=_test_path)
-
-    def search_closest(self, callback) -> Any:
-        workdir = self
-
-        while workdir:
-            result = callback(workdir)
-            if result is not None:
-                return result
-
-            workdir = workdir.get_shallow_suite_workdir()
-
-        return None
+        return self.search_closest_in_suites_tree(callback=_test_path)
 
     def search_closest_app_manager_bin_path(self) -> Path | None:
         def _test_path(workdir) -> Path | None:
@@ -398,7 +386,7 @@ class BasicAppWorkdir(AppWorkdirMixin, Workdir):
             if manager_bin_path.exists():
                 return manager_bin_path
 
-        return self.search_closest(callback=_test_path)
+        return self.search_closest_in_suites_tree(callback=_test_path)
 
     def set_app_env(self, env: str | None) -> None:
         from wexample_app.const.globals import ENV_VAR_NAME_APP_ENV
