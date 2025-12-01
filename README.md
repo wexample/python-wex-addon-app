@@ -394,10 +394,10 @@ Free to use in both personal and commercial projects.
 
 ## Useful Links
 
-- **Homepage**: https://github.com/wexample/python-wex_addon_app
+- **Homepage**: https://github.com/wexample/python-wex-addon-app
 - **Documentation**: [docs.wexample.com](https://docs.wexample.com)
-- **Issue Tracker**: https://github.com/wexample/python-wex_addon_app/issues
-- **Discussions**: https://github.com/wexample/python-wex_addon_app/discussions
+- **Issue Tracker**: https://github.com/wexample/python-wex-addon-app/issues
+- **Discussions**: https://github.com/wexample/python-wex-addon-app/discussions
 - **PyPI**: [pypi.org/project/wexample-wex-addon-app](https://pypi.org/project/wexample-wex-addon-app/)
 
 ## Integration in the Suite

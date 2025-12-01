@@ -28,6 +28,47 @@ class AppReadmeConfigValue(ReadmeContentConfigValue):
 
     workdir = public_field(description="The application workdir")
 
+    def _get_bundled_templates_path(self) -> Path | None:
+        """Return the path to bundled default templates.
+
+        Must be implemented by subclasses.
+        """
+        raise NotImplementedError(
+            "Subclasses must implement _get_bundled_templates_path()"
+        )
+
+    def _get_project_dependencies(self) -> list[str]:
+        """Return the list of project dependencies.
+
+        Must be implemented by subclasses.
+        """
+        raise NotImplementedError(
+            "Subclasses must implement _get_project_dependencies()"
+        )
+
+    def _get_project_description(self) -> str:
+        """Return the project description.
+
+        Must be implemented by subclasses.
+        """
+        raise NotImplementedError(
+            "Subclasses must implement _get_project_description()"
+        )
+
+    def _get_project_homepage(self) -> str:
+        """Return the project homepage URL.
+
+        Must be implemented by subclasses.
+        """
+        raise NotImplementedError("Subclasses must implement _get_project_homepage()")
+
+    def _get_project_license(self) -> str:
+        """Return the project license information.
+
+        Must be implemented by subclasses.
+        """
+        raise NotImplementedError("Subclasses must implement _get_project_license()")
+
     def _get_readme_search_paths(self) -> list[Path]:
         """Return list of paths to search for README templates.
 
@@ -126,44 +167,3 @@ class AppReadmeConfigValue(ReadmeContentConfigValue):
             "version": self.workdir.get_project_version(),
             "workdir": self.workdir,
         }
-
-    def _get_bundled_templates_path(self) -> Path | None:
-        """Return the path to bundled default templates.
-
-        Must be implemented by subclasses.
-        """
-        raise NotImplementedError(
-            "Subclasses must implement _get_bundled_templates_path()"
-        )
-
-    def _get_project_description(self) -> str:
-        """Return the project description.
-
-        Must be implemented by subclasses.
-        """
-        raise NotImplementedError(
-            "Subclasses must implement _get_project_description()"
-        )
-
-    def _get_project_homepage(self) -> str:
-        """Return the project homepage URL.
-
-        Must be implemented by subclasses.
-        """
-        raise NotImplementedError("Subclasses must implement _get_project_homepage()")
-
-    def _get_project_license(self) -> str:
-        """Return the project license information.
-
-        Must be implemented by subclasses.
-        """
-        raise NotImplementedError("Subclasses must implement _get_project_license()")
-
-    def _get_project_dependencies(self) -> list[str]:
-        """Return the list of project dependencies.
-
-        Must be implemented by subclasses.
-        """
-        raise NotImplementedError(
-            "Subclasses must implement _get_project_dependencies()"
-        )
