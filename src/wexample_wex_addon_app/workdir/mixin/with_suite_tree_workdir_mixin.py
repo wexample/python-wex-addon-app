@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Callable
 
 from wexample_config.config_value.config_value import ConfigValue
 from wexample_helpers.classes.base_class import BaseClass
@@ -34,6 +34,23 @@ class WithSuiteTreeWorkdirMixin(BaseClass):
             workdir = workdir.get_shallow_suite_workdir()
 
         return None
+
+    def collect_stack_in_suites_tree(self, callback: Callable[[Any], Any]) -> list[Any]:
+        """
+        Walk the suite tree from the current workdir and collect callback results.
+        Returns a list starting with the app, then each parent suite up the chain.
+        """
+        workdir = self
+        stack: list[Any] = []
+
+        while workdir:
+            result = callback(workdir)
+            if result is not None:
+                stack.append(result)
+
+            workdir = workdir.get_shallow_suite_workdir()
+
+        return stack
 
     def find_suite_workdir_path(self) -> Path | None:
         """

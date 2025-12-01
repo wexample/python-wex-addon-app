@@ -87,17 +87,17 @@ class AppReadmeConfigValue(ReadmeContentConfigValue):
             workdir_path / WORKDIR_SETUP_DIR / "knowledge" / "readme",
         ]
 
-        # Suite-level templates
-        suite_path = self.workdir.find_suite_workdir_path()
-        if suite_path is not None:
-            search_paths.append(
-                suite_path / WORKDIR_SETUP_DIR / "knowledge" / "package-readme"
-            )
-
         # Default templates (bundled)
         bundled_path = self._get_bundled_templates_path()
         if bundled_path is not None:
             search_paths.append(bundled_path)
+
+        def _get_template(workdir):
+            search_paths.append(
+                workdir.get_path() / WORKDIR_SETUP_DIR / "knowledge" / "package-readme"
+            )
+
+        self.workdir.collect_stack_in_suites_tree(callback=_get_template)
 
         return search_paths
 
