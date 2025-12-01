@@ -78,7 +78,9 @@ class AppReadmeConfigValue(ReadmeContentConfigValue):
                 workdir.get_path() / WORKDIR_SETUP_DIR / "knowledge" / "package-readme"
             )
 
-        self.workdir.collect_stack_in_suites_tree(callback=_get_template)
+        search_paths.extend(
+            self.workdir.collect_stack_in_suites_tree(callback=_get_template)
+        )
 
         return search_paths
 
@@ -100,9 +102,7 @@ class AppReadmeConfigValue(ReadmeContentConfigValue):
         Returns:
             List of section names in order
         """
-        return [
-            "title",
-            "table-of-contents",
+        return super()._get_section_names() + [
             "status-compatibility",
             "prerequisites",
             "installation",
