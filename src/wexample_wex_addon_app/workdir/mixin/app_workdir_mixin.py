@@ -8,6 +8,7 @@ from wexample_app.item.file.iml_file import ImlFile
 from wexample_app.workdir.mixin.with_runtime_config_mixin import WithRuntimeConfigMixin
 from wexample_helpers.const.types import FileStringOrPath
 from wexample_helpers.decorator.base_class import base_class
+from wexample_wex_addon_app.workdir.mixin.with_app_config_workdir_mixin import WithAppConfigWorkdirMixin
 from wexample_wex_core.common.app_manager_shell_result import AppManagerShellResult
 from wexample_wex_core.resolver.addon_command_resolver import AddonCommandResolver
 from wexample_wex_core.workdir.mixin.with_app_version_workdir_mixin import (
@@ -31,6 +32,7 @@ if TYPE_CHECKING:
 
 @base_class
 class AppWorkdirMixin(
+    WithAppConfigWorkdirMixin,
     WithSuiteTreeWorkdirMixin,
     WithReadmeWorkdirMixin,
     WithAppVersionWorkdirMixin,

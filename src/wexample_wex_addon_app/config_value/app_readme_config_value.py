@@ -2,12 +2,12 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from wexample_helpers.classes.field import public_field
-from wexample_helpers.decorator.base_class import base_class
-
 from wexample_filestate.config_value.readme_content_config_value import (
     ReadmeContentConfigValue,
 )
+from wexample_helpers.classes.abstract_method import abstract_method
+from wexample_helpers.classes.field import public_field
+from wexample_helpers.decorator.base_class import base_class
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -28,40 +28,16 @@ class AppReadmeConfigValue(ReadmeContentConfigValue):
 
     workdir = public_field(description="The application workdir")
 
-    def _get_bundled_templates_path(self):
-        """Return path to bundled Python README templates."""
-        from pathlib import Path
+    @abstract_method
+    def _get_app_description(self) -> list[str]:
+        pass
 
-        return Path(__file__).parent.parent / "resources" / "readme_templates"
-
-    def _get_project_description(self) -> str:
-        """Extract description from pyproject.toml."""
-        return self._get_project_config().get("description", "")
-
-    def _get_project_dependencies(self) -> list[str]:
-        """Extract dependencies from pyproject.toml."""
-        return self._get_project_config().get("dependencies", [])
-
-    def _get_project_homepage(self) -> str:
-        """Extract homepage URL from pyproject.toml."""
-        project = self._get_project_config()
-        urls = (
-            project.get("urls", {}) if isinstance(project.get("urls", {}), dict) else {}
-        )
-        return urls.get("homepage") or urls.get("Homepage") or ""
-
-    def _get_project_config(self) -> dict:
-        """Get the pyproject.toml configuration.
-
-        Returns:
-            The project configuration dictionary
-        """
-        doc = self.workdir.get_project_config()
-        return doc.get("project", {}) if isinstance(doc, dict) else {}
+    def _get_app_homepage(self) -> str | None:
+        return None
 
     def _get_project_license(self) -> str:
         """Extract license information from pyproject.toml."""
-        project = self._get_project_config()
+        project = self.workdir.get_app_config()
         license_field = project.get("license", {})
         if isinstance(license_field, dict):
             return license_field.get("text", "") or license_field.get("file", "")
@@ -86,9 +62,16 @@ class AppReadmeConfigValue(ReadmeContentConfigValue):
         ]
 
         # Default templates (bundled)
-        bundled_path = self._get_bundled_templates_path()
-        if bundled_path is not None:
-            search_paths.append(bundled_path)
+        self._append_template_path_from_module(
+            module=__name__,
+            search_paths=search_paths
+        )
+
+        # Called from a child class
+        if __name__ != self.__module__:
+            self._append_template_path_from_module(
+                module=self.__module__,
+                search_paths=search_paths)
 
         def _get_template(workdir):
             search_paths.append(
@@ -98,6 +81,15 @@ class AppReadmeConfigValue(ReadmeContentConfigValue):
         self.workdir.collect_stack_in_suites_tree(callback=_get_template)
 
         return search_paths
+
+    def _append_template_path_from_module(self, module, search_paths: list[str]) -> str | None:
+        from wexample_helpers.helpers.module import module_get_path
+
+        """Consider the template directory and the module files are placed at the same relative location into the module directory"""
+        template_path = module_get_path(module).parent / "resources" / "readme_templates"
+
+        if template_path.exists():
+            search_paths.append(template_path)
 
     def _get_section_names(self) -> list[str]:
         """Return the list of section names to include in the README.
@@ -153,12 +145,9 @@ class AppReadmeConfigValue(ReadmeContentConfigValue):
         """
         return {
             # filestate: python-iterable-sort
-            "dependencies": self._get_project_dependencies(),
-            "deps_list": self._format_dependencies_list(
-                self._get_project_dependencies()
-            ),
-            "description": self._get_project_description(),
-            "homepage": self._get_project_homepage(),
+            "dependencies": self.workdir.get_dependencies(),
+            "description": self._get_app_description(),
+            "homepage": self._get_app_homepage(),
             "license_info": self._get_project_license(),
             "package_name": self.workdir.get_package_name(),
             "project_name": self.workdir.get_project_name(),
