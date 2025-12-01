@@ -2,4 +2,6 @@
 
 Version: {{ version }}
 
-{{ description }}
+{% if description -%}
+{{- description -}}
+{%- endif %}
