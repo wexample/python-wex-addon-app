@@ -158,23 +158,37 @@ class FrameworkPackageSuiteWorkdir(BasicAppWorkdir):
         )
 
     def prepare_value(self, raw_value: DictConfig | None = None) -> DictConfig:
-        """Prepare file state configuration for package suite.
-
-        Builds a recursive tree structure of directories containing packages,
-        based on package_suite.location patterns from config.yml.
-        """
+        """Prepare file state configuration for package suite."""
         raw_value = super().prepare_value(raw_value=raw_value)
 
         children = raw_value["children"]
-
-        # Get all package paths from configured locations
         package_paths = self.get_packages_paths()
 
-        # Build a tree structure from the package paths
-        tree = self._build_directory_tree(package_paths)
+        from wexample_filestate.const.disk import DiskItemType
 
-        # Convert tree to config format and add to children
-        children.extend(tree)
+        # Tree keyed by parent directory name
+        tree: dict[str, dict] = {}
+
+        for package_path in package_paths:
+            parent_name = package_path.parent.name
+
+            if parent_name not in tree:
+                tree[parent_name] = {
+                    "name": parent_name,
+                    "type": DiskItemType.DIRECTORY,
+                    "children": [],
+                }
+
+            tree[parent_name]["children"].append(
+                {
+                    "name": package_path.name,
+                    "class": self._get_children_package_workdir_class(),
+                    "type": DiskItemType.DIRECTORY,
+                    "active": False,
+                }
+            )
+
+        children.extend(tree.values())
 
         return raw_value
 
@@ -219,22 +233,6 @@ class FrameworkPackageSuiteWorkdir(BasicAppWorkdir):
             command=app__setup__install,
             arguments=["--env", env],
         )
-
-    def _build_directory_tree(self, package_paths: list[Path]) -> list[dict]:
-        from wexample_filestate.const.disk import DiskItemType
-
-        packages_config = []
-        for package_path in package_paths:
-            packages_config.append(
-                {
-                    "name": package_path.name,
-                    "class": self._get_children_package_workdir_class(),
-                    "type": DiskItemType.DIRECTORY,
-                    "active": False,
-                }
-            )
-
-        return packages_config
 
     @abstract_method
     def _child_is_package_directory(self, entry: Path) -> bool:
