@@ -66,7 +66,11 @@ class CodeBaseWorkdir(BasicAppWorkdir):
         )
 
         git_current_branch(cwd=cwd, inherit_stdio=False)
-        git_ensure_upstream(cwd=cwd, default_remote=self._get_deployment_remote_name(),  inherit_stdio=True)
+        git_ensure_upstream(
+            cwd=cwd,
+            default_remote=self._get_deployment_remote_name(),
+            inherit_stdio=True,
+        )
         progress.advance(step=1, label="Ensured upstream")
 
         git_pull_rebase_autostash(cwd=cwd, inherit_stdio=True)
@@ -201,10 +205,9 @@ class CodeBaseWorkdir(BasicAppWorkdir):
             self.info(f"Returning to {current_branch}...")
             git_switch_branch(current_branch, cwd=cwd, inherit_stdio=True)
 
-    def _get_deployment_remote_name(self) -> str|None:
+    def _get_deployment_remote_name(self) -> str | None:
         return self.search_app_or_suite_runtime_config(
-            "git.main_deployment_remote_name",
-            default=None
+            "git.main_deployment_remote_name", default=None
         ).get_str_or_none()
 
     def push_to_deployment_remote(self, branch_name: str | None = None) -> None:
@@ -214,19 +217,27 @@ class CodeBaseWorkdir(BasicAppWorkdir):
         )
 
     def push_changes(
-            self,
-            remote_name: str | None = None,
-            branch_name: str | None = None,
+        self,
+        remote_name: str | None = None,
+        branch_name: str | None = None,
     ) -> None:
         remote = remote_name or GIT_REMOTE_ORIGIN
         branch_name = branch_name or GIT_BRANCH_MAIN
 
         local_branch, remote_branch = (
-            branch_name.split(":", 1) if ":" in branch_name else (branch_name, branch_name)
+            branch_name.split(":", 1)
+            if ":" in branch_name
+            else (branch_name, branch_name)
         )
 
         git_run(
-            cmd=["push", remote, f"{local_branch}:{remote_branch}", "--follow-tags", "--porcelain"],
+            cmd=[
+                "push",
+                remote,
+                f"{local_branch}:{remote_branch}",
+                "--follow-tags",
+                "--porcelain",
+            ],
             inherit_stdio=False,
             cwd=self.get_path(),
         )

@@ -378,14 +378,18 @@ class BasicAppWorkdir(AppWorkdirMixin, Workdir):
         """
         return {self.get_package_name(): self.get_project_version()}
 
-    def search_app_or_suite_runtime_config(self, key_path: str, default:Any = None) -> ConfigValue:
+    def search_app_or_suite_runtime_config(
+        self, key_path: str, default: Any = None
+    ) -> ConfigValue:
         def _test_path(workdir) -> Path | None:
             config = workdir.get_runtime_config().search(path=key_path)
             if not config.is_none():
                 return config
             return None
 
-        return self.search_closest_in_suites_tree(callback=_test_path) or ConfigValue(raw=default)
+        return self.search_closest_in_suites_tree(callback=_test_path) or ConfigValue(
+            raw=default
+        )
 
     def search_closest_app_manager_bin_path(self) -> Path | None:
         def _test_path(workdir) -> Path | None:

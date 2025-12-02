@@ -115,9 +115,7 @@ class FrameworkPackageSuiteWorkdir(BasicAppWorkdir):
                 filtered.append(name)
         return filtered
 
-    def get_dependents(
-            self, package: CodeBaseWorkdir
-    ) -> list[CodeBaseWorkdir]:
+    def get_dependents(self, package: CodeBaseWorkdir) -> list[CodeBaseWorkdir]:
         dependents = []
         for neighbor_package in self.get_packages():
             if neighbor_package.depends_from(package):
@@ -338,7 +336,9 @@ class FrameworkPackageSuiteWorkdir(BasicAppWorkdir):
         # Convert "children" dicts → lists (required format)
         def normalize(node: dict) -> dict:
             if isinstance(node.get("children"), dict):
-                node["children"] = [normalize(child) for child in node["children"].values()]
+                node["children"] = [
+                    normalize(child) for child in node["children"].values()
+                ]
             return node
 
         # Only append children of the generated root (not the root itself)

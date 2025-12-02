@@ -91,13 +91,14 @@ class SuiteOrEachPackageMiddleware(PackageSuiteMiddleware):
 
         # Execute on packages if requested and we have a suite
         if execute_packages and is_suite:
+
             def custom_function(context: ExecutionContext, **kwargs) -> None:
                 suite_workdir = kwargs.get("app_workdir")
                 suite_workdir.packages_execute_manager(
                     command=request.resolver.build_command_from_function(
                         command_wrapper=command_wrapper
                     ),
-                    arguments=request.arguments
+                    arguments=request.arguments,
                 )
                 return None
 
