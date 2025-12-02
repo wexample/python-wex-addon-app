@@ -198,6 +198,7 @@ class CodeBaseWorkdir(BasicAppWorkdir):
     def push_changes(
         self,
         progress: ProgressHandle | None = None,
+        remote_name:str = None
     ) -> None:
         """Push current branch to upstream (following tags), without committing."""
         from wexample_helpers_git.helpers.git import (
@@ -215,17 +216,19 @@ class CodeBaseWorkdir(BasicAppWorkdir):
             progress or self.progress(label="Pushing changes...", total=1).get_handle()
         )
 
+        remote_name = remote_name or "origin"
+
         try:
             branch_name = git_current_branch(cwd=cwd, inherit_stdio=False)
-            git_ensure_upstream(cwd=cwd, default_remote="origin", inherit_stdio=True)
-            git_push_follow_tags(cwd=cwd, inherit_stdio=True)
+            git_ensure_upstream(cwd=cwd, default_remote=remote_name, inherit_stdio=True)
+            git_push_follow_tags(cwd=cwd, remote=remote_name, inherit_stdio=True)
             progress.finish(label="Pushed")
         except Exception as e:
             raise GitRemoteException(
                 workdir_path=str(cwd),
                 package_name=self.get_package_name(),
                 operation="push",
-                remote_name="origin",
+                remote_name=remote_name,
                 branch_name=branch_name if "branch_name" in locals() else None,
                 cause=e,
             ) from e
