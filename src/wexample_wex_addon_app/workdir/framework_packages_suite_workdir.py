@@ -162,33 +162,58 @@ class FrameworkPackageSuiteWorkdir(BasicAppWorkdir):
         raw_value = super().prepare_value(raw_value=raw_value)
 
         children = raw_value["children"]
+        base_path = Path(self.get_path()).resolve()
         package_paths = self.get_packages_paths()
 
         from wexample_filestate.const.disk import DiskItemType
 
-        # Tree keyed by parent directory name
-        tree: dict[str, dict] = {}
+        # Root of the generated tree
+        tree: dict = {
+            "name": base_path.name,
+            "type": DiskItemType.DIRECTORY,
+            "children": {},
+        }
 
         for package_path in package_paths:
-            parent_name = package_path.parent.name
+            package_path = package_path.resolve()
 
-            if parent_name not in tree:
-                tree[parent_name] = {
-                    "name": parent_name,
-                    "type": DiskItemType.DIRECTORY,
-                    "children": [],
-                }
+            # Skip invalid paths
+            if not BasicAppWorkdir.is_app_workdir_path(path=package_path):
+                continue
 
-            tree[parent_name]["children"].append(
-                {
-                    "name": package_path.name,
-                    "class": self._get_children_package_workdir_class(),
-                    "type": DiskItemType.DIRECTORY,
-                    "active": False,
-                }
-            )
+            # Build relative path between the configured root and the package path
+            rel_parts = list(package_path.relative_to(base_path).parts)
 
-        children.extend(tree.values())
+            # Walk the tree structure and create missing nodes
+            current = tree
+            for part in rel_parts[:-1]:  # all intermediate directories
+                current = current["children"].setdefault(
+                    part,
+                    {
+                        "name": part,
+                        "type": DiskItemType.DIRECTORY,
+                        "children": {},
+                    },
+                )
+
+            # Add final package directory
+            leaf_name = rel_parts[-1]
+            current["children"][leaf_name] = {
+                "name": leaf_name,
+                "class": self._get_children_package_workdir_class(),
+                "type": DiskItemType.DIRECTORY,
+                "active": False,
+                "children": {},  # packages may also contain children later
+            }
+
+        # Convert "children" dicts → lists (required format)
+        def normalize(node: dict) -> dict:
+            if isinstance(node.get("children"), dict):
+                node["children"] = [normalize(child) for child in node["children"].values()]
+            return node
+
+        # Only append children of the generated root (not the root itself)
+        children.extend(normalize(tree)["children"])
 
         return raw_value
 
