@@ -73,8 +73,14 @@ class FrameworkPackageSuiteWorkdir(BasicAppWorkdir):
                 filtered.append(name)
         return filtered
 
-    def get_dependents(self, package: CodeBaseWorkdir) -> list[CodeBaseWorkdir]:
-        return []
+    def get_dependents(
+            self, package: CodeBaseWorkdir
+    ) -> list[CodeBaseWorkdir]:
+        dependents = []
+        for neighbor_package in self.get_packages():
+            if neighbor_package.depends_from(package):
+                dependents.append(neighbor_package)
+        return dependents
 
     def get_local_packages_names(self) -> list[str]:
         return [p.get_package_name() for p in self.get_packages()]

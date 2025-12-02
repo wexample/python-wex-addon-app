@@ -80,7 +80,9 @@ class CodeBaseWorkdir(BasicAppWorkdir):
             progress.finish(label="No changes to commit")
 
     def depends_from(self, package: CodeBaseWorkdir) -> bool:
-        """Check if current package depends on given one."""
+        for dependence_name in self.get_dependencies_versions().keys():
+            if package.get_package_name() == dependence_name:
+                return True
         return False
 
     def get_io_context_prefix(self) -> str | None:
@@ -104,9 +106,6 @@ class CodeBaseWorkdir(BasicAppWorkdir):
             DefaultOptionsProvider,
             GitOptionsProvider,
         ]
-
-    def get_package_name(self) -> str:
-        return self.get_project_name()
 
     def has_working_changes(self) -> bool:
         from wexample_helpers_git.helpers.git import git_has_working_changes
