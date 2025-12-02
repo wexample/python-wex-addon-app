@@ -294,6 +294,8 @@ class BasicAppWorkdir(AppWorkdirMixin, Workdir):
         self.io.success("All libraries versions are up to date.")
 
     def publish(self, force: bool = False) -> None:
+        from wexample_helpers_git.const.common import GIT_BRANCH_MAIN
+
         if not self.should_be_published(force=force):
             return
 
@@ -303,7 +305,7 @@ class BasicAppWorkdir(AppWorkdirMixin, Workdir):
         )
         self.add_publication_tag()
         self.merge_to_main()
-        self.push_to_deployment_remote()
+        self.push_to_deployment_remote(branch_name=GIT_BRANCH_MAIN)
 
     def publish_bumped(self, force: bool = False, interactive: bool = True) -> None:
         from wexample_wex_addon_app.commands.file_state.rectify import (

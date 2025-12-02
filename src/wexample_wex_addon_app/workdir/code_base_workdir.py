@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from wexample_wex_addon_app.workdir.basic_app_workdir import BasicAppWorkdir
+from wexample_helpers_git.const.common import GIT_BRANCH_MAIN
 
 if TYPE_CHECKING:
     from wexample_config.options_provider.abstract_options_provider import (
@@ -119,20 +120,21 @@ class CodeBaseWorkdir(BasicAppWorkdir):
         """Check whether the given package is used in this package's codebase."""
         return False
 
-    def merge_to_main(self) -> None:
-        """Merge current branch into main, then return to the original branch.
+    def merge_to_main(self, branch_name: str = GIT_BRANCH_MAIN) -> None:
+        """Merge current branch into the specified main branch, then return to the original branch.
+
+        :param branch_name: Name of the main branch (default: "main").
 
         This method:
         1. Saves the current branch name
         2. Merges main into the current branch (to ensure compatibility)
-        3. Switches to main
+        3. Switches to the main branch
         4. Merges the current branch into main
         5. Returns to the original branch
 
         Raises if there are uncommitted changes or merge conflicts.
         """
         from wexample_helpers.helpers.shell import shell_run
-        from wexample_helpers_git.const.common import GIT_BRANCH_MAIN
         from wexample_helpers_git.helpers.git import (
             git_current_branch,
             git_has_uncommitted_changes,
@@ -144,39 +146,39 @@ class CodeBaseWorkdir(BasicAppWorkdir):
         # Ensure no uncommitted changes before starting
         if git_has_uncommitted_changes(cwd=cwd):
             raise RuntimeError(
-                "Cannot merge to main: uncommitted changes detected. "
+                f"Cannot merge to {branch_name}: uncommitted changes detected. "
                 "Please commit or stash your changes first."
             )
 
         # Save current branch name
         current_branch = git_current_branch(cwd=cwd, inherit_stdio=False)
 
-        if current_branch == GIT_BRANCH_MAIN:
-            self.warning("Already on main branch, nothing to merge.")
+        if current_branch == branch_name:
+            self.warning(f"Already on {branch_name} branch, nothing to merge.")
             return
 
         try:
             # Step 1: Merge main into current branch to ensure compatibility
-            self.info(f"Merging {GIT_BRANCH_MAIN} into {current_branch}...")
+            self.info(f"Merging {branch_name} into {current_branch}...")
             shell_run(
                 [
                     "git",
                     "merge",
-                    GIT_BRANCH_MAIN,
+                    branch_name,
                     "--no-ff",
                     "-m",
-                    f"Merge branch '{GIT_BRANCH_MAIN}' into {current_branch}",
+                    f"Merge branch '{branch_name}' into {current_branch}",
                 ],
                 inherit_stdio=True,
                 cwd=cwd,
             )
 
             # Step 2: Switch to main
-            self.info(f"Switching to {GIT_BRANCH_MAIN}...")
-            git_switch_branch(GIT_BRANCH_MAIN, cwd=cwd, inherit_stdio=True)
+            self.info(f"Switching to {branch_name}...")
+            git_switch_branch(branch_name, cwd=cwd, inherit_stdio=True)
 
             # Step 3: Merge current branch into main
-            self.info(f"Merging {current_branch} into {GIT_BRANCH_MAIN}...")
+            self.info(f"Merging {current_branch} into {branch_name}...")
             shell_run(
                 [
                     "git",
@@ -184,13 +186,13 @@ class CodeBaseWorkdir(BasicAppWorkdir):
                     current_branch,
                     "--no-ff",
                     "-m",
-                    f"Merge branch '{current_branch}' into {GIT_BRANCH_MAIN}",
+                    f"Merge branch '{current_branch}' into {branch_name}",
                 ],
                 inherit_stdio=True,
                 cwd=cwd,
             )
 
-            self.success(f"Successfully merged {current_branch} into {GIT_BRANCH_MAIN}")
+            self.success(f"Successfully merged {current_branch} into {branch_name}")
 
         finally:
             # Step 4: Always return to the original branch
@@ -203,15 +205,20 @@ class CodeBaseWorkdir(BasicAppWorkdir):
             default=None
         ).get_str_or_none()
 
-    def push_to_deployment_remote(self):
+    def push_to_deployment_remote(
+            self,
+            branch_name: str | None = None
+    ):
         self.push_changes(
-            remote_name=self._get_deployment_remote_name()
+            remote_name=self._get_deployment_remote_name(),
+            branch_name=branch_name
         )
 
     def push_changes(
-        self,
-        progress: ProgressHandle | None = None,
-        remote_name:str = None
+            self,
+            progress: ProgressHandle | None = None,
+            remote_name: str | None = None,
+            branch_name: str | None = None
     ) -> None:
         """Push current branch to upstream (following tags), without committing."""
         from wexample_helpers_git.helpers.git import (
@@ -232,7 +239,7 @@ class CodeBaseWorkdir(BasicAppWorkdir):
         remote_name = remote_name or "origin"
 
         try:
-            branch_name = git_current_branch(cwd=cwd, inherit_stdio=False)
+            branch_name = branch_name or git_current_branch(cwd=cwd, inherit_stdio=False)
             git_ensure_upstream(cwd=cwd, default_remote=remote_name, inherit_stdio=True)
             git_push_follow_tags(cwd=cwd, remote=remote_name, inherit_stdio=True)
             progress.finish(label="Pushed")
@@ -242,7 +249,7 @@ class CodeBaseWorkdir(BasicAppWorkdir):
                 package_name=self.get_package_name(),
                 operation="push",
                 remote_name=remote_name,
-                branch_name=branch_name if "branch_name" in locals() else None,
+                branch_name=branch_name,
                 cause=e,
             ) from e
 
