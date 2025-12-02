@@ -24,7 +24,7 @@ if TYPE_CHECKING:
 @middleware(middleware=PackageSuiteMiddleware)
 @command(
     type=COMMAND_TYPE_ADDON,
-    description="Publish package to PyPI. Use --all-packages to publish all packages in suite.",
+    description="Publish package to package manager (npm, PyPI, packagist, etc.). Use --all-packages to publish all packages in suite.",
 )
 def app__suite__publish(
     context: ExecutionContext,

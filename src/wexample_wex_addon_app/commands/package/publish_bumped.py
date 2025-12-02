@@ -21,7 +21,7 @@ if TYPE_CHECKING:
 @option(name="force", type=bool, default=False, is_flag=True)
 @command(
     type=COMMAND_TYPE_ADDON,
-    description="Publish package to PyPI. Use --all-packages to publish all packages in suite.",
+    description="Publish package to package manager (npm, PyPI, packagist, etc.). Use --all-packages to publish all packages in suite.",
 )
 def app__package__publish_bumped(
     context: ExecutionContext,
