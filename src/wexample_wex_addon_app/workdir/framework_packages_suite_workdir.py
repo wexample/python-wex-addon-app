@@ -30,6 +30,10 @@ class FrameworkPackageSuiteWorkdir(BasicAppWorkdir):
 
         return dependencies
 
+    def build_ordered_dependencies(self) -> list[str]:
+        """Return package names ordered leaves -> trunk."""
+        return self.topological_order(self.build_dependencies_map())
+
     def build_dependencies_stack(
         self,
         package: CodeBaseWorkdir,
@@ -86,13 +90,39 @@ class FrameworkPackageSuiteWorkdir(BasicAppWorkdir):
         return [p.get_package_name() for p in self.get_packages()]
 
     def get_ordered_packages(self) -> list[CodeBaseWorkdir]:
-        return self.get_packages()
+        order = self.build_ordered_dependencies()
+        by_name = {p.get_package_name(): p for p in self.get_packages()}
+        return [by_name[name] for name in order if name in by_name]
 
     def get_package(self, package_name: str) -> CodeBaseWorkdir | None:
         for package in self.get_packages():
             if package.get_package_name() == package_name:
                 return package
         return None
+
+    def topological_order(self, dep_map: dict[str, list[str]]) -> list[str]:
+        """Deterministic topological order (leaves -> trunk) using graphlib."""
+        from graphlib import CycleError, TopologicalSorter
+
+        # Normalize: include every mentioned node and sort for stable results
+        nodes = set(dep_map.keys()) | {d for deps in dep_map.values() for d in deps}
+        normalized: dict[str, list[str]] = {
+            key: sorted([dep for dep in dep_map.get(key, []) if dep in nodes])
+            for key in sorted(nodes)
+        }
+
+        ts = TopologicalSorter()
+        for key, deps in normalized.items():
+            ts.add(key, *deps)
+
+        try:
+            order = list(ts.static_order())
+        except CycleError as err:
+            msg = getattr(err, "args", [None])[0] or "Cyclic dependencies detected"
+            raise ValueError(str(msg)) from err
+
+        # Return only local packages (original keys of dep_map)
+        return [name for name in order if name in dep_map]
 
     def get_packages(self) -> list[CodeBaseWorkdir]:
         return self.find_all_by_type(
