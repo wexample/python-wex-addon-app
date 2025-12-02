@@ -241,7 +241,7 @@ class CodeBaseWorkdir(BasicAppWorkdir):
         try:
             branch_name = branch_name or git_current_branch(cwd=cwd, inherit_stdio=False)
             git_ensure_upstream(cwd=cwd, default_remote=remote_name, inherit_stdio=True)
-            git_push_follow_tags(cwd=cwd, remote=remote_name, inherit_stdio=True)
+            git_push_follow_tags(cwd=cwd, branch=branch_name, remote=remote_name, inherit_stdio=True)
             progress.finish(label="Pushed")
         except Exception as e:
             raise GitRemoteException(
