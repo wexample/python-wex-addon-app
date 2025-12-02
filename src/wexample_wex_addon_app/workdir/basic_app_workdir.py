@@ -303,6 +303,7 @@ class BasicAppWorkdir(AppWorkdirMixin, Workdir):
         )
         self.add_publication_tag()
         self.merge_to_main()
+        self.push_to_deployment_remote()
 
     def publish_bumped(self, force: bool = False, interactive: bool = True) -> None:
         from wexample_wex_addon_app.commands.file_state.rectify import (

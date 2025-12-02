@@ -197,6 +197,14 @@ class CodeBaseWorkdir(BasicAppWorkdir):
             self.info(f"Returning to {current_branch}...")
             git_switch_branch(current_branch, cwd=cwd, inherit_stdio=True)
 
+    def push_to_deployment_remote(self):
+        self.push_changes(
+            remote_name=self.search_app_or_suite_runtime_config(
+                "git.main_deployment_remote_name",
+                default=None
+            ).get_str_or_none()
+        )
+
     def push_changes(
         self,
         progress: ProgressHandle | None = None,
