@@ -63,7 +63,7 @@ class CodeBaseWorkdir(BasicAppWorkdir):
         )
 
         git_current_branch(cwd=cwd, inherit_stdio=False)
-        git_ensure_upstream(cwd=cwd, default_remote="origin", inherit_stdio=True)
+        git_ensure_upstream(cwd=cwd, default_remote=self._get_deployment_remote_name(),  inherit_stdio=True)
         progress.advance(step=1, label="Ensured upstream")
 
         git_pull_rebase_autostash(cwd=cwd, inherit_stdio=True)
@@ -197,12 +197,15 @@ class CodeBaseWorkdir(BasicAppWorkdir):
             self.info(f"Returning to {current_branch}...")
             git_switch_branch(current_branch, cwd=cwd, inherit_stdio=True)
 
+    def _get_deployment_remote_name(self) -> str|None:
+        return self.search_app_or_suite_runtime_config(
+            "git.main_deployment_remote_name",
+            default=None
+        ).get_str_or_none()
+
     def push_to_deployment_remote(self):
         self.push_changes(
-            remote_name=self.search_app_or_suite_runtime_config(
-                "git.main_deployment_remote_name",
-                default=None
-            ).get_str_or_none()
+            remote_name=self._get_deployment_remote_name()
         )
 
     def push_changes(

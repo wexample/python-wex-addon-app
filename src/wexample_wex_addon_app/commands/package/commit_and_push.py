@@ -26,5 +26,5 @@ def app__package__commit_and_push(
 ) -> None:
     package_name = app_workdir.get_package_name()
     app_workdir.commit_changes()
-    app_workdir.push_changes()
+    app_workdir.push_to_deployment_remote()
     context.io.success(f"Pushed {package_name}.")
