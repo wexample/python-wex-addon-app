@@ -148,8 +148,8 @@ class AppInfoResponse(AbstractResponse):
                 PropertiesPromptResponse(
                     title="Files",
                     properties={
-                        "Source files": f"@color:magenta{{{self.app_workdir.count_source_files()}}}",
-                        "Test files": f"@color:magenta{{{self.app_workdir.count_test_files()}}}",
+                        # "Source files": f"@color:magenta{{{self.app_workdir.count_source_files()}}}",
+                        # "Test files": f"@color:magenta{{{self.app_workdir.count_test_files()}}}",
                         "Has README.md": self._format_yes_no(has_readme),
                     },
                 ),

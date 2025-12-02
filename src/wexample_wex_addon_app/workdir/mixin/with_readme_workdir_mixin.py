@@ -33,11 +33,12 @@ class WithReadmeWorkdirMixin(BaseClass):
         return config
 
     def has_readme(self) -> bool:
-        return self.find_by_name(APP_PATH_README) is not None
+        readme = self.find_by_name(APP_PATH_README)
+        return readme.get_path().exists() if readme else None
 
     def _get_readme_content(self) -> ReadmeContentConfigValue:
-        from wexample_filestate.config_value.readme_content_config_value import (
-            ReadmeContentConfigValue,
+        from wexample_wex_addon_app.config_value.app_readme_config_value import (
+            AppReadmeConfigValue,
         )
 
-        return ReadmeContentConfigValue()
+        return AppReadmeConfigValue(workdir=self)

@@ -5,40 +5,44 @@ APP_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 AM_DIR="$APP_ROOT/.wex/python/app_manager"
 REQUEST_ID="$(date '+%Y%m%d-%H%M%S-%N')-$$"
 
-if [ "${1:-}" = "setup" ]; then
-  # Create directory if missing
-  mkdir -p "$AM_DIR"
+CONFIG_FILE="/etc/wex.conf"
 
-  cd "$AM_DIR"
+if [[ -f "$CONFIG_FILE" ]]; then
+    source "$CONFIG_FILE"
+fi
 
-  # Ensure pdm is available
-  if ! command -v pdm &>/dev/null; then
-    echo "❌ Error: 'pdm' not found. Please install it first." >&2
+if [[ -z "${CORE_BIN:-}" ]]; then
+    CORE_BIN="$(which wex 2>/dev/null || true)"
+fi
+
+if [[ -z "${CORE_BIN:-}" ]]; then
+    echo "Error: Unable to locate 'wex'."
+    echo "No CORE_BIN found in $CONFIG_FILE and 'which wex' returned nothing."
     exit 1
-  fi
+fi
 
-  # Remove existing .venv completely to ensure clean setup
-  if [ -d ".venv" ]; then
-    echo "🗑️  Removing existing .venv directory..."
-    rm -rf .venv
-  fi
+CORE_DIR="$(dirname "$CORE_BIN")"
+WEX_ROOT="$(dirname "$CORE_DIR")"
+VENV_PATH="$WEX_ROOT/.venv"
+PYTHON_BIN="$VENV_PATH/bin/python"
 
-  # Force PDM to use/create .venv in app_manager directory, ignoring any active venv
-  export PDM_IGNORE_ACTIVE_VENV=1
+# Ensure the shared venv exists
+if [[ ! -x "$PYTHON_BIN" ]]; then
+    echo "❌ Error: Shared venv not found at: $VENV_PATH"
+    echo "Expected python at: $PYTHON_BIN"
+    exit 1
+fi
 
-  echo "📦 Creating fresh virtual environment..."
-  pdm venv create --force
-  
-  echo "🔗 Configuring PDM to use the new .venv..."
-  pdm use .venv
-  
-  echo "📥 Installing dependencies..."
-  pdm install
-  
-  # Ensure pip is available in the venv
-  "$AM_DIR/.venv/bin/python" -m ensurepip --upgrade 2>/dev/null || true
-  
-  echo "✅ Setup complete with fresh .venv"
+if [[ "${1:-}" = "setup" ]]; then
+    # Setup only prepares the app_manager folder; venv already exists elsewhere.
+    mkdir -p "$AM_DIR"
+
+    echo "📥 Installing dependencies for app_manager using shared venv..."
+    "$PYTHON_BIN" -m pip install -r "$AM_DIR/requirements.txt" 2>/dev/null || true
+
+    echo "✅ Setup complete (using shared venv)"
+
 else
-  exec "$AM_DIR/.venv/bin/python" "$AM_DIR/__main__.py" "${REQUEST_ID}" "${@}"
+    # Normal execution using shared venv
+    exec "$PYTHON_BIN" "$AM_DIR/__main__.py" "$REQUEST_ID" "$@"
 fi

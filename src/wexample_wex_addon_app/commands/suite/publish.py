@@ -2,16 +2,17 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from wexample_wex_core.const.globals import COMMAND_TYPE_ADDON
+from wexample_wex_core.decorator.command import command
+from wexample_wex_core.decorator.middleware import middleware
+from wexample_wex_core.decorator.option import option
+
 from wexample_wex_addon_app.middleware.package_suite_middleware import (
     PackageSuiteMiddleware,
 )
 from wexample_wex_addon_app.workdir.framework_packages_suite_workdir import (
     FrameworkPackageSuiteWorkdir,
 )
-from wexample_wex_core.const.globals import COMMAND_TYPE_ADDON
-from wexample_wex_core.decorator.command import command
-from wexample_wex_core.decorator.middleware import middleware
-from wexample_wex_core.decorator.option import option
 
 if TYPE_CHECKING:
     from wexample_wex_core.context.execution_context import ExecutionContext
@@ -23,7 +24,7 @@ if TYPE_CHECKING:
 @middleware(middleware=PackageSuiteMiddleware)
 @command(
     type=COMMAND_TYPE_ADDON,
-    description="Publish package to PyPI. Use --all-packages to publish all packages in suite.",
+    description="Publish package to package manager (npm, PyPI, packagist, etc.). Use --all-packages to publish all packages in suite.",
 )
 def app__suite__publish(
     context: ExecutionContext,

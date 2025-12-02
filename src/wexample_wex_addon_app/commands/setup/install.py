@@ -38,4 +38,4 @@ def app__setup__install(
     env: str | None = None,
     force: bool = False,
 ) -> None:
-    app_workdir.setup_install(env, force=force)
+    app_workdir.setup_install(env=env, force=force)

@@ -2,9 +2,10 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from wexample_helpers.classes.abstract_method import abstract_method
-
+from wexample_helpers.classes.shell_result import ShellResult
+from wexample_helpers_git.helpers.git import git_run
 from wexample_wex_addon_app.workdir.basic_app_workdir import BasicAppWorkdir
+from wexample_helpers_git.const.common import GIT_BRANCH_MAIN, GIT_REMOTE_ORIGIN
 
 if TYPE_CHECKING:
     from wexample_config.options_provider.abstract_options_provider import (
@@ -32,6 +33,9 @@ class CodeBaseWorkdir(BasicAppWorkdir):
 
         # Push the tag explicitly to the remote to ensure it's published.
         git_push_tag(tag, cwd=cwd, inherit_stdio=True)
+
+    def _build_dependency_string(self, package_name: str, version: str) -> str:
+        return f"{package_name}=={version}"
 
     def build_dependencies_stack(
         self, package: CodeBaseWorkdir, dependency: CodeBaseWorkdir
@@ -62,7 +66,11 @@ class CodeBaseWorkdir(BasicAppWorkdir):
         )
 
         git_current_branch(cwd=cwd, inherit_stdio=False)
-        git_ensure_upstream(cwd=cwd, default_remote="origin", inherit_stdio=True)
+        git_ensure_upstream(
+            cwd=cwd,
+            default_remote=self._get_deployment_remote_name(),
+            inherit_stdio=True,
+        )
         progress.advance(step=1, label="Ensured upstream")
 
         git_pull_rebase_autostash(cwd=cwd, inherit_stdio=True)
@@ -82,12 +90,10 @@ class CodeBaseWorkdir(BasicAppWorkdir):
             progress.finish(label="No changes to commit")
 
     def depends_from(self, package: CodeBaseWorkdir) -> bool:
-        """Check if current package depends on given one."""
+        for dependence_name in self.get_dependencies_versions().keys():
+            if package.get_package_name() == dependence_name:
+                return True
         return False
-
-    @abstract_method
-    def get_dependencies(self) -> list[str]:
-        pass
 
     def get_io_context_prefix(self) -> str | None:
         from wexample_helpers.helpers.cli import cli_make_clickable_path
@@ -111,9 +117,6 @@ class CodeBaseWorkdir(BasicAppWorkdir):
             GitOptionsProvider,
         ]
 
-    def get_package_name(self) -> str:
-        return self.get_project_name()
-
     def has_working_changes(self) -> bool:
         from wexample_helpers_git.helpers.git import git_has_working_changes
 
@@ -123,20 +126,21 @@ class CodeBaseWorkdir(BasicAppWorkdir):
         """Check whether the given package is used in this package's codebase."""
         return False
 
-    def merge_to_main(self) -> None:
-        """Merge current branch into main, then return to the original branch.
+    def merge_to_main(self, branch_name: str = GIT_BRANCH_MAIN) -> None:
+        """Merge current branch into the specified main branch, then return to the original branch.
+
+        :param branch_name: Name of the main branch (default: "main").
 
         This method:
         1. Saves the current branch name
         2. Merges main into the current branch (to ensure compatibility)
-        3. Switches to main
+        3. Switches to the main branch
         4. Merges the current branch into main
         5. Returns to the original branch
 
         Raises if there are uncommitted changes or merge conflicts.
         """
         from wexample_helpers.helpers.shell import shell_run
-        from wexample_helpers_git.const.common import GIT_BRANCH_MAIN
         from wexample_helpers_git.helpers.git import (
             git_current_branch,
             git_has_uncommitted_changes,
@@ -148,39 +152,39 @@ class CodeBaseWorkdir(BasicAppWorkdir):
         # Ensure no uncommitted changes before starting
         if git_has_uncommitted_changes(cwd=cwd):
             raise RuntimeError(
-                "Cannot merge to main: uncommitted changes detected. "
+                f"Cannot merge to {branch_name}: uncommitted changes detected. "
                 "Please commit or stash your changes first."
             )
 
         # Save current branch name
         current_branch = git_current_branch(cwd=cwd, inherit_stdio=False)
 
-        if current_branch == GIT_BRANCH_MAIN:
-            self.warning("Already on main branch, nothing to merge.")
+        if current_branch == branch_name:
+            self.warning(f"Already on {branch_name} branch, nothing to merge.")
             return
 
         try:
             # Step 1: Merge main into current branch to ensure compatibility
-            self.info(f"Merging {GIT_BRANCH_MAIN} into {current_branch}...")
+            self.info(f"Merging {branch_name} into {current_branch}...")
             shell_run(
                 [
                     "git",
                     "merge",
-                    GIT_BRANCH_MAIN,
+                    branch_name,
                     "--no-ff",
                     "-m",
-                    f"Merge branch '{GIT_BRANCH_MAIN}' into {current_branch}",
+                    f"Merge branch '{branch_name}' into {current_branch}",
                 ],
                 inherit_stdio=True,
                 cwd=cwd,
             )
 
             # Step 2: Switch to main
-            self.info(f"Switching to {GIT_BRANCH_MAIN}...")
-            git_switch_branch(GIT_BRANCH_MAIN, cwd=cwd, inherit_stdio=True)
+            self.info(f"Switching to {branch_name}...")
+            git_switch_branch(branch_name, cwd=cwd, inherit_stdio=True)
 
             # Step 3: Merge current branch into main
-            self.info(f"Merging {current_branch} into {GIT_BRANCH_MAIN}...")
+            self.info(f"Merging {current_branch} into {branch_name}...")
             shell_run(
                 [
                     "git",
@@ -188,54 +192,57 @@ class CodeBaseWorkdir(BasicAppWorkdir):
                     current_branch,
                     "--no-ff",
                     "-m",
-                    f"Merge branch '{current_branch}' into {GIT_BRANCH_MAIN}",
+                    f"Merge branch '{current_branch}' into {branch_name}",
                 ],
                 inherit_stdio=True,
                 cwd=cwd,
             )
 
-            self.success(f"Successfully merged {current_branch} into {GIT_BRANCH_MAIN}")
+            self.success(f"Successfully merged {current_branch} into {branch_name}")
 
         finally:
             # Step 4: Always return to the original branch
             self.info(f"Returning to {current_branch}...")
             git_switch_branch(current_branch, cwd=cwd, inherit_stdio=True)
 
+    def _get_deployment_remote_name(self) -> str | None:
+        return self.search_app_or_suite_runtime_config(
+            "git.main_deployment_remote_name", default=None
+        ).get_str_or_none()
+
+    def push_to_deployment_remote(self, branch_name: str | None = None) -> None:
+        self.push_changes(
+            remote_name=self._get_deployment_remote_name(),
+            branch_name=branch_name,
+        )
+
     def push_changes(
         self,
-        progress: ProgressHandle | None = None,
+        remote_name: str | None = None,
+        branch_name: str | None = None,
     ) -> None:
-        """Push current branch to upstream (following tags), without committing."""
-        from wexample_helpers_git.helpers.git import (
-            git_current_branch,
-            git_ensure_upstream,
-            git_push_follow_tags,
+        remote = remote_name or GIT_REMOTE_ORIGIN
+        branch_name = branch_name or GIT_BRANCH_MAIN
+
+        local_branch, remote_branch = (
+            branch_name.split(":", 1)
+            if ":" in branch_name
+            else (branch_name, branch_name)
         )
 
-        from wexample_wex_addon_app.exception.git_remote_exception import (
-            GitRemoteException,
+        git_run(
+            cmd=[
+                "push",
+                remote,
+                f"{local_branch}:{remote_branch}",
+                "--follow-tags",
+                "--porcelain",
+            ],
+            inherit_stdio=False,
+            cwd=self.get_path(),
         )
 
-        cwd = self.get_path()
-        progress = (
-            progress or self.progress(label="Pushing changes...", total=1).get_handle()
-        )
-
-        try:
-            branch_name = git_current_branch(cwd=cwd, inherit_stdio=False)
-            git_ensure_upstream(cwd=cwd, default_remote="origin", inherit_stdio=True)
-            git_push_follow_tags(cwd=cwd, inherit_stdio=True)
-            progress.finish(label="Pushed")
-        except Exception as e:
-            raise GitRemoteException(
-                workdir_path=str(cwd),
-                package_name=self.get_package_name(),
-                operation="push",
-                remote_name="origin",
-                branch_name=branch_name if "branch_name" in locals() else None,
-                cause=e,
-            ) from e
-
-    def save_dependency(self, package: CodeBaseWorkdir) -> bool:
-        """Register a dependency into the configuration file."""
-        return True
+    def save_dependency(self, package_name: str, version: str) -> bool:
+        """Add or update a dependency with strict version."""
+        config = self.get_app_config_file()
+        return config.add_dependency(package_name=package_name, version=version)

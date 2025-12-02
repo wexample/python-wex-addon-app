@@ -1,8 +1,10 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from pathlib import Path
+from typing import TYPE_CHECKING, Any
 
 from wexample_app.const.env import ENV_NAME_PROD
+from wexample_app.const.globals import APP_PATH_APP_MANAGER
 from wexample_config.config_value.config_value import ConfigValue
 from wexample_file.helper.line import line_count_recursive
 from wexample_filestate.const.types_state_items import TargetFileOrDirectoryType
@@ -16,7 +18,12 @@ from wexample_wex_addon_app.const.path import APP_PATH_TEST
 from wexample_wex_addon_app.workdir.mixin.app_workdir_mixin import AppWorkdirMixin
 
 if TYPE_CHECKING:
+    from wexample_config.const.types import DictConfig
     from wexample_filestate.result.file_state_result import FileStateResult
+
+    from wexample_wex_addon_app.workdir.framework_packages_suite_workdir import (
+        FrameworkPackageSuiteWorkdir,
+    )
 
 
 @base_class
@@ -113,7 +120,7 @@ class BasicAppWorkdir(AppWorkdirMixin, Workdir):
             self.log(message=f'Switched to branch "{branch_name}"', indentation=1)
 
             # Change version number on this branch
-            self.get_config_file().write_config_value("global.version", new_version)
+            self.write_config_value("global.version", new_version)
 
             self.log(
                 message=f'Bumped from "{current_version}" to "{new_version}"',
@@ -142,6 +149,11 @@ class BasicAppWorkdir(AppWorkdirMixin, Workdir):
             return True
         return False
 
+    def configure(self, config: DictConfig) -> None:
+        super().configure(config=config)
+
+        self._init_env(env_dict=self.get_env_parameters().to_dict())
+
     def count_source_code_lines(self) -> int:
         """Count total lines in source code files."""
         return self._count_code_lines(directories=self._get_source_code_directories())
@@ -158,10 +170,40 @@ class BasicAppWorkdir(AppWorkdirMixin, Workdir):
         """Count number of test code files."""
         return self._count_files(directories=self._get_test_code_directories())
 
+    def ensure_app_manager(self) -> bool:
+        from wexample_app.const.globals import APP_PATH_BIN_APP_MANAGER
+
+        current_app_manager_path = self.get_path() / APP_PATH_BIN_APP_MANAGER
+
+        if current_app_manager_path.exists():
+            return True
+
+        closest_app_manager_path = self.search_closest_app_manager_bin_path()
+        if closest_app_manager_path != current_app_manager_path:
+            self.log(f"Creating symlink: {current_app_manager_path}")
+
+            # Remove if symlink already exists but point to a missing file.
+            current_app_manager_path.unlink()
+            current_app_manager_path.symlink_to(closest_app_manager_path.resolve())
+            # False says newly created.
+            return False
+        return True
+
+    def ensure_app_manager_setup(self) -> None:
+        from wexample_app.const.globals import APP_PATH_BIN_APP_MANAGER
+
+        self._override_pyproject_dependencies_by_current_distribution_versions()
+        self.ensure_app_manager()
+
+        self.shell_run_for_app(cmd=[str(APP_PATH_BIN_APP_MANAGER), "setup"])
+
     def get_app_env(self) -> str:
         from wexample_app.const.globals import ENV_VAR_NAME_APP_ENV
 
         return self.get_env_parameter(key=ENV_VAR_NAME_APP_ENV, default=ENV_NAME_PROD)
+
+    def get_dependencies_versions(self) -> dict[str, str]:
+        return {}
 
     def get_last_publication_tag(self) -> str | None:
         """Return the last publication tag for this package, or None if none exists."""
@@ -172,6 +214,10 @@ class BasicAppWorkdir(AppWorkdirMixin, Workdir):
 
     def get_local_libraries_paths(self) -> list[ConfigValue]:
         return self.get_runtime_config().search(f"libraries").get_list_or_default()
+
+    @abstract_method
+    def get_package_import_name(self) -> str:
+        pass
 
     @abstract_method
     def get_main_code_file_extension(self) -> str:
@@ -248,6 +294,8 @@ class BasicAppWorkdir(AppWorkdirMixin, Workdir):
         self.io.success("All libraries versions are up to date.")
 
     def publish(self, force: bool = False) -> None:
+        from wexample_helpers_git.const.common import GIT_BRANCH_MAIN
+
         if not self.should_be_published(force=force):
             return
 
@@ -257,6 +305,7 @@ class BasicAppWorkdir(AppWorkdirMixin, Workdir):
         )
         self.add_publication_tag()
         self.merge_to_main()
+        self.push_to_deployment_remote(branch_name=GIT_BRANCH_MAIN)
 
     def publish_bumped(self, force: bool = False, interactive: bool = True) -> None:
         from wexample_wex_addon_app.commands.file_state.rectify import (
@@ -329,13 +378,46 @@ class BasicAppWorkdir(AppWorkdirMixin, Workdir):
         """
         return {self.get_package_name(): self.get_project_version()}
 
+    def search_app_or_suite_runtime_config(
+        self, key_path: str, default: Any = None
+    ) -> ConfigValue:
+        def _test_path(workdir) -> Path | None:
+            config = workdir.get_runtime_config().search(path=key_path)
+            if not config.is_none():
+                return config
+            return None
+
+        return self.search_closest_in_suites_tree(callback=_test_path) or ConfigValue(
+            raw=default
+        )
+
+    def search_closest_app_manager_bin_path(self) -> Path | None:
+        def _test_path(workdir) -> Path | None:
+            from wexample_app.const.globals import APP_PATH_BIN_APP_MANAGER
+
+            manager_bin_path = workdir.get_path() / APP_PATH_BIN_APP_MANAGER
+
+            if manager_bin_path.exists():
+                return manager_bin_path
+
+        return self.search_closest_in_suites_tree(callback=_test_path)
+
+    def set_app_env(self, env: str | None) -> None:
+        from wexample_app.const.globals import ENV_VAR_NAME_APP_ENV
+
+        self.set_env_parameter(key=ENV_VAR_NAME_APP_ENV, value=env)
+
+        self.get_registry(rebuild=True)
+
     def setup_install(self, env: str | None = None, force: bool = False) -> None:
-        # TODO Two ways
-        #      - Simplify to only install "app" here, not "app_manager"
-        #      - Install both of them, but trigger event allowing suite to complete installation (version propagation / -e install / etc.
-        # env_label = f" in {env} environment" if env else ""
-        # self.log(f"Installing dependencies{env_label}")
-        # self.shell_run_from_path(path=self.get_path(), cmd=self._create_setup_command())
+        env = env or self.get_app_env()
+        self.log(f"Set app environment to @🔵+bold{{{env}}}...")
+        self.set_app_env(env=env)
+
+        self.log("Check manager setup...")
+        self.ensure_app_manager_setup()
+
+        self.log("Install app...")
         self.app_install(env, force=force)
 
     def should_be_published(self, force: bool = False) -> bool:
@@ -380,16 +462,93 @@ class BasicAppWorkdir(AppWorkdirMixin, Workdir):
 
         return total
 
-    def _create_setup_command(self) -> list[str]:
-        from wexample_app.const.globals import APP_PATH_BIN_APP_MANAGER
-
-        return [str(APP_PATH_BIN_APP_MANAGER), "setup"]
-
-    def _get_source_code_directories(self) -> [TargetFileOrDirectoryType]:
+    def _get_source_code_directories(self) -> list[TargetFileOrDirectoryType]:
         return []
 
-    def _get_test_code_directories(self) -> [TargetFileOrDirectoryType]:
+    def _get_suite_package_workdir_class(self) -> type[FrameworkPackageSuiteWorkdir]:
+        from wexample_wex_addon_app.workdir.framework_packages_suite_workdir import (
+            FrameworkPackageSuiteWorkdir,
+        )
+
+        """ A suite can be a sub-suite"""
+        return FrameworkPackageSuiteWorkdir
+
+    def _get_test_code_directories(self) -> list[TargetFileOrDirectoryType]:
         return []
+
+    def _override_pyproject_dependencies_by_current_distribution_versions(self) -> None:
+        from pathlib import Path
+
+        import tomlkit
+        from wexample_helpers.helpers.module import module_get_distribution_map
+
+        installed = module_get_distribution_map()
+
+        manager_path = self.get_path() / APP_PATH_APP_MANAGER
+        pyproject_path = Path(manager_path / "pyproject.toml")
+
+        # Read raw text for tomlkit (to preserve comments)
+        raw = pyproject_path.read_text()
+
+        # Parse with tomlkit
+        doc = tomlkit.parse(raw)
+
+        # "project.dependencies" is a TOML array with preserved formatting
+        deps = doc.get("project", {}).get("dependencies", [])
+
+        updated = False
+        new_deps = tomlkit.array().multiline(True)
+
+        for dep in deps:
+            dep_str = str(dep)
+
+            # Parse dependency into (name, version)
+            if "==" in dep_str:
+                name, _ = dep_str.split("==", 1)
+            elif ">=" in dep_str:
+                name, _ = dep_str.split(">=", 1)
+            elif "<=" in dep_str:
+                name, _ = dep_str.split("<=", 1)
+            else:
+                # keep untouched (no version specified)
+                new_deps.append(dep)
+                continue
+
+            pkg_name = name.strip().lower()
+            installed_version = installed.get(pkg_name)
+
+            if installed_version:
+                new_dep = f"{pkg_name}=={installed_version}"
+                if dep_str != new_dep:
+                    self.log(f"{dep_str} → {new_dep}")
+                    updated = True
+                new_deps.append(new_dep)
+            else:
+                new_deps.append(dep)
+
+        # If changed, replace the array in the document
+        if updated:
+            doc["project"]["dependencies"] = new_deps
+
+            # Write back, preserving original formatting + comments
+            pyproject_path.write_text(tomlkit.dumps(doc))
+
+            self._python_export_dependencies(path=manager_path)
+
+            self.log("✓ pyproject.toml updated")
 
     def _publish(self, force: bool = False) -> None:
         """Internal publication process"""
+
+    def _python_export_dependencies(self, path: Path) -> None:
+        import sys
+
+        self.shell_run_from_path(
+            cmd=[
+                f"{sys.prefix}/bin/pip-compile",
+                f"{path}/pyproject.toml",
+                "--output-file",
+                f"{path}/requirements.txt",
+            ],
+            path=path,
+        )

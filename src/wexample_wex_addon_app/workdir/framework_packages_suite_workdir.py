@@ -15,8 +15,8 @@ if TYPE_CHECKING:
     from wexample_wex_addon_app.workdir.code_base_workdir import (
         CodeBaseWorkdir,
     )
-    from wexample_wex_addon_app.workdir.mixin.as_suite_package_item import (
-        AsSuitePackageItem,
+    from wexample_wex_addon_app.workdir.mixin.with_suite_tree_workdir_mixin import (
+        WithSuiteTreeWorkdirMixin,
     )
 
 
@@ -25,10 +25,14 @@ class FrameworkPackageSuiteWorkdir(BasicAppWorkdir):
         dependencies = {}
         for package in self.get_packages():
             dependencies[package.get_package_name()] = self.filter_local_packages(
-                package.get_dependencies()
+                package.get_dependencies_versions().keys()
             )
 
         return dependencies
+
+    def build_ordered_dependencies(self) -> list[str]:
+        """Return package names ordered leaves -> trunk."""
+        return self.topological_order(self.build_dependencies_map())
 
     def build_dependencies_stack(
         self,
@@ -36,9 +40,47 @@ class FrameworkPackageSuiteWorkdir(BasicAppWorkdir):
         dependency: CodeBaseWorkdir,
         dependencies_map: dict[str, list[str]],
     ) -> list[CodeBaseWorkdir]:
-        """When a package depends on another (uses it in its codebase),
-        return the dependency chain to locate the original package that declares the explicit dependency.
+        """Return the declared dependency chain from `package` to `dependency`.
+
+        Deterministic DFS on the local dependencies map. Returns a list of
+        package objects [package, ..., dependency] or an empty list if no path exists.
         """
+        start = package.get_package_name()
+        target = dependency.get_package_name()
+
+        if start == target:
+            return [package]
+
+        # Ensure both nodes exist in the map
+        nodes = set(dependencies_map.keys()) | {
+            d for deps in dependencies_map.values() for d in deps
+        }
+        if start not in nodes or target not in nodes:
+            return []
+
+        visited: set[str] = set()
+        stack: list[tuple[str, list[str]]] = [(start, [start])]
+
+        while stack:
+            current, path = stack.pop()
+            if current in visited:
+                continue
+            visited.add(current)
+
+            for neighbor in sorted(dependencies_map.get(current, [])):
+                if neighbor in visited:
+                    continue
+                new_path = path + [neighbor]
+                if neighbor == target:
+                    chain: list[CodeBaseWorkdir] = []
+                    for name in new_path:
+                        pkg = self.get_package(name)
+                        if pkg is not None:
+                            chain.append(pkg)
+                    if chain and chain[-1].get_package_name() == target:
+                        return chain
+                stack.append((neighbor, new_path))
+
         return []
 
     # Publication planning helpers
@@ -74,19 +116,104 @@ class FrameworkPackageSuiteWorkdir(BasicAppWorkdir):
         return filtered
 
     def get_dependents(self, package: CodeBaseWorkdir) -> list[CodeBaseWorkdir]:
-        return []
+        dependents = []
+        for neighbor_package in self.get_packages():
+            if neighbor_package.depends_from(package):
+                dependents.append(neighbor_package)
+        return dependents
 
     def get_local_packages_names(self) -> list[str]:
         return [p.get_package_name() for p in self.get_packages()]
 
     def get_ordered_packages(self) -> list[CodeBaseWorkdir]:
-        return self.get_packages()
+        order = self.build_ordered_dependencies()
+        by_name = {p.get_package_name(): p for p in self.get_packages()}
+        return [by_name[name] for name in order if name in by_name]
 
     def get_package(self, package_name: str) -> CodeBaseWorkdir | None:
         for package in self.get_packages():
             if package.get_package_name() == package_name:
                 return package
         return None
+
+    def packages_validate_internal_dependencies_declarations(self) -> None:
+        """Ensure imports match declared local dependencies."""
+        from wexample_wex_addon_app.exception.dependency_violation_exception import (
+            DependencyViolationException,
+        )
+
+        dependencies_map = self.build_dependencies_map()
+
+        self.io.log("Checking packages dependencies consistency...")
+        self.io.indentation_up()
+        progress = self.io.progress(
+            total=len(dependencies_map), print_response=False
+        ).get_handle()
+
+        for package_name in dependencies_map:
+            package = self.get_package(package_name)
+            if package is None:
+                continue
+
+            search_fn = getattr(package, "search_imports_in_codebase", None)
+            if not callable(search_fn):
+                progress.advance(
+                    label=f"Package {package.get_project_name()} (no search)", step=1
+                )
+                continue
+
+            for package_name_search in dependencies_map:
+                searched_package = self.get_package(package_name_search)
+                if searched_package is None:
+                    continue
+
+                imports = search_fn(searched_package)
+                if len(imports) == 0:
+                    continue
+
+                dependencies_stack = self.build_dependencies_stack(
+                    package, searched_package, dependencies_map
+                )
+
+                if len(dependencies_stack) == 0:
+                    import_locations = [
+                        f"{res.item.get_path()}:{res.line}:{res.column}"
+                        for res in imports
+                    ]
+                    raise DependencyViolationException(
+                        package_name=package_name,
+                        imported_package=package_name_search,
+                        import_locations=import_locations,
+                    )
+
+            progress.advance(label=f"Package {package.get_project_name()}", step=1)
+
+        self.io.success("Internal dependencies match.")
+        self.io.indentation_down()
+
+    def topological_order(self, dep_map: dict[str, list[str]]) -> list[str]:
+        """Deterministic topological order (leaves -> trunk) using graphlib."""
+        from graphlib import CycleError, TopologicalSorter
+
+        # Normalize: include every mentioned node and sort for stable results
+        nodes = set(dep_map.keys()) | {d for deps in dep_map.values() for d in deps}
+        normalized: dict[str, list[str]] = {
+            key: sorted([dep for dep in dep_map.get(key, []) if dep in nodes])
+            for key in sorted(nodes)
+        }
+
+        ts = TopologicalSorter()
+        for key, deps in normalized.items():
+            ts.add(key, *deps)
+
+        try:
+            order = list(ts.static_order())
+        except CycleError as err:
+            msg = getattr(err, "args", [None])[0] or "Cyclic dependencies detected"
+            raise ValueError(str(msg)) from err
+
+        # Return only local packages (original keys of dep_map)
+        return [name for name in order if name in dep_map]
 
     def get_packages(self) -> list[CodeBaseWorkdir]:
         return self.find_all_by_type(
@@ -158,23 +285,64 @@ class FrameworkPackageSuiteWorkdir(BasicAppWorkdir):
         )
 
     def prepare_value(self, raw_value: DictConfig | None = None) -> DictConfig:
-        """Prepare file state configuration for package suite.
-
-        Builds a recursive tree structure of directories containing packages,
-        based on package_suite.location patterns from config.yml.
-        """
+        """Prepare file state configuration for package suite."""
         raw_value = super().prepare_value(raw_value=raw_value)
 
         children = raw_value["children"]
-
-        # Get all package paths from configured locations
+        base_path = Path(self.get_path()).resolve()
         package_paths = self.get_packages_paths()
 
-        # Build a tree structure from the package paths
-        tree = self._build_directory_tree(package_paths)
+        from wexample_filestate.const.disk import DiskItemType
 
-        # Convert tree to config format and add to children
-        children.extend(tree)
+        # Root of the generated tree
+        tree: dict = {
+            "name": base_path.name,
+            "type": DiskItemType.DIRECTORY,
+            "children": {},
+        }
+
+        for package_path in package_paths:
+            package_path = package_path.resolve()
+
+            # Skip invalid paths
+            if not BasicAppWorkdir.is_app_workdir_path(path=package_path):
+                continue
+
+            # Build relative path between the configured root and the package path
+            rel_parts = list(package_path.relative_to(base_path).parts)
+
+            # Walk the tree structure and create missing nodes
+            current = tree
+            for part in rel_parts[:-1]:  # all intermediate directories
+                current = current["children"].setdefault(
+                    part,
+                    {
+                        "name": part,
+                        "type": DiskItemType.DIRECTORY,
+                        "children": {},
+                    },
+                )
+
+            # Add final package directory
+            leaf_name = rel_parts[-1]
+            current["children"][leaf_name] = {
+                "name": leaf_name,
+                "class": self._get_children_package_workdir_class(),
+                "type": DiskItemType.DIRECTORY,
+                "active": False,
+                "children": {},  # packages may also contain children later
+            }
+
+        # Convert "children" dicts → lists (required format)
+        def normalize(node: dict) -> dict:
+            if isinstance(node.get("children"), dict):
+                node["children"] = [
+                    normalize(child) for child in node["children"].values()
+                ]
+            return node
+
+        # Only append children of the generated root (not the root itself)
+        children.extend(normalize(tree)["children"])
 
         return raw_value
 
@@ -182,7 +350,7 @@ class FrameworkPackageSuiteWorkdir(BasicAppWorkdir):
         for package in self.get_ordered_packages():
             self.propagate_version_of(package=package)
 
-    def propagate_version_of(self, package: AsSuitePackageItem) -> None:
+    def propagate_version_of(self, package: WithSuiteTreeWorkdirMixin) -> None:
         package.log(f"Propagating version {package.get_project_version()}", prefix=True)
         package.io.indentation_up()
 
@@ -208,89 +376,17 @@ class FrameworkPackageSuiteWorkdir(BasicAppWorkdir):
     def setup_install(self, env: str | None = None, force: bool = False) -> None:
         from wexample_wex_addon_app.commands.setup.install import app__setup__install
 
-        env_label = f" in {env} mode" if env else ""
-
-        self.log(f"Setting up suite{env_label}")
-
-        # Setup the suite itself
-        self.log("Installing suite dependencies", indentation=1)
+        self.subtitle(f"Installing suite app")
         super().setup_install(env=env)
 
-        # Setup all packages in the suite
-        self.log(f"Installing dependencies for all packages", indentation=1)
-        self.packages_execute_shell(cmd=self._create_setup_command())
+        self.subtitle(f"Installing local packages")
+        for package in self.get_packages():
+            package.ensure_app_manager_setup()
 
-        # If local mode, install editable packages
-        if env:
-            self.log(f"Installing local packages in editable mode", indentation=1)
-            self.packages_execute_function(
-                command=app__setup__install,
-                arguments=["--env", env],
-            )
-
-    def _build_directory_tree(self, package_paths: list[Path]) -> list[dict]:
-        """Build a recursive directory tree structure from package paths.
-
-        Args:
-            package_paths: List of absolute paths to packages
-
-        Returns:
-            List of directory nodes in the format:
-            [{"name": "dir", "type": "directory", "children": [...]}, ...]
-        """
-        from wexample_filestate.const.disk import DiskItemType
-
-        # Get the suite root path
-        suite_root = self.get_path()
-
-        # Build tree directly in final format
-        root_nodes: dict[str, dict] = {}
-
-        for package_path in package_paths:
-            # Get relative path from suite root
-            try:
-                rel_path = package_path.relative_to(suite_root)
-            except ValueError:
-                # Package is outside suite root, skip it
-                continue
-
-            # Navigate/create the tree structure
-            parts = rel_path.parts
-            current_level = root_nodes
-
-            for i, part in enumerate(parts):
-                if part not in current_level:
-                    node_config = {
-                        "name": part,
-                        "type": DiskItemType.DIRECTORY,
-                        "children": {},
-                    }
-
-                    # If this is the last part (the package itself), add the class
-                    if i == len(parts) - 1 and BasicAppWorkdir.is_app_workdir_path(
-                        path=package_path
-                    ):
-                        node_config["class"] = (
-                            self._get_children_package_workdir_class()
-                        )
-
-                    current_level[part] = node_config
-
-                # Navigate to children for next iteration
-                current_level = current_level[part]["children"]
-
-        # Convert children dicts to lists recursively
-        def finalize_node(node: dict) -> dict:
-            if node["children"]:
-                node["children"] = [
-                    finalize_node(child) for child in node["children"].values()
-                ]
-            else:
-                # Remove empty children dict
-                del node["children"]
-            return node
-
-        return [finalize_node(node) for node in root_nodes.values()]
+        self.packages_execute_function(
+            command=app__setup__install,
+            arguments=["--env", env],
+        )
 
     @abstract_method
     def _child_is_package_directory(self, entry: Path) -> bool:
