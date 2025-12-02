@@ -216,6 +216,10 @@ class BasicAppWorkdir(AppWorkdirMixin, Workdir):
         return self.get_runtime_config().search(f"libraries").get_list_or_default()
 
     @abstract_method
+    def get_package_import_name(self) -> str:
+        pass
+
+    @abstract_method
     def get_main_code_file_extension(self) -> str:
         pass
 
