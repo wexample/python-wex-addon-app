@@ -2,8 +2,10 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from wexample_helpers.classes.shell_result import ShellResult
+from wexample_helpers_git.helpers.git import git_run
 from wexample_wex_addon_app.workdir.basic_app_workdir import BasicAppWorkdir
-from wexample_helpers_git.const.common import GIT_BRANCH_MAIN
+from wexample_helpers_git.const.common import GIT_BRANCH_MAIN, GIT_REMOTE_ORIGIN
 
 if TYPE_CHECKING:
     from wexample_config.options_provider.abstract_options_provider import (
@@ -205,53 +207,29 @@ class CodeBaseWorkdir(BasicAppWorkdir):
             default=None
         ).get_str_or_none()
 
-    def push_to_deployment_remote(
-            self,
-            branch_name: str | None = None
-    ):
+    def push_to_deployment_remote(self, branch_name: str | None = None) -> None:
         self.push_changes(
             remote_name=self._get_deployment_remote_name(),
-            branch_name=branch_name
+            branch_name=branch_name,
         )
 
     def push_changes(
             self,
-            progress: ProgressHandle | None = None,
             remote_name: str | None = None,
-            branch_name: str | None = None
+            branch_name: str | None = None,
     ) -> None:
-        """Push current branch to upstream (following tags), without committing."""
-        from wexample_helpers_git.helpers.git import (
-            git_current_branch,
-            git_ensure_upstream,
-            git_push_follow_tags,
+        remote = remote_name or GIT_REMOTE_ORIGIN
+        branch_name = branch_name or GIT_BRANCH_MAIN
+
+        local_branch, remote_branch = (
+            branch_name.split(":", 1) if ":" in branch_name else (branch_name, branch_name)
         )
 
-        from wexample_wex_addon_app.exception.git_remote_exception import (
-            GitRemoteException,
+        git_run(
+            cmd=["push", remote, f"{local_branch}:{remote_branch}", "--follow-tags", "--porcelain"],
+            inherit_stdio=False,
+            cwd=self.get_path(),
         )
-
-        cwd = self.get_path()
-        progress = (
-            progress or self.progress(label="Pushing changes...", total=1).get_handle()
-        )
-
-        remote_name = remote_name or "origin"
-
-        try:
-            branch_name = branch_name or git_current_branch(cwd=cwd, inherit_stdio=False)
-            git_ensure_upstream(cwd=cwd, default_remote=remote_name, inherit_stdio=True)
-            git_push_follow_tags(cwd=cwd, branch=branch_name, remote=remote_name, inherit_stdio=True)
-            progress.finish(label="Pushed")
-        except Exception as e:
-            raise GitRemoteException(
-                workdir_path=str(cwd),
-                package_name=self.get_package_name(),
-                operation="push",
-                remote_name=remote_name,
-                branch_name=branch_name,
-                cause=e,
-            ) from e
 
     def save_dependency(self, package_name: str, version: str) -> bool:
         """Add or update a dependency with strict version."""
