@@ -31,6 +31,9 @@ class CodeBaseWorkdir(BasicAppWorkdir):
         # Push the tag explicitly to the remote to ensure it's published.
         git_push_tag(tag, cwd=cwd, inherit_stdio=True)
 
+    def _build_dependency_string(self, package_name: str, version: str) -> str:
+        return f"{package_name}=={version}"
+
     def build_dependencies_stack(
         self, package: CodeBaseWorkdir, dependency: CodeBaseWorkdir
     ) -> list[CodeBaseWorkdir]:
@@ -232,6 +235,7 @@ class CodeBaseWorkdir(BasicAppWorkdir):
                 cause=e,
             ) from e
 
-    def save_dependency(self, package: CodeBaseWorkdir) -> bool:
-        """Register a dependency into the configuration file."""
-        return True
+    def save_dependency(self, package_name: str, version: str) -> bool:
+        """Add or update a dependency with strict version."""
+        config = self.get_app_config_file()
+        return config.add_dependency(package_name=package_name, version=version)
