@@ -40,9 +40,47 @@ class FrameworkPackageSuiteWorkdir(BasicAppWorkdir):
         dependency: CodeBaseWorkdir,
         dependencies_map: dict[str, list[str]],
     ) -> list[CodeBaseWorkdir]:
-        """When a package depends on another (uses it in its codebase),
-        return the dependency chain to locate the original package that declares the explicit dependency.
+        """Return the declared dependency chain from `package` to `dependency`.
+
+        Deterministic DFS on the local dependencies map. Returns a list of
+        package objects [package, ..., dependency] or an empty list if no path exists.
         """
+        start = package.get_package_name()
+        target = dependency.get_package_name()
+
+        if start == target:
+            return [package]
+
+        # Ensure both nodes exist in the map
+        nodes = set(dependencies_map.keys()) | {
+            d for deps in dependencies_map.values() for d in deps
+        }
+        if start not in nodes or target not in nodes:
+            return []
+
+        visited: set[str] = set()
+        stack: list[tuple[str, list[str]]] = [(start, [start])]
+
+        while stack:
+            current, path = stack.pop()
+            if current in visited:
+                continue
+            visited.add(current)
+
+            for neighbor in sorted(dependencies_map.get(current, [])):
+                if neighbor in visited:
+                    continue
+                new_path = path + [neighbor]
+                if neighbor == target:
+                    chain: list[CodeBaseWorkdir] = []
+                    for name in new_path:
+                        pkg = self.get_package(name)
+                        if pkg is not None:
+                            chain.append(pkg)
+                    if chain and chain[-1].get_package_name() == target:
+                        return chain
+                stack.append((neighbor, new_path))
+
         return []
 
     # Publication planning helpers
@@ -99,6 +137,61 @@ class FrameworkPackageSuiteWorkdir(BasicAppWorkdir):
             if package.get_package_name() == package_name:
                 return package
         return None
+
+    def packages_validate_internal_dependencies_declarations(self) -> None:
+        """Ensure imports match declared local dependencies."""
+        from wexample_wex_addon_app.exception.dependency_violation_exception import (
+            DependencyViolationException,
+        )
+
+        dependencies_map = self.build_dependencies_map()
+
+        self.io.log("Checking packages dependencies consistency...")
+        self.io.indentation_up()
+        progress = self.io.progress(
+            total=len(dependencies_map), print_response=False
+        ).get_handle()
+
+        for package_name in dependencies_map:
+            package = self.get_package(package_name)
+            if package is None:
+                continue
+
+            search_fn = getattr(package, "search_imports_in_codebase", None)
+            if not callable(search_fn):
+                progress.advance(
+                    label=f"Package {package.get_project_name()} (no search)", step=1
+                )
+                continue
+
+            for package_name_search in dependencies_map:
+                searched_package = self.get_package(package_name_search)
+                if searched_package is None:
+                    continue
+
+                imports = search_fn(searched_package)
+                if len(imports) == 0:
+                    continue
+
+                dependencies_stack = self.build_dependencies_stack(
+                    package, searched_package, dependencies_map
+                )
+
+                if len(dependencies_stack) == 0:
+                    import_locations = [
+                        f"{res.item.get_path()}:{res.line}:{res.column}"
+                        for res in imports
+                    ]
+                    raise DependencyViolationException(
+                        package_name=package_name,
+                        imported_package=package_name_search,
+                        import_locations=import_locations,
+                    )
+
+            progress.advance(label=f"Package {package.get_project_name()}", step=1)
+
+        self.io.success("Internal dependencies match.")
+        self.io.indentation_down()
 
     def topological_order(self, dep_map: dict[str, list[str]]) -> list[str]:
         """Deterministic topological order (leaves -> trunk) using graphlib."""
