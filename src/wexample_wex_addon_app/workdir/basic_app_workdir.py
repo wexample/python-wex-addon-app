@@ -120,7 +120,7 @@ class BasicAppWorkdir(AppWorkdirMixin, Workdir):
             self.log(message=f'Switched to branch "{branch_name}"', indentation=1)
 
             # Change version number on this branch
-            self.get_config_file().write_config_value("global.version", new_version)
+            self.write_config_value("global.version", new_version)
 
             self.log(
                 message=f'Bumped from "{current_version}" to "{new_version}"',
