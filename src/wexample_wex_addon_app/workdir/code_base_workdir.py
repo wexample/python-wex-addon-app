@@ -235,6 +235,7 @@ class CodeBaseWorkdir(BasicAppWorkdir):
                 remote,
                 f"{local_branch}:{remote_branch}",
                 "--follow-tags",
+                "--force",
                 "--porcelain",
             ],
             inherit_stdio=False,
