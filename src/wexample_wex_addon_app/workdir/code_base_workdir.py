@@ -250,7 +250,7 @@ class CodeBaseWorkdir(BasicAppWorkdir):
             **kwargs,
         )
 
-    def save_dependency(self, package_name: str, version: str) -> bool:
+    def save_dependency(self, package: str, version: str) -> bool:
         """Add or update a dependency with strict version."""
         config = self.get_app_config_file()
-        return config.add_dependency(package_name=package_name, version=version)
+        return config.add_dependency(package=package, version=version)

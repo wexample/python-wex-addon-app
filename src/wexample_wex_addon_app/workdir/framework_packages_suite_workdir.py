@@ -331,7 +331,10 @@ class FrameworkPackageSuiteWorkdir(BasicAppWorkdir):
         package.io.indentation_up()
 
         for dependent in self.get_dependents(package):
-            updated = dependent.save_dependency_from_package(package)
+            updated = dependent.save_dependency(
+                package=package,
+                version=package.get_project_version()
+            )
             if updated:
                 package.log(
                     f"Updated {dependent.get_project_name()} dependencies",

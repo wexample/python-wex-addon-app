@@ -124,15 +124,6 @@ class WithSuiteTreeWorkdirMixin(BaseClass):
     def propagate_version(self) -> None:
         self.get_suite_workdir().propagate_version_of(package=self)
 
-    def save_dependency_from_package(
-        self, package: FrameworkPackageSuiteWorkdir
-    ) -> bool:
-        """Add a dependency from another package, use strict version as this is the intended internal management."""
-        return self.save_dependency(
-            package_name=package.get_package_name(),
-            version=package.get_project_version(),
-        )
-
     def search_closest_in_suites_tree(self, callback) -> Any:
         workdir = self
 
