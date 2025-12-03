@@ -368,7 +368,9 @@ class BasicAppWorkdir(AppWorkdirMixin, Workdir):
             self.manager_run_command(command=app__version__propagate)
 
             sub_progress.advance(step=1, label=f"Publishing {self.get_project_name()}")
-            self.manager_run_command(command=app__package__publish, arguments=(["--force"] if force else []))
+            self.manager_run_command(
+                command=app__package__publish, arguments=(["--force"] if force else [])
+            )
         else:
             self.io.log("No change to publish, skipping.")
 

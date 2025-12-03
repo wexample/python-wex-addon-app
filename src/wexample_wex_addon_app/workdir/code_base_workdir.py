@@ -37,7 +37,7 @@ class CodeBaseWorkdir(BasicAppWorkdir):
         return f"{package_name}=={version}"
 
     def build_dependencies_stack(
-            self, package: CodeBaseWorkdir, dependency: CodeBaseWorkdir
+        self, package: CodeBaseWorkdir, dependency: CodeBaseWorkdir
     ) -> list[CodeBaseWorkdir]:
         """When package is dependent from another one (is using it in its codebase),
         list the packages inheritance stack to find the original package declaring the explicit dependency
@@ -45,13 +45,12 @@ class CodeBaseWorkdir(BasicAppWorkdir):
         return []
 
     def commit_changes(
-            self,
-            progress: ProgressHandle | None = None,
+        self,
+        progress: ProgressHandle | None = None,
     ) -> None:
         """Commit local changes (if any), without pushing."""
         from wexample_helpers_git.helpers.git import (
             git_commit_all_with_message,
-            git_current_branch,
             git_ensure_upstream,
             git_has_index_changes,
             git_has_working_changes,
@@ -60,11 +59,10 @@ class CodeBaseWorkdir(BasicAppWorkdir):
 
         cwd = self.get_path()
         progress = (
-                progress
-                or self.progress(label="Committing changes...", total=3).get_handle()
+            progress
+            or self.progress(label="Committing changes...", total=3).get_handle()
         )
 
-        git_current_branch(cwd=cwd, inherit_stdio=False)
         git_ensure_upstream(
             cwd=cwd,
             default_remote=self._get_deployment_remote_name(),
@@ -216,9 +214,9 @@ class CodeBaseWorkdir(BasicAppWorkdir):
         )
 
     def push_changes(
-            self,
-            remote_name: str | None = None,
-            branch_name: str | None = None,
+        self,
+        remote_name: str | None = None,
+        branch_name: str | None = None,
     ) -> None:
         remote = remote_name or GIT_REMOTE_ORIGIN
         branch_name = branch_name or GIT_BRANCH_MAIN
@@ -241,11 +239,7 @@ class CodeBaseWorkdir(BasicAppWorkdir):
             inherit_stdio=False,
         )
 
-    def git_run(
-            self,
-            *args,
-            **kwargs
-    ):
+    def git_run(self, *args, **kwargs):
         return git_run(
             cwd=self.get_path(),
             *args,
