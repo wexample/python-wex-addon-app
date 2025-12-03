@@ -134,7 +134,7 @@ class AppWorkdirMixin(
     def get_project_name(self) -> str:
         from wexample_app.const.globals import APP_FILE_APP_CONFIG
 
-        name_config = self.get_config().search("global.name")
+        name_config = self.get_runtime_config().search("global.name")
         # Ensure we properly handle missing or empty name
         name: str | None = None
         if not name_config.is_none():
