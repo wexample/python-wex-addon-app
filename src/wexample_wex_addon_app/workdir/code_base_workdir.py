@@ -2,10 +2,9 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from wexample_helpers.classes.shell_result import ShellResult
+from wexample_helpers_git.const.common import GIT_BRANCH_MAIN, GIT_REMOTE_ORIGIN
 from wexample_helpers_git.helpers.git import git_run
 from wexample_wex_addon_app.workdir.basic_app_workdir import BasicAppWorkdir
-from wexample_helpers_git.const.common import GIT_BRANCH_MAIN, GIT_REMOTE_ORIGIN
 
 if TYPE_CHECKING:
     from wexample_config.options_provider.abstract_options_provider import (
@@ -38,7 +37,7 @@ class CodeBaseWorkdir(BasicAppWorkdir):
         return f"{package_name}=={version}"
 
     def build_dependencies_stack(
-        self, package: CodeBaseWorkdir, dependency: CodeBaseWorkdir
+            self, package: CodeBaseWorkdir, dependency: CodeBaseWorkdir
     ) -> list[CodeBaseWorkdir]:
         """When package is dependent from another one (is using it in its codebase),
         list the packages inheritance stack to find the original package declaring the explicit dependency
@@ -46,8 +45,8 @@ class CodeBaseWorkdir(BasicAppWorkdir):
         return []
 
     def commit_changes(
-        self,
-        progress: ProgressHandle | None = None,
+            self,
+            progress: ProgressHandle | None = None,
     ) -> None:
         """Commit local changes (if any), without pushing."""
         from wexample_helpers_git.helpers.git import (
@@ -61,8 +60,8 @@ class CodeBaseWorkdir(BasicAppWorkdir):
 
         cwd = self.get_path()
         progress = (
-            progress
-            or self.progress(label="Committing changes...", total=3).get_handle()
+                progress
+                or self.progress(label="Committing changes...", total=3).get_handle()
         )
 
         git_current_branch(cwd=cwd, inherit_stdio=False)
@@ -217,9 +216,9 @@ class CodeBaseWorkdir(BasicAppWorkdir):
         )
 
     def push_changes(
-        self,
-        remote_name: str | None = None,
-        branch_name: str | None = None,
+            self,
+            remote_name: str | None = None,
+            branch_name: str | None = None,
     ) -> None:
         remote = remote_name or GIT_REMOTE_ORIGIN
         branch_name = branch_name or GIT_BRANCH_MAIN
@@ -230,7 +229,7 @@ class CodeBaseWorkdir(BasicAppWorkdir):
             else (branch_name, branch_name)
         )
 
-        git_run(
+        self.git_run(
             cmd=[
                 "push",
                 remote,
@@ -239,7 +238,17 @@ class CodeBaseWorkdir(BasicAppWorkdir):
                 "--porcelain",
             ],
             inherit_stdio=False,
+        )
+
+    def git_run(
+            self,
+            *args,
+            **kwargs
+    ):
+        return git_run(
             cwd=self.get_path(),
+            *args,
+            **kwargs,
         )
 
     def save_dependency(self, package_name: str, version: str) -> bool:
