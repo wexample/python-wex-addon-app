@@ -2,10 +2,9 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from wexample_helpers.classes.shell_result import ShellResult
+from wexample_helpers_git.const.common import GIT_BRANCH_MAIN, GIT_REMOTE_ORIGIN
 from wexample_helpers_git.helpers.git import git_run
 from wexample_wex_addon_app.workdir.basic_app_workdir import BasicAppWorkdir
-from wexample_helpers_git.const.common import GIT_BRANCH_MAIN, GIT_REMOTE_ORIGIN
 
 if TYPE_CHECKING:
     from wexample_config.options_provider.abstract_options_provider import (
@@ -52,7 +51,6 @@ class CodeBaseWorkdir(BasicAppWorkdir):
         """Commit local changes (if any), without pushing."""
         from wexample_helpers_git.helpers.git import (
             git_commit_all_with_message,
-            git_current_branch,
             git_ensure_upstream,
             git_has_index_changes,
             git_has_working_changes,
@@ -65,7 +63,6 @@ class CodeBaseWorkdir(BasicAppWorkdir):
             or self.progress(label="Committing changes...", total=3).get_handle()
         )
 
-        git_current_branch(cwd=cwd, inherit_stdio=False)
         git_ensure_upstream(
             cwd=cwd,
             default_remote=self._get_deployment_remote_name(),
@@ -230,16 +227,23 @@ class CodeBaseWorkdir(BasicAppWorkdir):
             else (branch_name, branch_name)
         )
 
-        git_run(
+        self.git_run(
             cmd=[
                 "push",
                 remote,
                 f"{local_branch}:{remote_branch}",
                 "--follow-tags",
+                "--force",
                 "--porcelain",
             ],
             inherit_stdio=False,
+        )
+
+    def git_run(self, *args, **kwargs):
+        return git_run(
             cwd=self.get_path(),
+            *args,
+            **kwargs,
         )
 
     def save_dependency(self, package_name: str, version: str) -> bool:

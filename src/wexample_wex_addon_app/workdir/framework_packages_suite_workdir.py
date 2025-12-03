@@ -30,10 +30,6 @@ class FrameworkPackageSuiteWorkdir(BasicAppWorkdir):
 
         return dependencies
 
-    def build_ordered_dependencies(self) -> list[str]:
-        """Return package names ordered leaves -> trunk."""
-        return self.topological_order(self.build_dependencies_map())
-
     def build_dependencies_stack(
         self,
         package: CodeBaseWorkdir,
@@ -82,6 +78,10 @@ class FrameworkPackageSuiteWorkdir(BasicAppWorkdir):
                 stack.append((neighbor, new_path))
 
         return []
+
+    def build_ordered_dependencies(self) -> list[str]:
+        """Return package names ordered leaves -> trunk."""
+        return self.topological_order(self.build_dependencies_map())
 
     # Publication planning helpers
     def compute_packages_to_publish(self) -> list[CodeBaseWorkdir]:
@@ -135,85 +135,6 @@ class FrameworkPackageSuiteWorkdir(BasicAppWorkdir):
             if package.get_package_name() == package_name:
                 return package
         return None
-
-    def packages_validate_internal_dependencies_declarations(self) -> None:
-        """Ensure imports match declared local dependencies."""
-        from wexample_wex_addon_app.exception.dependency_violation_exception import (
-            DependencyViolationException,
-        )
-
-        dependencies_map = self.build_dependencies_map()
-
-        self.io.log("Checking packages dependencies consistency...")
-        self.io.indentation_up()
-        progress = self.io.progress(
-            total=len(dependencies_map), print_response=False
-        ).get_handle()
-
-        for package_name in dependencies_map:
-            package = self.get_package(package_name)
-            if package is None:
-                continue
-
-            search_fn = getattr(package, "search_imports_in_codebase", None)
-            if not callable(search_fn):
-                progress.advance(
-                    label=f"Package {package.get_project_name()} (no search)", step=1
-                )
-                continue
-
-            for package_name_search in dependencies_map:
-                searched_package = self.get_package(package_name_search)
-                if searched_package is None:
-                    continue
-
-                imports = search_fn(searched_package)
-                if len(imports) == 0:
-                    continue
-
-                dependencies_stack = self.build_dependencies_stack(
-                    package, searched_package, dependencies_map
-                )
-
-                if len(dependencies_stack) == 0:
-                    import_locations = [
-                        f"{res.item.get_path()}:{res.line}:{res.column}"
-                        for res in imports
-                    ]
-                    raise DependencyViolationException(
-                        package_name=package_name,
-                        imported_package=package_name_search,
-                        import_locations=import_locations,
-                    )
-
-            progress.advance(label=f"Package {package.get_project_name()}", step=1)
-
-        self.io.success("Internal dependencies match.")
-        self.io.indentation_down()
-
-    def topological_order(self, dep_map: dict[str, list[str]]) -> list[str]:
-        """Deterministic topological order (leaves -> trunk) using graphlib."""
-        from graphlib import CycleError, TopologicalSorter
-
-        # Normalize: include every mentioned node and sort for stable results
-        nodes = set(dep_map.keys()) | {d for deps in dep_map.values() for d in deps}
-        normalized: dict[str, list[str]] = {
-            key: sorted([dep for dep in dep_map.get(key, []) if dep in nodes])
-            for key in sorted(nodes)
-        }
-
-        ts = TopologicalSorter()
-        for key, deps in normalized.items():
-            ts.add(key, *deps)
-
-        try:
-            order = list(ts.static_order())
-        except CycleError as err:
-            msg = getattr(err, "args", [None])[0] or "Cyclic dependencies detected"
-            raise ValueError(str(msg)) from err
-
-        # Return only local packages (original keys of dep_map)
-        return [name for name in order if name in dep_map]
 
     def get_packages(self) -> list[CodeBaseWorkdir]:
         return self.find_all_by_type(
@@ -283,6 +204,61 @@ class FrameworkPackageSuiteWorkdir(BasicAppWorkdir):
             message="Executing shell",
             force=force,
         )
+
+    def packages_validate_internal_dependencies_declarations(self) -> None:
+        """Ensure imports match declared local dependencies."""
+        from wexample_wex_addon_app.exception.dependency_violation_exception import (
+            DependencyViolationException,
+        )
+
+        dependencies_map = self.build_dependencies_map()
+
+        self.io.log("Checking packages dependencies consistency...")
+        self.io.indentation_up()
+        progress = self.io.progress(
+            total=len(dependencies_map), print_response=False
+        ).get_handle()
+
+        for package_name in dependencies_map:
+            package = self.get_package(package_name)
+            if package is None:
+                continue
+
+            search_fn = getattr(package, "search_imports_in_codebase", None)
+            if not callable(search_fn):
+                progress.advance(
+                    label=f"Package {package.get_project_name()} (no search)", step=1
+                )
+                continue
+
+            for package_name_search in dependencies_map:
+                searched_package = self.get_package(package_name_search)
+                if searched_package is None:
+                    continue
+
+                imports = search_fn(searched_package)
+                if len(imports) == 0:
+                    continue
+
+                dependencies_stack = self.build_dependencies_stack(
+                    package, searched_package, dependencies_map
+                )
+
+                if len(dependencies_stack) == 0:
+                    import_locations = [
+                        f"{res.item.get_path()}:{res.line}:{res.column}"
+                        for res in imports
+                    ]
+                    raise DependencyViolationException(
+                        package_name=package_name,
+                        imported_package=package_name_search,
+                        import_locations=import_locations,
+                    )
+
+            progress.advance(label=f"Package {package.get_project_name()}", step=1)
+
+        self.io.success("Internal dependencies match.")
+        self.io.indentation_down()
 
     def prepare_value(self, raw_value: DictConfig | None = None) -> DictConfig:
         """Prepare file state configuration for package suite."""
@@ -387,6 +363,30 @@ class FrameworkPackageSuiteWorkdir(BasicAppWorkdir):
             command=app__setup__install,
             arguments=["--env", env],
         )
+
+    def topological_order(self, dep_map: dict[str, list[str]]) -> list[str]:
+        """Deterministic topological order (leaves -> trunk) using graphlib."""
+        from graphlib import CycleError, TopologicalSorter
+
+        # Normalize: include every mentioned node and sort for stable results
+        nodes = set(dep_map.keys()) | {d for deps in dep_map.values() for d in deps}
+        normalized: dict[str, list[str]] = {
+            key: sorted([dep for dep in dep_map.get(key, []) if dep in nodes])
+            for key in sorted(nodes)
+        }
+
+        ts = TopologicalSorter()
+        for key, deps in normalized.items():
+            ts.add(key, *deps)
+
+        try:
+            order = list(ts.static_order())
+        except CycleError as err:
+            msg = getattr(err, "args", [None])[0] or "Cyclic dependencies detected"
+            raise ValueError(str(msg)) from err
+
+        # Return only local packages (original keys of dep_map)
+        return [name for name in order if name in dep_map]
 
     @abstract_method
     def _child_is_package_directory(self, entry: Path) -> bool:
