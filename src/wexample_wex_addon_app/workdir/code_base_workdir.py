@@ -88,9 +88,13 @@ class CodeBaseWorkdir(BasicAppWorkdir):
 
     def depends_from(self, package: CodeBaseWorkdir) -> bool:
         for dependence_name in self.get_dependencies_versions().keys():
-            if package.get_package_name() == dependence_name:
+            if package.get_package_dependency_name() == dependence_name:
                 return True
         return False
+
+    def get_package_dependency_name(self) -> str:
+        """Return the name used by other packages to mark it as a dependency"""
+        return self.get_package_name()
 
     def get_io_context_prefix(self) -> str | None:
         from wexample_helpers.helpers.cli import cli_make_clickable_path
