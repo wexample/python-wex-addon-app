@@ -31,7 +31,12 @@ class CodeBaseWorkdir(BasicAppWorkdir):
             self.warning(f"Tag {tag} already exists locally; pushing it.")
 
         # Push the tag explicitly to the remote to ensure it's published.
-        git_push_tag(tag, cwd=cwd, inherit_stdio=True)
+        git_push_tag(
+            tag,
+            cwd=cwd,
+            remote=self._get_deployment_remote_name(),
+            inherit_stdio=True
+        )
 
     def _build_dependency_string(self, package_name: str, version: str) -> str:
         return f"{package_name}=={version}"
