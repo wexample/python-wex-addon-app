@@ -280,7 +280,9 @@ class BasicAppWorkdir(AppWorkdirMixin, Workdir):
         for library_path_config in (
             self.get_runtime_config().search("libraries").get_list_or_default()
         ):
-            if library_path_config.is_str() and BasicAppWorkdir.is_app_workdir_path(
+            self.log(f"Searching in @path{{{library_path_config.get_str()}}}")
+
+            if BasicAppWorkdir.is_app_workdir_path(
                 path=library_path_config.get_str()
             ):
                 publishable_dependencies = (
