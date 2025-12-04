@@ -278,7 +278,7 @@ class BasicAppWorkdir(AppWorkdirMixin, Workdir):
         )
 
         for library_path_config in (
-            self.get_runtime_config().search("libraries").get_list_or_default()
+            self.get_runtime_config().search("libraries").get_list_or_default(default=[])
         ):
             self.log(f"Searching in @path{{{library_path_config.get_str()}}}")
 
