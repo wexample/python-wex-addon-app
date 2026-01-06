@@ -28,6 +28,9 @@ if TYPE_CHECKING:
 
 @base_class
 class BasicAppWorkdir(AppWorkdirMixin, Workdir):
+    def get_public_remote_repository_url(self) -> str | None:
+        return None
+
     def app_install(self, env: str | None = None, force: bool = False) -> bool:
         return True
 
