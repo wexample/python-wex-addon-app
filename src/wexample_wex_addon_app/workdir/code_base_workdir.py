@@ -269,17 +269,26 @@ class CodeBaseWorkdir(BasicAppWorkdir):
             else (branch_name, branch_name)
         )
 
-        self.git_run(
-            cmd=[
-                "push",
-                remote,
-                f"{local_branch}:{remote_branch}",
-                "--follow-tags",
-                "--force",
-                "--porcelain",
-            ],
-            inherit_stdio=False,
-        )
+        try:
+            self.git_run(
+                cmd=[
+                    "push",
+                    remote,
+                    f"{local_branch}:{remote_branch}",
+                    "--follow-tags",
+                    "--force",
+                    "--porcelain",
+                ],
+                inherit_stdio=False,
+            )
+        except Exception as exc:
+            stderr = getattr(exc, "stderr", None)
+            stdout = getattr(exc, "stdout", None)
+            if stderr:
+                self.error(f"git push stderr:\n{stderr.strip()}")
+            if stdout:
+                self.error(f"git push stdout:\n{stdout.strip()}")
+            raise
 
     def git_run(self, *args, **kwargs):
         return git_run(
