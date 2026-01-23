@@ -260,6 +260,10 @@ class CodeBaseWorkdir(BasicAppWorkdir):
         remote_name: str | None = None,
         branch_name: str | None = None,
     ) -> None:
+        from wexample_helpers_git.helpers.git_retryable_callback_manager import (
+            GitRetryableCallbackManager,
+        )
+
         remote = remote_name or GIT_REMOTE_ORIGIN
         branch_name = branch_name or GIT_BRANCH_MAIN
 
@@ -269,7 +273,7 @@ class CodeBaseWorkdir(BasicAppWorkdir):
             else (branch_name, branch_name)
         )
 
-        try:
+        def _run_push() -> None:
             self.git_run(
                 cmd=[
                     "push",
@@ -281,14 +285,28 @@ class CodeBaseWorkdir(BasicAppWorkdir):
                 ],
                 inherit_stdio=False,
             )
-        except Exception as exc:
+
+        def _on_retry(
+            attempt: int, max_attempts: int, delay_seconds: int, exc: Exception, message: str
+        ) -> None:
+            self.warning(
+                f"git push failed (attempt {attempt}/{max_attempts}); retrying in {delay_seconds}s."
+            )
+
+        def _on_error(exc: Exception, message: str) -> None:
             stderr = getattr(exc, "stderr", None)
             stdout = getattr(exc, "stdout", None)
             if stderr:
                 self.error(f"git push stderr:\n{stderr.strip()}")
             if stdout:
                 self.error(f"git push stdout:\n{stdout.strip()}")
-            raise
+
+        GitRetryableCallbackManager(
+            callback=_run_push,
+            max_attempts=3,
+            on_retry_callback=_on_retry,
+            on_error_callback=_on_error,
+        ).run()
 
     def git_run(self, *args, **kwargs):
         return git_run(
