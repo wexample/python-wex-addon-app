@@ -9,6 +9,7 @@ from wexample_wex_core.common.abstract_addon_manager import AbstractAddonManager
 if TYPE_CHECKING:
     from pathlib import Path
 
+    from wexample_app.resolver.abstract_command_resolver import AbstractCommandResolver
     from wexample_helpers.const.types import PathOrString
     from wexample_wex_core.middleware.abstract_middleware import AbstractMiddleware
 
@@ -66,6 +67,11 @@ class AppAddonManager(AbstractAddonManager):
             path=app_path.resolve(),
             parent_io_handler=self.kernel,
         )
+
+    def get_command_resolver_classes(self) -> list[type[AbstractCommandResolver]]:
+        from wexample_wex_addon_app.resolver.app_command_resolver import AppCommandResolver
+
+        return [AppCommandResolver]
 
     def get_middlewares_classes(self) -> list[type[AbstractMiddleware]]:
         from wexample_wex_addon_app.middleware.app_middleware import AppMiddleware
