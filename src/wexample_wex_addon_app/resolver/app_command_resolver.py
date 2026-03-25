@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING
 from wexample_wex_core.resolver.abstract_command_resolver import AbstractCommandResolver
 
 if TYPE_CHECKING:
+    from wexample_wex_core.common.command_address import CommandAddress
     from wexample_wex_core.common.command_request import CommandRequest
     from wexample_wex_core.const.registries import RegistryResolverData
 
@@ -21,6 +22,15 @@ class AppCommandResolver(AbstractCommandResolver):
     Walks up from the current working directory looking for a ``.wex/commands/``
     directory, exactly as a user would expect when working inside a project.
     """
+
+    @classmethod
+    def address_to_command(cls, address: CommandAddress) -> str:
+        from wexample_wex_core.const.globals import (
+            COMMAND_CHAR_APP,
+            COMMAND_SEPARATOR_GROUP,
+        )
+
+        return f"{COMMAND_CHAR_APP}{address.group}{COMMAND_SEPARATOR_GROUP}{address.name}"
 
     @classmethod
     def get_pattern(cls) -> str:
@@ -127,7 +137,7 @@ class AppCommandResolver(AbstractCommandResolver):
                             aliases = list(wrapper.aliases)
 
                     addon_data[address.to_command_key()] = RegistryCommandData(
-                        command=address.to_command(),
+                        command=self.address_to_command(address),
                         path=str(cmd_file),
                         test=None,
                         description=description,
