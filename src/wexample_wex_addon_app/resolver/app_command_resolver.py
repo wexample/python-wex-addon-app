@@ -85,63 +85,43 @@ class AppCommandResolver(AbstractCommandResolver):
         return base / _COMMANDS_SUBDIR / address.to_relative_path(extension)
 
     def supports(self, request: CommandRequest) -> object:
+        import sys
+
         match = self.build_match(request.name)
         if not match:
             return None
 
-        # Only resolve if we're inside an app directory.
-        if not self.get_base_path():
+        base = self.get_base_path()
+        if not base:
             return None
+
+        # Add app commands dir to sys.path so imports work in app scripts
+        commands_path = base / _COMMANDS_SUBDIR
+        if commands_path.is_dir() and str(commands_path) not in sys.path:
+            sys.path.append(str(commands_path))
 
         return match
 
-    def build_registry_data(self) -> RegistryResolverData:
-        import importlib.util
-
-        from wexample_wex_core.common.command_address import CommandAddress
-        from wexample_wex_core.common.command_method_wrapper import CommandMethodWrapper
-        from wexample_wex_core.const.registries import RegistryAddonData, RegistryCommandData
+    def build_new_command_target(
+        self, command: str, extension: str
+    ) -> tuple[Path, dict] | None:
+        match = self.build_match(command)
+        if not match:
+            return None
 
         base = self.get_base_path()
         if not base:
-            return {}
+            return None
+
+        group = match.group(1).replace("-", "_")
+        name = match.group(2).replace("-", "_")
+        target = base / _COMMANDS_SUBDIR / group / f"{name}.{extension}"
+        return target, {"_type": "app", "group": group, "name": name}
+
+    def build_registry_data(self) -> RegistryResolverData:
+        base = self.get_base_path()
+        if not base:
+            return {"app": {}}
 
         commands_base = base / _COMMANDS_SUBDIR
-        addon_data: RegistryAddonData = {}
-
-        if commands_base.is_dir():
-            for group_dir in sorted(commands_base.iterdir()):
-                if not group_dir.is_dir() or group_dir.name.startswith("_"):
-                    continue
-
-                for cmd_file in sorted(group_dir.iterdir()):
-                    if cmd_file.suffix != ".py" or cmd_file.name.startswith("_"):
-                        continue
-
-                    address = CommandAddress.from_path(
-                        path=cmd_file,
-                        addon_name="app",
-                        commands_base=commands_base,
-                    )
-
-                    description: str | None = None
-                    aliases: list[str] = []
-                    func_name = address.to_function_name()
-                    spec = importlib.util.spec_from_file_location(func_name, cmd_file)
-                    if spec and spec.loader:
-                        mod = importlib.util.module_from_spec(spec)
-                        spec.loader.exec_module(mod)  # type: ignore[union-attr]
-                        wrapper = getattr(mod, func_name, None)
-                        if isinstance(wrapper, CommandMethodWrapper):
-                            description = wrapper.description
-                            aliases = list(wrapper.aliases)
-
-                    addon_data[address.to_command_key()] = RegistryCommandData(
-                        command=self.address_to_command(address),
-                        path=str(cmd_file),
-                        test=None,
-                        description=description,
-                        alias=aliases,
-                    )
-
-        return {"app": addon_data}
+        return {"app": self._scan_commands_dir(commands_base, "app")}
