@@ -22,6 +22,11 @@ if TYPE_CHECKING:
 
 
 class FrameworkPackageSuiteWorkdir(RepoWorkdir):
+    def _get_suite_package_workdir_class(self):
+        # Suite workdirs have no parent suite by default.
+        # Subclasses can override if a suite-of-suites hierarchy exists.
+        return None
+
     def build_dependencies_map(self) -> dict[str, list[str]]:
         dependencies = {}
         for package in self.get_packages():

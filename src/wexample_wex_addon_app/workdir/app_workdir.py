@@ -324,11 +324,9 @@ class AppWorkdir(
     def get_app_env(self) -> str | None:
         from wexample_app.const.env import ENV_NAME_PROD
 
-        return (
-            self.get_config().search("env").get_str_or_none()
-            or self.get_runtime_config().search("env").get_str_or_none()
-            or ENV_NAME_PROD
-        )
+        # Must NOT call get_runtime_config() here — it would create a circular dependency:
+        # get_runtime_config() → build_runtime_config_value() → get_app_env() → get_runtime_config()
+        return self.get_config().search("env").get_str_or_default(default=ENV_NAME_PROD)
 
     def set_app_env(self, env: str | None) -> None:
         from wexample_wex_addon_app.commands.config.update import app__config__update

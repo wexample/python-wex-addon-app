@@ -54,9 +54,11 @@ def app__file_state__rectify(
             # Remove remote.
             scopes = (set(Scope) - {Scope.REMOTE}) if no_remote else None
 
-            result = workdir.apply(
+            from wexample_filestate.item.abstract_item_target import AbstractItemTarget
+
+            result = AbstractItemTarget.apply(
+                workdir,
                 interactive=(not yes),
-                force=force,
                 scopes=scopes,
                 filter_path=filter_path,
                 filter_operation=filter_operation,
