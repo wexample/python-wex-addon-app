@@ -8,7 +8,7 @@ from wexample_helpers.decorator.base_class import base_class
 from wexample_prompt.enums.terminal_color import TerminalColor
 from wexample_prompt.responses.abstract_prompt_response import AbstractPromptResponse
 
-from wexample_wex_addon_app.workdir.basic_app_workdir import BasicAppWorkdir
+from wexample_wex_addon_app.workdir.repo_workdir import RepoWorkdir
 
 if TYPE_CHECKING:
     from wexample_prompt.responses.echo_prompt_response import EchoPromptResponse
@@ -16,7 +16,7 @@ if TYPE_CHECKING:
 
 @base_class
 class AppInfoResponse(AbstractResponse):
-    app_workdir: BasicAppWorkdir = public_field(
+    app_workdir: RepoWorkdir = public_field(
         description="The application workdir to display information about"
     )
 

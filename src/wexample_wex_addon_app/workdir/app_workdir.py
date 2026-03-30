@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from wexample_app.const.output import OUTPUT_FORMAT_JSON, OUTPUT_TARGET_FILE
 from wexample_app.helpers.request import request_build_id
@@ -13,6 +13,7 @@ from wexample_wex_core.resolver.addon_command_resolver import AddonCommandResolv
 from wexample_wex_core.workdir.mixin.with_app_version_workdir_mixin import (
     WithAppVersionWorkdirMixin,
 )
+from wexample_wex_core.workdir.workdir import Workdir
 
 from wexample_wex_addon_app.workdir.mixin.with_app_config_workdir_mixin import (
     WithAppConfigWorkdirMixin,
@@ -28,18 +29,20 @@ from wexample_wex_addon_app.workdir.mixin.with_suite_tree_workdir_mixin import (
 )
 
 if TYPE_CHECKING:
+    from wexample_config.config_value.config_value import ConfigValue
     from wexample_config.const.types import DictConfig
     from wexample_helpers.classes.shell_result import ShellResult
 
 
 @base_class
-class AppWorkdirMixin(
+class AppWorkdir(
     WithAppConfigWorkdirMixin,
     WithSuiteTreeWorkdirMixin,
     WithReadmeWorkdirMixin,
     WithAppVersionWorkdirMixin,
     WithRuntimeConfigMixin,
     WithAppRegistryMixin,
+    Workdir,
 ):
     @classmethod
     def is_app_workdir_path(cls, path: FileStringOrPath) -> bool:
@@ -131,6 +134,62 @@ class AppWorkdirMixin(
             inherit_stdio=True,
         )
 
+    def app_install(self, env: str | None = None, force: bool = False) -> bool:
+        return True
+
+    def apply(
+        self,
+        force: bool = False,
+        scopes=None,
+        filter_path: str | None = None,
+        filter_operation: str | None = None,
+        max: int = None,
+        **kwargs,
+    ) -> FileStateResult | None:
+        from wexample_wex_addon_app.commands.file_state.rectify import (
+            app__file_state__rectify,
+        )
+
+        args = []
+        if force:
+            args.append("--force")
+
+        if filter_path:
+            args.extend(["--filter-path", filter_path])
+
+        if filter_operation:
+            args.extend(["--filter-operation", filter_operation])
+
+        return self.manager_run_command(
+            command=app__file_state__rectify,
+            arguments=args,
+        ).get_output()
+
+    def configure(self, config: DictConfig) -> None:
+        super().configure(config=config)
+
+        self._init_env(env_dict=self.get_env_parameters().to_dict())
+
+    def ensure_app_manager(self) -> None:
+        from wexample_app.const.globals import APP_PATH_APP_MANAGER
+
+        if not (self.get_path() / APP_PATH_APP_MANAGER).exists():
+            self.apply()
+
+    def ensure_app_manager_setup(self) -> None:
+        if not self.is_app_workdir_path_setup(path=self.get_path()):
+            self.setup_install()
+
+    def get_app_env(self) -> str | None:
+        from wexample_app.const.env import ENV_NAME_PROD
+
+        # Must NOT call get_runtime_config() here — it would create a circular dependency:
+        # get_runtime_config() → build_runtime_config_value() → get_app_env() → get_runtime_config()
+        return self.get_config().search("env").get_str_or_default(default=ENV_NAME_PROD)
+
+    def get_local_libraries_paths(self) -> list[ConfigValue]:
+        return self.get_runtime_config().search(f"libraries").get_list_or_default()
+
     def get_project_name(self) -> str:
         from wexample_app.const.globals import APP_FILE_APP_CONFIG
 
@@ -159,6 +218,27 @@ class AppWorkdirMixin(
                 f"Project at '{self.get_path()}' must define a non-empty 'version' number in {APP_FILE_APP_CONFIG}."
             )
         return str(version).strip()
+
+    def libraries_sync(self) -> None:
+        from wexample_wex_addon_app.commands.dependencies.publish import (
+            app__dependencies__publish,
+        )
+
+        for library_path_config in (
+            self.get_runtime_config()
+            .search("libraries")
+            .get_list_or_default(default=[])
+        ):
+            self.log(f"Searching in @path{{{library_path_config.get_str()}}}")
+
+            if AppWorkdir.is_app_workdir_path(path=library_path_config.get_str()):
+                publishable_dependencies = AppWorkdir.manager_run_command_from_path(
+                    command=app__dependencies__publish,
+                    path=library_path_config.get_str(),
+                ).get_output()
+
+                self.update_dependencies(publishable_dependencies)
+        self.io.success("All libraries versions are up to date.")
 
     def manager_run_command(self, **kwargs) -> AppManagerShellResult:
         return self.manager_run_command_from_path(path=self.get_path(), **kwargs)
@@ -266,6 +346,53 @@ class AppWorkdirMixin(
         )
 
         return raw_value
+
+    def search_app_or_suite_runtime_config(
+        self, key_path: str, default: Any = None
+    ) -> Any:
+        def _test_path(workdir):
+            config_val = workdir.get_runtime_config().search(key_path)
+            return config_val.raw if not config_val.is_none() else None
+
+        return (
+            self.search_closest_parent_workdir(
+                callback=_test_path,
+            )
+            or default
+        )
+
+    def search_closest_app_manager_bin_path(self) -> Path | None:
+        def _test_path(workdir):
+            from wexample_app.const.globals import APP_PATH_BIN_APP_MANAGER
+
+            bin_path = workdir.get_path() / APP_PATH_BIN_APP_MANAGER
+            return bin_path if bin_path.exists() else None
+
+        return self.search_closest_parent_workdir(
+            callback=_test_path,
+        )
+
+    def search_closest_parent_workdir(self, callback) -> Any:
+        """Walk up the suite tree calling callback on each workdir, return first non-None result."""
+        return self.search_closest_in_suites_tree(callback)
+
+    def set_app_env(self, env: str | None) -> None:
+        from wexample_wex_addon_app.commands.config.update import app__config__update
+
+        self.manager_run_command(
+            command=app__config__update,
+            arguments=["--env", env] if env else [],
+        )
+
+    def setup_install(self, env: str | None = None, force: bool = False) -> bool:
+        from wexample_wex_addon_app.commands.setup.install import app__setup__install
+
+        self.manager_run_command(
+            command=app__setup__install,
+            arguments=["--env", env] if env else [],
+        )
+
+        return True
 
     def shell_run_for_app(self, **kwargs) -> ShellResult:
         return self.shell_run_from_path(path=self.get_path(), **kwargs)

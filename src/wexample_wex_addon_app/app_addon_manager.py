@@ -9,10 +9,11 @@ from wexample_wex_core.common.abstract_addon_manager import AbstractAddonManager
 if TYPE_CHECKING:
     from pathlib import Path
 
+    from wexample_app.resolver.abstract_command_resolver import AbstractCommandResolver
     from wexample_helpers.const.types import PathOrString
     from wexample_wex_core.middleware.abstract_middleware import AbstractMiddleware
 
-    from wexample_wex_addon_app.workdir.basic_app_workdir import BasicAppWorkdir
+    from wexample_wex_addon_app.workdir.app_workdir import AppWorkdir
 
 
 @base_class
@@ -31,21 +32,19 @@ class AppAddonManager(AbstractAddonManager):
             cls.get_package_source_path() / "resources" / f"{APP_FILE_APP_MANAGER}.sh"
         )
 
-    def create_app_workdir(
-        self, path: PathOrString | None = None
-    ) -> BasicAppWorkdir | None:
+    def create_app_workdir(self, path: PathOrString | None = None) -> AppWorkdir | None:
         from pathlib import Path
 
         from wexample_helpers.helpers.cli import cli_make_clickable_path
         from wexample_helpers.helpers.module import module_load_class_from_file
 
-        from wexample_wex_addon_app.workdir.basic_app_workdir import BasicAppWorkdir
+        from wexample_wex_addon_app.workdir.app_workdir import AppWorkdir
 
         app_path = (
             Path(path) if path is not None else self.kernel.call_workdir.get_path()
         )
 
-        if not BasicAppWorkdir.is_app_workdir_path(path=app_path):
+        if not AppWorkdir.is_app_workdir_path(path=app_path):
             self.kernel.warning(
                 f"Path does not match with an application directory structure: {cli_make_clickable_path(app_path)}"
             )
@@ -56,16 +55,22 @@ class AppAddonManager(AbstractAddonManager):
         )
         if custom_app_workdir_class_path.exists():
             app_workdir_class = module_load_class_from_file(
-                file_path=custom_app_workdir_class_path, class_name="AppWorkdir"
+                file_path=custom_app_workdir_class_path, class_name=AppWorkdir.__name__
             )
         else:
-            app_workdir_class = BasicAppWorkdir
+            app_workdir_class = AppWorkdir
 
-        # Use basic project class to access minimal configuration.
         return app_workdir_class.create_from_path(
             path=app_path.resolve(),
             parent_io_handler=self.kernel,
         )
+
+    def get_command_resolver_classes(self) -> list[type[AbstractCommandResolver]]:
+        from wexample_wex_addon_app.resolver.app_command_resolver import (
+            AppCommandResolver,
+        )
+
+        return [AppCommandResolver]
 
     def get_middlewares_classes(self) -> list[type[AbstractMiddleware]]:
         from wexample_wex_addon_app.middleware.app_middleware import AppMiddleware

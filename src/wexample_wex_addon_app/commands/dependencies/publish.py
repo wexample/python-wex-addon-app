@@ -7,7 +7,7 @@ from wexample_wex_core.decorator.command import command
 from wexample_wex_core.decorator.middleware import middleware
 
 from wexample_wex_addon_app.middleware.app_middleware import AppMiddleware
-from wexample_wex_addon_app.workdir.basic_app_workdir import BasicAppWorkdir
+from wexample_wex_addon_app.workdir.repo_workdir import RepoWorkdir
 
 if TYPE_CHECKING:
     from wexample_app.response.dict_response import DictResponse
@@ -18,7 +18,7 @@ if TYPE_CHECKING:
 @command(type=COMMAND_TYPE_ADDON)
 def app__dependencies__publish(
     context: ExecutionContext,
-    app_workdir: BasicAppWorkdir,
+    app_workdir: RepoWorkdir,
 ) -> DictResponse:
     from wexample_app.response.dict_response import DictResponse
 

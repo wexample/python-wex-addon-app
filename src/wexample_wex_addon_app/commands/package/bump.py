@@ -10,7 +10,7 @@ from wexample_wex_core.decorator.option import option
 from wexample_wex_addon_app.middleware.suite_or_each_package_middleware import (
     SuiteOrEachPackageMiddleware,
 )
-from wexample_wex_addon_app.workdir.code_base_workdir import CodeBaseWorkdir
+from wexample_wex_addon_app.workdir.repo_workdir import RepoWorkdir
 
 if TYPE_CHECKING:
     from wexample_app.response.boolean_response import BooleanResponse
@@ -32,7 +32,7 @@ if TYPE_CHECKING:
 )
 def app__package__bump(
     context: ExecutionContext,
-    app_workdir: CodeBaseWorkdir,
+    app_workdir: RepoWorkdir,
     yes: bool = False,
     force: bool = False,
 ) -> BooleanResponse:

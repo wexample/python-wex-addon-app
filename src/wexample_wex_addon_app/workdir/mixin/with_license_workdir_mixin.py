@@ -4,6 +4,7 @@ from typing import TYPE_CHECKING
 
 from wexample_helpers.classes.base_class import BaseClass
 from wexample_helpers.decorator.base_class import base_class
+
 from wexample_wex_addon_app.config_value.app_license_config_value import (
     AppLicenseConfigValue,
 )

@@ -4,7 +4,8 @@ from typing import TYPE_CHECKING
 
 from wexample_helpers_git.const.common import GIT_BRANCH_MAIN, GIT_REMOTE_ORIGIN
 from wexample_helpers_git.helpers.git import git_run
-from wexample_wex_addon_app.workdir.basic_app_workdir import BasicAppWorkdir
+
+from wexample_wex_addon_app.workdir.repo_workdir import RepoWorkdir
 
 if TYPE_CHECKING:
     from wexample_config.options_provider.abstract_options_provider import (
@@ -13,7 +14,7 @@ if TYPE_CHECKING:
     from wexample_prompt.common.progress.progress_handle import ProgressHandle
 
 
-class CodeBaseWorkdir(BasicAppWorkdir):
+class CodeBaseWorkdir(RepoWorkdir):
     def add_publication_tag(self) -> None:
         from wexample_helpers_git.helpers.git import (
             git_push_tag,
@@ -31,10 +32,9 @@ class CodeBaseWorkdir(BasicAppWorkdir):
             self.warning(f"Tag {tag} already exists locally; pushing it.")
 
         # Push the tag explicitly to the remote to ensure it's published.
-        git_push_tag(tag, cwd=cwd, inherit_stdio=True)
-
-    def _build_dependency_string(self, package_name: str, version: str) -> str:
-        return f"{package_name}=={version}"
+        git_push_tag(
+            tag, cwd=cwd, remote=self._get_deployment_remote_name(), inherit_stdio=True
+        )
 
     def build_dependencies_stack(
         self, package: CodeBaseWorkdir, dependency: CodeBaseWorkdir
@@ -88,7 +88,7 @@ class CodeBaseWorkdir(BasicAppWorkdir):
 
     def depends_from(self, package: CodeBaseWorkdir) -> bool:
         for dependence_name in self.get_dependencies_versions().keys():
-            if package.get_package_name() == dependence_name:
+            if package.get_package_dependency_name() == dependence_name:
                 return True
         return False
 
@@ -113,6 +113,17 @@ class CodeBaseWorkdir(BasicAppWorkdir):
             DefaultOptionsProvider,
             GitOptionsProvider,
         ]
+
+    def get_package_dependency_name(self) -> str:
+        """Return the name used by other packages to mark it as a dependency"""
+        return self.get_package_name()
+
+    def git_run(self, *args, **kwargs):
+        return git_run(
+            cwd=self.get_path(),
+            *args,
+            **kwargs,
+        )
 
     def has_working_changes(self) -> bool:
         from wexample_helpers_git.helpers.git import git_has_working_changes
@@ -202,22 +213,15 @@ class CodeBaseWorkdir(BasicAppWorkdir):
             self.info(f"Returning to {current_branch}...")
             git_switch_branch(current_branch, cwd=cwd, inherit_stdio=True)
 
-    def _get_deployment_remote_name(self) -> str | None:
-        return self.search_app_or_suite_runtime_config(
-            "git.main_deployment_remote_name", default=None
-        ).get_str_or_none()
-
-    def push_to_deployment_remote(self, branch_name: str | None = None) -> None:
-        self.push_changes(
-            remote_name=self._get_deployment_remote_name(),
-            branch_name=branch_name,
-        )
-
     def push_changes(
         self,
         remote_name: str | None = None,
         branch_name: str | None = None,
     ) -> None:
+        from wexample_helpers_git.helpers.git_retryable_callback_manager import (
+            GitRetryableCallbackManager,
+        )
+
         remote = remote_name or GIT_REMOTE_ORIGIN
         branch_name = branch_name or GIT_BRANCH_MAIN
 
@@ -227,26 +231,92 @@ class CodeBaseWorkdir(BasicAppWorkdir):
             else (branch_name, branch_name)
         )
 
-        self.git_run(
-            cmd=[
-                "push",
-                remote,
-                f"{local_branch}:{remote_branch}",
-                "--follow-tags",
-                "--force",
-                "--porcelain",
-            ],
-            inherit_stdio=False,
+        def _run_push() -> None:
+            self.git_run(
+                cmd=[
+                    "push",
+                    remote,
+                    f"{local_branch}:{remote_branch}",
+                    "--follow-tags",
+                    "--force",
+                    "--porcelain",
+                ],
+                inherit_stdio=False,
+            )
+
+        def _on_retry(
+            attempt: int,
+            max_attempts: int,
+            delay_seconds: int,
+            exc: Exception,
+            message: str,
+        ) -> None:
+            self.warning(
+                f"git push failed (attempt {attempt}/{max_attempts}); retrying in {delay_seconds}s."
+            )
+
+        def _on_error(exc: Exception, message: str) -> None:
+            stderr = getattr(exc, "stderr", None)
+            stdout = getattr(exc, "stdout", None)
+            if stderr:
+                self.error(f"git push stderr:\n{stderr.strip()}")
+            if stdout:
+                self.error(f"git push stdout:\n{stdout.strip()}")
+
+        GitRetryableCallbackManager(
+            callback=_run_push,
+            max_attempts=3,
+            on_retry_callback=_on_retry,
+            on_error_callback=_on_error,
+        ).run()
+
+    def push_to_deployment_remote(self, branch_name: str | None = None) -> None:
+        self.push_changes(
+            remote_name=self._get_deployment_remote_name(),
+            branch_name=branch_name,
         )
 
-    def git_run(self, *args, **kwargs):
-        return git_run(
-            cwd=self.get_path(),
-            *args,
-            **kwargs,
-        )
-
-    def save_dependency(self, package_name: str, version: str) -> bool:
+    def save_dependency(self, package: str, version: str) -> bool:
         """Add or update a dependency with strict version."""
         config = self.get_app_config_file()
-        return config.add_dependency(package_name=package_name, version=version)
+        return config.add_dependency(package=package, version=version)
+
+    def update_dependencies(self, dependencies_map: dict[str, str]) -> None:
+        """Update dependencies versions based on the provided map.
+
+        Args:
+            dependencies_map: Dictionary mapping package names to their new versions.
+                             Example: {"wexample-helpers": "0.2.3", "attrs": "23.1.0"}
+        """
+        from packaging.utils import canonicalize_name
+
+        config_file = self.get_app_config_file()
+
+        # Canonicalize the keys in dependencies_map for consistent matching
+        canonical_map = {
+            canonicalize_name(name): version
+            for name, version in dependencies_map.items()
+        }
+
+        current_deps = config_file.get_dependencies_versions()
+
+        # Update each dependency if it's in the map
+        for dep_name, dep_version in current_deps.items():
+            canonical_name = canonicalize_name(dep_name)
+
+            if canonical_name in canonical_map:
+                new_version = canonical_map[canonical_name]
+                config_file.add_dependency_from_string(
+                    package_name=dep_name, version=new_version
+                )
+
+        # Save the updated config
+        config_file.write_parsed()
+
+    def _build_dependency_string(self, package_name: str, version: str) -> str:
+        return f"{package_name}=={version}"
+
+    def _get_deployment_remote_name(self) -> str | None:
+        return self.search_app_or_suite_runtime_config(
+            "git.main_deployment_remote_name", default=None
+        )

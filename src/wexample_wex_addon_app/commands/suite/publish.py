@@ -40,6 +40,11 @@ def app__suite__publish(
 
     packages = app_workdir.get_ordered_packages()
 
+    # Sync libraries if configured.
+    app_workdir.packages_execute_manager(
+        command="app::libraries/sync",
+    )
+
     context.io.log("Starting deployment...")
     context.io.indentation_up()
     progress = context.io.progress(

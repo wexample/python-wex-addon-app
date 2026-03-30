@@ -7,10 +7,10 @@ from wexample_wex_core.decorator.command import command
 from wexample_wex_core.decorator.middleware import middleware
 
 from wexample_wex_addon_app.middleware.app_middleware import AppMiddleware
-from wexample_wex_addon_app.workdir.basic_app_workdir import BasicAppWorkdir
 from wexample_wex_addon_app.workdir.framework_packages_suite_workdir import (
     FrameworkPackageSuiteWorkdir,
 )
+from wexample_wex_addon_app.workdir.repo_workdir import RepoWorkdir
 
 if TYPE_CHECKING:
     from wexample_wex_core.context.execution_context import ExecutionContext
@@ -23,7 +23,7 @@ if TYPE_CHECKING:
 )
 def app__version__propagate(
     context: ExecutionContext,
-    app_workdir: BasicAppWorkdir,
+    app_workdir: RepoWorkdir,
 ) -> None:
     if isinstance(app_workdir, FrameworkPackageSuiteWorkdir):
         context.kernel.log(
