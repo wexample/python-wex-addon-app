@@ -349,16 +349,17 @@ class AppWorkdir(
 
     def search_app_or_suite_runtime_config(
         self, key_path: str, default: Any = None
-    ) -> Any:
-        def _test_path(workdir):
-            config_val = workdir.get_runtime_config().search(key_path)
-            return config_val.raw if not config_val.is_none() else None
+    ) -> ConfigValue:
+        from wexample_config.config_value.config_value import ConfigValue
 
-        return (
-            self.search_closest_parent_workdir(
-                callback=_test_path,
-            )
-            or default
+        def _test_path(workdir) -> ConfigValue | None:
+            config = workdir.get_runtime_config().search(path=key_path)
+            if not config.is_none():
+                return config
+            return None
+
+        return self.search_closest_in_suites_tree(callback=_test_path) or ConfigValue(
+            raw=default
         )
 
     def search_closest_app_manager_bin_path(self) -> Path | None:
@@ -368,21 +369,13 @@ class AppWorkdir(
             bin_path = workdir.get_path() / APP_PATH_BIN_APP_MANAGER
             return bin_path if bin_path.exists() else None
 
-        return self.search_closest_parent_workdir(
-            callback=_test_path,
-        )
-
-    def search_closest_parent_workdir(self, callback) -> Any:
-        """Walk up the suite tree calling callback on each workdir, return first non-None result."""
-        return self.search_closest_in_suites_tree(callback)
+        return self.search_closest_in_suites_tree(callback=_test_path)
 
     def set_app_env(self, env: str | None) -> None:
-        from wexample_wex_addon_app.commands.config.update import app__config__update
+        from wexample_app.const.globals import ENV_VAR_NAME_APP_ENV
 
-        self.manager_run_command(
-            command=app__config__update,
-            arguments=["--env", env] if env else [],
-        )
+        self.set_env_parameter(key=ENV_VAR_NAME_APP_ENV, value=env)
+        self.get_registry(rebuild=True)
 
     def setup_install(self, env: str | None = None, force: bool = False) -> bool:
         from wexample_wex_addon_app.commands.setup.install import app__setup__install
