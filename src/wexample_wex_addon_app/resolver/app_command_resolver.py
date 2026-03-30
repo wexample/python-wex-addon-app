@@ -11,15 +11,13 @@ if TYPE_CHECKING:
     from wexample_wex_core.common.command_request import CommandRequest
     from wexample_wex_core.const.registries import RegistryResolverData
 
-# App wex data lives at {app_root}/.wex
-_APP_WEX_DIR_NAME = ".wex"
 _COMMANDS_SUBDIR = "commands"
 
 
 class AppCommandResolver(AbstractCommandResolver):
     """Resolves commands local to the current app: ``.group/command``
 
-    Walks up from the current working directory looking for a ``.wex/commands/``
+    Walks up from the current working directory looking for a ``{WORKDIR_SETUP_DIR}/commands/``
     directory, exactly as a user would expect when working inside a project.
     """
 
@@ -45,10 +43,12 @@ class AppCommandResolver(AbstractCommandResolver):
         return COMMAND_TYPE_APP
 
     def get_base_path(self) -> Path | None:
-        """Walk up from cwd to find the nearest ``.wex`` directory."""
+        """Walk up from cwd to find the nearest wex setup directory."""
+        from wexample_app.const.globals import WORKDIR_SETUP_DIR
+
         current = Path(os.getcwd())
         while True:
-            candidate = current / _APP_WEX_DIR_NAME
+            candidate = current / WORKDIR_SETUP_DIR
             if candidate.is_dir():
                 return candidate
             parent = current.parent

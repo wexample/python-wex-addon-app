@@ -47,7 +47,9 @@ def _check_started(app_workdir: AppWorkdir, mode: str, context) -> bool:
 
     import yaml
 
-    wex_path = app_workdir.get_path() / ".wex"
+    from wexample_app.const.globals import WORKDIR_SETUP_DIR
+
+    wex_path = app_workdir.get_path() / WORKDIR_SETUP_DIR
 
     # Read Docker runtime state
     runtime_path = wex_path / "tmp" / "config.runtime.yml"
