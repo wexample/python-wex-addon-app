@@ -8,6 +8,7 @@ from wexample_wex_addon_app.workdir.app_workdir import AppWorkdir
 if TYPE_CHECKING:
     from wexample_config.const.types import DictConfig
 
+
 class RepoWorkdir(AppWorkdir):
     def bump(self, interactive: bool = False, force: bool = False, **kwargs) -> str | None:
         from wexample_wex_addon_app.commands.package.bump import app__package__bump
@@ -54,6 +55,35 @@ class RepoWorkdir(AppWorkdir):
         Format: "{package_name}/v{version}"
         """
         return f"{self.get_package_name()}/v{self.get_project_version()}"
+
+    def has_a_test(self) -> bool:
+        from wexample_wex_addon_app.const.path import APP_PATH_TEST
+
+        test_dir = self.find_by_name(APP_PATH_TEST)
+        return (
+            test_dir
+            and test_dir.is_directory()
+            and any(test_dir.get_path().rglob("*.py"))
+        )
+
+    def has_changes_since_last_coverage(self) -> bool:
+        from wexample_helpers_git.helpers.git import (
+            git_has_changes_since_tag,
+            git_has_uncommitted_changes,
+        )
+
+        last_commit = (
+            self.get_config()
+            .search("test.coverage.last_report.commit_hash")
+            .get_str_or_default()
+        )
+
+        if not last_commit:
+            return True
+
+        return git_has_uncommitted_changes(
+            cwd=self.get_path()
+        ) or git_has_changes_since_tag(last_commit, ".", cwd=self.get_path())
 
     def has_changes_since_last_publication_tag(self) -> bool:
         """Return True if there are changes in the package directory since the last publication tag.

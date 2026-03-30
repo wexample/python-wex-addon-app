@@ -7,6 +7,7 @@ from wexample_helpers.classes.abstract_method import abstract_method
 from wexample_helpers.const.types import PathOrString
 from wexample_wex_core.resolver.addon_command_resolver import AddonCommandResolver
 
+from wexample_wex_addon_app.workdir.app_workdir import AppWorkdir
 from wexample_wex_addon_app.workdir.repo_workdir import RepoWorkdir
 
 if TYPE_CHECKING:
@@ -191,7 +192,7 @@ class FrameworkPackageSuiteWorkdir(RepoWorkdir):
         """Execute a manager command on all packages."""
         self._packages_execute(
             cmd=[command] + (arguments or []),
-            executor_method=BasicAppWorkdir.manager_run_from_path,
+            executor_method=AppWorkdir.manager_run_from_path,
             message="Executing command",
             force=force,
         )
@@ -200,7 +201,7 @@ class FrameworkPackageSuiteWorkdir(RepoWorkdir):
         """Execute a raw shell command on all packages."""
         self._packages_execute(
             cmd=cmd,
-            executor_method=BasicAppWorkdir.shell_run_from_path,
+            executor_method=AppWorkdir.shell_run_from_path,
             message="Executing shell",
             force=force,
         )
@@ -281,7 +282,7 @@ class FrameworkPackageSuiteWorkdir(RepoWorkdir):
             package_path = package_path.resolve()
 
             # Skip invalid paths
-            if not BasicAppWorkdir.is_app_workdir_path(path=package_path):
+            if not AppWorkdir.is_app_workdir_path(path=package_path):
                 continue
 
             # Build relative path between the configured root and the package path
@@ -454,7 +455,7 @@ class FrameworkPackageSuiteWorkdir(RepoWorkdir):
         from wexample_prompt.enums.terminal_color import TerminalColor
 
         for package_path in self.get_packages_paths():
-            if not force and not BasicAppWorkdir.is_app_workdir_path(path=package_path):
+            if not force and not AppWorkdir.is_app_workdir_path(path=package_path):
                 continue
 
             self._package_title(path=package_path, message=message)

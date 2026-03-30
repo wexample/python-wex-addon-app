@@ -7,7 +7,7 @@ from wexample_wex_core.decorator.command import command
 from wexample_wex_core.decorator.middleware import middleware
 
 from wexample_wex_addon_app.middleware.app_middleware import AppMiddleware
-from wexample_wex_addon_app.workdir.basic_app_workdir import BasicAppWorkdir
+from wexample_wex_addon_app.workdir.app_workdir import AppWorkdir
 
 if TYPE_CHECKING:
     from wexample_wex_core.context.execution_context import ExecutionContext
@@ -17,6 +17,6 @@ if TYPE_CHECKING:
 @command(type=COMMAND_TYPE_ADDON)
 def app__libraries__sync(
     context: ExecutionContext,
-    app_workdir: BasicAppWorkdir,
+    app_workdir: AppWorkdir,
 ) -> None:
     app_workdir.libraries_sync()
