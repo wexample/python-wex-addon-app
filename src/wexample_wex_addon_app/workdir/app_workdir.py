@@ -346,6 +346,10 @@ class AppWorkdir(
         if not self.is_app_workdir_path_setup(path=self.get_path()):
             self.setup_install()
 
+    def search_closest_parent_workdir(self, callback) -> Any:
+        """Walk up the suite tree calling callback on each workdir, return first non-None result."""
+        return self.search_closest_in_suites_tree(callback)
+
     def search_closest_app_manager_bin_path(self) -> Path | None:
         def _test_path(workdir):
             from wexample_app.const.globals import APP_PATH_BIN_APP_MANAGER
@@ -359,8 +363,8 @@ class AppWorkdir(
 
     def search_app_or_suite_runtime_config(self, key_path: str, default: Any = None) -> Any:
         def _test_path(workdir):
-            val = workdir.get_runtime_config().search(key_path).get_value()
-            return val if val is not None else None
+            config_val = workdir.get_runtime_config().search(key_path)
+            return config_val.raw if not config_val.is_none() else None
 
         return self.search_closest_parent_workdir(
             callback=_test_path,

@@ -247,7 +247,7 @@ class CodeBaseWorkdir(RepoWorkdir):
     def _get_deployment_remote_name(self) -> str | None:
         return self.search_app_or_suite_runtime_config(
             "git.main_deployment_remote_name", default=None
-        ).get_str_or_none()
+        )
 
     def push_to_deployment_remote(self, branch_name: str | None = None) -> None:
         self.push_changes(
