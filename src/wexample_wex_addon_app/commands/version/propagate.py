@@ -7,10 +7,10 @@ from wexample_wex_core.decorator.command import command
 from wexample_wex_core.decorator.middleware import middleware
 
 from wexample_wex_addon_app.middleware.app_middleware import AppMiddleware
-from wexample_wex_addon_app.workdir.repo_workdir import RepoWorkdir
 from wexample_wex_addon_app.workdir.framework_packages_suite_workdir import (
     FrameworkPackageSuiteWorkdir,
 )
+from wexample_wex_addon_app.workdir.repo_workdir import RepoWorkdir
 
 if TYPE_CHECKING:
     from wexample_wex_core.context.execution_context import ExecutionContext

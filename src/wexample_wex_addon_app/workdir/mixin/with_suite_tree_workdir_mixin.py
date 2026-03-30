@@ -99,9 +99,7 @@ class WithSuiteTreeWorkdirMixin(BaseClass):
 
         suite_path = self.find_suite_workdir_path()
         if suite_path and suite_path.exists():
-            return suite_class.create_from_path(
-                path=suite_path, configure=False
-            )
+            return suite_class.create_from_path(path=suite_path, configure=False)
 
     def get_suite_workdir(
         self, reload: bool = False
@@ -115,11 +113,7 @@ class WithSuiteTreeWorkdirMixin(BaseClass):
             self._suite_workdir = False
 
             if suite_path and suite_path.exists():
-                self._suite_workdir = (
-                    suite_class.create_from_path(
-                        path=suite_path
-                    )
-                )
+                self._suite_workdir = suite_class.create_from_path(path=suite_path)
 
         return self._suite_workdir
 

@@ -28,7 +28,9 @@ class AppCommandResolver(AbstractCommandResolver):
             COMMAND_SEPARATOR_GROUP,
         )
 
-        return f"{COMMAND_CHAR_APP}{address.group}{COMMAND_SEPARATOR_GROUP}{address.name}"
+        return (
+            f"{COMMAND_CHAR_APP}{address.group}{COMMAND_SEPARATOR_GROUP}{address.name}"
+        )
 
     @classmethod
     def get_pattern(cls) -> str:
@@ -42,23 +44,8 @@ class AppCommandResolver(AbstractCommandResolver):
 
         return COMMAND_TYPE_APP
 
-    def get_base_path(self) -> Path | None:
-        """Walk up from cwd to find the nearest wex setup directory."""
-        from wexample_app.const.globals import WORKDIR_SETUP_DIR
-
-        current = Path(os.getcwd())
-        while True:
-            candidate = current / WORKDIR_SETUP_DIR
-            if candidate.is_dir():
-                return candidate
-            parent = current.parent
-            if parent == current:
-                return None
-            current = parent
-
     def build_command_function_name(self, request: CommandRequest) -> str | None:
         from wexample_helpers.helpers.string import string_to_snake_case
-
         from wexample_wex_core.common.command_address import CommandAddress
 
         address = CommandAddress(
@@ -68,9 +55,10 @@ class AppCommandResolver(AbstractCommandResolver):
         )
         return address.to_function_name()
 
-    def build_command_path(self, request: CommandRequest, extension: str) -> Path | None:
+    def build_command_path(
+        self, request: CommandRequest, extension: str
+    ) -> Path | None:
         from wexample_helpers.helpers.string import string_to_snake_case
-
         from wexample_wex_core.common.command_address import CommandAddress
 
         base = self.get_base_path()
@@ -83,24 +71,6 @@ class AppCommandResolver(AbstractCommandResolver):
             name=string_to_snake_case(request.match.group(2)),
         )
         return base / _COMMANDS_SUBDIR / address.to_relative_path(extension)
-
-    def supports(self, request: CommandRequest) -> object:
-        import sys
-
-        match = self.build_match(request.name)
-        if not match:
-            return None
-
-        base = self.get_base_path()
-        if not base:
-            return None
-
-        # Add app commands dir to sys.path so imports work in app scripts
-        commands_path = base / _COMMANDS_SUBDIR
-        if commands_path.is_dir() and str(commands_path) not in sys.path:
-            sys.path.append(str(commands_path))
-
-        return match
 
     def build_new_command_target(
         self, command: str, extension: str
@@ -125,3 +95,35 @@ class AppCommandResolver(AbstractCommandResolver):
 
         commands_base = base / _COMMANDS_SUBDIR
         return {"app": self._scan_commands_dir(commands_base, "app")}
+
+    def get_base_path(self) -> Path | None:
+        """Walk up from cwd to find the nearest wex setup directory."""
+        from wexample_app.const.globals import WORKDIR_SETUP_DIR
+
+        current = Path(os.getcwd())
+        while True:
+            candidate = current / WORKDIR_SETUP_DIR
+            if candidate.is_dir():
+                return candidate
+            parent = current.parent
+            if parent == current:
+                return None
+            current = parent
+
+    def supports(self, request: CommandRequest) -> object:
+        import sys
+
+        match = self.build_match(request.name)
+        if not match:
+            return None
+
+        base = self.get_base_path()
+        if not base:
+            return None
+
+        # Add app commands dir to sys.path so imports work in app scripts
+        commands_path = base / _COMMANDS_SUBDIR
+        if commands_path.is_dir() and str(commands_path) not in sys.path:
+            sys.path.append(str(commands_path))
+
+        return match

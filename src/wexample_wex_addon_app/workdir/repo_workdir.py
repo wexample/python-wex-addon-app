@@ -3,10 +3,11 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from wexample_filestate.const.types_state_items import TargetFileOrDirectoryType
+
 from wexample_wex_addon_app.workdir.app_workdir import AppWorkdir
 
 if TYPE_CHECKING:
-    from wexample_config.const.types import DictConfig
+    pass
 
 
 class RepoWorkdir(AppWorkdir):
@@ -183,13 +184,17 @@ class RepoWorkdir(AppWorkdir):
                 return
 
             rectify_args = ["--loop"] + (["--yes"] if not interactive else [])
-            self.manager_run_command(command=app__file_state__rectify, arguments=rectify_args)
+            self.manager_run_command(
+                command=app__file_state__rectify, arguments=rectify_args
+            )
 
             self.manager_run_command(command=app__package__commit_and_push)
 
             self.manager_run_command(command=app__version__propagate)
 
-            self.manager_run_command(command=app__package__publish, arguments=["--force"])
+            self.manager_run_command(
+                command=app__package__publish, arguments=["--force"]
+            )
 
     def publish_dependencies(self) -> None:
         pass

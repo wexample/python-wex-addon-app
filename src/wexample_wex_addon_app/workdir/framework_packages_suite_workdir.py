@@ -22,11 +22,6 @@ if TYPE_CHECKING:
 
 
 class FrameworkPackageSuiteWorkdir(RepoWorkdir):
-    def _get_suite_package_workdir_class(self):
-        # Suite workdirs have no parent suite by default.
-        # Subclasses can override if a suite-of-suites hierarchy exists.
-        return None
-
     def build_dependencies_map(self) -> dict[str, list[str]]:
         dependencies = {}
         for package in self.get_packages():
@@ -338,8 +333,7 @@ class FrameworkPackageSuiteWorkdir(RepoWorkdir):
 
         for dependent in self.get_dependents(package):
             updated = dependent.save_dependency(
-                package=package,
-                version=package.get_project_version()
+                package=package, version=package.get_project_version()
             )
             if updated:
                 package.log(
@@ -432,6 +426,11 @@ class FrameworkPackageSuiteWorkdir(RepoWorkdir):
         )
 
         return CodeBaseWorkdir
+
+    def _get_suite_package_workdir_class(self) -> None:
+        # Suite workdirs have no parent suite by default.
+        # Subclasses can override if a suite-of-suites hierarchy exists.
+        return None
 
     def _package_title(self, path: PathOrString, message: str) -> None:
         from wexample_helpers.helpers.cli import cli_make_clickable_path

@@ -42,7 +42,7 @@ def app__suite__publish(
 
     # Sync libraries if configured.
     app_workdir.packages_execute_manager(
-        command='app::libraries/sync',
+        command="app::libraries/sync",
     )
 
     context.io.log("Starting deployment...")

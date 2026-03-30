@@ -11,7 +11,6 @@ from wexample_helpers.decorator.base_class import base_class
 from wexample_wex_addon_app.workdir.mixin.with_readme_workdir_mixin import (
     WithReadmeWorkdirMixin,
 )
-from wexample_wex_addon_app.workdir.repo_workdir import RepoWorkdir
 
 if TYPE_CHECKING:
     from wexample_config.const.types import DictConfig

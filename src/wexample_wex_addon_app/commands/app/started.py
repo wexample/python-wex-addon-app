@@ -46,7 +46,6 @@ def _check_started(app_workdir: AppWorkdir, mode: str, context) -> bool:
     import subprocess
 
     import yaml
-
     from wexample_app.const.globals import WORKDIR_SETUP_DIR
 
     wex_path = app_workdir.get_path() / WORKDIR_SETUP_DIR
@@ -87,7 +86,9 @@ def _check_started(app_workdir: AppWorkdir, mode: str, context) -> bool:
         capture_output=True,
         text=True,
     )
-    running = set(result.stdout.strip().splitlines()) if result.stdout.strip() else set()
+    running = (
+        set(result.stdout.strip().splitlines()) if result.stdout.strip() else set()
+    )
 
     all_runs = True
     for name in container_names:

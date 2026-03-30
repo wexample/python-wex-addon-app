@@ -32,9 +32,7 @@ class AppAddonManager(AbstractAddonManager):
             cls.get_package_source_path() / "resources" / f"{APP_FILE_APP_MANAGER}.sh"
         )
 
-    def create_app_workdir(
-        self, path: PathOrString | None = None
-    ) -> AppWorkdir | None:
+    def create_app_workdir(self, path: PathOrString | None = None) -> AppWorkdir | None:
         from pathlib import Path
 
         from wexample_helpers.helpers.cli import cli_make_clickable_path
@@ -68,7 +66,9 @@ class AppAddonManager(AbstractAddonManager):
         )
 
     def get_command_resolver_classes(self) -> list[type[AbstractCommandResolver]]:
-        from wexample_wex_addon_app.resolver.app_command_resolver import AppCommandResolver
+        from wexample_wex_addon_app.resolver.app_command_resolver import (
+            AppCommandResolver,
+        )
 
         return [AppCommandResolver]
 

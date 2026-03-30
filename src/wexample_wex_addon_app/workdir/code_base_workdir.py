@@ -4,6 +4,7 @@ from typing import TYPE_CHECKING
 
 from wexample_helpers_git.const.common import GIT_BRANCH_MAIN, GIT_REMOTE_ORIGIN
 from wexample_helpers_git.helpers.git import git_run
+
 from wexample_wex_addon_app.workdir.repo_workdir import RepoWorkdir
 
 if TYPE_CHECKING:
@@ -32,14 +33,8 @@ class CodeBaseWorkdir(RepoWorkdir):
 
         # Push the tag explicitly to the remote to ensure it's published.
         git_push_tag(
-            tag,
-            cwd=cwd,
-            remote=self._get_deployment_remote_name(),
-            inherit_stdio=True
+            tag, cwd=cwd, remote=self._get_deployment_remote_name(), inherit_stdio=True
         )
-
-    def _build_dependency_string(self, package_name: str, version: str) -> str:
-        return f"{package_name}=={version}"
 
     def build_dependencies_stack(
         self, package: CodeBaseWorkdir, dependency: CodeBaseWorkdir
@@ -48,39 +43,6 @@ class CodeBaseWorkdir(RepoWorkdir):
         list the packages inheritance stack to find the original package declaring the explicit dependency
         """
         return []
-
-    def update_dependencies(self, dependencies_map: dict[str, str]) -> None:
-        """Update dependencies versions based on the provided map.
-
-        Args:
-            dependencies_map: Dictionary mapping package names to their new versions.
-                             Example: {"wexample-helpers": "0.2.3", "attrs": "23.1.0"}
-        """
-        from packaging.utils import canonicalize_name
-
-        config_file = self.get_app_config_file()
-
-        # Canonicalize the keys in dependencies_map for consistent matching
-        canonical_map = {
-            canonicalize_name(name): version
-            for name, version in dependencies_map.items()
-        }
-
-        current_deps = config_file.get_dependencies_versions()
-
-        # Update each dependency if it's in the map
-        for dep_name, dep_version in current_deps.items():
-            canonical_name = canonicalize_name(dep_name)
-
-            if canonical_name in canonical_map:
-                new_version = canonical_map[canonical_name]
-                config_file.add_dependency_from_string(
-                    package_name=dep_name,
-                    version=new_version
-                )
-
-        # Save the updated config
-        config_file.write_parsed()
 
     def commit_changes(
         self,
@@ -130,10 +92,6 @@ class CodeBaseWorkdir(RepoWorkdir):
                 return True
         return False
 
-    def get_package_dependency_name(self) -> str:
-        """Return the name used by other packages to mark it as a dependency"""
-        return self.get_package_name()
-
     def get_io_context_prefix(self) -> str | None:
         from wexample_helpers.helpers.cli import cli_make_clickable_path
 
@@ -155,6 +113,17 @@ class CodeBaseWorkdir(RepoWorkdir):
             DefaultOptionsProvider,
             GitOptionsProvider,
         ]
+
+    def get_package_dependency_name(self) -> str:
+        """Return the name used by other packages to mark it as a dependency"""
+        return self.get_package_name()
+
+    def git_run(self, *args, **kwargs):
+        return git_run(
+            cwd=self.get_path(),
+            *args,
+            **kwargs,
+        )
 
     def has_working_changes(self) -> bool:
         from wexample_helpers_git.helpers.git import git_has_working_changes
@@ -244,17 +213,6 @@ class CodeBaseWorkdir(RepoWorkdir):
             self.info(f"Returning to {current_branch}...")
             git_switch_branch(current_branch, cwd=cwd, inherit_stdio=True)
 
-    def _get_deployment_remote_name(self) -> str | None:
-        return self.search_app_or_suite_runtime_config(
-            "git.main_deployment_remote_name", default=None
-        )
-
-    def push_to_deployment_remote(self, branch_name: str | None = None) -> None:
-        self.push_changes(
-            remote_name=self._get_deployment_remote_name(),
-            branch_name=branch_name,
-        )
-
     def push_changes(
         self,
         remote_name: str | None = None,
@@ -287,7 +245,11 @@ class CodeBaseWorkdir(RepoWorkdir):
             )
 
         def _on_retry(
-            attempt: int, max_attempts: int, delay_seconds: int, exc: Exception, message: str
+            attempt: int,
+            max_attempts: int,
+            delay_seconds: int,
+            exc: Exception,
+            message: str,
         ) -> None:
             self.warning(
                 f"git push failed (attempt {attempt}/{max_attempts}); retrying in {delay_seconds}s."
@@ -308,14 +270,53 @@ class CodeBaseWorkdir(RepoWorkdir):
             on_error_callback=_on_error,
         ).run()
 
-    def git_run(self, *args, **kwargs):
-        return git_run(
-            cwd=self.get_path(),
-            *args,
-            **kwargs,
+    def push_to_deployment_remote(self, branch_name: str | None = None) -> None:
+        self.push_changes(
+            remote_name=self._get_deployment_remote_name(),
+            branch_name=branch_name,
         )
 
     def save_dependency(self, package: str, version: str) -> bool:
         """Add or update a dependency with strict version."""
         config = self.get_app_config_file()
         return config.add_dependency(package=package, version=version)
+
+    def update_dependencies(self, dependencies_map: dict[str, str]) -> None:
+        """Update dependencies versions based on the provided map.
+
+        Args:
+            dependencies_map: Dictionary mapping package names to their new versions.
+                             Example: {"wexample-helpers": "0.2.3", "attrs": "23.1.0"}
+        """
+        from packaging.utils import canonicalize_name
+
+        config_file = self.get_app_config_file()
+
+        # Canonicalize the keys in dependencies_map for consistent matching
+        canonical_map = {
+            canonicalize_name(name): version
+            for name, version in dependencies_map.items()
+        }
+
+        current_deps = config_file.get_dependencies_versions()
+
+        # Update each dependency if it's in the map
+        for dep_name, dep_version in current_deps.items():
+            canonical_name = canonicalize_name(dep_name)
+
+            if canonical_name in canonical_map:
+                new_version = canonical_map[canonical_name]
+                config_file.add_dependency_from_string(
+                    package_name=dep_name, version=new_version
+                )
+
+        # Save the updated config
+        config_file.write_parsed()
+
+    def _build_dependency_string(self, package_name: str, version: str) -> str:
+        return f"{package_name}=={version}"
+
+    def _get_deployment_remote_name(self) -> str | None:
+        return self.search_app_or_suite_runtime_config(
+            "git.main_deployment_remote_name", default=None
+        )
