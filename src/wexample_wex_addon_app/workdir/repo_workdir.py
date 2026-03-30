@@ -157,6 +157,9 @@ class RepoWorkdir(AppWorkdir):
         self.push_to_deployment_remote(branch_name=GIT_BRANCH_MAIN)
 
     def publish_bumped(self, force: bool = False, interactive: bool = True) -> None:
+        from wexample_wex_addon_app.commands.file_state.rectify import (
+            app__file_state__rectify,
+        )
         from wexample_wex_addon_app.commands.package.commit_and_push import (
             app__package__commit_and_push,
         )
@@ -178,6 +181,9 @@ class RepoWorkdir(AppWorkdir):
 
             if not bumped:
                 return
+
+            rectify_args = ["--loop"] + (["--yes"] if not interactive else [])
+            self.manager_run_command(command=app__file_state__rectify, arguments=rectify_args)
 
             self.manager_run_command(command=app__package__commit_and_push)
 
