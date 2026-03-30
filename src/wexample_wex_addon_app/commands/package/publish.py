@@ -10,7 +10,7 @@ from wexample_wex_core.decorator.option import option
 from wexample_wex_addon_app.middleware.suite_or_each_package_middleware import (
     SuiteOrEachPackageMiddleware,
 )
-from wexample_wex_addon_app.workdir.code_base_workdir import CodeBaseWorkdir
+from wexample_wex_addon_app.workdir.repo_workdir import RepoWorkdir
 
 if TYPE_CHECKING:
     from wexample_wex_core.context.execution_context import ExecutionContext
@@ -24,7 +24,7 @@ if TYPE_CHECKING:
 )
 def app__package__publish(
     context: ExecutionContext,
-    app_workdir: CodeBaseWorkdir,
+    app_workdir: RepoWorkdir,
     force: bool = False,
 ) -> None:
     app_workdir.publish(force=force)

@@ -13,7 +13,7 @@ if TYPE_CHECKING:
     from wexample_helpers.const.types import PathOrString
     from wexample_wex_core.middleware.abstract_middleware import AbstractMiddleware
 
-    from wexample_wex_addon_app.workdir.basic_app_workdir import BasicAppWorkdir
+    from wexample_wex_addon_app.workdir.app_workdir import AppWorkdir
 
 
 @base_class
@@ -34,19 +34,19 @@ class AppAddonManager(AbstractAddonManager):
 
     def create_app_workdir(
         self, path: PathOrString | None = None
-    ) -> BasicAppWorkdir | None:
+    ) -> AppWorkdir | None:
         from pathlib import Path
 
         from wexample_helpers.helpers.cli import cli_make_clickable_path
         from wexample_helpers.helpers.module import module_load_class_from_file
 
-        from wexample_wex_addon_app.workdir.basic_app_workdir import BasicAppWorkdir
+        from wexample_wex_addon_app.workdir.app_workdir import AppWorkdir
 
         app_path = (
             Path(path) if path is not None else self.kernel.call_workdir.get_path()
         )
 
-        if not BasicAppWorkdir.is_app_workdir_path(path=app_path):
+        if not AppWorkdir.is_app_workdir_path(path=app_path):
             self.kernel.warning(
                 f"Path does not match with an application directory structure: {cli_make_clickable_path(app_path)}"
             )
@@ -60,7 +60,7 @@ class AppAddonManager(AbstractAddonManager):
                 file_path=custom_app_workdir_class_path, class_name="AppWorkdir"
             )
         else:
-            app_workdir_class = BasicAppWorkdir
+            app_workdir_class = AppWorkdir
 
         # Use basic project class to access minimal configuration.
         return app_workdir_class.create_from_path(

@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING
 
 from wexample_helpers_git.const.common import GIT_BRANCH_MAIN, GIT_REMOTE_ORIGIN
 from wexample_helpers_git.helpers.git import git_run
-from wexample_wex_addon_app.workdir.basic_app_workdir import BasicAppWorkdir
+from wexample_wex_addon_app.workdir.repo_workdir import RepoWorkdir
 
 if TYPE_CHECKING:
     from wexample_config.options_provider.abstract_options_provider import (
@@ -13,7 +13,7 @@ if TYPE_CHECKING:
     from wexample_prompt.common.progress.progress_handle import ProgressHandle
 
 
-class CodeBaseWorkdir(BasicAppWorkdir):
+class CodeBaseWorkdir(RepoWorkdir):
     def add_publication_tag(self) -> None:
         from wexample_helpers_git.helpers.git import (
             git_push_tag,

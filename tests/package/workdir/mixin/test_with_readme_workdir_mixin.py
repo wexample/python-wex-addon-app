@@ -11,6 +11,7 @@ from wexample_helpers.decorator.base_class import base_class
 from wexample_wex_addon_app.workdir.mixin.with_readme_workdir_mixin import (
     WithReadmeWorkdirMixin,
 )
+from wexample_wex_addon_app.workdir.repo_workdir import RepoWorkdir
 
 if TYPE_CHECKING:
     from wexample_config.const.types import DictConfig
@@ -65,5 +66,17 @@ class TestWithReadmeWorkdirMixin(AbstractWorkdirMixinTest):
         @base_class
         class ReadmeWorkdir(WithReadmeWorkdirMixin, BaseClass):
             """Test class that inherits from WithReadmeWorkdirMixin."""
+
+            def get_project_name(self) -> str:
+                return "test-package"
+
+            def get_package_name(self) -> str:
+                return "test-package"
+
+            def get_project_version(self) -> str:
+                return "0.0.1"
+
+            def get_dependencies_versions(self) -> dict[str, str]:
+                return {}
 
         return ReadmeWorkdir

@@ -7,7 +7,7 @@ from wexample_helpers.classes.abstract_method import abstract_method
 from wexample_helpers.const.types import PathOrString
 from wexample_wex_core.resolver.addon_command_resolver import AddonCommandResolver
 
-from wexample_wex_addon_app.workdir.basic_app_workdir import BasicAppWorkdir
+from wexample_wex_addon_app.workdir.repo_workdir import RepoWorkdir
 
 if TYPE_CHECKING:
     from wexample_config.const.types import DictConfig
@@ -20,7 +20,7 @@ if TYPE_CHECKING:
     )
 
 
-class FrameworkPackageSuiteWorkdir(BasicAppWorkdir):
+class FrameworkPackageSuiteWorkdir(RepoWorkdir):
     def build_dependencies_map(self) -> dict[str, list[str]]:
         dependencies = {}
         for package in self.get_packages():

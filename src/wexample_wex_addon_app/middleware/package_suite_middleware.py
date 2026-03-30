@@ -6,7 +6,7 @@ from wexample_helpers.classes.private_field import private_field
 from wexample_helpers.decorator.base_class import base_class
 
 from wexample_wex_addon_app.middleware.app_middleware import AppMiddleware
-from wexample_wex_addon_app.workdir.basic_app_workdir import BasicAppWorkdir
+from wexample_wex_addon_app.workdir.app_workdir import AppWorkdir
 
 if TYPE_CHECKING:
     from wexample_wex_core.common.command_request import CommandRequest
@@ -20,7 +20,7 @@ class PackageSuiteMiddleware(AppMiddleware):
 
     def _create_app_workdir(
         self, request: CommandRequest, app_path: str
-    ) -> BasicAppWorkdir:
+    ) -> AppWorkdir:
         """Create and validate that the app workdir is a FrameworkPackageSuiteWorkdir."""
         from wexample_wex_addon_app.exception.invalid_workdir_type_exception import (
             InvalidWorkdirTypeException,
@@ -45,7 +45,7 @@ class PackageSuiteMiddleware(AppMiddleware):
 
         return app_workdir
 
-    def _is_package_suite_workdir(self, workdir: BasicAppWorkdir) -> bool:
+    def _is_package_suite_workdir(self, workdir: AppWorkdir) -> bool:
         from wexample_wex_addon_app.workdir.framework_packages_suite_workdir import (
             FrameworkPackageSuiteWorkdir,
         )

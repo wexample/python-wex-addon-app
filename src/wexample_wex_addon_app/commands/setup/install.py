@@ -12,7 +12,7 @@ from wexample_wex_addon_app.middleware.app_middleware import AppMiddleware
 if TYPE_CHECKING:
     from wexample_wex_core.context.execution_context import ExecutionContext
 
-    from wexample_wex_addon_app.workdir.basic_app_workdir import BasicAppWorkdir
+    from wexample_wex_addon_app.workdir.app_workdir import AppWorkdir
 
 
 @option(
@@ -34,7 +34,7 @@ if TYPE_CHECKING:
 )
 def app__setup__install(
     context: ExecutionContext,
-    app_workdir: BasicAppWorkdir,
+    app_workdir: AppWorkdir,
     env: str | None = None,
     force: bool = False,
 ) -> None:
