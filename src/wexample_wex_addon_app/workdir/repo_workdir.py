@@ -174,6 +174,10 @@ class RepoWorkdir(AppWorkdir):
             app__version__propagate,
         )
 
+        # Rectify runs only when there are actual changes (or force=True).
+        # This is intentional: rectify itself may generate files (version.txt, README...),
+        # but we consider those a consequence of real changes, not a trigger.
+        # Use --force to publish even without detected changes (e.g. to force a rectify pass).
         if force or self.has_changes_since_last_publication_tag():
             sub_progress = self.progress(
                 total=5, color=TerminalColor.YELLOW, indentation=1, print_response=False
