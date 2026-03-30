@@ -317,12 +317,9 @@ class AppWorkdir(
         ).get_output()
 
     def configure(self, config: DictConfig) -> None:
-        from wexample_wex_addon_app.commands.config.update import app__config__update
+        super().configure(config=config)
 
-        self.manager_run_command(
-            command=app__config__update,
-            arguments=["--config", config],
-        )
+        self._init_env(env_dict=self.get_env_parameters().to_dict())
 
     def get_app_env(self) -> str | None:
         from wexample_app.const.env import ENV_NAME_PROD
