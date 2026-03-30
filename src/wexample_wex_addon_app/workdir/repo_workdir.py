@@ -157,7 +157,6 @@ class RepoWorkdir(AppWorkdir):
         self.push_to_deployment_remote(branch_name=GIT_BRANCH_MAIN)
 
     def publish_bumped(self, force: bool = False, interactive: bool = True) -> None:
-        from wexample_wex_addon_app.commands.package.bump import app__package__bump
         from wexample_wex_addon_app.commands.package.commit_and_push import (
             app__package__commit_and_push,
         )
@@ -175,13 +174,16 @@ class RepoWorkdir(AppWorkdir):
                 ):
                     return
 
-            self.bump(interactive=interactive, force=force)
+            bumped = self.bump(interactive=interactive, force=force)
+
+            if not bumped:
+                return
+
+            self.manager_run_command(command=app__package__commit_and_push)
 
             self.manager_run_command(command=app__version__propagate)
 
             self.manager_run_command(command=app__package__publish, arguments=["--force"])
-
-            self.manager_run_command(command=app__package__commit_and_push)
 
     def publish_dependencies(self) -> None:
         pass
