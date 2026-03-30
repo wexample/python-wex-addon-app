@@ -10,16 +10,60 @@ if TYPE_CHECKING:
 
 
 class RepoWorkdir(AppWorkdir):
-    def bump(self, interactive: bool = False, force: bool = False, **kwargs) -> str | None:
-        from wexample_wex_addon_app.commands.package.bump import app__package__bump
+    def bump(self, interactive: bool = False, force: bool = False, **kwargs) -> bool:
+        """Create a version-x.y.z branch, update the version number in config. Don't commit changes."""
+        from wexample_helpers.helpers.version import version_increment
+        from wexample_prompt.responses.interactive.confirm_prompt_response import (
+            ConfirmPromptResponse,
+        )
 
-        return self.manager_run_command(
-            command=app__package__bump,
-            arguments=[
-                "--interactive" if interactive else "--no-interactive",
-                "--force" if force else "--no-force",
-            ],
-        ).get_output()
+        has_changes = self.has_changes_since_last_publication_tag()
+        if not force and not has_changes:
+            self.log(f"Package {self.get_package_name()} has no new content to bump.")
+            return False
+
+        current_version = self.get_project_version()
+        new_version = version_increment(version=current_version, **kwargs)
+        branch_name = f"version-{new_version}"
+
+        self.info(f"Bumping version to {new_version}", prefix=True)
+
+        def _bump() -> None:
+            from wexample_helpers_git.helpers.git import git_create_or_switch_branch
+
+            git_create_or_switch_branch(
+                branch_name, cwd=self.get_path(), inherit_stdio=True
+            )
+            self.log(message=f'Switched to branch "{branch_name}"', indentation=1)
+
+            self.write_config_value("global.version", new_version)
+
+            self.log(
+                message=f'Bumped from "{current_version}" to "{new_version}"',
+                indentation=1,
+            )
+
+        if interactive:
+            changes_message = (
+                " The project contains changes since last publication."
+                if has_changes
+                else ""
+            )
+
+            confirm = self.confirm(
+                f"Do you want to create a new version for package {self.get_package_name()} in @path{{{self.get_path()}}}?{changes_message} "
+                f'This will create/switch to branch "{branch_name}".',
+                choices=ConfirmPromptResponse.MAPPING_PRESET_YES_NO,
+                default="yes",
+            )
+
+            if confirm.is_ok():
+                _bump()
+                return True
+        else:
+            _bump()
+            return True
+        return False
 
     def count_source_code_lines(self) -> int:
         return self._count_code_lines(self._get_source_code_directories())
