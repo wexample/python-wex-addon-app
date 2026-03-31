@@ -157,6 +157,7 @@ class RepoWorkdir(AppWorkdir):
             return
 
         self._publish(force=force)
+        self._wait_for_registry()
         self.success(
             f"Published {self.get_package_name()} as {self.get_publication_tag_name()}."
         )
@@ -264,4 +265,14 @@ class RepoWorkdir(AppWorkdir):
         return []
 
     def _publish(self, force: bool = False) -> None:
+        pass
+
+    def _wait_for_registry(self) -> None:
+        """Wait until the just-published package version is available on the registry.
+
+        No-op by default. Override in language-specific workdirs (npm, PyPI, Packagist…)
+        to block the pipeline until the registry has propagated the new version.
+        This prevents downstream packages from failing when they try to resolve a
+        dependency that was published moments ago.
+        """
         pass
