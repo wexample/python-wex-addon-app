@@ -92,8 +92,11 @@ class WithSuiteTreeWorkdirMixin(BaseClass):
                 )
         return value
 
+    def _get_suite_workdir_class(self) -> type | None:
+        return None
+
     def get_shallow_suite_workdir(self) -> False | FrameworkPackageSuiteWorkdir:
-        suite_class = self._get_suite_package_workdir_class()
+        suite_class = self._get_suite_workdir_class()
         if not suite_class:
             return None
 
@@ -104,7 +107,7 @@ class WithSuiteTreeWorkdirMixin(BaseClass):
     def get_suite_workdir(
         self, reload: bool = False
     ) -> False | FrameworkPackageSuiteWorkdir:
-        suite_class = self._get_suite_package_workdir_class()
+        suite_class = self._get_suite_workdir_class()
         if not suite_class:
             return None
 

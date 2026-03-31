@@ -427,7 +427,7 @@ class FrameworkPackageSuiteWorkdir(RepoWorkdir):
 
         return CodeBaseWorkdir
 
-    def _get_suite_package_workdir_class(self) -> None:
+    def _get_suite_workdir_class(self) -> None:
         # Suite workdirs have no parent suite by default.
         # Subclasses can override if a suite-of-suites hierarchy exists.
         return None
