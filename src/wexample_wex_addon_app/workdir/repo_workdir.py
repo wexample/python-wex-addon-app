@@ -30,11 +30,18 @@ class RepoWorkdir(AppWorkdir):
         self.info(f"Bumping version to {new_version}", prefix=True)
 
         def _bump() -> None:
-            from wexample_helpers_git.helpers.git import git_create_or_switch_branch
+            from wexample_helpers.helpers.shell import shell_run
+            from wexample_helpers_git.helpers.git import git_switch_branch
 
-            git_create_or_switch_branch(
-                branch_name, cwd=self.get_path(), inherit_stdio=True
+            # `git branch -f` creates the branch if it doesn't exist, or resets it to
+            # HEAD if it does (e.g. a previous failed bump left a stale branch).
+            # This is always safe: we're on main at this point, never on branch_name.
+            shell_run(
+                ["git", "branch", "-f", branch_name, "HEAD"],
+                cwd=self.get_path(),
+                inherit_stdio=False,
             )
+            git_switch_branch(branch_name, cwd=self.get_path(), inherit_stdio=True)
             self.log(message=f'Switched to branch "{branch_name}"', indentation=1)
 
             self.write_config_value("global.version", new_version)
