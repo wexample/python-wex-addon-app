@@ -317,6 +317,8 @@ class CodeBaseWorkdir(RepoWorkdir):
         return f"{package_name}=={version}"
 
     def _get_deployment_remote_name(self) -> str | None:
+        from wexample_helpers_git.const.common import GIT_REMOTE_ORIGIN
+
         return self.search_app_or_suite_runtime_config(
-            "git.main_deployment_remote_name", default=None
+            "git.main_deployment_remote_name", default=GIT_REMOTE_ORIGIN
         ).get_str_or_none()
