@@ -188,7 +188,8 @@ class AppWorkdir(
 
         # Must NOT call get_runtime_config() here — it would create a circular dependency:
         # get_runtime_config() → build_runtime_config_value() → get_app_env() → get_runtime_config()
-        return self.get_config().search("env").get_str_or_default(default=ENV_NAME_PROD)
+        # APP_ENV is always set via .wex/.env — never in config.yml (which uses "env:" as a block).
+        return self.get_env_parameter("APP_ENV") or ENV_NAME_PROD
 
     def get_local_libraries_paths(self) -> list[ConfigValue]:
         return self.get_runtime_config().search(f"libraries").get_list_or_default()
