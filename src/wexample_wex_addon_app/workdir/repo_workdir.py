@@ -156,6 +156,7 @@ class RepoWorkdir(AppWorkdir):
         if not self.should_be_published(force=force):
             return
 
+        self.clear_runtime_config_cache()
         self._publish(force=force)
         self._wait_for_registry()
         self.success(
