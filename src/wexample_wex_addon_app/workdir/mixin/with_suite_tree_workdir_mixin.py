@@ -75,6 +75,33 @@ class WithSuiteTreeWorkdirMixin(BaseClass):
 
         return self._suite_workdir_path
 
+    def build_runtime_config_value(self):
+        from wexample_config.config_value.nested_config_value import NestedConfigValue
+        from wexample_helpers.helpers.dict import dict_interpolate, dict_merge
+
+        if not self.get_shallow_suite_workdir():
+            return super().build_runtime_config_value()
+
+        # Collect env params from the full suite tree (self + all parent suites).
+        # collect_stack_in_suites_tree returns [self, suite, parent_suite, ...].
+        # We merge outermost-first so inner levels win (package > suite > parent suite).
+        env_stack = self.collect_stack_in_suites_tree(
+            lambda workdir: workdir.get_env_parameters().to_dict()
+        )
+        merged_env = {}
+        for env in reversed(env_stack):
+            merged_env = dict_merge(merged_env, env)
+
+        return NestedConfigValue(
+            raw=dict_interpolate(
+                dict_merge(
+                    self.get_config().to_dict(),
+                    self.get_config(env_name=self.get_app_env()).to_dict_or_none() or {},
+                ),
+                merged_env,
+            )
+        )
+
     def get_env_parameter_or_suite_fallback(
         self, key: str, default: str | None = None
     ) -> str | None:
