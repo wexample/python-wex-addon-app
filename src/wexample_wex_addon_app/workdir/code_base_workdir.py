@@ -86,6 +86,35 @@ class CodeBaseWorkdir(RepoWorkdir):
         else:
             progress.finish(label="No changes to commit")
 
+    def commit_propagated_dependency_updates(self) -> None:
+        """Commit and push dependency-version updates written by propagate_version.
+
+        Called for packages skipped during suite publication (no real source
+        changes) but whose config files (e.g. composer.json) were modified by
+        a sibling package's propagate_version step.  Committing here prevents
+        those diffs from accumulating as false positives on the next publish run.
+        """
+        from wexample_helpers_git.const.common import GIT_BRANCH_MAIN
+        from wexample_helpers_git.helpers.git import (
+            git_commit_all_with_message,
+            git_has_uncommitted_changes,
+        )
+
+        cwd = self.get_path()
+        if not git_has_uncommitted_changes(cwd=cwd):
+            return
+
+        self.log(
+            f"Committing propagated dependency updates for {self.get_package_name()}",
+            prefix=True,
+        )
+        git_commit_all_with_message(
+            "Update dependency versions",
+            cwd=cwd,
+            inherit_stdio=True,
+        )
+        self.push_to_deployment_remote(branch_name=GIT_BRANCH_MAIN)
+
     def depends_from(self, package: CodeBaseWorkdir) -> bool:
         for dependence_name in self.get_dependencies_versions().keys():
             if package.get_package_dependency_name() == dependence_name:

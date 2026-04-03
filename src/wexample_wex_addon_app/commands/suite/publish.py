@@ -45,6 +45,18 @@ def app__suite__publish(
         command="app::libraries/sync",
     )
 
+    # Pre-snapshot which packages have real source changes BEFORE the publish
+    # loop starts.  propagate_version (called inside each publish_bumped) writes
+    # the new version into dependents' config files on disk without committing.
+    # If we checked inside the loop those dirty files would create false positives
+    # for packages that have no actual source changes.
+    packages_with_changes: set[str] | None = None
+    if not force:
+        packages_with_changes = {
+            p.get_package_name()
+            for p in app_workdir.compute_packages_to_publish()
+        }
+
     context.io.log("Starting deployment...")
     context.io.indentation_up()
     progress = context.io.progress(
@@ -57,6 +69,18 @@ def app__suite__publish(
     # Use manager for every command allow to use complete specific environment.
     for package in packages:
         progress.advance(label=f"Publishing {package.get_project_name()}", step=1)
-        package.publish_bumped(force=force, interactive=not yes)
+        has_changes = (
+            None if force else package.get_package_name() in packages_with_changes
+        )
+        package.publish_bumped(force=force, interactive=not yes, has_changes=has_changes)
+
+    # Commit propagated dependency-version updates for packages that were not
+    # published (no real source changes).  Their config files (e.g. composer.json)
+    # may have been dirtied by propagate_version of a published sibling; commit
+    # those updates so they do not accumulate as false positives on future runs.
+    if packages_with_changes is not None:
+        for package in packages:
+            if package.get_package_name() not in packages_with_changes:
+                package.commit_propagated_dependency_updates()
 
     progress.finish(label="All packages published successfully")

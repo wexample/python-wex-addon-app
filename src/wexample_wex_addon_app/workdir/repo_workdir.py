@@ -166,7 +166,12 @@ class RepoWorkdir(AppWorkdir):
         self.merge_to_main()
         self.push_to_deployment_remote(branch_name=GIT_BRANCH_MAIN)
 
-    def publish_bumped(self, force: bool = False, interactive: bool = True) -> None:
+    def publish_bumped(
+        self,
+        force: bool = False,
+        interactive: bool = True,
+        has_changes: bool | None = None,
+    ) -> None:
         from wexample_prompt.enums.terminal_color import TerminalColor
 
         from wexample_wex_addon_app.commands.file_state.rectify import (
@@ -183,11 +188,20 @@ class RepoWorkdir(AppWorkdir):
             app__version__propagate,
         )
 
+        # When called from a suite publish, has_changes is pre-computed before the
+        # loop so that propagate_version side-effects on sibling packages do not
+        # create false positives.  When called standalone, fall back to the live check.
+        _has_changes = (
+            has_changes
+            if has_changes is not None
+            else self.has_changes_since_last_publication_tag()
+        )
+
         # Rectify runs only when there are actual changes (or force=True).
         # This is intentional: rectify itself may generate files (version.txt, README...),
         # but we consider those a consequence of real changes, not a trigger.
         # Use --force to publish even without detected changes (e.g. to force a rectify pass).
-        if force or self.has_changes_since_last_publication_tag():
+        if force or _has_changes:
             sub_progress = self.progress(
                 total=5, color=TerminalColor.YELLOW, indentation=1, print_response=False
             ).get_handle()
