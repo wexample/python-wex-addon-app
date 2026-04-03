@@ -56,6 +56,25 @@ def app__suite__publish(
             p.get_package_name()
             for p in app_workdir.compute_packages_to_publish()
         }
+        to_publish = [
+            p.get_package_name()
+            for p in packages
+            if p.get_package_name() in packages_with_changes
+        ]
+        to_skip = [
+            p.get_package_name()
+            for p in packages
+            if p.get_package_name() not in packages_with_changes
+        ]
+        if to_publish:
+            context.io.log(f"Packages to publish ({len(to_publish)}):")
+            context.io.list(to_publish)
+        if to_skip:
+            context.io.log(f"Packages with no changes, skipped ({len(to_skip)}):")
+            context.io.list(to_skip)
+        if not to_publish:
+            context.io.log("No packages have changes. Nothing to publish.")
+            return
 
     context.io.log("Starting deployment...")
     context.io.indentation_up()
