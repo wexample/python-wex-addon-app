@@ -305,10 +305,10 @@ class CodeBaseWorkdir(RepoWorkdir):
             branch_name=branch_name,
         )
 
-    def save_dependency(self, package: str, version: str) -> bool:
-        """Add or update a dependency with strict version."""
+    def save_dependency(self, package: str, version: str, operator: str = ">=") -> bool:
+        """Add or update a dependency constraint."""
         config = self.get_app_config_file()
-        return config.add_dependency(package=package, version=version)
+        return config.add_dependency(package=package, version=version, operator=operator)
 
     def update_dependencies(self, dependencies_map: dict[str, str]) -> None:
         """Update dependencies versions based on the provided map.

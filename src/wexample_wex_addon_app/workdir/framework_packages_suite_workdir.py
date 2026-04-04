@@ -328,12 +328,26 @@ class FrameworkPackageSuiteWorkdir(RepoWorkdir):
             self.propagate_version_of(package=package)
 
     def propagate_version_of(self, package: WithSuiteTreeWorkdirMixin) -> None:
+        from wexample_helpers.const.types import UPGRADE_TYPE_MINOR
+
+        bump_type = package.classify_version_bump()
+
+        # Patch bumps do not propagate — dependents with >= already satisfy the new version
+        if bump_type == UPGRADE_TYPE_MINOR:
+            package.log(
+                f"Patch bump for {package.get_project_name()}, skipping propagation.",
+                prefix=True,
+            )
+            return
+
         package.log(f"Propagating version {package.get_project_version()}", prefix=True)
         package.io.indentation_up()
 
         for dependent in self.get_dependents(package):
             updated = dependent.save_dependency(
-                package=package, version=package.get_project_version()
+                package=package,
+                version=package.get_project_version(),
+                operator=">=",
             )
             if updated:
                 package.log(
