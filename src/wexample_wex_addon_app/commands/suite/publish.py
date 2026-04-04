@@ -35,6 +35,11 @@ def app__suite__publish(
 ) -> None:
     from wexample_prompt.enums.terminal_color import TerminalColor
 
+    from wexample_wex_addon_app.commands.suite.status import app__suite__status
+
+    context.io.title("Suite publication status")
+    app_workdir.manager_run_command(command=app__suite__status)
+
     if not ignore_dependencies:
         app_workdir.packages_validate_internal_dependencies_declarations()
 
