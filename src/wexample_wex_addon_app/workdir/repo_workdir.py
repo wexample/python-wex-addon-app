@@ -143,17 +143,27 @@ class RepoWorkdir(AppWorkdir):
     def classify_version_bump(self) -> str:
         """Return the version bump type for this package based on changes since last tag.
 
-        Palier 1 heuristic: any change inside a critical directory is treated as major
-        (conservative). Falls back to minor (patch) otherwise.
-        If there is no previous tag, returns major (first publication).
-        Critical directories are defined per language via _get_critical_directories().
+        Handles the no-previous-tag case (first publication → patch) then delegates
+        to _classify_version_bump() for language-specific logic.
         """
-        from wexample_helpers.const.types import UPGRADE_TYPE_MAJOR, UPGRADE_TYPE_MINOR
-        from wexample_helpers_git.helpers.git import git_has_changes_since_tag
+        from wexample_helpers.const.types import UPGRADE_TYPE_MINOR
 
         last_tag = self.get_last_publication_tag()
         if last_tag is None:
-            return UPGRADE_TYPE_MAJOR
+            # First publication — no previous consumers, nothing to break
+            return UPGRADE_TYPE_MINOR
+
+        return self._classify_version_bump(last_tag)
+
+    def _classify_version_bump(self, last_tag: str) -> str:
+        """Classify the version bump type given a known previous tag.
+
+        Any change inside a critical directory is treated as major
+        (conservative). Falls back to minor (patch) otherwise.
+        Override in language-specific workdirs for finer-grained detection.
+        """
+        from wexample_helpers.const.types import UPGRADE_TYPE_MAJOR, UPGRADE_TYPE_MINOR
+        from wexample_helpers_git.helpers.git import git_has_changes_since_tag
 
         for directory in self._get_critical_directories():
             dir_path = self.get_path() / directory
