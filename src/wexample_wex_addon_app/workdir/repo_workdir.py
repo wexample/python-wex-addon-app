@@ -25,6 +25,8 @@ class RepoWorkdir(AppWorkdir):
             return False
 
         current_version = self.get_project_version()
+        if "type" not in kwargs:
+            kwargs["type"] = self.classify_version_bump()
         new_version = version_increment(version=current_version, **kwargs)
         branch_name = f"version-{new_version}"
 
