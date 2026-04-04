@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from wexample_filestate.const.types_state_items import TargetFileOrDirectoryType
+from wexample_helpers.classes.abstract_method import abstract_method
 
 from wexample_wex_addon_app.workdir.app_workdir import AppWorkdir
 
@@ -140,9 +141,10 @@ class RepoWorkdir(AppWorkdir):
     def classify_version_bump(self) -> str:
         """Return the version bump type for this package based on changes since last tag.
 
-        Palier 1 heuristic: any change inside src/ is treated as major (conservative).
-        If there is no src/ directory or no changes in src/, falls back to minor (patch).
+        Palier 1 heuristic: any change inside a critical directory is treated as major
+        (conservative). Falls back to minor (patch) otherwise.
         If there is no previous tag, returns major (first publication).
+        Critical directories are defined per language via _get_critical_directories().
         """
         from wexample_helpers.const.types import UPGRADE_TYPE_MAJOR, UPGRADE_TYPE_MINOR
         from wexample_helpers_git.helpers.git import git_has_changes_since_tag
@@ -151,11 +153,12 @@ class RepoWorkdir(AppWorkdir):
         if last_tag is None:
             return UPGRADE_TYPE_MAJOR
 
-        src_path = self.get_path() / "src"
-        if src_path.exists() and git_has_changes_since_tag(
-            last_tag, "src", cwd=self.get_path()
-        ):
-            return UPGRADE_TYPE_MAJOR
+        for directory in self._get_critical_directories():
+            dir_path = self.get_path() / directory
+            if dir_path.exists() and git_has_changes_since_tag(
+                last_tag, directory, cwd=self.get_path()
+            ):
+                return UPGRADE_TYPE_MAJOR
 
         return UPGRADE_TYPE_MINOR
 
@@ -294,6 +297,10 @@ class RepoWorkdir(AppWorkdir):
             if path.exists():
                 count += len(list(path.rglob("*")))
         return count
+
+    @abstract_method
+    def _get_critical_directories(self) -> list[str]:
+        pass
 
     def _get_source_code_directories(self) -> list[TargetFileOrDirectoryType]:
         return []
