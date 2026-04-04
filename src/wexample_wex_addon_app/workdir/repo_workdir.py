@@ -137,6 +137,28 @@ class RepoWorkdir(AppWorkdir):
             cwd=self.get_path()
         ) or git_has_changes_since_tag(last_commit, ".", cwd=self.get_path())
 
+    def classify_version_bump(self) -> str:
+        """Return the version bump type for this package based on changes since last tag.
+
+        Palier 1 heuristic: any change inside src/ is treated as major (conservative).
+        If there is no src/ directory or no changes in src/, falls back to minor (patch).
+        If there is no previous tag, returns major (first publication).
+        """
+        from wexample_helpers.const.types import UPGRADE_TYPE_MAJOR, UPGRADE_TYPE_MINOR
+        from wexample_helpers_git.helpers.git import git_has_changes_since_tag
+
+        last_tag = self.get_last_publication_tag()
+        if last_tag is None:
+            return UPGRADE_TYPE_MAJOR
+
+        src_path = self.get_path() / "src"
+        if src_path.exists() and git_has_changes_since_tag(
+            last_tag, "src", cwd=self.get_path()
+        ):
+            return UPGRADE_TYPE_MAJOR
+
+        return UPGRADE_TYPE_MINOR
+
     def has_changes_since_last_publication_tag(self) -> bool:
         """Return True if there are changes in the package directory since the last publication tag.
 
