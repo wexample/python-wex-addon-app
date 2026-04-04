@@ -16,11 +16,11 @@ from wexample_wex_addon_app.workdir.framework_packages_suite_workdir import (
 if TYPE_CHECKING:
     from wexample_wex_core.context.execution_context import ExecutionContext
 
-# Semver-friendly labels for internal upgrade type constants
-_BUMP_LABELS: dict[str, str] = {
-    "major": "major",
-    "intermediate": "minor",
-    "minor": "patch",
+# Semver-friendly labels and colors for internal upgrade type constants
+_BUMP_STYLE: dict[str, tuple[str, str]] = {
+    "major": ("major", "@red{major}"),
+    "intermediate": ("minor", "@yellow{minor}"),
+    "minor": ("patch", "@cyan{patch}"),
 }
 
 
@@ -40,16 +40,16 @@ def app__suite__status(
         has_changes = package.has_changes_since_last_publication_tag()
         if has_changes:
             bump_type = package.classify_version_bump()
-            bump_label = _BUMP_LABELS.get(bump_type, bump_type)
-            status = "to publish"
+            _, bump_colored = _BUMP_STYLE.get(bump_type, (bump_type, bump_type))
+            status = f"@yellow{{to publish}}"
         else:
-            bump_label = "-"
-            status = "up to date"
+            bump_colored = "-"
+            status = "@green{up to date}"
 
         rows.append([
             package.get_package_name(),
             package.get_project_version(),
-            bump_label,
+            bump_colored,
             status,
         ])
 
