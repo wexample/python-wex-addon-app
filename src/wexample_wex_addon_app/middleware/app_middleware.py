@@ -11,6 +11,7 @@ if TYPE_CHECKING:
     from wexample_wex_core.common.command_method_wrapper import CommandMethodWrapper
     from wexample_wex_core.common.command_request import CommandRequest
     from wexample_wex_core.context.execution_context import ExecutionContext
+    from wexample_wex_addon_app.workdir.app_workdir import AppWorkdir
 
 
 @base_class
@@ -40,17 +41,17 @@ class AppMiddleware(AbstractMiddleware):
         """Create and return the app workdir. Can be overridden by subclasses to add validation."""
         return request.get_addon_manager().create_app_workdir(path=app_path)
 
-    def get_services(self, app_workdir: AppWorkdir, kernel=None) -> list:
+    def get_services(self, app_workdir: AppWorkdir, kernel) -> list:
         from wexample_helpers_yaml.helpers.yaml_helpers import yaml_read
 
-        from wexample_wex_addon_app.resolver.service_command_resolver import ServiceCommandResolver
+        from wexample_wex_addon_app.app_addon_manager import AppAddonManager
         from wexample_wex_addon_app.service.app_service import AppService
 
-        service_resolver = next(
-            (r for r in kernel.get_resolvers() if isinstance(r, ServiceCommandResolver)),
+        app_addon_manager = next(
+            (a for a in kernel.get_addons().values() if isinstance(a, AppAddonManager)),
             None,
-        ) if kernel else None
-        if not service_resolver:
+        )
+        if not app_addon_manager:
             return []
 
         app_config = app_workdir.get_config()
@@ -60,7 +61,7 @@ class AppMiddleware(AbstractMiddleware):
 
         result = []
         for service_name in services_config.to_dict():
-            service_dir = service_resolver._find_service_dir(service_name)
+            service_dir = app_addon_manager.find_service_dir(service_name)
             manifest = yaml_read(file_path=str(service_dir / "service.yml"), default={}) if service_dir else {}
             result.append(AppService(name=service_name, app_workdir=app_workdir, service_dir=service_dir, manifest=manifest))
 

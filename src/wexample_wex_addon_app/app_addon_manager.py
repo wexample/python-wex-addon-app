@@ -65,6 +65,15 @@ class AppAddonManager(AbstractAddonManager):
             parent_io_handler=self.kernel,
         )
 
+    def find_service_dir(self, service_name: str) -> Path | None:
+        from wexample_wex_core.resolver.service_command_resolver import _SERVICES_SUBDIR
+
+        for addon in self.kernel.get_addons().values():
+            service_dir = addon.workdir.get_path() / _SERVICES_SUBDIR / service_name
+            if service_dir.is_dir():
+                return service_dir
+        return None
+
     def get_command_resolver_classes(self) -> list[type[AbstractCommandResolver]]:
         from wexample_wex_addon_app.resolver.app_command_resolver import AppCommandResolver
         from wexample_wex_addon_app.resolver.service_command_resolver import ServiceCommandResolver

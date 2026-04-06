@@ -44,6 +44,9 @@ class ServiceCommandResolver(CoreServiceCommandResolver):
             function_kwargs=function_kwargs,
         )
 
+    def _find_service_dir(self, service_name: str):
+        return self._get_app_addon_manager().find_service_dir(service_name)
+
     def _get_app_addon_manager(self):
         from wexample_wex_addon_app.app_addon_manager import AppAddonManager
 
