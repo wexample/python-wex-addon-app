@@ -86,27 +86,12 @@ def app__config__write(
             compose_files.append(str(network_compose))
 
         # Inject service compose files declared in service.yml (docker.compose)
-        from wexample_helpers_yaml.helpers.yaml_helpers import yaml_read
-        from wexample_wex_addon_app.resolver.service_command_resolver import ServiceCommandResolver
+        from wexample_wex_addon_app.middleware.app_middleware import AppMiddleware
 
-        app_config = app_workdir.get_config()
-        app_services = app_config.search("service").to_dict() if not app_config.search("service").is_none() else {}
-
-        service_resolver = next(
-            (r for r in context.kernel.get_resolvers() if isinstance(r, ServiceCommandResolver)),
-            None,
-        )
-        if service_resolver:
-            for service_name in app_services:
-                service_dir = service_resolver._find_service_dir(service_name)
-                if not service_dir:
-                    continue
-                service_manifest = yaml_read(file_path=str(service_dir / "service.yml"), default={})
-                compose_rel = service_manifest.get("docker", {}).get("compose")
-                if compose_rel:
-                    compose_abs = service_dir / compose_rel
-                    if compose_abs.exists():
-                        compose_files.append(str(compose_abs))
+        for app_service in context.middleware.get_services(app_workdir, kernel=context.kernel):
+            compose = app_service.get_compose_file()
+            if compose:
+                compose_files.append(str(compose))
 
         base_compose = app_path / WORKDIR_SETUP_DIR / "docker" / "docker-compose.yml"
         if base_compose.exists():
