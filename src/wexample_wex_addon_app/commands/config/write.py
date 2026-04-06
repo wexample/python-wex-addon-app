@@ -76,7 +76,6 @@ def app__config__write(
         env = app_workdir.get_app_env()
 
         # Collect compose files
-        # v6: todo — ajouter les fichiers compose des services via hook config/write-compose-pre (bloqué par migration services)
         compose_files = []
 
         # Inject default wex network compose (defines wex_net external network)
@@ -85,6 +84,29 @@ def app__config__write(
         network_compose = AppAddonManager.get_package_source_path() / "resources" / "docker" / "docker-compose.network.yml"
         if network_compose.exists():
             compose_files.append(str(network_compose))
+
+        # Inject service compose files declared in service.yml (docker.compose)
+        from wexample_helpers_yaml.helpers.yaml_helpers import yaml_read
+        from wexample_wex_addon_app.resolver.service_command_resolver import ServiceCommandResolver
+
+        app_config = app_workdir.get_config()
+        app_services = app_config.search("service").to_dict() if not app_config.search("service").is_none() else {}
+
+        service_resolver = next(
+            (r for r in context.kernel.get_resolvers() if isinstance(r, ServiceCommandResolver)),
+            None,
+        )
+        if service_resolver:
+            for service_name in app_services:
+                service_dir = service_resolver._find_service_dir(service_name)
+                if not service_dir:
+                    continue
+                service_manifest = yaml_read(file_path=str(service_dir / "service.yml"), default={})
+                compose_rel = service_manifest.get("docker", {}).get("compose")
+                if compose_rel:
+                    compose_abs = service_dir / compose_rel
+                    if compose_abs.exists():
+                        compose_files.append(str(compose_abs))
 
         base_compose = app_path / WORKDIR_SETUP_DIR / "docker" / "docker-compose.yml"
         if base_compose.exists():
@@ -123,7 +145,6 @@ def app__config__write(
         )
         runtime_compose.write_text(result.stdout)
 
-        # v6: todo — appeler hook config/write-post (bloqué par migration services)
         context.io.log(f"docker-compose.runtime.yml written")
 
     return QueuedCollectionResponse(kernel=context.kernel, content=[_runtime, _docker])
