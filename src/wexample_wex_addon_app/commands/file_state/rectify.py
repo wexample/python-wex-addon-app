@@ -91,6 +91,9 @@ def app__file_state__rectify(
             context.io.log(
                 f"Pass {iterations} completed with {len(result.operations)} operation(s); starting pass {iterations + 1} of {loop_limit}."
             )
+
+        from wexample_filestate.option.mixin.with_runner_option_mixin import WithRunnerOptionMixin
+        WithRunnerOptionMixin.stop_runners_for_root(app_workdir.get_path())
     else:
         workdir = context.request.get_addon_manager().create_app_workdir(reload=True)
         workdir.dry_run()
