@@ -53,13 +53,38 @@ class AppReadmeConfigValue(ReadmeContentConfigValue):
     def _get_project_license(self) -> str | None:
         return None
 
+    def _collect_suite_paths(self) -> list[Path]:
+        """Return suite paths from closest to farthest."""
+        from wexample_helpers.helpers.directory import directory_iterate_parent_dirs
+        from wexample_wex_addon_app.workdir.app_workdir import AppWorkdir
+
+        def _is_suite(path: Path) -> bool:
+            config = AppWorkdir.get_config_from_path(path=path)
+            return bool(
+                config and not config.read_config().search("package_suite").is_none()
+            )
+
+        suite_paths = []
+        current = self.workdir.get_path()
+        while True:
+            suite_path = directory_iterate_parent_dirs(
+                path=current.parent, condition=_is_suite
+            )
+            if not suite_path:
+                break
+            suite_paths.append(suite_path)
+            current = suite_path
+
+        return suite_paths
+
     def _get_readme_search_paths(self) -> list[Path]:
         """Return list of paths to search for README templates.
 
         Searches in order:
         1. Workdir-specific templates
-        2. Suite-level templates (if available)
-        3. Bundled default templates
+        2. Language addon bundled templates
+        3. App addon bundled templates
+        4. Suite-level templates (closest to farthest)
 
         Returns:
             List of paths to search for templates
@@ -82,39 +107,32 @@ class AppReadmeConfigValue(ReadmeContentConfigValue):
             module=__name__, search_paths=search_paths
         )
 
-        from wexample_helpers.helpers.directory import directory_iterate_parent_dirs
-        from wexample_wex_addon_app.workdir.app_workdir import AppWorkdir
-
-        def _is_suite(path: Path) -> bool:
-            config = AppWorkdir.get_config_from_path(path=path)
-            return bool(
-                config and not config.read_config().search("package_suite").is_none()
-            )
-
-        current = workdir_path
-        while True:
-            suite_path = directory_iterate_parent_dirs(
-                path=current.parent, condition=_is_suite
-            )
-            if not suite_path:
-                break
+        for suite_path in self._collect_suite_paths():
             search_paths.append(
                 suite_path / WORKDIR_SETUP_DIR / "knowledge" / "package-readme"
             )
-            current = suite_path
 
         return search_paths
 
     def _get_section_names(self) -> list[str]:
-        """Return the list of section names to include in the README.
+        """Return the ordered list of section names to include in the README.
 
-        Default sections common to all packages. Subclasses can override
-        to add language-specific sections.
+        Base sections are defined here. Suite configs (config.yml) can inject
+        additional sections via a `readme.sections` key:
+
+            readme:
+              sections:
+                - name: my-section
+                  after: license      # insert after this section
+                - name: other
+                  before: useful-links  # or before
+
+        Suites are processed farthest-first so closer suites take precedence.
 
         Returns:
             List of section names in order
         """
-        return super()._get_section_names() + [
+        base = super()._get_section_names() + [
             "status-compatibility",
             "prerequisites",
             "installation",
@@ -145,6 +163,47 @@ class AppReadmeConfigValue(ReadmeContentConfigValue):
             "links",
             "suite-signature",
         ]
+        return self._apply_suite_section_injections(base)
+
+    def _apply_suite_section_injections(self, sections: list[str]) -> list[str]:
+        """Inject sections declared in suite configs into the section list.
+
+        Processes suite configs farthest-first so the closest suite has the
+        final say on positioning.
+        """
+        import yaml
+        from wexample_app.const.globals import WORKDIR_SETUP_DIR
+
+        for suite_path in reversed(self._collect_suite_paths()):
+            config_file = suite_path / WORKDIR_SETUP_DIR / "config.yml"
+            if not config_file.exists():
+                continue
+
+            with open(config_file, encoding="utf-8") as f:
+                config = yaml.safe_load(f)
+
+            if not config:
+                continue
+
+            for injection in config.get("readme", {}).get("sections", []):
+                if isinstance(injection, str):
+                    name, after, before = injection, None, None
+                else:
+                    name = injection.get("name")
+                    after = injection.get("after")
+                    before = injection.get("before")
+
+                if not name or name in sections:
+                    continue
+
+                if after and after in sections:
+                    sections.insert(sections.index(after) + 1, name)
+                elif before and before in sections:
+                    sections.insert(sections.index(before), name)
+                else:
+                    sections.append(name)
+
+        return sections
 
     def _get_template_context(self) -> dict:
         """Build the template context with all variables.
