@@ -165,19 +165,20 @@ class AppReadmeConfigValue(ReadmeContentConfigValue):
     def _merge_section_order(
         self, discovered: list[str], order: list[str]
     ) -> list[str]:
-        """Pin title first, suite-signature last, apply order to the rest."""
-        pinned_first = {"title", "table-of-contents"}
-        pinned_last = {"suite-signature"}
-        pinned = pinned_first | pinned_last
+        """Pin title/table-of-contents first, apply order to the rest.
 
+        title and table-of-contents are structural anchors always rendered
+        first regardless of config. Everything else is driven by
+        readme.sections in the suite config.yml.
+        """
+        pinned = {"title", "table-of-contents"}
         first = [s for s in ["title", "table-of-contents"] if s in discovered]
-        last = [s for s in ["suite-signature"] if s in discovered]
-        middle = [s for s in discovered if s not in pinned]
+        rest = [s for s in discovered if s not in pinned]
 
-        ordered = [s for s in order if s in middle]
-        remainder = [s for s in middle if s not in set(order)]
+        ordered = [s for s in order if s in rest]
+        remainder = [s for s in rest if s not in set(order)]
 
-        return first + ordered + remainder + last
+        return first + ordered + remainder
 
     def _get_template_context(self) -> dict:
         return {
