@@ -146,6 +146,28 @@ class AppWorkdir(
             inherit_stdio=True,
         )
 
+    def get_main_service(self) -> str | None:
+        config = self.get_runtime_config().search("global.main_service")
+        return config.get_str_or_none() if not config.is_none() else None
+
+    def get_main_container_name(self) -> str:
+        config = self.get_runtime_config().search("docker.main_container")
+        if not config.is_none():
+            return config.get_str()
+        main_service = self.get_main_service()
+        if main_service:
+            return main_service
+        raise ValueError("No main container configured (docker.main_container or global.main_service)")
+
+    def get_service_shell(self, service: str | None = None) -> str:
+        config = self.get_runtime_config().search("docker.main_container_shell")
+        if not config.is_none():
+            return config.get_str()
+        return "/bin/bash"
+
+    def docker_build_long_container_name(self, container_name: str) -> str:
+        return f"{self.get_project_name()}_{container_name}"
+
     def get_public_remote_repository_url(self) -> str | None:
         return None
 
