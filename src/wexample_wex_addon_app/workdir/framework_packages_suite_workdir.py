@@ -367,19 +367,14 @@ class FrameworkPackageSuiteWorkdir(RepoWorkdir):
         return dependencies
 
     def setup_install(self, env: str | None = None, force: bool = False) -> None:
-        from wexample_wex_addon_app.commands.setup.install import app__setup__install
+        self.subtitle(f"Installing suite: {self.get_project_name()}")
+        super().setup_install(env=env, force=force)
 
-        self.subtitle(f"Installing suite app")
-        super().setup_install(env=env)
-
-        self.subtitle(f"Installing local packages")
+        self.subtitle(f"Installing packages")
         for package in self.get_packages():
             package.ensure_app_manager_setup()
-
-        self.packages_execute_function(
-            command=app__setup__install,
-            arguments=["--env", env],
-        )
+            self.log(f"Installing {package.get_project_name()}...")
+            package.setup_install(env=env, force=force)
 
     def topological_order(self, dep_map: dict[str, list[str]]) -> list[str]:
         """Deterministic topological order (leaves -> trunk) using graphlib."""

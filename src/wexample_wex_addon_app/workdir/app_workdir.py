@@ -384,14 +384,7 @@ class AppWorkdir(
         self.get_registry(rebuild=True)
 
     def setup_install(self, env: str | None = None, force: bool = False) -> bool:
-        from wexample_wex_addon_app.commands.setup.install import app__setup__install
-
-        self.manager_run_command(
-            command=app__setup__install,
-            arguments=["--env", env] if env else [],
-        )
-
-        return True
+        return self.app_install(env=env, force=force)
 
     def shell_run_for_app(self, **kwargs) -> ShellResult:
         return self.shell_run_from_path(path=self.get_path(), **kwargs)
