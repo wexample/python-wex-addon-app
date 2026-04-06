@@ -66,11 +66,10 @@ class AppAddonManager(AbstractAddonManager):
         )
 
     def get_command_resolver_classes(self) -> list[type[AbstractCommandResolver]]:
-        from wexample_wex_addon_app.resolver.app_command_resolver import (
-            AppCommandResolver,
-        )
+        from wexample_wex_addon_app.resolver.app_command_resolver import AppCommandResolver
+        from wexample_wex_addon_app.resolver.service_command_resolver import ServiceCommandResolver
 
-        return [AppCommandResolver]
+        return [AppCommandResolver, ServiceCommandResolver]
 
     def get_middlewares_classes(self) -> list[type[AbstractMiddleware]]:
         from wexample_wex_addon_app.middleware.app_middleware import AppMiddleware
