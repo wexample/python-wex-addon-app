@@ -82,16 +82,26 @@ class AppReadmeConfigValue(ReadmeContentConfigValue):
             module=__name__, search_paths=search_paths
         )
 
-        def _get_template(workdir) -> None:
-            search_paths.append(
-                workdir.get_path() / WORKDIR_SETUP_DIR / "knowledge" / "package-readme"
+        from wexample_helpers.helpers.directory import directory_iterate_parent_dirs
+        from wexample_wex_addon_app.workdir.app_workdir import AppWorkdir
+
+        def _is_suite(path: Path) -> bool:
+            config = AppWorkdir.get_config_from_path(path=path)
+            return bool(
+                config and not config.read_config().search("package_suite").is_none()
             )
 
-        search_paths.extend(
-            self.workdir.collect_stack_in_suites_tree(
-                callback=_get_template, include_self=False
+        current = workdir_path
+        while True:
+            suite_path = directory_iterate_parent_dirs(
+                path=current.parent, condition=_is_suite
             )
-        )
+            if not suite_path:
+                break
+            search_paths.append(
+                suite_path / WORKDIR_SETUP_DIR / "knowledge" / "package-readme"
+            )
+            current = suite_path
 
         return search_paths
 
