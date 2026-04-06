@@ -24,6 +24,7 @@ from wexample_wex_addon_app.workdir.mixin.with_app_registry_mixin import (
 from wexample_wex_addon_app.workdir.mixin.with_readme_workdir_mixin import (
     WithReadmeWorkdirMixin,
 )
+from wexample_filestate.item.mixin.with_runners_root_mixin import WithRunnersRootMixin
 from wexample_wex_addon_app.workdir.mixin.with_suite_tree_workdir_mixin import (
     WithSuiteTreeWorkdirMixin,
 )
@@ -36,6 +37,7 @@ if TYPE_CHECKING:
 
 @base_class
 class AppWorkdir(
+    WithRunnersRootMixin,
     WithAppConfigWorkdirMixin,
     WithSuiteTreeWorkdirMixin,
     WithReadmeWorkdirMixin,
