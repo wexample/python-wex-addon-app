@@ -35,7 +35,6 @@ class ServiceCommandResolver(CoreServiceCommandResolver):
         app_addon_manager = self._get_app_addon_manager()
         app_workdir = app_addon_manager.create_app_workdir(path=app_path)
 
-        function_kwargs["app_workdir"] = app_workdir
         function_kwargs["service"] = AppService(name=service_name, app_workdir=app_workdir)
 
         return super().build_execution_context(
