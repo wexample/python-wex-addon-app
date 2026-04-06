@@ -25,6 +25,9 @@ from wexample_wex_addon_app.workdir.mixin.with_readme_workdir_mixin import (
     WithReadmeWorkdirMixin,
 )
 from wexample_filestate.item.mixin.with_runners_root_mixin import WithRunnersRootMixin
+from wexample_migration.workdir.mixin.with_migration_workdir_mixin import (
+    WithMigrationWorkdirMixin,
+)
 from wexample_wex_addon_app.workdir.mixin.with_suite_tree_workdir_mixin import (
     WithSuiteTreeWorkdirMixin,
 )
@@ -37,6 +40,7 @@ if TYPE_CHECKING:
 
 @base_class
 class AppWorkdir(
+    WithMigrationWorkdirMixin,
     WithRunnersRootMixin,
     WithAppConfigWorkdirMixin,
     WithSuiteTreeWorkdirMixin,
@@ -46,6 +50,11 @@ class AppWorkdir(
     WithAppRegistryMixin,
     Workdir,
 ):
+    def get_migrations(self):
+        from wexample_wex_addon_app.migrations.migration_wex_6_0_0 import MigrationWex600
+
+        return [MigrationWex600]
+
     @classmethod
     def is_app_workdir_path(cls, path: FileStringOrPath) -> bool:
         config = cls.get_config_from_path(path=path)
