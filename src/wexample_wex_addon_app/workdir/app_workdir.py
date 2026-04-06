@@ -383,6 +383,50 @@ class AppWorkdir(
         self.set_env_parameter(key=ENV_VAR_NAME_APP_ENV, value=env)
         self.get_registry(rebuild=True)
 
+    def runtime_cleanup(self) -> tuple[int, int]:
+        from wexample_helpers.helpers.docker import (
+            docker_container_is_running,
+            docker_image_exists,
+            docker_remove_container,
+            docker_remove_image,
+            docker_stop_container,
+        )
+        from wexample_helpers.helpers.shell import shell_run
+
+        image_names: set[str] = self._collect_docker_image_names()
+
+        result = shell_run(
+            cmd=["docker", "ps", "-a", "--format", "{{.Names}}\t{{.Image}}"],
+            capture=True,
+        )
+        containers_to_remove = [
+            line.split("\t")[0]
+            for line in result.stdout.strip().splitlines()
+            if "\t" in line and line.split("\t")[1] in image_names
+        ]
+
+        removed_containers = 0
+        for name in containers_to_remove:
+            if docker_container_is_running(name):
+                docker_stop_container(name)
+            docker_remove_container(name)
+            removed_containers += 1
+
+        removed_images = 0
+        for image_name in image_names:
+            if docker_image_exists(image_name):
+                docker_remove_image(image_name)
+                removed_images += 1
+
+        return removed_containers, removed_images
+
+    def _collect_docker_image_names(self) -> set[str]:
+        return {
+            name
+            for provider in self.get_options_providers()
+            if (name := provider.get_docker_image_name()) is not None
+        }
+
     def setup_install(self, env: str | None = None, force: bool = False) -> bool:
         return self.app_install(env=env, force=force)
 
