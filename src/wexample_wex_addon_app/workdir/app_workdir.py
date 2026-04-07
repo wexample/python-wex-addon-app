@@ -155,7 +155,7 @@ class AppWorkdir(
         )
 
     def get_main_service(self) -> str | None:
-        config = self.get_runtime_config().search("global.main_service")
+        config = self.get_runtime_config().search("app.global.main_service")
         return config.get_str_or_none() if not config.is_none() else None
 
     def get_main_db_service(self) -> str | None:

@@ -171,7 +171,7 @@ def app__app__start(
             time.sleep(2)
 
     def _complete(previous_value=None):
-        from wexample_wex_addon_app.commands.app.exec import app__app__exec
+        from wexample_wex_addon_app.commands.app.go import app__app__go
         from wexample_wex_addon_app.commands.app.stop import app__app__stop
         from wexample_wex_addon_app.commands.db.go import app__db__go
         from wexample_wex_core.resolver.addon_command_resolver import AddonCommandResolver
@@ -198,7 +198,7 @@ def app__app__start(
             message=summary,
             suggestions=[
                 _cmd(app__db__go),
-                _cmd(app__app__exec),
+                _cmd(app__app__go),
                 _cmd(app__app__stop),
             ],
         )

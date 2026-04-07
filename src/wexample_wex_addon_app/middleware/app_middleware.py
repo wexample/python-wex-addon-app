@@ -54,16 +54,19 @@ class AppMiddleware(AbstractMiddleware):
         if not app_addon_manager:
             return []
 
-        app_config = app_workdir.get_config()
-        services_config = app_config.search("service")
-        if services_config.is_none():
-            return []
-
-        result = []
-        for service_name in services_config.to_dict():
+        def _make_service(service_name: str) -> AppService:
             service_dir = app_addon_manager.find_service_dir(service_name)
             manifest = yaml_read(file_path=str(service_dir / "service.yml"), default={}) if service_dir else {}
-            result.append(AppService(name=service_name, app_workdir=app_workdir, service_dir=service_dir, manifest=manifest))
+            return AppService(name=service_name, app_workdir=app_workdir, service_dir=service_dir, manifest=manifest)
+
+        # "default" is always injected first — it provides the base compose (stdin_open, tty, restart, network)
+        result = [_make_service("default")]
+
+        app_config = app_workdir.get_config()
+        services_config = app_config.search("service")
+        if not services_config.is_none():
+            for service_name in services_config.to_dict():
+                result.append(_make_service(service_name))
 
         return result
 
