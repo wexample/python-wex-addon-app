@@ -23,6 +23,11 @@ def app__app__perms(
     app_workdir: AppWorkdir,
 ) -> None:
     from wexample_filestate.enum.scopes import Scope
+    from wexample_filestate.item.abstract_item_target import AbstractItemTarget
 
-    app_workdir.apply(scopes={Scope.PERMISSIONS, Scope.OWNERSHIP})
+    AbstractItemTarget.apply(
+        app_workdir,
+        interactive=False,
+        scopes={Scope.PERMISSIONS, Scope.OWNERSHIP},
+    )
     context.io.log("Permissions applied")
