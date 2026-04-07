@@ -41,7 +41,11 @@ def app__app__restart(
         )
 
     def _start(previous_value=None) -> AbstractResponse:
-        # v6: todo — appeler app::app/start une fois migré
-        raise NotImplementedError("app/start not yet migrated")
+        from wexample_wex_addon_app.commands.app.start import app__app__start
+
+        return context.kernel.run_function(
+            app__app__start,
+            arguments={"fast": fast},
+        )
 
     return QueuedCollectionResponse(kernel=context.kernel, content=[_stop, _start])
