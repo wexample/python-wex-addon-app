@@ -36,14 +36,18 @@ def app__app__go(
     container_name: str | None = None,
     user: str | None = None,
 ) -> AbstractResponse:
-    from wexample_wex_addon_app.commands.app.exec import app__app__exec
+    from wexample_app.response.interactive_shell_command_response import InteractiveShellCommandResponse
 
-    return context.kernel.run_function(
-        app__app__exec,
-        arguments={
-            "container_name": container_name or app_workdir.get_main_container_name(),
-            "command": app_workdir.get_service_shell(),
-            "user": user,
-            "interactive": True,
-        },
+    container = container_name or app_workdir.get_main_container_name()
+    long_name = app_workdir.docker_build_long_container_name(container)
+    shell = app_workdir.get_service_shell()
+
+    docker_command = ["docker", "exec", "-ti"]
+    if user:
+        docker_command += ["-u", user]
+    docker_command += [long_name, shell]
+
+    return InteractiveShellCommandResponse(
+        kernel=context.kernel,
+        content=docker_command,
     )

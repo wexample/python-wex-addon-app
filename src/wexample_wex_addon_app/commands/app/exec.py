@@ -81,15 +81,14 @@ def app__app__exec(
 
     # v6: todo — args_parse_one : parser intelligemment --command (string ou liste imbriquée)
 
+    docker_command += [long_name, shell, "-c", command]
+
     if interactive:
-        docker_command += [long_name, command]
         from wexample_app.response.interactive_shell_command_response import InteractiveShellCommandResponse
         return InteractiveShellCommandResponse(
             kernel=context.kernel,
             content=docker_command,
         )
-
-    docker_command += [long_name, shell, "-c", command]
 
     return ShellCommandResponse(
         kernel=context.kernel,
