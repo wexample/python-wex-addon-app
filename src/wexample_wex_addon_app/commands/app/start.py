@@ -79,9 +79,35 @@ def app__app__start(
     docker_env_file = str(tmp_dir / "docker.env")
 
     def _checkup(previous_value=None):
-        # v6: todo — vérifier existence .wex/.env, proposer env/choose si absent (bloqué par env/choose + env/set)
-        # v6: todo — appeler app::app/started pour détecter si déjà démarrée (bloqué par run_function cross-addon)
-        context.io.log("Checking app state...")
+        from wexample_app.const.globals import WORKDIR_SETUP_DIR
+        from wexample_app.response.queue_collection.queued_collection_stop_response import (
+            QueuedCollectionStopResponse,
+        )
+        from wexample_filestate.item.file.env_file import EnvFile
+
+        from wexample_wex_addon_app.commands.app.started import (
+            APP_STARTED_CHECK_MODE_ANY_CONTAINER,
+            _check_started,
+        )
+
+        env_file = app_workdir.get_path() / WORKDIR_SETUP_DIR / EnvFile.EXTENSION_DOT_ENV
+        if not env_file.exists():
+            from wexample_wex_addon_app.commands.env.choose import app__env__choose
+
+            context.io.log("No .wex/.env file found, please choose an environment")
+            chosen = context.kernel.run_function(app__env__choose)
+            if chosen is None:
+                return QueuedCollectionStopResponse(
+                    kernel=context.kernel,
+                    reason="No environment configured, start aborted",
+                )
+
+        if _check_started(app_workdir, APP_STARTED_CHECK_MODE_ANY_CONTAINER, context):
+            return QueuedCollectionStopResponse(
+                kernel=context.kernel,
+                reason="App is already running",
+            )
+
         return True
 
     def _proxy(previous_value=None):
