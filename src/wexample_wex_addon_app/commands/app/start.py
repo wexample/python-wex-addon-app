@@ -121,8 +121,26 @@ def app__app__start(
                 yaml.dump(data, f)
 
     def _pending(previous_value=None):
-        # v6: todo — poller service/ready via hooks services jusqu'à ce que tous soient prêts
-        context.io.log("Waiting for services... (not yet implemented)")
+        import time
+
+        def _check() -> bool:
+            services = context.middleware.get_services(app_workdir, kernel=context.kernel)
+            results = context.middleware.call_service_hook(
+                hook="service/ready",
+                services=services,
+                kernel=context.kernel,
+                app_path=str(app_path),
+            )
+            all_ready = True
+            for service_name, ready in results.items():
+                if not ready:
+                    context.io.log(f"{service_name} is not ready yet...")
+                    all_ready = False
+            return all_ready
+
+        while not _check():
+            context.io.log("Waiting for services...")
+            time.sleep(2)
 
     def _serve(previous_value=None):
         # v6: todo — appeler hook app/start-post + app/serve (bloqué par migration services)
