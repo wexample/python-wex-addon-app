@@ -18,9 +18,5 @@ def letsencrypt__runtime__contribution(
 ) -> AbstractResponse:
     from wexample_app.response.dict_response import DictResponse
 
-    domains = service.app_workdir.get_config().search("domains").get_list_or_default([])
-
-    return DictResponse(
-        kernel=context.kernel,
-        content={"domains_string": " ".join(str(d) for d in domains)},
-    )
+    # domains_string is now computed by config/write — nothing to contribute here
+    return DictResponse(kernel=context.kernel, content={})
