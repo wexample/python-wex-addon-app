@@ -136,12 +136,13 @@ def app__app__start(
             context.io.log("Proxy explicitly disabled")
             return
 
-        # Proxy app does not exist yet — skip (helper/start not yet migrated)
-        if not proxy_path.exists():
-            context.io.log("Proxy app not found, skipping (run helper/start first)")
-            return
-
         from wexample_wex_addon_app.app_addon_manager import AppAddonManager
+
+        if not proxy_path.exists():
+            from wexample_wex_addon_app.commands.helper.start import app__helper__start
+
+            context.kernel.run_function(app__helper__start, {"env": env})
+            return
 
         proxy_workdir = AppAddonManager.from_kernel(context.kernel).create_app_workdir(
             path=proxy_path
