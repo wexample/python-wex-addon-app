@@ -88,6 +88,7 @@ def app__helper__start(
             "  type: app\n"
             "  name: wex-proxy\n"
             "  main_service: proxy\n"
+            "  version: 1.0.0\n"
             "service:\n"
             "  proxy: {}\n"
         )
@@ -105,9 +106,9 @@ def app__helper__start(
 
         context.io.log(f"Proxy app created at {proxy_path}")
 
-    def _start(previous_value=None) -> None:
+    def _start(previous_value=None):
         from wexample_wex_addon_app.commands.app.start import app__app__start
 
-        context.kernel.run_function(app__app__start, {"app_path": str(proxy_path)})
+        return context.kernel.run_function(app__app__start, {"app_path": str(proxy_path)})
 
     return QueuedCollectionResponse(kernel=context.kernel, content=[_create, _start])

@@ -141,8 +141,7 @@ def app__app__start(
         if not proxy_path.exists():
             from wexample_wex_addon_app.commands.helper.start import app__helper__start
 
-            context.kernel.run_function(app__helper__start, {"env": env})
-            return
+            return context.kernel.run_function(app__helper__start, {"env": env})
 
         proxy_workdir = AppAddonManager.from_kernel(context.kernel).create_app_workdir(
             path=proxy_path
@@ -152,14 +151,15 @@ def app__app__start(
         ):
             return
 
-        context.kernel.run_function(app__app__start, {"app_path": str(proxy_path)})
+        return context.kernel.run_function(app__app__start, {"app_path": str(proxy_path)})
 
     def _config(previous_value=None) -> AbstractResponse:
         from wexample_wex_addon_app.commands.app.perms import app__app__perms
         from wexample_wex_addon_app.commands.config.write import app__config__write
 
-        context.kernel.run_function(app__app__perms)
-        return context.kernel.run_function(app__config__write)
+        app_path_str = str(app_path)
+        context.kernel.run_function(app__app__perms, {"app_path": app_path_str})
+        return context.kernel.run_function(app__config__write, {"app_path": app_path_str})
 
     def _starting(previous_value=None):
         from wexample_app.response.interactive_shell_command_response import InteractiveShellCommandResponse
