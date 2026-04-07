@@ -31,7 +31,10 @@ class AppService:
 
         Reads service config from config.yml (host, port, name, password, user, ...)
         and compose file path, structured under service.{name}.
+        Also resolves declarative runtime.bind paths from service.yml.
         """
+        from wexample_app.const.globals import WORKDIR_SETUP_DIR
+
         app_config = self.app_workdir.get_config()
         sconfig = app_config.search(f"service.{self.name}")
         sconfig_dict = sconfig.to_dict() if not sconfig.is_none() else {}
@@ -45,5 +48,24 @@ class AppService:
         if compose:
             contribution.setdefault("service", {}).setdefault(self.name, {})
             contribution["service"][self.name]["compose"] = str(compose)
+
+        bind_declarations = self.manifest.get("runtime", {}).get("bind", {})
+        if bind_declarations:
+            env = self.app_workdir.get_app_env() or ""
+            wex_dir = self.app_workdir.get_path() / WORKDIR_SETUP_DIR
+            resolved_binds = {}
+            for key, rel_path in bind_declarations.items():
+                env_specific = wex_dir / "env" / env / rel_path
+                base = wex_dir / rel_path
+                if env_specific.exists():
+                    resolved_binds[key] = str(env_specific)
+                elif base.exists():
+                    resolved_binds[key] = str(base)
+                else:
+                    raise FileNotFoundError(
+                        f"Bind '{key}' declared in service '{self.name}' could not be resolved: "
+                        f"neither '{env_specific}' nor '{base}' exists."
+                    )
+            contribution["bind"] = resolved_binds
 
         return contribution
