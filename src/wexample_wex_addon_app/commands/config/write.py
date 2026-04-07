@@ -88,7 +88,55 @@ def app__config__write(
         env_file.write_config(NestedConfigValue(raw=env_vars))
         context.io.log(f"docker.env written ({len(env_vars)} variable(s))")
 
+    def _docker(previous_value=None) -> None:
+        import subprocess
+
+        runtime = app_workdir.get_runtime_config_file().read_config().to_dict()
+        docker_env_path = tmp_dir / "docker.env"
+        compose_runtime_path = tmp_dir / "docker-compose.runtime.yml"
+
+        compose_files = []
+
+        # Base app compose
+        base_compose = app_path / WORKDIR_SETUP_DIR / "docker" / "docker-compose.yml"
+        if base_compose.exists():
+            compose_files.append(str(base_compose))
+
+        # Env-specific app compose
+        env_compose = app_path / WORKDIR_SETUP_DIR / "env" / env / "docker" / "docker-compose.yml"
+        if env_compose.exists():
+            compose_files.append(str(env_compose))
+
+        # Service composes from runtime
+        for service_data in runtime.get("service", {}).values():
+            if isinstance(service_data, dict) and "compose" in service_data:
+                compose_files.append(service_data["compose"])
+
+        if not compose_files:
+            context.io.log("No docker compose files found, skipping")
+            return
+
+        cmd = ["docker", "compose"]
+        for f in compose_files:
+            cmd += ["-f", f]
+        cmd += [
+            "--profile", f"env_{env}",
+            "--project-name", project_name,
+            "--env-file", str(docker_env_path),
+            "config",
+        ]
+
+        result = subprocess.run(cmd, capture_output=True, text=True)
+        if result.returncode != 0:
+            raise RuntimeError(
+                f"docker compose config failed:\n{result.stderr}"
+            )
+
+        compose_runtime_path.write_text(result.stdout)
+        context.io.log(f"docker-compose.runtime.yml written ({len(compose_files)} file(s))")
+
     return QueuedCollectionResponse(kernel=context.kernel, content=[
         _runtime,
         _env,
+        _docker,
     ])
