@@ -11,7 +11,6 @@ if TYPE_CHECKING:
     from wexample_wex_core.common.command_method_wrapper import CommandMethodWrapper
     from wexample_wex_core.common.command_request import CommandRequest
     from wexample_wex_core.context.execution_context import ExecutionContext
-    from wexample_wex_addon_app.workdir.app_workdir import AppWorkdir
 
 
 @base_class
@@ -41,74 +40,7 @@ class AppMiddleware(AbstractMiddleware):
         """Create and return the app workdir. Can be overridden by subclasses to add validation."""
         return request.get_addon_manager().create_app_workdir(path=app_path)
 
-    def get_services(self, app_workdir: AppWorkdir, kernel) -> list:
-        from wexample_helpers_yaml.helpers.yaml_helpers import yaml_read
-
-        from wexample_wex_addon_app.app_addon_manager import AppAddonManager
-        from wexample_wex_addon_app.service.app_service import AppService
-
-        app_addon_manager = next(
-            (a for a in kernel.get_addons().values() if isinstance(a, AppAddonManager)),
-            None,
-        )
-        if not app_addon_manager:
-            return []
-
-        def _make_service(service_name: str) -> AppService:
-            service_dir = app_addon_manager.find_service_dir(service_name)
-            manifest = yaml_read(file_path=str(service_dir / "service.yml"), default={}) if service_dir else {}
-            return AppService(name=service_name, app_workdir=app_workdir, service_dir=service_dir, manifest=manifest)
-
-        # "default" is always injected first — it provides the base compose (stdin_open, tty, restart, network)
-        result = [_make_service("default")]
-
-        app_config = app_workdir.get_config()
-        services_config = app_config.search("service")
-        if not services_config.is_none():
-            for service_name in services_config.to_dict():
-                result.append(_make_service(service_name))
-
-        return result
-
-    def call_service_hook(
-        self,
-        hook: str,
-        services: list,
-        kernel,
-        app_path: str,
-        arguments: dict | None = None,
-    ) -> dict:
-        """Call a hook command on each service that declares it, return merged results.
-
-        For each service in the list, calls @{service}::{hook} if the command file exists.
-        Returns a dict mapping service_name → response.content (for dict responses) or None.
-        """
-        from wexample_app.const.output import OUTPUT_TARGET_NONE
-
-        results = {}
-        for service in services:
-            if not service.service_dir:
-                continue
-
-            parts = hook.replace("/", f"/").split("/")
-            cmd_path = service.service_dir / "commands" / "/".join(parts[:-1]) / f"{parts[-1]}.py"
-            if not cmd_path.exists():
-                continue
-
-            cmd_name = f"@{service.name}::{hook}"
-            request = kernel._get_command_request_class()(
-                kernel=kernel,
-                name=cmd_name,
-                arguments={"app_path": app_path, **(arguments or {})},
-                output_target=[OUTPUT_TARGET_NONE],
-            )
-            response = kernel.execute_kernel_command(request)
-            results[service.name] = response.content if hasattr(response, "content") else None
-
-        return results
-
     def _get_middleware_options(self) -> list[Option]:
-        """Get the default file option definition."""
         from wexample_app.command.option import Option
 
         return [

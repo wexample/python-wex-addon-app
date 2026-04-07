@@ -50,8 +50,4 @@ class ServiceCommandResolver(CoreServiceCommandResolver):
     def _get_app_addon_manager(self):
         from wexample_wex_addon_app.app_addon_manager import AppAddonManager
 
-        for addon in self.kernel.get_addons().values():
-            if isinstance(addon, AppAddonManager):
-                return addon
-
-        raise RuntimeError("AppAddonManager not registered — cannot resolve service context")
+        return AppAddonManager.from_kernel(self.kernel)

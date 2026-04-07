@@ -151,13 +151,14 @@ def app__app__start(
     def _pending(previous_value=None):
         import time
 
+        from wexample_wex_addon_app.app_addon_manager import AppAddonManager
+
+        app_manager = AppAddonManager.from_kernel(context.kernel)
+
         def _check() -> bool:
-            services = context.middleware.get_services(app_workdir, kernel=context.kernel)
-            results = context.middleware.call_service_hook(
+            results = app_manager.run_service_hook(
                 hook="service/ready",
-                services=services,
-                kernel=context.kernel,
-                app_path=str(app_path),
+                app_workdir=app_workdir,
             )
             all_ready = True
             for service_name, ready in results.items():

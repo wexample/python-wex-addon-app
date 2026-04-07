@@ -59,23 +59,24 @@ def app__config__write(
             }),
         }
 
-        services = context.middleware.get_services(app_workdir, kernel=context.kernel)
+        from wexample_wex_addon_app.app_addon_manager import AppAddonManager
+
+        app_manager = AppAddonManager.from_kernel(context.kernel)
+        services = app_manager.get_app_services(app_workdir)
         for app_service in services:
             contribution = app_service.get_runtime_contribution()
             merged = dict_merge(merged, contribution)
 
-        hook_results = context.middleware.call_service_hook(
+        hook_results = app_manager.run_service_hook(
             hook="runtime/contribution",
-            services=services,
-            kernel=context.kernel,
-            app_path=str(app_path),
+            app_workdir=app_workdir,
         )
         for hook_contribution in hook_results.values():
             if isinstance(hook_contribution, dict):
                 merged = dict_merge(merged, hook_contribution)
 
         app_workdir.get_runtime_config_file().write_config(NestedConfigValue(raw=merged))
-        context.io.log(f"Runtime config written ({len(services)} service(s))")
+        context.io.log(f"Runtime config written ({len(services) - 1} service(s))")
 
     def _env(previous_value=None) -> None:
         from wexample_filestate.item.file.env_file import EnvFile

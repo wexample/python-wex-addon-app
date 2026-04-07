@@ -13,6 +13,7 @@ if TYPE_CHECKING:
     from wexample_helpers.const.types import PathOrString
     from wexample_wex_core.middleware.abstract_middleware import AbstractMiddleware
 
+    from wexample_wex_addon_app.service.app_service import AppService
     from wexample_wex_addon_app.workdir.app_workdir import AppWorkdir
 
 
@@ -64,6 +65,88 @@ class AppAddonManager(AbstractAddonManager):
             path=app_path.resolve(),
             parent_io_handler=self.kernel,
         )
+
+    @classmethod
+    def from_kernel(cls, kernel) -> AppAddonManager:
+        for addon in kernel.get_addons().values():
+            if isinstance(addon, cls):
+                return addon
+        raise RuntimeError("AppAddonManager not registered in kernel")
+
+    def get_app_services(self, app_workdir: AppWorkdir) -> list[AppService]:
+        from wexample_helpers_yaml.helpers.yaml_helpers import yaml_read
+
+        from wexample_wex_addon_app.service.app_service import AppService
+
+        def _make_service(service_name: str) -> AppService:
+            service_dir = self.find_service_dir(service_name)
+            manifest = (
+                yaml_read(file_path=str(service_dir / "service.yml"), default={})
+                if service_dir
+                else {}
+            )
+            return AppService(
+                name=service_name,
+                app_workdir=app_workdir,
+                service_dir=service_dir,
+                manifest=manifest,
+            )
+
+        # "default" is always injected first — provides base compose (stdin_open, tty, restart, network)
+        result = [_make_service("default")]
+
+        services_config = app_workdir.get_config().search("service")
+        if not services_config.is_none():
+            for service_name in services_config.to_dict():
+                result.append(_make_service(service_name))
+
+        return result
+
+    def run_service_hook(
+        self,
+        hook: str,
+        app_workdir: AppWorkdir,
+        arguments: dict | None = None,
+    ) -> dict[str, Any]:
+        """Call a hook on each service that declares it, return merged results.
+
+        Hook name follows the command path convention: ``group/name`` (e.g. ``service/ready``).
+        Services that do not declare the hook are silently skipped.
+        """
+        from pathlib import Path
+
+        from wexample_app.const.output import OUTPUT_TARGET_NONE
+        from wexample_helpers.helpers.string import string_to_snake_case
+        from wexample_wex_core.common.command_request import CommandRequest
+
+        results: dict[str, Any] = {}
+        for service in self.get_app_services(app_workdir):
+            if not service.service_dir:
+                continue
+
+            parts = hook.split("/")
+            group_path = Path(*parts[:-1]) if len(parts) > 1 else Path()
+            cmd_path = (
+                service.service_dir
+                / "commands"
+                / group_path
+                / f"{string_to_snake_case(parts[-1])}.py"
+            )
+            if not cmd_path.exists():
+                continue
+
+            request = CommandRequest(
+                kernel=self.kernel,
+                name=f"@{service.name}::{hook}",
+                arguments={"app_path": str(app_workdir.get_path()), **(arguments or {})},
+                output_target=[OUTPUT_TARGET_NONE],
+            )
+            response = self.kernel.execute_kernel_command(request)
+            results[service.name] = (
+                response.content if hasattr(response, "content") else None
+            )
+
+        return results
 
     def find_service_dir(self, service_name: str) -> Path | None:
         from wexample_wex_core.resolver.service_command_resolver import _SERVICES_SUBDIR
