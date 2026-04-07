@@ -49,7 +49,7 @@ def app__app__stop(
         #             actuellement on vérifie directement le runtime config
         from wexample_app.response.queue_collection.queued_collection_stop_response import QueuedCollectionStopResponse as QueuedCollectionStop
         runtime = app_workdir.get_runtime_config()
-        if not runtime.search("started").get_bool_or_default(False):
+        if not runtime.search("app.started").get_bool_or_default(False):
             context.io.log("App already stopped")
             return QueuedCollectionStop(kernel=context.kernel, reason="App already stopped")
         return True
@@ -78,7 +78,7 @@ def app__app__stop(
 
             with open(runtime_path) as f:
                 data = yaml.safe_load(f) or {}
-            data["started"] = False
+            data.setdefault("app", {})["started"] = False
             with open(runtime_path, "w") as f:
                 yaml.dump(data, f)
 

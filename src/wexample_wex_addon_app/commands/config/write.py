@@ -6,7 +6,6 @@ from wexample_wex_addon_app.middleware.app_middleware import AppMiddleware
 from wexample_wex_core.const.globals import COMMAND_TYPE_ADDON
 from wexample_wex_core.decorator.command import command
 from wexample_wex_core.decorator.middleware import middleware
-from wexample_wex_core.decorator.option import option
 
 if TYPE_CHECKING:
     from wexample_app.response.abstract_response import AbstractResponse
@@ -15,25 +14,11 @@ if TYPE_CHECKING:
     from wexample_wex_addon_app.workdir.app_workdir import AppWorkdir
 
 
-@option(
-    name="user",
-    type=str,
-    required=False,
-    description="Owner of application files",
-)
-@option(
-    name="group",
-    type=str,
-    required=False,
-    description="Group of application files",
-)
 @middleware(middleware=AppMiddleware)
 @command(type=COMMAND_TYPE_ADDON, description="Generate runtime config and docker-compose.runtime.yml")
 def app__config__write(
         context: ExecutionContext,
         app_workdir: AppWorkdir,
-        user: str | None = None,
-        group: str | None = None,
 ) -> AbstractResponse:
     import socket
 
@@ -53,10 +38,14 @@ def app__config__write(
         tmp_dir.mkdir(parents=True, exist_ok=True)
 
         merged = {
-            "env": env,
-            "name": project_name,
-            "host": {"ip": socket.gethostbyname(socket.gethostname())},
-            "started": False,
+            "app": {
+                "env": env,
+                "name": project_name,
+                "host": {"ip": socket.gethostbyname(socket.gethostname())},
+                "started": False,
+                "path": str(app_path),
+                "setup_path": str(app_path / WORKDIR_SETUP_DIR),
+            },
         }
 
         services = context.middleware.get_services(app_workdir, kernel=context.kernel)
@@ -111,6 +100,10 @@ def app__config__write(
         for service_data in runtime.get("service", {}).values():
             if isinstance(service_data, dict) and "compose" in service_data:
                 compose_files.append(service_data["compose"])
+
+        # TODO v6: injecter le compose réseau (proxy/network) si l'app déclare require_proxy ou creates_network
+        #          En v5 : kernel.get_path("addons") + "app/containers/network/docker-compose.yml"
+        #          ou "app/containers/default/docker-compose.yml" selon creates_network()
 
         if not compose_files:
             context.io.log("No docker compose files found, skipping")
