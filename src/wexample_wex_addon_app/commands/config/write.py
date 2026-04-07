@@ -118,11 +118,19 @@ def app__config__write(
         if env_compose.exists():
             compose_files.append(str(env_compose))
 
-        # Service composes from runtime
+        # Infrastructure-only service composes (networks, volumes — no services key)
+        import yaml as _yaml
         for service_data in runtime.get("service", {}).values():
-            if isinstance(service_data, dict) and "compose" in service_data:
-                compose_files.append(service_data["compose"])
-
+            if not isinstance(service_data, dict) or "compose" not in service_data:
+                continue
+            compose_path = service_data["compose"]
+            try:
+                with open(compose_path) as f:
+                    compose_content = _yaml.safe_load(f) or {}
+                if "services" not in compose_content:
+                    compose_files.append(compose_path)
+            except (OSError, _yaml.YAMLError):
+                pass
 
         if not compose_files:
             context.io.log("No docker compose files found, skipping")

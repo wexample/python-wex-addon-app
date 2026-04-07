@@ -71,13 +71,12 @@ def app__app__start(
 ) -> AbstractResponse:
     from wexample_app.const.globals import WORKDIR_SETUP_DIR
     from wexample_app.response.queued_collection_response import QueuedCollectionResponse
-    from wexample_app.response.shell_command_response import ShellCommandResponse
     from wexample_wex_core.const.globals import CORE_DIR_NAME_TMP
 
     app_path = app_workdir.get_path()
-    compose_file = str(
-        app_path / WORKDIR_SETUP_DIR / CORE_DIR_NAME_TMP / "docker-compose.runtime.yml"
-    )
+    tmp_dir = app_path / WORKDIR_SETUP_DIR / CORE_DIR_NAME_TMP
+    compose_file = str(tmp_dir / "docker-compose.runtime.yml")
+    docker_env_file = str(tmp_dir / "docker.env")
 
     def _checkup(previous_value=None):
         # v6: todo — vérifier existence .wex/.env, proposer env/choose si absent (bloqué par env/choose + env/set)
@@ -96,15 +95,17 @@ def app__app__start(
         from wexample_wex_addon_app.commands.config.write import app__config__write
         return context.kernel.run_function(app__config__write)
 
-    def _starting(previous_value=None) -> ShellCommandResponse:
+    def _starting(previous_value=None):
         # v6: todo — appeler hook app/start-options via services pour injecter des options compose supplémentaires
+        from wexample_app.response.interactive_shell_command_response import InteractiveShellCommandResponse
+
         compose_options = ["up", "-d"]
         if clear_cache:
             compose_options.append("--build")
 
-        return ShellCommandResponse(
+        return InteractiveShellCommandResponse(
             kernel=context.kernel,
-            content=["docker", "compose", "-f", compose_file] + compose_options,
+            content=["docker", "compose", "--env-file", docker_env_file, "-f", compose_file] + compose_options,
         )
 
     def _update_hosts(previous_value=None):
