@@ -61,6 +61,25 @@ def app__config__write(
         services = context.middleware.get_services(app_workdir, kernel=context.kernel)
         for app_service in services:
             contribution = app_service.get_runtime_contribution()
+
+            # Call @{service}::runtime/contribution if the command exists
+            if app_service.service_dir:
+                contribution_cmd_path = app_service.service_dir / "commands" / "runtime" / "contribution.py"
+                if contribution_cmd_path.exists():
+                    from wexample_app.const.output import OUTPUT_TARGET_NONE
+                    cmd_name = f"@{app_service.name}::runtime/contribution"
+                    request = context.kernel._get_command_request_class()(
+                        kernel=context.kernel,
+                        name=cmd_name,
+                        arguments={"app_path": str(app_path)},
+                        output_target=[OUTPUT_TARGET_NONE],
+                    )
+                    cmd_response = context.kernel.execute_kernel_command(request)
+                    if cmd_response and hasattr(cmd_response, "content"):
+                        cmd_contribution = cmd_response.content
+                        if isinstance(cmd_contribution, dict):
+                            contribution = dict_merge(contribution, cmd_contribution)
+
             merged = dict_merge(merged, contribution)
 
         app_workdir.get_runtime_config_file().write_config(NestedConfigValue(raw=merged))

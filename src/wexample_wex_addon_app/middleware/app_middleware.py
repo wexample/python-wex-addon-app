@@ -59,23 +59,11 @@ class AppMiddleware(AbstractMiddleware):
         if services_config.is_none():
             return []
 
-        service_classes = {
-            "letsencrypt": "wexample_wex_addon_app.services.letsencrypt.letsencrypt_service.LetsencryptService",
-        }
-
         result = []
         for service_name in services_config.to_dict():
             service_dir = app_addon_manager.find_service_dir(service_name)
             manifest = yaml_read(file_path=str(service_dir / "service.yml"), default={}) if service_dir else {}
-
-            if service_name in service_classes:
-                import importlib
-                module_path, class_name = service_classes[service_name].rsplit(".", 1)
-                cls = getattr(importlib.import_module(module_path), class_name)
-            else:
-                cls = AppService
-
-            result.append(cls(name=service_name, app_workdir=app_workdir, service_dir=service_dir, manifest=manifest))
+            result.append(AppService(name=service_name, app_workdir=app_workdir, service_dir=service_dir, manifest=manifest))
 
         return result
 
