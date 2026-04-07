@@ -231,12 +231,10 @@ class AppWorkdir(
     def get_project_name(self) -> str:
         from wexample_app.const.globals import APP_FILE_APP_CONFIG
 
-        name_config = self.get_runtime_config().search("global.name")
-        # Ensure we properly handle missing or empty name
+        name_config = self.get_config().search("global.name")
         name: str | None = None
         if not name_config.is_none():
             name = (name_config.get_str_or_none() or "").strip()
-        # Enforce that a project must have a non-empty name; include path for debug
         if not name:
             raise ValueError(
                 f"Project at '{self.get_path()}' must define a non-empty 'global.name' in {APP_FILE_APP_CONFIG}."
