@@ -143,14 +143,6 @@ def app__app__start(
             context.io.log("Waiting for services...")
             time.sleep(2)
 
-    def _serve(previous_value=None):
-        # v6: todo — appeler hook app/start-post + app/serve (bloqué par migration services)
-        pass
-
-    def _first_init(previous_value=None):
-        # v6: todo — appeler hook app/first-init si lock file absent, créer le lock (bloqué par migration services)
-        pass
-
     def _complete(previous_value=None):
         from wexample_wex_addon_app.commands.app.exec import app__app__exec
         from wexample_wex_addon_app.commands.app.stop import app__app__stop
@@ -194,8 +186,6 @@ def app__app__start(
             _starting,
             _update_hosts,
             _pending,
-            _serve,
-            _first_init,
             _complete,
         ]
 

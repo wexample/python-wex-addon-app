@@ -53,6 +53,7 @@ class AppWorkdir(
     def get_migrations(self):
         from wexample_wex_addon_app.migrations.migration_wex_6_0_0 import MigrationWex600
         from wexample_wex_addon_app.migrations.migration_wex_6_0_1 import MigrationWex601
+        from wexample_wex_addon_app.migrations.migration_wex_6_0_10 import MigrationWex610
         from wexample_wex_addon_app.migrations.migration_wex_6_0_3 import MigrationWex603
         from wexample_wex_addon_app.migrations.migration_wex_6_0_4 import MigrationWex604
         from wexample_wex_addon_app.migrations.migration_wex_6_0_5 import MigrationWex605
@@ -61,7 +62,7 @@ class AppWorkdir(
         from wexample_wex_addon_app.migrations.migration_wex_6_0_8 import MigrationWex608
         from wexample_wex_addon_app.migrations.migration_wex_6_0_9 import MigrationWex609
 
-        return [MigrationWex600, MigrationWex601, MigrationWex603, MigrationWex604, MigrationWex605, MigrationWex606, MigrationWex607, MigrationWex608, MigrationWex609]
+        return [MigrationWex600, MigrationWex601, MigrationWex603, MigrationWex604, MigrationWex605, MigrationWex606, MigrationWex607, MigrationWex608, MigrationWex609, MigrationWex610]
 
     @classmethod
     def is_app_workdir_path(cls, path: FileStringOrPath) -> bool:
@@ -156,6 +157,21 @@ class AppWorkdir(
     def get_main_service(self) -> str | None:
         config = self.get_runtime_config().search("global.main_service")
         return config.get_str_or_none() if not config.is_none() else None
+
+    def get_main_db_service(self) -> str | None:
+        config = self.get_config()
+
+        service_db_main = config.search("service.db.main")
+        if not service_db_main.is_none():
+            service_name = service_db_main.get_str_or_none()
+            if service_name:
+                return service_name
+
+        legacy_main_db = config.search("docker.main_db_container")
+        if not legacy_main_db.is_none():
+            return legacy_main_db.get_str_or_none()
+
+        return None
 
     def get_main_container_name(self) -> str:
         config = self.get_runtime_config().search("docker.main_container")

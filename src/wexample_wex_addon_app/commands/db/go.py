@@ -20,7 +20,7 @@ if TYPE_CHECKING:
     name="service",
     type=str,
     required=False,
-    description="DB service name (defaults to docker.main_db_container)",
+    description="DB service name (defaults to service.db.main)",
 )
 @middleware(middleware=AppMiddleware)
 @command(type=COMMAND_TYPE_ADDON, description="Open an interactive DB CLI")
@@ -29,7 +29,9 @@ def app__db__go(
     app_workdir: AppWorkdir,
     service: str | None = None,
 ) -> AbstractResponse:
-    service_name = service or app_workdir.get_config().search("docker.main_db_container").get_str()
+    service_name = service or app_workdir.get_main_db_service()
+    if not service_name:
+        raise RuntimeError("No DB service configured (service.db.main)")
 
     request = context.kernel._get_command_request_class()(
         kernel=context.kernel,
