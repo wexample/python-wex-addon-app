@@ -67,6 +67,43 @@ class AppMiddleware(AbstractMiddleware):
 
         return result
 
+    def call_service_hook(
+        self,
+        hook: str,
+        services: list,
+        kernel,
+        app_path: str,
+        arguments: dict | None = None,
+    ) -> dict:
+        """Call a hook command on each service that declares it, return merged results.
+
+        For each service in the list, calls @{service}::{hook} if the command file exists.
+        Returns a dict mapping service_name → response.content (for dict responses) or None.
+        """
+        from wexample_app.const.output import OUTPUT_TARGET_NONE
+
+        results = {}
+        for service in services:
+            if not service.service_dir:
+                continue
+
+            parts = hook.replace("/", f"/").split("/")
+            cmd_path = service.service_dir / "commands" / "/".join(parts[:-1]) / f"{parts[-1]}.py"
+            if not cmd_path.exists():
+                continue
+
+            cmd_name = f"@{service.name}::{hook}"
+            request = kernel._get_command_request_class()(
+                kernel=kernel,
+                name=cmd_name,
+                arguments={"app_path": app_path, **(arguments or {})},
+                output_target=[OUTPUT_TARGET_NONE],
+            )
+            response = kernel.execute_kernel_command(request)
+            results[service.name] = response.content if hasattr(response, "content") else None
+
+        return results
+
     def _get_middleware_options(self) -> list[Option]:
         """Get the default file option definition."""
         from wexample_app.command.option import Option
