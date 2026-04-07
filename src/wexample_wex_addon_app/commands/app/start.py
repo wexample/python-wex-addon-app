@@ -152,6 +152,11 @@ def app__app__start(
         pass
 
     def _complete(previous_value=None):
+        from wexample_wex_addon_app.commands.app.exec import app__app__exec
+        from wexample_wex_addon_app.commands.app.stop import app__app__stop
+        from wexample_wex_addon_app.commands.db.go import app__db__go
+        from wexample_wex_core.resolver.addon_command_resolver import AddonCommandResolver
+
         runtime = app_workdir.get_runtime_config()
         name = runtime.search("app.name").get_str_or_none() or "app"
         env = runtime.search("app.env").get_str_or_default("local")
@@ -167,12 +172,15 @@ def app__app__start(
         if domain_lines:
             summary += "\n" + "\n".join(domain_lines)
 
+        def _cmd(fn) -> str:
+            return AddonCommandResolver.build_command_from_function(fn)
+
         context.io.suggestions(
             message=summary,
             suggestions=[
-                "wex app::db/go",
-                "wex app::app/exec --command bash",
-                "wex app::app/stop",
+                _cmd(app__db__go),
+                _cmd(app__app__exec),
+                _cmd(app__app__stop),
             ],
         )
 
