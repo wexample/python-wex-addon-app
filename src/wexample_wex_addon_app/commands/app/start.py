@@ -89,10 +89,11 @@ def app__app__start(
         context.io.log("Proxy step skipped (not yet migrated)")
 
     def _config(previous_value=None) -> AbstractResponse:
-        # v6: todo — appeler app::app/perms (bloqué par app/perms)
+        from wexample_wex_addon_app.commands.app.perms import app__app__perms
+        from wexample_wex_addon_app.commands.config.write import app__config__write
         # v6: todo — appeler hook app/start-pre via services (bloqué par migration services)
         # v6: todo — enregistrer l'app dans les proxy apps si require_proxy
-        from wexample_wex_addon_app.commands.config.write import app__config__write
+        context.kernel.run_function(app__app__perms)
         return context.kernel.run_function(app__config__write)
 
     def _starting(previous_value=None):
