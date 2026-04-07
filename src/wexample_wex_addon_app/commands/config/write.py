@@ -71,70 +71,70 @@ def app__config__write(
         context.io.log("Runtime config written")
 
     def _env(previous_value=None) -> None:
-        """Generate docker.env with v6 naming convention."""
+        """Generate docker.env — v5 names kept for compat, v6 aliases added alongside.
+        v6: todo — migration: supprimer les noms v5 quand toutes les apps seront migrées
+        """
         # v6: todo — injecter user/group/uid/gid (bloqué par helpers user/group)
         # v6: todo — injecter domains, domain_tld (bloqué par config domaines)
-        # v6: todo — migration des compose apps v5 pour utiliser APP_PROJECT, APP_SETUP_PATH, etc.
 
         app_config = app_workdir.get_config()
+        setup_path = f"{app_path / WORKDIR_SETUP_DIR}/"
 
         lines = [
+            # v5 names (used by existing app compose files)
+            f"GLOBAL_NAME={name}",
+            f"RUNTIME_NAME={project_name}",
+            f"RUNTIME_PATH_APP={app_path}/",
+            f"RUNTIME_PATH_APP_ENV={setup_path}",
+            # v6 aliases — v6: todo migration: remplacer les v5 ci-dessus par ceux-ci
             f"APP_NAME={name}",
             f"APP_ENV={env}",
             f"APP_PROJECT={project_name}",
             f"APP_PATH={app_path}/",
-            f"APP_SETUP_PATH={app_path / WORKDIR_SETUP_DIR}/",
-            # Backward compat aliases for v5 user compose files
-            f"GLOBAL_NAME={name}",
-            f"RUNTIME_NAME={project_name}",
-            f"RUNTIME_PATH_APP={app_path}/",
-            f"RUNTIME_PATH_APP_ENV={app_path / WORKDIR_SETUP_DIR}/",
+            f"APP_SETUP_PATH={setup_path}",
         ]
 
-        # Vendor path (from config.yml if present)
+        # Vendor path
         vendor_path = app_config.search("global.vendor_local_path").get_str_or_none()
         if vendor_path:
             lines.append(f"VENDOR_LOCAL_PATH={vendor_path}")
 
-        # Bind paths from runtime config (bind.*) → RUNTIME_BIND_* for backward compat
+        # Bind paths from runtime config → RUNTIME_BIND_* (v5) + BIND_* (v6)
+        # v6: todo migration: remplacer RUNTIME_BIND_* par BIND_* dans les compose apps
         runtime_config = app_workdir.get_runtime_config()
         bind_config = runtime_config.search("bind")
         if not bind_config.is_none():
             for bind_key, bind_value in bind_config.to_dict().items():
-                env_key = bind_key.upper()
-                lines.append(f"RUNTIME_BIND_{env_key}={bind_value}")
+                key_upper = bind_key.upper()
+                lines.append(f"RUNTIME_BIND_{key_upper}={bind_value}")
+                lines.append(f"BIND_{key_upper}={bind_value}")
 
         # Per-service variables
         services = context.middleware.get_services(app_workdir, kernel=context.kernel)
         for app_service in services:
             sname = app_service.name.upper()
-            sconfig = app_config.search(f"service.{app_service.name}").to_dict() if not app_config.search(f"service.{app_service.name}").is_none() else {}
+            sconfig = app_config.search(f"service.{app_service.name}")
+            sconfig_dict = sconfig.to_dict() if not sconfig.is_none() else {}
 
-            # Compose file path (v6 name + v5 backward compat)
             compose = app_service.get_compose_file()
-            if not compose:
-                # v6: todo — fallback v5 path à supprimer quand tous les services auront leur package v6
-                v5_base = app_config.search(f"service.{app_service.name}.v5_compose").get_str_or_none()
-                if v5_base:
-                    compose_str = v5_base
-                    lines.append(f"SERVICE_{sname}_COMPOSE={compose_str}")
-                    lines.append(f"RUNTIME_SERVICE_{sname}_YML_BASE={compose_str}")
-                    lines.append(f"RUNTIME_SERVICE_{sname}_YML_ENV={compose_str}")
-            else:
-                lines.append(f"SERVICE_{sname}_COMPOSE={compose}")
-                # v5 backward compat
+            if compose:
+                # v5 name + v6 alias
+                # v6: todo migration: remplacer RUNTIME_SERVICE_*_YML_ENV par SERVICE_*_COMPOSE
                 lines.append(f"RUNTIME_SERVICE_{sname}_YML_BASE={compose}")
                 lines.append(f"RUNTIME_SERVICE_{sname}_YML_ENV={compose}")
+                lines.append(f"SERVICE_{sname}_COMPOSE={compose}")
 
-            # Service credentials
-            for key, value in sconfig.items():
-                env_key = f"SERVICE_{sname}_{key.upper()}"
-                # v6: DB name uses _DB suffix (was _NAME in v5, confusing with service name)
+            for key, value in sconfig_dict.items():
+                if key in ("v5_compose",):
+                    continue
+                # v5: SERVICE_MYSQL_NAME = DB name (confusingly named)
+                # v6: SERVICE_MYSQL_DB   = DB name (explicit)
+                # v6: todo migration: remplacer SERVICE_*_NAME par SERVICE_*_DB dans les compose services
                 if key == "name":
+                    lines.append(f"SERVICE_{sname}_NAME={value}")
                     lines.append(f"SERVICE_{sname}_DB={value}")
-                    lines.append(f"SERVICE_{sname}_NAME={value}")  # v5 compat
                 else:
-                    lines.append(f"{env_key}={value}")
+                    lines.append(f"SERVICE_{sname}_{key.upper()}={value}")
 
         docker_env_file = tmp_dir / "docker.env"
         docker_env_file.write_text("\n".join(lines) + "\n")
