@@ -22,6 +22,12 @@ if TYPE_CHECKING:
     description="Path or filename of the dump to restore (prompted if omitted)",
 )
 @option(
+    name="database",
+    type=str,
+    required=False,
+    description="Database name (overrides db.main from runtime config)",
+)
+@option(
     name="service",
     type=str,
     required=False,
@@ -33,6 +39,7 @@ def app__db__restore(
     context: ExecutionContext,
     app_workdir: AppWorkdir,
     file_path: str | None = None,
+    database: str | None = None,
     service: str | None = None,
 ) -> None:
     import zipfile
@@ -94,13 +101,15 @@ def app__db__restore(
 
     app_path = str(app_workdir.get_path())
 
+    extra = {"database": database} if database else {}
+
     # Destroy + recreate DB
     context.io.log("Restoring...")
     context.kernel.execute_kernel_command(
         context.kernel._get_command_request_class()(
             kernel=context.kernel,
             name=f"@{service_name}::db/destroy",
-            arguments={"app_path": app_path},
+            arguments={"app_path": app_path, **extra},
         )
     )
 
@@ -109,7 +118,7 @@ def app__db__restore(
         context.kernel._get_command_request_class()(
             kernel=context.kernel,
             name=f"@{service_name}::db/restore",
-            arguments={"app_path": app_path, "file_name": sql_path.name},
+            arguments={"app_path": app_path, "file_name": sql_path.name, **extra},
         )
     )
 
