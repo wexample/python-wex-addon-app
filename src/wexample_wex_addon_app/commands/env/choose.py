@@ -45,6 +45,7 @@ def app__env__choose(
     )
 
     chosen = response.get_answer()
+
     if chosen is None:
         context.io.log("Environment selection aborted")
         return None

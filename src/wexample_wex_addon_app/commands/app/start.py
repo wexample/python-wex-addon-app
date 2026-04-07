@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from wexample_app.response.null_response import NullResponse
 from wexample_wex_core.const.globals import COMMAND_TYPE_ADDON
 from wexample_wex_core.decorator.as_sudo import as_sudo
 from wexample_wex_core.decorator.command import command
@@ -96,7 +97,7 @@ def app__app__start(
 
             context.io.log("No .wex/.env file found, please choose an environment")
             chosen = context.kernel.run_function(app__env__choose)
-            if chosen is None:
+            if isinstance(chosen, NullResponse):
                 return QueuedCollectionStopResponse(
                     kernel=context.kernel,
                     reason="No environment configured, start aborted",
