@@ -174,9 +174,10 @@ def app__app__start(
         )
 
     def _update_hosts(previous_value=None):
-        # v6: todo — appeler hosts/update (bloqué par proxy + sudo)
-        # Mark the app as started in runtime config
         import yaml
+
+        from wexample_wex_addon_app.commands.hosts.update import app__hosts__update
+
         runtime_path = app_path / WORKDIR_SETUP_DIR / CORE_DIR_NAME_TMP / "config.runtime.yml"
         if runtime_path.exists():
             with open(runtime_path) as f:
@@ -184,6 +185,8 @@ def app__app__start(
             data["started"] = True
             with open(runtime_path, "w") as f:
                 yaml.dump(data, f)
+
+        context.kernel.run_function(app__hosts__update, {"app_path": str(app_path)})
 
     def _pending(previous_value=None):
         import time
