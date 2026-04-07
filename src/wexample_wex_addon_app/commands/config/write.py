@@ -47,13 +47,6 @@ def app__config__write(
         env_block = app_config.pop("env", {})
         app_config.update(env_block.get(env, {}))
 
-        # DOMAINS_STRING: space-joined version of domains[], needed by reverse proxy / letsencrypt
-        # for certificate SANs. Not computed here — responsibility of a future proxy/letsencrypt
-        # service via get_runtime_contribution(). Set as placeholder so docker-compose vars don't break.
-        # @todo create a letsencrypt service that produces this variable.
-        domains = app_config.get("domains", [])
-        app_config["domains_string"] = " ".join(domains) if domains else "TODO"
-
         merged = {
             "app": dict_merge(app_config, {
                 "env": env,
@@ -86,8 +79,10 @@ def app__config__write(
                     result[key] = v
             return result
 
+        # Load .env first (user-defined vars), runtime flattened on top (takes priority)
+        dot_env = app_workdir.get_env_parameters().to_dict()
         runtime = app_workdir.get_runtime_config_file().read_config().to_dict()
-        env_vars = _flatten(runtime)
+        env_vars = {**dot_env, **_flatten(runtime)}
 
         docker_env_path = tmp_dir / "docker.env"
         env_file = EnvFile.create_from_path(path=docker_env_path, io=context.io)
@@ -118,9 +113,6 @@ def app__config__write(
             if isinstance(service_data, dict) and "compose" in service_data:
                 compose_files.append(service_data["compose"])
 
-        # TODO v6: injecter le compose réseau (proxy/network) si l'app déclare require_proxy ou creates_network
-        #          En v5 : kernel.get_path("addons") + "app/containers/network/docker-compose.yml"
-        #          ou "app/containers/default/docker-compose.yml" selon creates_network()
 
         if not compose_files:
             context.io.log("No docker compose files found, skipping")
