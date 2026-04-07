@@ -173,7 +173,10 @@ class AppWorkdir(
         return "/bin/bash"
 
     def docker_build_long_container_name(self, container_name: str) -> str:
-        return f"{self.get_project_name()}_{container_name}"
+        project_name = self.get_runtime_config().search("app.project_name").get_str_or_none()
+        if not project_name:
+            project_name = self.get_project_name()
+        return f"{project_name}_{container_name}"
 
     def get_public_remote_repository_url(self) -> str | None:
         return None
