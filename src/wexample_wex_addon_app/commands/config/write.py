@@ -50,11 +50,12 @@ def app__config__write(
         merged = {
             "app": dict_merge(app_config, {
                 "env": env,
-                "name": project_name,
+                "name": name,
+                "project_name": project_name,
                 "host": {"ip": socket.gethostbyname(socket.gethostname())},
                 "started": False,
-                "path": str(app_path),
-                "setup_path": str(app_path / WORKDIR_SETUP_DIR),
+                "path": str(app_path) + "/",
+                "setup_path": str(app_path / WORKDIR_SETUP_DIR) + "/",
             }),
         }
 
