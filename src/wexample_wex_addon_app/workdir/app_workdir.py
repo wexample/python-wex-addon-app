@@ -58,8 +58,9 @@ class AppWorkdir(
         from wexample_wex_addon_app.migrations.migration_wex_6_0_5 import MigrationWex605
         from wexample_wex_addon_app.migrations.migration_wex_6_0_6 import MigrationWex606
         from wexample_wex_addon_app.migrations.migration_wex_6_0_7 import MigrationWex607
+        from wexample_wex_addon_app.migrations.migration_wex_6_0_8 import MigrationWex608
 
-        return [MigrationWex600, MigrationWex601, MigrationWex603, MigrationWex604, MigrationWex605, MigrationWex606, MigrationWex607]
+        return [MigrationWex600, MigrationWex601, MigrationWex603, MigrationWex604, MigrationWex605, MigrationWex606, MigrationWex607, MigrationWex608]
 
     @classmethod
     def is_app_workdir_path(cls, path: FileStringOrPath) -> bool:
