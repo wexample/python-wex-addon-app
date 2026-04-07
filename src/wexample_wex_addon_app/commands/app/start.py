@@ -112,19 +112,55 @@ def app__app__start(
         return True
 
     def _proxy(previous_value=None):
-        # v6: todo — démarrer le proxy si require_proxy et non démarré (bloqué par proxy helper + app_is_reverse_proxy)
-        context.io.log("Proxy step skipped (not yet migrated)")
+        from pathlib import Path
+
+        from wexample_wex_addon_app.commands.app.started import (
+            APP_STARTED_CHECK_MODE_ANY_CONTAINER,
+            _check_started,
+        )
+
+        env = app_workdir.get_app_env()
+
+        # Proxy helper app lives at /var/www/{env}/wex-proxy/
+        proxy_path = Path(f"/var/www/{env}/wex-proxy")
+
+        # Skip if this app IS the proxy
+        if app_workdir.get_path().resolve() == proxy_path.resolve():
+            return
+
+        # Skip if proxy not required (no service.proxy in config)
+        if app_workdir.get_config().search("service.proxy").is_none():
+            return
+
+        if no_proxy:
+            context.io.log("Proxy explicitly disabled")
+            return
+
+        # Proxy app does not exist yet — skip (helper/start not yet migrated)
+        if not proxy_path.exists():
+            context.io.log("Proxy app not found, skipping (run helper/start first)")
+            return
+
+        from wexample_wex_addon_app.app_addon_manager import AppAddonManager
+
+        proxy_workdir = AppAddonManager.from_kernel(context.kernel).create_app_workdir(
+            path=proxy_path
+        )
+        if proxy_workdir and _check_started(
+            proxy_workdir, APP_STARTED_CHECK_MODE_ANY_CONTAINER, context
+        ):
+            return
+
+        context.kernel.run_function(app__app__start, {"app_path": str(proxy_path)})
 
     def _config(previous_value=None) -> AbstractResponse:
         from wexample_wex_addon_app.commands.app.perms import app__app__perms
         from wexample_wex_addon_app.commands.config.write import app__config__write
-        # v6: todo — appeler hook app/start-pre via services (bloqué par migration services)
-        # v6: todo — enregistrer l'app dans les proxy apps si require_proxy
+
         context.kernel.run_function(app__app__perms)
         return context.kernel.run_function(app__config__write)
 
     def _starting(previous_value=None):
-        # v6: todo — appeler hook app/start-options via services pour injecter des options compose supplémentaires
         from wexample_app.response.interactive_shell_command_response import InteractiveShellCommandResponse
 
         compose_options = ["up", "-d"]
@@ -138,7 +174,7 @@ def app__app__start(
 
     def _update_hosts(previous_value=None):
         # v6: todo — appeler hosts/update (bloqué par proxy + sudo)
-        # Marquer l'app comme démarrée dans le runtime config
+        # Mark the app as started in runtime config
         import yaml
         runtime_path = app_path / WORKDIR_SETUP_DIR / CORE_DIR_NAME_TMP / "config.runtime.yml"
         if runtime_path.exists():
