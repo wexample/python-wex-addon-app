@@ -35,11 +35,38 @@ def app__config__write(
         user: str | None = None,
         group: str | None = None,
 ) -> AbstractResponse:
-    from wexample_app.response.queued_collection_response import QueuedCollectionResponse
+    import socket
 
-    def _demo(previous_value=None) -> None:
-        print("OK")
+    from wexample_app.const.globals import WORKDIR_SETUP_DIR
+    from wexample_app.response.queued_collection_response import QueuedCollectionResponse
+    from wexample_config.config_value.nested_config_value import NestedConfigValue
+    from wexample_helpers.helpers.dict import dict_merge
+    from wexample_wex_core.const.globals import CORE_DIR_NAME_TMP
+
+    app_path = app_workdir.get_path()
+    env = app_workdir.get_app_env()
+    name = app_workdir.get_project_name()
+    project_name = f"{name}_{env}"
+    tmp_dir = app_path / WORKDIR_SETUP_DIR / CORE_DIR_NAME_TMP
+
+    def _runtime(previous_value=None) -> None:
+        tmp_dir.mkdir(parents=True, exist_ok=True)
+
+        merged = {
+            "env": env,
+            "name": project_name,
+            "host": {"ip": socket.gethostbyname(socket.gethostname())},
+            "started": False,
+        }
+
+        services = context.middleware.get_services(app_workdir, kernel=context.kernel)
+        for app_service in services:
+            contribution = app_service.get_runtime_contribution()
+            merged = dict_merge(merged, contribution)
+
+        app_workdir.get_runtime_config_file().write_config(NestedConfigValue(raw=merged))
+        context.io.log(f"Runtime config written ({len(services)} service(s))")
 
     return QueuedCollectionResponse(kernel=context.kernel, content=[
-        _demo,
+        _runtime,
     ])

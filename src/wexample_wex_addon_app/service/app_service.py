@@ -25,3 +25,25 @@ class AppService:
             return None
         compose_abs = self.service_dir / compose_rel
         return compose_abs if compose_abs.exists() else None
+
+    def get_runtime_contribution(self) -> dict:
+        """Return this service's contribution to the runtime config.
+
+        Reads service config from config.yml (host, port, name, password, user, ...)
+        and compose file path, structured under service.{name}.
+        """
+        app_config = self.app_workdir.get_config()
+        sconfig = app_config.search(f"service.{self.name}")
+        sconfig_dict = sconfig.to_dict() if not sconfig.is_none() else {}
+
+        contribution: dict = {}
+
+        if sconfig_dict:
+            contribution["service"] = {self.name: sconfig_dict}
+
+        compose = self.get_compose_file()
+        if compose:
+            contribution.setdefault("service", {}).setdefault(self.name, {})
+            contribution["service"][self.name]["compose"] = str(compose)
+
+        return contribution
