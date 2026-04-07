@@ -56,7 +56,7 @@ if TYPE_CHECKING:
     required=False,
     description="Skip config rewrite, just run docker compose up",
 )
-# v6: todo — remettre @as_sudo() quand app/perms sera implémenté
+@as_sudo()
 @middleware(middleware=AppMiddleware)
 @command(type=COMMAND_TYPE_ADDON, description="Start the app")
 def app__app__start(
