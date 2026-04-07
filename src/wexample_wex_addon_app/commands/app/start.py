@@ -152,8 +152,29 @@ def app__app__start(
         pass
 
     def _complete(previous_value=None):
-        # v6: todo — afficher les domaines et les prochaines commandes suggérées
-        context.io.log("App started.")
+        runtime = app_workdir.get_runtime_config()
+        name = runtime.search("app.name").get_str_or_none() or "app"
+        env = runtime.search("app.env").get_str_or_default("local")
+
+        domains_config = runtime.search("app.domains")
+        domain_lines = []
+        if not domains_config.is_none():
+            for domain in domains_config.get_list_or_default():
+                scheme = "https" if env != "local" else "http"
+                domain_lines.append(f"{scheme}://{domain.get_str()}")
+
+        summary = f'App "{name}" started in {env} environment'
+        if domain_lines:
+            summary += "\n" + "\n".join(domain_lines)
+
+        context.io.suggestions(
+            message=summary,
+            suggestions=[
+                "wex app::db/go",
+                "wex app::app/exec --command bash",
+                "wex app::app/stop",
+            ],
+        )
 
     if fast:
         steps = [_starting]
