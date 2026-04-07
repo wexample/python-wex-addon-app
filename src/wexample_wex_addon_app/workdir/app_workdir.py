@@ -159,19 +159,7 @@ class AppWorkdir(
         return config.get_str_or_none() if not config.is_none() else None
 
     def get_main_db_service(self) -> str | None:
-        config = self.get_config()
-
-        service_db_main = config.search("service.db.main")
-        if not service_db_main.is_none():
-            service_name = service_db_main.get_str_or_none()
-            if service_name:
-                return service_name
-
-        legacy_main_db = config.search("docker.main_db_container")
-        if not legacy_main_db.is_none():
-            return legacy_main_db.get_str_or_none()
-
-        return None
+        return self.get_config().search("docker.db.main").get_str_or_none()
 
     def get_main_container_name(self) -> str:
         config = self.get_runtime_config().search("docker.main_container")

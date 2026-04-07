@@ -14,7 +14,7 @@ class MigrationWex610(AbstractMigration):
     VERSION = "6.0.10"
     DESCRIPTION = (
         "Ensure global.type=app and move docker.main_db_container "
-        "to service.db.main in .wex/config.yml"
+        "to docker.db.main in .wex/config.yml"
     )
 
     def apply(self, context: MigrationContext) -> None:
@@ -50,16 +50,16 @@ class MigrationWex610(AbstractMigration):
                 config.pop("docker", None)
                 changed = True
 
-        service_config = config.get("service")
-        if not isinstance(service_config, dict):
-            service_config = {}
-            config["service"] = service_config
+        docker_config = config.get("docker")
+        if not isinstance(docker_config, dict):
+            docker_config = {}
+            config["docker"] = docker_config
             changed = True
 
-        db_config = service_config.get("db")
+        db_config = docker_config.get("db")
         if not isinstance(db_config, dict):
             db_config = {}
-            service_config["db"] = db_config
+            docker_config["db"] = db_config
             changed = True
 
         if legacy_main_db and db_config.get("main") != legacy_main_db:

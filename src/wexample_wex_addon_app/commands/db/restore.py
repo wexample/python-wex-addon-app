@@ -31,7 +31,7 @@ if TYPE_CHECKING:
     name="service",
     type=str,
     required=False,
-    description="DB service name (defaults to service.db.main)",
+    description="DB service name (defaults to docker.db.main)",
 )
 @middleware(middleware=AppMiddleware)
 @command(type=COMMAND_TYPE_ADDON, description="Restore a database from a dump")
@@ -50,7 +50,7 @@ def app__db__restore(
 
     service_name = service or app_workdir.get_main_db_service()
     if not service_name:
-        raise RuntimeError("No DB service configured (service.db.main)")
+        raise RuntimeError("No DB service configured (docker.db.main)")
 
     dumps_dir = app_workdir.get_path() / WORKDIR_SETUP_DIR / service_name / "dumps"
     dumps_dir.mkdir(parents=True, exist_ok=True)

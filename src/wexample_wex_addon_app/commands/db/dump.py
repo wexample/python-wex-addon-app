@@ -39,7 +39,7 @@ if TYPE_CHECKING:
     name="service",
     type=str,
     required=False,
-    description="DB service name (defaults to service.db.main)",
+    description="DB service name (defaults to docker.db.main)",
 )
 @middleware(middleware=AppMiddleware)
 @command(type=COMMAND_TYPE_ADDON, description="Create a database dump")
@@ -56,7 +56,7 @@ def app__db__dump(
 
     service_name = service or app_workdir.get_main_db_service()
     if not service_name:
-        context.io.log("No DB service configured (service.db.main), skipping dump")
+        context.io.log("No DB service configured (docker.db.main), skipping dump")
         return None
 
     runtime = app_workdir.get_runtime_config()
