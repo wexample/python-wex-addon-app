@@ -67,6 +67,28 @@ def app__config__write(
         app_workdir.get_runtime_config_file().write_config(NestedConfigValue(raw=merged))
         context.io.log(f"Runtime config written ({len(services)} service(s))")
 
+    def _env(previous_value=None) -> None:
+        from wexample_filestate.item.file.env_file import EnvFile
+
+        def _flatten(data: dict, prefix: str = "") -> dict:
+            result = {}
+            for k, v in data.items():
+                key = f"{prefix}_{k}".upper() if prefix else k.upper()
+                if isinstance(v, dict):
+                    result.update(_flatten(v, key))
+                else:
+                    result[key] = v
+            return result
+
+        runtime = app_workdir.get_runtime_config_file().read_config().to_dict()
+        env_vars = _flatten(runtime)
+
+        docker_env_path = tmp_dir / "docker.env"
+        env_file = EnvFile.create_from_path(path=docker_env_path, io=context.io)
+        env_file.write_config(NestedConfigValue(raw=env_vars))
+        context.io.log(f"docker.env written ({len(env_vars)} variable(s))")
+
     return QueuedCollectionResponse(kernel=context.kernel, content=[
         _runtime,
+        _env,
     ])
