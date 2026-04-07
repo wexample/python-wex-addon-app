@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+import importlib
+import inspect
+import pkgutil
 from typing import TYPE_CHECKING, Any
 
 from wexample_app.const.output import OUTPUT_FORMAT_JSON, OUTPUT_TARGET_FILE
@@ -25,6 +28,7 @@ from wexample_wex_addon_app.workdir.mixin.with_readme_workdir_mixin import (
     WithReadmeWorkdirMixin,
 )
 from wexample_filestate.item.mixin.with_runners_root_mixin import WithRunnersRootMixin
+from wexample_migration.abstract_migration import AbstractMigration
 from wexample_migration.workdir.mixin.with_migration_workdir_mixin import (
     WithMigrationWorkdirMixin,
 )
@@ -51,31 +55,35 @@ class AppWorkdir(
     Workdir,
 ):
     def get_migrations(self):
-        from wexample_wex_addon_app.migrations.migration_wex_6_0_0 import MigrationWex600
-        from wexample_wex_addon_app.migrations.migration_wex_6_0_1 import MigrationWex601
-        from wexample_wex_addon_app.migrations.migration_wex_6_0_10 import MigrationWex610
-        from wexample_wex_addon_app.migrations.migration_wex_6_0_11 import MigrationWex6011
-        from wexample_wex_addon_app.migrations.migration_wex_6_0_3 import MigrationWex603
-        from wexample_wex_addon_app.migrations.migration_wex_6_0_4 import MigrationWex604
-        from wexample_wex_addon_app.migrations.migration_wex_6_0_5 import MigrationWex605
-        from wexample_wex_addon_app.migrations.migration_wex_6_0_6 import MigrationWex606
-        from wexample_wex_addon_app.migrations.migration_wex_6_0_7 import MigrationWex607
-        from wexample_wex_addon_app.migrations.migration_wex_6_0_8 import MigrationWex608
-        from wexample_wex_addon_app.migrations.migration_wex_6_0_9 import MigrationWex609
+        package = importlib.import_module("wexample_wex_addon_app.migrations")
+        migrations: list[type[AbstractMigration]] = []
 
-        return [
-            MigrationWex600,
-            MigrationWex601,
-            MigrationWex603,
-            MigrationWex604,
-            MigrationWex605,
-            MigrationWex606,
-            MigrationWex607,
-            MigrationWex608,
-            MigrationWex609,
-            MigrationWex610,
-            MigrationWex6011,
-        ]
+        for module_info in pkgutil.iter_modules(package.__path__):
+            if module_info.name.startswith("_"):
+                continue
+
+            module = importlib.import_module(
+                f"wexample_wex_addon_app.migrations.{module_info.name}"
+            )
+
+            for _, migration_class in inspect.getmembers(module, inspect.isclass):
+                if not issubclass(migration_class, AbstractMigration):
+                    continue
+                if migration_class is AbstractMigration:
+                    continue
+                if migration_class.__module__ != module.__name__:
+                    continue
+
+                migrations.append(migration_class)
+
+        return sorted(migrations, key=self._migration_version_key)
+
+    @staticmethod
+    def _migration_version_key(
+        migration_class: type[AbstractMigration],
+    ) -> tuple[int, ...]:
+        version = getattr(migration_class, "VERSION", "")
+        return tuple(int(part) for part in str(version).split("."))
 
     @classmethod
     def is_app_workdir_path(cls, path: FileStringOrPath) -> bool:
