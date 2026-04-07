@@ -37,15 +37,32 @@ def app__config__write(
     def _runtime(previous_value=None) -> None:
         tmp_dir.mkdir(parents=True, exist_ok=True)
 
+        # Merge base config + env-specific override (env/local/config.yml)
+        app_config = dict_merge(
+            app_workdir.get_config().to_dict(),
+            app_workdir.get_config(env_name=env).to_dict_or_none() or {},
+        )
+
+        # Flatten env-specific block into root if present (v5 compat: env.local.* → root)
+        env_block = app_config.pop("env", {})
+        app_config.update(env_block.get(env, {}))
+
+        # DOMAINS_STRING: space-joined version of domains[], needed by reverse proxy / letsencrypt
+        # for certificate SANs. Not computed here — responsibility of a future proxy/letsencrypt
+        # service via get_runtime_contribution(). Set as placeholder so docker-compose vars don't break.
+        # @todo create a letsencrypt service that produces this variable.
+        domains = app_config.get("domains", [])
+        app_config["domains_string"] = " ".join(domains) if domains else "TODO"
+
         merged = {
-            "app": {
+            "app": dict_merge(app_config, {
                 "env": env,
                 "name": project_name,
                 "host": {"ip": socket.gethostbyname(socket.gethostname())},
                 "started": False,
                 "path": str(app_path),
                 "setup_path": str(app_path / WORKDIR_SETUP_DIR),
-            },
+            }),
         }
 
         services = context.middleware.get_services(app_workdir, kernel=context.kernel)
