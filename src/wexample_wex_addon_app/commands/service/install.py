@@ -39,36 +39,55 @@ def app__service__install(
     force: bool = False,
 ) -> None:
     from wexample_helpers.helpers.string import string_to_snake_case
+    from wexample_helpers_yaml.helpers.yaml_helpers import yaml_read
 
     from wexample_wex_addon_app.app_addon_manager import AppAddonManager
 
     app_addon_manager = AppAddonManager.from_kernel(context.kernel)
-    service_name = string_to_snake_case(service)
-    service_dir = app_addon_manager.find_service_dir(service_name)
+    installing: set[str] = set()
 
-    if service_dir is None:
-        raise ValueError(f"Unknown service '{service_name}'")
+    def _install(service_name: str, force_install: bool) -> None:
+        normalized_service_name = string_to_snake_case(service_name)
+        service_dir = app_addon_manager.find_service_dir(normalized_service_name)
 
-    config_file = app_workdir.get_config_file()
-    config = config_file.read_config()
-    service_config = config.search(f"service.{service_name}")
+        if service_dir is None:
+            raise ValueError(f"Unknown service '{normalized_service_name}'")
 
-    if not service_config.is_none() and not force:
-        context.io.log(f"Service '{service_name}' already installed")
-        return
+        if normalized_service_name in installing:
+            raise ValueError(
+                f"Cyclic service dependency detected while installing '{normalized_service_name}'"
+            )
 
-    config.set_by_path(f"service.{service_name}", {})
+        installing.add(normalized_service_name)
+        try:
+            manifest = yaml_read(file_path=str(service_dir / "service.yml"), default={}) or {}
+            for dependency in manifest.get("dependencies", []) or []:
+                _install(service_name=dependency, force_install=False)
 
-    if config.search("global.main_service").is_none():
-        config.set_by_path("global.main_service", service_name)
+            config_file = app_workdir.get_config_file()
+            config = config_file.read_config()
+            service_config = config.search(f"service.{normalized_service_name}")
 
-    config_file.write_config(config)
-    app_workdir.get_runtime_config(rebuild=True)
+            if not service_config.is_none() and not force_install:
+                context.io.log(f"Service '{normalized_service_name}' already installed")
+                return
 
-    app_addon_manager.run_service_hook(
-        hook="service/install",
-        app_workdir=app_workdir,
-        arguments={"service": service_name},
-    )
+            config.set_by_path(f"service.{normalized_service_name}", {})
 
-    context.io.log(f"Installed service '{service_name}'")
+            if config.search("global.main_service").is_none():
+                config.set_by_path("global.main_service", normalized_service_name)
+
+            config_file.write_config(config)
+            app_workdir.get_runtime_config(rebuild=True)
+
+            app_addon_manager.run_service_hook(
+                hook="service/install",
+                app_workdir=app_workdir,
+                arguments={"service": normalized_service_name},
+            )
+
+            context.io.log(f"Installed service '{normalized_service_name}'")
+        finally:
+            installing.remove(normalized_service_name)
+
+    _install(service_name=service, force_install=force)
