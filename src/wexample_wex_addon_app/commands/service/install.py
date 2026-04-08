@@ -90,6 +90,16 @@ def app__service__install(
             config_file.write_config(config)
             app_workdir.get_runtime_config(rebuild=True)
 
+            # Copy service samples into app
+            if service_dir is not None:
+                import shutil
+                from wexample_app.const.globals import WORKDIR_SETUP_DIR
+
+                samples_dir = service_dir / "samples"
+                if samples_dir.is_dir():
+                    app_setup_path = app_workdir.get_path() / WORKDIR_SETUP_DIR
+                    shutil.copytree(samples_dir, app_setup_path, dirs_exist_ok=True)
+
             app_addon_manager.run_service_hook(
                 hook="service/install",
                 app_workdir=app_workdir,
