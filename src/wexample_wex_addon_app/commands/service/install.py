@@ -58,6 +58,13 @@ def app__service__install(
                 f"Cyclic service dependency detected while installing '{normalized_service_name}'"
             )
 
+        config_file = app_workdir.get_config_file()
+        config = config_file.read_config()
+
+        if not config.search(f"service.{normalized_service_name}").is_none() and not force_install:
+            context.io.log(f"Service '{normalized_service_name}' already installed, skipping")
+            return
+
         installing.add(normalized_service_name)
         try:
             manifest = yaml_read(file_path=str(service_dir / "service.yml"), default={}) or {}
@@ -66,11 +73,6 @@ def app__service__install(
 
             config_file = app_workdir.get_config_file()
             config = config_file.read_config()
-            service_config = config.search(f"service.{normalized_service_name}")
-
-            if not service_config.is_none() and not force_install:
-                context.io.log(f"Service '{normalized_service_name}' already installed")
-                return
 
             config.set_by_path(f"service.{normalized_service_name}", {})
 
