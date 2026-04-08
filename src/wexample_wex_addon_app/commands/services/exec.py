@@ -13,7 +13,7 @@ if TYPE_CHECKING:
     from wexample_app.response.dict_response import DictResponse
     from wexample_wex_core.context.execution_context import ExecutionContext
 
-    from wexample_wex_addon_app. import ManagedWorkdir
+    from wexample_wex_addon_app.workdir.managed_workdir import ManagedWorkdir
 
 
 @option(

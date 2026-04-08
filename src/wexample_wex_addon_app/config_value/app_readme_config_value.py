@@ -54,7 +54,7 @@ class AppReadmeConfigValue(ReadmeContentConfigValue):
     def _collect_suite_paths(self) -> list[Path]:
         """Return suite paths from closest to farthest."""
         from wexample_helpers.helpers.directory import directory_iterate_parent_dirs
-        from wexample_wex_addon_app. import ManagedWorkdir
+        from wexample_wex_addon_app.workdir.managed_workdir import ManagedWorkdir
 
         def _is_suite(path: Path) -> bool:
             config = ManagedWorkdir.get_config_from_path(path=path)

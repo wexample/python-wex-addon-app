@@ -12,7 +12,7 @@ from wexample_wex_addon_app.middleware.app_middleware import AppMiddleware
 if TYPE_CHECKING:
     from wexample_wex_core.context.execution_context import ExecutionContext
 
-    from wexample_wex_addon_app. import ManagedWorkdir
+    from wexample_wex_addon_app.workdir.managed_workdir import ManagedWorkdir
 
 
 @as_sudo()

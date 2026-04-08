@@ -15,7 +15,7 @@ if TYPE_CHECKING:
     from wexample_wex_core.middleware.abstract_middleware import AbstractMiddleware
 
     from wexample_wex_addon_app.service.app_service import AppService
-    from wexample_wex_addon_app. import ManagedWorkdir
+    from wexample_wex_addon_app.workdir.managed_workdir import ManagedWorkdir
 
 
 @base_class
@@ -40,7 +40,7 @@ class AppAddonManager(AbstractAddonManager):
         from wexample_helpers.helpers.cli import cli_make_clickable_path
         from wexample_helpers.helpers.module import module_load_class_from_file
 
-        from wexample_wex_addon_app. import ManagedWorkdir
+        from wexample_wex_addon_app.workdir.managed_workdir import ManagedWorkdir
 
         app_path = (
             Path(path) if path is not None else self.kernel.call_workdir.get_path()

@@ -7,7 +7,7 @@ from wexample_wex_core.decorator.command import command
 from wexample_wex_core.decorator.middleware import middleware
 
 from wexample_wex_addon_app.middleware.app_middleware import AppMiddleware
-from wexample_wex_addon_app. import ManagedWorkdir
+from wexample_wex_addon_app.workdir.managed_workdir import ManagedWorkdir
 
 if TYPE_CHECKING:
     from wexample_wex_core.context.execution_context import ExecutionContext

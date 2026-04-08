@@ -8,7 +8,7 @@ from wexample_helpers.decorator.base_class import base_class
 from wexample_prompt.enums.terminal_color import TerminalColor
 from wexample_prompt.responses.abstract_prompt_response import AbstractPromptResponse
 
-from wexample_wex_addon_app. import ManagedWorkdir
+from wexample_wex_addon_app.workdir.managed_workdir import ManagedWorkdir
 
 if TYPE_CHECKING:
     from wexample_prompt.responses.echo_prompt_response import EchoPromptResponse
