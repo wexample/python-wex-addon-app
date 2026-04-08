@@ -235,13 +235,13 @@ def app__app__start(
         def _cmd(fn) -> str:
             return AddonCommandResolver.build_command_from_function(fn)
 
+        suggestions = [_cmd(app__app__go), _cmd(app__app__stop)]
+        if app_workdir.get_main_db_service():
+            suggestions.insert(0, _cmd(app__db__go))
+
         context.io.suggestions(
             message=summary,
-            suggestions=[
-                _cmd(app__db__go),
-                _cmd(app__app__go),
-                _cmd(app__app__stop),
-            ],
+            suggestions=suggestions,
         )
 
     if fast:
