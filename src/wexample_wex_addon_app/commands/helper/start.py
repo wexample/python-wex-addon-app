@@ -63,28 +63,16 @@ def app__helper__start(
 
             shutil.rmtree(helper_path)
 
-        for subdir in [".wex", ".wex/tmp"]:
-            (helper_path / subdir).mkdir(parents=True)
+        from wexample_wex_addon_app.commands.app.init import app__app__init
 
-        (helper_path / ".wex" / "config.yml").write_text(
-            "global:\n"
-            f"  type: app\n"
-            f"  name: wex-{name}\n"
-            f"  main_service: {name}\n"
-            "  version: 1.0.0\n"
-            "service:\n"
-            f"  {name}: {{}}\n"
-        )
-
-        (helper_path / ".wex" / ".env").write_text(f"APP_ENV={env}\n")
-
-        helper_workdir = app_addon_manager.create_app_workdir(path=helper_path)
-        if helper_workdir is None:
-            raise RuntimeError(f"Unable to create helper workdir for {helper_path}")
-
-        app_addon_manager.run_service_hook(
-            hook="service/install",
-            app_workdir=helper_workdir,
+        context.kernel.run_function(
+            app__app__init,
+            {
+                "app_path": str(helper_path),
+                "env": env,
+                "name": f"wex-{name}",
+                "services": [name],
+            },
         )
 
         context.io.log(f"Helper '{name}' app created at {helper_path}")
