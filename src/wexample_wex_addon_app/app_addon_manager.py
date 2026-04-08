@@ -75,17 +75,11 @@ class AppAddonManager(AbstractAddonManager):
         raise RuntimeError("AppAddonManager not registered in kernel")
 
     def get_app_services(self, app_workdir: AppWorkdir) -> list[AppService]:
-        from wexample_helpers_yaml.helpers.yaml_helpers import yaml_read
-
         from wexample_wex_addon_app.service.app_service import AppService
 
         def _make_service(service_name: str) -> AppService:
             service_dir = self.find_service_dir(service_name)
-            manifest = (
-                yaml_read(file_path=str(service_dir / "service.yml"), default={})
-                if service_dir
-                else {}
-            )
+            manifest = self.get_service_manifest(service_name) if service_dir else {}
             return AppService(
                 name=service_name,
                 app_workdir=app_workdir,
@@ -158,7 +152,27 @@ class AppAddonManager(AbstractAddonManager):
                 return service_dir
         return None
 
-    def get_service_manifest(self, service_name: str) -> dict[str, Any]:
+    def get_service_inheritance_chain(self, service_name: str) -> list[str]:
+        chain: list[str] = []
+        current = service_name
+        visiting: set[str] = set()
+
+        while current:
+            if current in visiting:
+                raise ValueError(
+                    f"Cyclic service inheritance detected: {' -> '.join(chain + [current])}"
+                )
+
+            visiting.add(current)
+            chain.append(current)
+            manifest = self.get_service_manifest_raw(current)
+            parent = manifest.get("extends")
+            current = str(parent) if parent else ""
+
+        chain.reverse()
+        return chain
+
+    def get_service_manifest_raw(self, service_name: str) -> dict[str, Any]:
         from wexample_helpers_yaml.helpers.yaml_helpers import yaml_read
 
         service_dir = self.find_service_dir(service_name)
@@ -166,6 +180,29 @@ class AppAddonManager(AbstractAddonManager):
             return {}
 
         return yaml_read(file_path=str(service_dir / "service.yml"), default={}) or {}
+
+    def get_service_manifest(self, service_name: str) -> dict[str, Any]:
+        from wexample_helpers.helpers.dict import dict_merge
+
+        chain = self.get_service_inheritance_chain(service_name)
+        merged: dict[str, Any] = {}
+        list_keys = {"tags", "dependencies"}
+
+        for inherited_service_name in chain:
+            raw_manifest = self.get_service_manifest_raw(inherited_service_name)
+            merged = dict_merge(merged, raw_manifest)
+
+            for key in list_keys:
+                values: list[Any] = []
+                for source in (merged, raw_manifest):
+                    for value in source.get(key, []) or []:
+                        if value not in values:
+                            values.append(value)
+                if values:
+                    merged[key] = values
+
+        merged.pop("extends", None)
+        return merged
 
     def find_services_by_tag(self, tag: str) -> list[str]:
         from wexample_wex_core.resolver.service_command_resolver import _SERVICES_SUBDIR

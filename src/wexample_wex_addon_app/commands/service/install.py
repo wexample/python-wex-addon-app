@@ -41,7 +41,6 @@ def app__service__install(
     force: bool = False,
 ) -> None:
     from wexample_helpers.helpers.string import string_to_snake_case
-    from wexample_helpers_yaml.helpers.yaml_helpers import yaml_read
 
     from wexample_wex_addon_app.app_addon_manager import AppAddonManager
 
@@ -69,7 +68,7 @@ def app__service__install(
 
         installing.add(normalized_service_name)
         try:
-            manifest = yaml_read(file_path=str(service_dir / "service.yml"), default={}) or {}
+            manifest = app_addon_manager.get_service_manifest(normalized_service_name)
             for dependency in manifest.get("dependencies", []) or []:
                 _install(service_name=dependency, force_install=False)
 
@@ -91,11 +90,17 @@ def app__service__install(
             app_workdir.get_runtime_config(rebuild=True)
 
             # Copy service samples into app
-            if service_dir is not None:
+            for inherited_service_name in app_addon_manager.get_service_inheritance_chain(
+                normalized_service_name
+            ):
+                inherited_service_dir = app_addon_manager.find_service_dir(inherited_service_name)
+                if inherited_service_dir is None:
+                    continue
+
                 import shutil
                 from wexample_app.const.globals import WORKDIR_SETUP_DIR
 
-                samples_dir = service_dir / "samples"
+                samples_dir = inherited_service_dir / "samples"
                 if samples_dir.is_dir():
                     app_setup_path = app_workdir.get_path() / WORKDIR_SETUP_DIR
                     shutil.copytree(samples_dir, app_setup_path, dirs_exist_ok=True)
