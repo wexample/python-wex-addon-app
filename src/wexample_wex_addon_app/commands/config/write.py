@@ -98,6 +98,8 @@ def app__config__write(
     def _docker(previous_value=None) -> None:
         import subprocess
 
+        import yaml as _yaml
+
         runtime = app_workdir.get_runtime_config_file().read_config().to_dict()
         docker_env_path = tmp_dir / "docker.env"
         compose_runtime_path = tmp_dir / "docker-compose.runtime.yml"
@@ -115,7 +117,6 @@ def app__config__write(
             compose_files.append(str(env_compose))
 
         # Infrastructure-only service composes (networks, volumes — no services key)
-        import yaml as _yaml
         for service_data in runtime.get("service", {}).values():
             if not isinstance(service_data, dict) or "compose" not in service_data:
                 continue
@@ -127,6 +128,35 @@ def app__config__write(
                     compose_files.append(compose_path)
             except (OSError, _yaml.YAMLError):
                 pass
+
+        # Per-service VIRTUAL_HOST override (Option A: from service.{name}.domains in config)
+        main_service = runtime.get("app", {}).get("main_service") or runtime.get("global", {}).get("main_service")
+        app_domains_string = runtime.get("app", {}).get("domains_string", "")
+        domains_override: dict = {"services": {}}
+
+        for service_name, service_data in runtime.get("service", {}).items():
+            if not isinstance(service_data, dict):
+                continue
+
+            service_domains = service_data.get("domains")
+            if service_domains:
+                # Explicit per-service domains
+                virtual_host = ",".join(service_domains) if isinstance(service_domains, list) else str(service_domains)
+            elif service_name == main_service and app_domains_string:
+                # Fallback: main_service inherits app-level domains
+                virtual_host = app_domains_string
+            else:
+                continue
+
+            container_name = f"{name}_{service_name}"
+            domains_override["services"][container_name] = {
+                "environment": {"VIRTUAL_HOST": virtual_host}
+            }
+
+        if domains_override["services"]:
+            domains_override_path = tmp_dir / "docker-compose.domains.yml"
+            domains_override_path.write_text(_yaml.dump(domains_override, default_flow_style=False))
+            compose_files.append(str(domains_override_path))
 
         if not compose_files:
             context.io.log("No docker compose files found, skipping")
