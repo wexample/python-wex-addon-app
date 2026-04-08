@@ -80,7 +80,7 @@ def app__service__install(
                 config.set_by_path("global.main_service", normalized_service_name)
 
             if (
-                normalized_service_name in app_addon_manager.find_services_by_tag("db")
+                "db" in (manifest.get("tags") or [])
                 and config.search("docker.db.main").is_none()
             ):
                 config.set_by_path("docker.db.main", normalized_service_name)
@@ -91,7 +91,6 @@ def app__service__install(
             app_addon_manager.run_service_hook(
                 hook="service/install",
                 app_workdir=app_workdir,
-                arguments={"service": normalized_service_name},
             )
 
             context.io.log(f"Installed service '{normalized_service_name}'")
