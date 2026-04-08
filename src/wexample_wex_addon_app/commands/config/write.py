@@ -130,8 +130,6 @@ def app__config__write(
                         compose_files.append(compose_path)
                 except (OSError, _yaml.YAMLError):
                     pass
-            if "compose_env" in service_data:
-                compose_files.append(service_data["compose_env"])
 
         if not compose_files:
             context.io.log("No docker compose files found, skipping")
