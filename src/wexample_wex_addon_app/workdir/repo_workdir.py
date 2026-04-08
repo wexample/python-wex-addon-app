@@ -62,7 +62,7 @@ class RepoWorkdir(ManagedWorkdir):
             )
 
             confirm = self.confirm(
-                f"Do you want to create a new version for {self.get_project_name()} in @path{{{self.get_path()}}}?{changes_message} "
+                f"Do you want to create a new version for @color:magenta{{{self.get_project_name()}}} in @path{{{self.get_path()}}}?{changes_message} "
                 f'This will create/switch to branch "{branch_name}".',
                 choices=ConfirmPromptResponse.MAPPING_PRESET_YES_NO,
                 default="yes",
