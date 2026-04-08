@@ -1,12 +1,13 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 from wexample_helpers.classes.field import public_field
 from wexample_helpers.decorator.base_class import base_class
 
 if TYPE_CHECKING:
+    from wexample_wex_addon_app.app_addon_manager import AppAddonManager
     from wexample_wex_addon_app.workdir.app_workdir import AppWorkdir
 
 
@@ -14,16 +15,9 @@ if TYPE_CHECKING:
 class AppService:
     name: str = public_field(description="Service name (e.g. 'mysql')")
     app_workdir: AppWorkdir = public_field(description="The app this service belongs to")
+    addon_manager: AppAddonManager = public_field(description="Manager used to resolve service dirs and manifests")
     service_dir: Path | None = public_field(default=None, description="Path to the service directory in the addon package")
     manifest: dict = public_field(factory=dict, description="Parsed service.yml content")
-    inherited_service_dirs: dict[str, Path] = public_field(
-        factory=dict,
-        description="Resolved service dirs for this service inheritance chain",
-    )
-    inherited_manifests: dict[str, dict[str, Any]] = public_field(
-        factory=dict,
-        description="Resolved manifests for this service inheritance chain",
-    )
 
     def get_compose_file(self) -> Path | None:
         if not self.service_dir:
@@ -54,32 +48,23 @@ class AppService:
 
         env = self.app_workdir.get_app_env() or ""
 
-        inherited_service_names = list(self.inherited_service_dirs.keys()) or [self.name]
-        for inherited_service_name in inherited_service_names:
-            service_dir = self.inherited_service_dirs.get(inherited_service_name)
-            manifest = self.inherited_manifests.get(inherited_service_name, {})
+        for inherited_service_name in self.addon_manager.get_service_inheritance_chain(self.name):
+            service_dir = self.addon_manager.find_service_dir(inherited_service_name)
             if not service_dir:
                 continue
+            manifest = self.addon_manager.get_service_manifest_raw(inherited_service_name)
 
             compose_rel = manifest.get("docker", {}).get("compose")
             if compose_rel:
                 compose_abs = service_dir / compose_rel
                 if compose_abs.exists():
-                    contribution.setdefault("service", {}).setdefault(
-                        inherited_service_name, {}
-                    )
-                    contribution["service"][inherited_service_name]["compose"] = str(
-                        compose_abs
-                    )
+                    contribution.setdefault("service", {}).setdefault(inherited_service_name, {})
+                    contribution["service"][inherited_service_name]["compose"] = str(compose_abs)
 
             env_compose = service_dir / "env" / env / "docker" / "docker-compose.yml"
             if env_compose.exists():
-                contribution.setdefault("service", {}).setdefault(
-                    inherited_service_name, {}
-                )
-                contribution["service"][inherited_service_name][
-                    f"compose_env_{env}"
-                ] = str(env_compose)
+                contribution.setdefault("service", {}).setdefault(inherited_service_name, {})
+                contribution["service"][inherited_service_name][f"compose_env_{env}"] = str(env_compose)
 
         bind_declarations = self.manifest.get("runtime", {}).get("bind", {})
         if bind_declarations:

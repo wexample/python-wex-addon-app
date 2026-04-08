@@ -80,24 +80,12 @@ class AppAddonManager(AbstractAddonManager):
         def _make_service(service_name: str) -> AppService:
             service_dir = self.find_service_dir(service_name)
             manifest = self.get_service_manifest(service_name) if service_dir else {}
-            inherited_service_dirs = {}
-            inherited_manifests = {}
-            if service_dir:
-                for inherited_service_name in self.get_service_inheritance_chain(service_name):
-                    inherited_dir = self.find_service_dir(inherited_service_name)
-                    if inherited_dir is None:
-                        continue
-                    inherited_service_dirs[inherited_service_name] = inherited_dir
-                    inherited_manifests[inherited_service_name] = self.get_service_manifest_raw(
-                        inherited_service_name
-                    )
             return AppService(
                 name=service_name,
                 app_workdir=app_workdir,
+                addon_manager=self,
                 service_dir=service_dir,
                 manifest=manifest,
-                inherited_service_dirs=inherited_service_dirs,
-                inherited_manifests=inherited_manifests,
             )
 
         # "default" is always injected first — provides base compose (stdin_open, tty, restart, network)
