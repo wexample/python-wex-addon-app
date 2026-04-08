@@ -41,8 +41,8 @@ Desktop.ini
 .env.local
 .env.*.local
 *.log
-logs/
-log/
+/logs/
+/log/
 /.cache/
 tmp/
 temp/
