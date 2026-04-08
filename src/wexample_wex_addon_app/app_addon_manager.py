@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
 from wexample_app.const.globals import APP_PATH_APP_MANAGER
@@ -156,6 +157,12 @@ class AppAddonManager(AbstractAddonManager):
             if service_dir.is_dir():
                 return service_dir
         return None
+
+    @staticmethod
+    def get_helper_app_path(name: str, env: str) -> Path:
+        from wexample_wex_addon_app.helpers.app import get_helper_app_path
+
+        return get_helper_app_path(name=name, env=env)
 
     def get_command_resolver_classes(self) -> list[type[AbstractCommandResolver]]:
         from wexample_wex_addon_app.resolver.app_command_resolver import AppCommandResolver
