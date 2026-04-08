@@ -69,6 +69,21 @@ def app__helper__start(
 
     def _create(previous_value=None) -> None:
         if proxy_path.exists():
+            from wexample_wex_addon_app.app_addon_manager import AppAddonManager
+            from wexample_wex_addon_app.commands.app.started import (
+                APP_STARTED_CHECK_MODE_ANY_CONTAINER,
+                _check_started,
+            )
+
+            proxy_workdir = AppAddonManager.from_kernel(context.kernel).create_app_workdir(
+                path=proxy_path
+            )
+            if proxy_workdir and _check_started(
+                proxy_workdir, APP_STARTED_CHECK_MODE_ANY_CONTAINER, context
+            ):
+                context.io.log("Proxy helper already running, skipping creation")
+                return
+
             shutil.rmtree(proxy_path)
 
         # Directory structure
