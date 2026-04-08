@@ -530,5 +530,8 @@ class ManagedWorkdir(
     def shell_run_for_app(self, **kwargs) -> ShellResult:
         return self.shell_run_from_path(path=self.get_path(), **kwargs)
 
+    def get_dependencies_versions(self) -> dict[str, str]:
+        return {}
+
     def _get_iml_file_class(self) -> type[ImlFile]:
         return ImlFile

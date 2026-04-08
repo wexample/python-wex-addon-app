@@ -88,9 +88,6 @@ class RepoWorkdir(ManagedWorkdir):
     def count_test_files(self) -> int:
         return self._count_files(self._get_test_code_directories())
 
-    def get_dependencies_versions(self) -> dict[str, str]:
-        return {}
-
     def get_last_publication_tag(self) -> str | None:
         """Return the last publication tag for this package, or None if none exists."""
         from wexample_helpers_git.helpers.git import git_last_tag_for_prefix
