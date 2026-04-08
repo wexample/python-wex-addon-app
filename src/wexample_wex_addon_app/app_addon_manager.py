@@ -238,6 +238,9 @@ class AppAddonManager(AbstractAddonManager):
 
     def get_middlewares_classes(self) -> list[type[AbstractMiddleware]]:
         from wexample_wex_addon_app.middleware.app_middleware import AppMiddleware
+        from wexample_wex_addon_app.middleware.code_base_middleware import (
+            CodeBaseMiddleware,
+        )
         from wexample_wex_addon_app.middleware.each_suite_package_middleware import (
             EachSuitePackageMiddleware,
         )
@@ -250,6 +253,7 @@ class AppAddonManager(AbstractAddonManager):
 
         return [
             AppMiddleware,
+            CodeBaseMiddleware,
             EachSuitePackageMiddleware,
             PackageSuiteMiddleware,
             SuiteOrEachPackageMiddleware,
