@@ -19,6 +19,7 @@ if TYPE_CHECKING:
 @option(name="yes", type=bool, default=False, is_flag=True, description="Non-interactive mode")
 @option(name="no_bump", type=bool, default=False, is_flag=True, description="Skip version bump")
 @option(name="skip_rectify", type=bool, default=False, is_flag=True, description="Skip file state rectification")
+@option(name="force", type=bool, default=False, is_flag=True, description="Force bump even if no changes detected")
 @middleware(middleware=CodeBaseMiddleware)
 @command(type=COMMAND_TYPE_ADDON, description="Publish a new version of the app: bump, rectify, commit, tag.")
 def app__app__publish(
@@ -27,13 +28,14 @@ def app__app__publish(
     yes: bool = False,
     no_bump: bool = False,
     skip_rectify: bool = False,
+    force: bool = False,
 ) -> QueuedCollectionResponse:
     def _bump(previous_value=None):
         from wexample_app.response.queue_collection.queued_collection_stop_response import (
             QueuedCollectionStopResponse,
         )
 
-        bumped = app_workdir.bump(interactive=not yes)
+        bumped = app_workdir.bump(interactive=not yes, force=force)
         if not bumped:
             return QueuedCollectionStopResponse(
                 kernel=context.kernel,

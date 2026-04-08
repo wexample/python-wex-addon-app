@@ -36,6 +36,9 @@ class CodeBaseWorkdir(RepoWorkdir):
             tag, cwd=cwd, remote=self._get_deployment_remote_name(), inherit_stdio=True
         )
 
+    def _get_critical_directories(self) -> list[str]:
+        return []
+
     def build_dependencies_stack(
         self, package: CodeBaseWorkdir, dependency: CodeBaseWorkdir
     ) -> list[CodeBaseWorkdir]:
