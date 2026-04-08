@@ -57,7 +57,8 @@ class AppAddonManager(AbstractAddonManager):
         )
         if custom_app_workdir_class_path.exists():
             app_workdir_class = module_load_class_from_file(
-                file_path=custom_app_workdir_class_path, class_name=ManagedWorkdir.__name__
+                file_path=custom_app_workdir_class_path,
+                class_name="AppWorkdir"
             )
         else:
             app_workdir_class = ManagedWorkdir
