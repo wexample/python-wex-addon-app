@@ -306,21 +306,24 @@ class AppWorkdir(
 
     def get_domains_config(self) -> dict[str, str | list[str]]:
         app_config = self.get_runtime_app_config()
-        name = self.get_project_name()
-
-        domain = app_config.get("domain") or f"{name}.wex"
+        domain = app_config.get("domain")
 
         configured_domains = app_config.get("domains")
         if isinstance(configured_domains, list) and configured_domains:
             domains = [d for d in configured_domains if d]
-        else:
+        elif domain:
             domains = [domain]
+        else:
+            domains = []
 
-        return {
-            "domain": domain,
-            "domains": domains,
-            "domains_string": ",".join(domains),
-        }
+        result: dict[str, str | list[str]] = {}
+        if domain:
+            result["domain"] = domain
+        if domains:
+            result["domains"] = domains
+            result["domains_string"] = ",".join(domains)
+
+        return result
 
     def libraries_sync(self) -> None:
         from wexample_wex_addon_app.commands.dependencies.publish import (

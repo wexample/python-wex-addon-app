@@ -55,7 +55,6 @@ def app__hosts__update(
     domains_config = runtime.search("app.domains")
 
     if domains_config.is_none():
-        context.io.log("No domains in runtime config, skipping hosts update")
         return NullResponse(kernel=context.kernel)
 
     domains = [d.get_str() for d in domains_config.get_list_or_default([]) if not d.is_none()]
