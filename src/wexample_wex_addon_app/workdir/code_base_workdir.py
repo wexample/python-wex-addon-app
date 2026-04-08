@@ -251,8 +251,11 @@ class CodeBaseWorkdir(RepoWorkdir):
             GitRetryableCallbackManager,
         )
 
+        from wexample_helpers_git.helpers.git import git_current_branch
+
         remote = remote_name or GIT_REMOTE_ORIGIN
-        branch_name = branch_name or GIT_BRANCH_MAIN
+        if branch_name is None:
+            branch_name = git_current_branch(cwd=self.get_path(), inherit_stdio=False)
 
         local_branch, remote_branch = (
             branch_name.split(":", 1)

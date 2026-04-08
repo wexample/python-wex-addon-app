@@ -28,8 +28,6 @@ def app__app__publish(
     no_bump: bool = False,
     skip_rectify: bool = False,
 ) -> QueuedCollectionResponse:
-    from wexample_helpers_git.const.common import GIT_BRANCH_MAIN
-
     def _bump(previous_value=None):
         from wexample_app.response.queue_collection.queued_collection_stop_response import (
             QueuedCollectionStopResponse,
@@ -54,7 +52,7 @@ def app__app__publish(
 
     def _commit(previous_value=None):
         app_workdir.commit_changes()
-        app_workdir.push_to_deployment_remote(branch_name=GIT_BRANCH_MAIN)
+        app_workdir.push_to_deployment_remote()
         context.io.success(f"Pushed {app_workdir.get_project_name()}.")
 
     def _tag(previous_value=None):
