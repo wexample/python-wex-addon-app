@@ -187,7 +187,7 @@ class AppReadmeConfigValue(ReadmeContentConfigValue):
             "description": self._get_app_description(),
             "homepage": self._get_app_homepage(),
             "license_info": self._get_project_license(),
-            "package_name": self.workdir.get_package_name(),
+            "package_name": self.workdir.get_project_name(),
             "project_name": self.workdir.get_project_name(),
             "version": self.workdir.get_project_version(),
             "workdir": self.workdir,
