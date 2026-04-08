@@ -279,10 +279,7 @@ class AppWorkdir(
     def get_project_version(self) -> str:
         from wexample_app.const.globals import APP_FILE_APP_CONFIG
 
-        # Ensure we properly handle missing node and empty value
-        config = self.get_runtime_config()
-
-        version_config = config.search("global.version")
+        version_config = self.get_config().search("global.version")
         version = version_config.get_str_or_none()
         if version is None or str(version).strip() == "":
             raise ValueError(

@@ -8,7 +8,7 @@ from wexample_helpers.decorator.base_class import base_class
 from wexample_prompt.enums.terminal_color import TerminalColor
 from wexample_prompt.responses.abstract_prompt_response import AbstractPromptResponse
 
-from wexample_wex_addon_app.workdir.repo_workdir import RepoWorkdir
+from wexample_wex_addon_app.workdir.app_workdir import AppWorkdir
 
 if TYPE_CHECKING:
     from wexample_prompt.responses.echo_prompt_response import EchoPromptResponse
@@ -16,7 +16,7 @@ if TYPE_CHECKING:
 
 @base_class
 class AppInfoResponse(AbstractResponse):
-    app_workdir: RepoWorkdir = public_field(
+    app_workdir: AppWorkdir = public_field(
         description="The application workdir to display information about"
     )
 
@@ -69,6 +69,31 @@ class AppInfoResponse(AbstractResponse):
 
         return total_int, covered_int, coverage_percent, coverage_color
 
+    def _has_repo_metrics(self) -> bool:
+        return all(
+            hasattr(self.app_workdir, method_name)
+            for method_name in [
+                "count_source_code_lines",
+                "count_test_code_lines",
+            ]
+        )
+
+    def _has_repo_status(self) -> bool:
+        return all(
+            hasattr(self.app_workdir, method_name)
+            for method_name in [
+                "has_changes_since_last_publication_tag",
+                "has_a_test",
+                "has_changes_since_last_coverage",
+            ]
+        )
+
+    def _get_project_version_display(self) -> str:
+        try:
+            return self.app_workdir.get_project_version()
+        except (AttributeError, ValueError):
+            return "@color:yellow{N/A}"
+
     def _get_formatted_prompt_response(self) -> AbstractPromptResponse:
         """Build the complete app info response with all sections.
 
@@ -95,23 +120,31 @@ class AppInfoResponse(AbstractResponse):
             self._get_coverage_data()
         )
 
-        # Check all conditions for publishability
         has_readme = self.app_workdir.has_readme()
-        is_clean_since_version = (
-            not self.app_workdir.has_changes_since_last_publication_tag()
-        )
-        has_tests = self.app_workdir.has_a_test()
-        is_clean_since_coverage = not self.app_workdir.has_changes_since_last_coverage()
+        has_repo_status = self._has_repo_status()
+        has_repo_metrics = self._has_repo_metrics()
 
-        # App is publishable only if ALL conditions are met
-        is_publishable = all(
-            [
-                has_readme,
-                is_clean_since_version,
-                has_tests,
-                is_clean_since_coverage,
-            ]
-        )
+        if has_repo_status:
+            is_clean_since_version = (
+                not self.app_workdir.has_changes_since_last_publication_tag()
+            )
+            has_tests = self.app_workdir.has_a_test()
+            is_clean_since_coverage = (
+                not self.app_workdir.has_changes_since_last_coverage()
+            )
+            is_publishable = all(
+                [
+                    has_readme,
+                    is_clean_since_version,
+                    has_tests,
+                    is_clean_since_coverage,
+                ]
+            )
+        else:
+            is_clean_since_version = None
+            has_tests = None
+            is_clean_since_coverage = None
+            is_publishable = None
 
         # Build response sections
         responses = [
@@ -120,7 +153,7 @@ class AppInfoResponse(AbstractResponse):
                 title="Project Info",
                 properties={
                     "Name": f"@color:blue{{{self.app_workdir.get_item_name()}}}",
-                    "Version": self.app_workdir.get_project_version(),
+                    "Version": self._get_project_version_display(),
                     "Path": f"@path{{{self.app_workdir.get_path()}}}",
                     "Environment": f"@color:{ENV_COLORS[env]}{{{env}}}",
                 },
@@ -153,6 +186,13 @@ class AppInfoResponse(AbstractResponse):
                         "Has README.md": self._format_yes_no(has_readme),
                     },
                 ),
+                SeparatorPromptResponse(character="▄"),
+            ]
+        )
+
+        if has_repo_metrics:
+            responses.insert(
+                -1,
                 PropertiesPromptResponse(
                     title="Code",
                     properties={
@@ -160,6 +200,11 @@ class AppInfoResponse(AbstractResponse):
                         "Lines in tests": f"@color:magenta{{{self.app_workdir.count_test_code_lines()}}}",
                     },
                 ),
+            )
+
+        if has_repo_status:
+            responses.insert(
+                -1,
                 PropertiesPromptResponse(
                     title="Repository",
                     properties={
@@ -168,6 +213,9 @@ class AppInfoResponse(AbstractResponse):
                         ),
                     },
                 ),
+            )
+            responses.insert(
+                -1,
                 PropertiesPromptResponse(
                     title="Testing",
                     properties={
@@ -177,15 +225,16 @@ class AppInfoResponse(AbstractResponse):
                         ),
                     },
                 ),
+            )
+            responses.insert(
+                -1,
                 PropertiesPromptResponse(
                     title="Status",
                     properties={
                         "Ready to publish": self._format_yes_no(is_publishable),
                     },
                 ),
-                SeparatorPromptResponse(character="▄"),
-            ]
-        )
+            )
 
         return MultiplePromptResponse.create_multiple(responses=responses)
 
