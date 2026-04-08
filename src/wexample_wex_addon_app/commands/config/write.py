@@ -37,26 +37,8 @@ def app__config__write(
     def _runtime(previous_value=None) -> None:
         tmp_dir.mkdir(parents=True, exist_ok=True)
 
-        # Merge base config + env-specific override (env/local/config.yml)
-        app_config = dict_merge(
-            app_workdir.get_config().to_dict(),
-            app_workdir.get_config(env_name=env).to_dict_or_none() or {},
-        )
-
-        # Flatten env-specific block into root if present (v5 compat: env.local.* → root)
-        env_block = app_config.pop("env", {})
-        app_config.update(env_block.get(env, {}))
-
-        # Compute canonical domain + domains list
-        domain = app_config.get("domain") or app_config.pop("domain_main", None) or f"{name}.wex"
-        app_config.pop("domain_tld", None)
-        extra_domains = app_config.get("domains") or []
-        if isinstance(extra_domains, list):
-            extra_domains = [d for d in extra_domains if d and d != domain]
-        else:
-            extra_domains = []
-        all_domains = [domain] + extra_domains
-        domains_string = ",".join(all_domains)
+        app_config = app_workdir.get_runtime_app_config()
+        domains_config = app_workdir.get_domains_config()
 
         merged = {
             "app": dict_merge(app_config, {
@@ -67,9 +49,7 @@ def app__config__write(
                 "started": False,
                 "path": str(app_path) + "/",
                 "setup_path": str(app_path / WORKDIR_SETUP_DIR) + "/",
-                "domain": domain,
-                "domains": all_domains,
-                "domains_string": domains_string,
+                **domains_config,
             }),
         }
 

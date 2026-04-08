@@ -290,6 +290,38 @@ class AppWorkdir(
             )
         return str(version).strip()
 
+    def get_runtime_app_config(self) -> dict:
+        from wexample_helpers.helpers.dict import dict_merge
+
+        env = self.get_app_env()
+        app_config = dict_merge(
+            self.get_config().to_dict(),
+            self.get_config(env_name=env).to_dict_or_none() or {},
+        )
+
+        env_block = app_config.pop("env", {})
+        app_config.update(env_block.get(env, {}))
+
+        return app_config
+
+    def get_domains_config(self) -> dict[str, str | list[str]]:
+        app_config = self.get_runtime_app_config()
+        name = self.get_project_name()
+
+        domain = app_config.get("domain") or f"{name}.wex"
+
+        configured_domains = app_config.get("domains")
+        if isinstance(configured_domains, list) and configured_domains:
+            domains = [d for d in configured_domains if d]
+        else:
+            domains = [domain]
+
+        return {
+            "domain": domain,
+            "domains": domains,
+            "domains_string": ",".join(domains),
+        }
+
     def libraries_sync(self) -> None:
         from wexample_wex_addon_app.commands.dependencies.publish import (
             app__dependencies__publish,
