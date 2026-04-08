@@ -7,7 +7,7 @@ from wexample_helpers.classes.abstract_method import abstract_method
 from wexample_helpers.const.types import PathOrString
 from wexample_wex_core.resolver.addon_command_resolver import AddonCommandResolver
 
-from wexample_wex_addon_app.workdir.app_workdir import ManagedWorkdir
+from wexample_wex_addon_app. import ManagedWorkdir
 from wexample_wex_addon_app.workdir.repo_workdir import RepoWorkdir
 
 if TYPE_CHECKING:

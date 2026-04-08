@@ -13,7 +13,7 @@ if TYPE_CHECKING:
     from wexample_app.response.boolean_response import BooleanResponse
     from wexample_wex_core.context.execution_context import ExecutionContext
 
-    from wexample_wex_addon_app.workdir.app_workdir import ManagedWorkdir
+    from wexample_wex_addon_app. import ManagedWorkdir
 
 APP_STARTED_CHECK_MODE_CONFIG = "config"
 APP_STARTED_CHECK_MODE_FULL = "full"

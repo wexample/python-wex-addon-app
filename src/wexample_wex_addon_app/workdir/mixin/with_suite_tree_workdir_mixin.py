@@ -50,7 +50,7 @@ class WithSuiteTreeWorkdirMixin(BaseClass):
         """
         from wexample_helpers.helpers.directory import directory_iterate_parent_dirs
 
-        from wexample_wex_addon_app.workdir.app_workdir import ManagedWorkdir
+        from wexample_wex_addon_app. import ManagedWorkdir
 
         if self._suite_workdir_path is None:
             source_path = self.get_path()
@@ -169,7 +169,7 @@ class WithSuiteTreeWorkdirMixin(BaseClass):
 
     def search_in_package_or_suite_config(self, key: str) -> ConfigValue:
         """Search for a config value in the package config, fallback to suite config if not found."""
-        from wexample_wex_addon_app.workdir.app_workdir import ManagedWorkdir
+        from wexample_wex_addon_app. import ManagedWorkdir
 
         value = self.get_config().search(key)
 

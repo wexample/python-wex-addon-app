@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING
 from wexample_filestate.const.types_state_items import TargetFileOrDirectoryType
 from wexample_helpers.classes.abstract_method import abstract_method
 
-from wexample_wex_addon_app.workdir.app_workdir import ManagedWorkdir
+from wexample_wex_addon_app. import ManagedWorkdir
 
 if TYPE_CHECKING:
     pass

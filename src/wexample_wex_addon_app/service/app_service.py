@@ -8,7 +8,7 @@ from wexample_helpers.decorator.base_class import base_class
 
 if TYPE_CHECKING:
     from wexample_wex_addon_app.app_addon_manager import AppAddonManager
-    from wexample_wex_addon_app.workdir.app_workdir import ManagedWorkdir
+    from wexample_wex_addon_app. import ManagedWorkdir
 
 
 @base_class
