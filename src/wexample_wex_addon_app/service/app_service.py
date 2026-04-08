@@ -49,6 +49,12 @@ class AppService:
             contribution.setdefault("service", {}).setdefault(self.name, {})
             contribution["service"][self.name]["compose"] = str(compose)
 
+        env = self.app_workdir.get_app_env() or ""
+        env_compose = self.service_dir / "env" / env / "docker" / "docker-compose.yml" if self.service_dir else None
+        if env_compose and env_compose.exists():
+            contribution.setdefault("service", {}).setdefault(self.name, {})
+            contribution["service"][self.name]["compose_env"] = str(env_compose)
+
         bind_declarations = self.manifest.get("runtime", {}).get("bind", {})
         if bind_declarations:
             env = self.app_workdir.get_app_env() or ""
