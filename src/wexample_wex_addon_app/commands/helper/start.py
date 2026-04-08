@@ -11,6 +11,8 @@ if TYPE_CHECKING:
     from wexample_app.response.abstract_response import AbstractResponse
     from wexample_wex_core.context.execution_context import ExecutionContext
 
+from wexample_wex_addon_app.const.app import HELPER_APPS_LIST
+
 
 @option(
     name="name",
@@ -31,24 +33,28 @@ def app__helper__start(
     name: str,
     env: str | None = None,
 ) -> AbstractResponse:
-    import shutil
-
     from wexample_app.response.queued_collection_response import QueuedCollectionResponse
     from wexample_wex_addon_app.app_addon_manager import AppAddonManager
 
+    if name not in HELPER_APPS_LIST:
+        raise ValueError(
+            f"Unknown helper app '{name}'. Expected one of: {', '.join(HELPER_APPS_LIST)}"
+        )
+
     env = env or "local"
-    helper_path = AppAddonManager.get_helper_app_path(name=name, env=env)
+    app_addon_manager = AppAddonManager.from_kernel(context.kernel)
+    helper_path = app_addon_manager.get_helper_app_path(name=name, env=env)
 
     def _create(previous_value=None) -> None:
         if helper_path.exists():
+            import shutil
+
             from wexample_wex_addon_app.commands.app.started import (
                 APP_STARTED_CHECK_MODE_ANY_CONTAINER,
                 _check_started,
             )
 
-            helper_workdir = AppAddonManager.from_kernel(context.kernel).create_app_workdir(
-                path=helper_path
-            )
+            helper_workdir = app_addon_manager.create_app_workdir(path=helper_path)
             if helper_workdir and _check_started(
                 helper_workdir, APP_STARTED_CHECK_MODE_ANY_CONTAINER, context
             ):
@@ -57,19 +63,9 @@ def app__helper__start(
 
             shutil.rmtree(helper_path)
 
-        # TODO: replace with app__app__init once ported to v6
-        # Directory structure
-        for subdir in [
-            ".wex/docker",
-            ".wex/tmp",
-            f"{name}/certs",
-            f"{name}/html",
-            f"{name}/logs",
-            f"{name}/vhost.d",
-        ]:
+        for subdir in [".wex", ".wex/tmp"]:
             (helper_path / subdir).mkdir(parents=True)
 
-        # .wex/config.yml
         (helper_path / ".wex" / "config.yml").write_text(
             "global:\n"
             f"  type: app\n"
@@ -80,20 +76,16 @@ def app__helper__start(
             f"  {name}: {{}}\n"
         )
 
-        # .wex/.env
         (helper_path / ".wex" / ".env").write_text(f"APP_ENV={env}\n")
 
-        # .wex/docker/docker-compose.yml
-        from wexample_wex_addon_app.helpers.app import get_helper_docker_compose
+        helper_workdir = app_addon_manager.create_app_workdir(path=helper_path)
+        if helper_workdir is None:
+            raise RuntimeError(f"Unable to create helper workdir for {helper_path}")
 
-        (helper_path / ".wex" / "docker" / "docker-compose.yml").write_text(
-            get_helper_docker_compose(name=name)
+        app_addon_manager.run_service_hook(
+            hook="service/install",
+            app_workdir=helper_workdir,
         )
-
-        # proxy/wex.conf
-        from wexample_wex_addon_app.helpers.app import get_helper_wex_conf
-
-        (helper_path / "proxy" / "wex.conf").write_text(get_helper_wex_conf())
 
         context.io.log(f"Helper '{name}' app created at {helper_path}")
 

@@ -11,6 +11,8 @@ if TYPE_CHECKING:
     from wexample_app.response.abstract_response import AbstractResponse
     from wexample_wex_core.context.execution_context import ExecutionContext
 
+from wexample_wex_addon_app.const.app import HELPER_APPS_LIST
+
 
 @option(
     name="name",
@@ -33,6 +35,11 @@ def app__helper__stop(
 ) -> AbstractResponse:
     from wexample_wex_addon_app.app_addon_manager import AppAddonManager
     from wexample_wex_addon_app.commands.app.stop import app__app__stop
+
+    if name not in HELPER_APPS_LIST:
+        raise ValueError(
+            f"Unknown helper app '{name}'. Expected one of: {', '.join(HELPER_APPS_LIST)}"
+        )
 
     env = env or "local"
     helper_path = AppAddonManager.get_helper_app_path(name=name, env=env)
