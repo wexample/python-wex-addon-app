@@ -9,6 +9,7 @@ from wexample_wex_core.decorator.command import command
 from wexample_wex_core.decorator.middleware import middleware
 
 from wexample_wex_addon_app.middleware.app_middleware import AppMiddleware
+from wexample_wex_addon_app.helpers.app import get_docker_local_ip
 
 if TYPE_CHECKING:
     from wexample_app.response.abstract_response import AbstractResponse
@@ -19,7 +20,6 @@ if TYPE_CHECKING:
 _HOSTS_PATH = "/etc/hosts"
 _WEX_BLOCK_START = "#[ wex ]#"
 _WEX_BLOCK_END = "#[ end-wex ]#"
-_LOCAL_IP = "127.0.1.1"
 
 
 def _remove_wex_block(content: str) -> str:
@@ -62,7 +62,11 @@ def app__hosts__update(
         return NullResponse(kernel=context.kernel)
 
     env = app_workdir.get_app_env()
-    ip = _LOCAL_IP if env == "local" else runtime.search("app.host.ip").get_str_or_default(_LOCAL_IP)
+    ip = (
+        get_docker_local_ip()
+        if env == "local"
+        else runtime.search("app.host.ip").get_str_or_default(get_docker_local_ip())
+    )
 
     with open(_HOSTS_PATH, "r") as f:
         content = f.read()
