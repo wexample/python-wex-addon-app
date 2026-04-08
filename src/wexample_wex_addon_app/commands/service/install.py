@@ -14,6 +14,8 @@ if TYPE_CHECKING:
 
     from wexample_wex_addon_app.workdir.app_workdir import AppWorkdir
 
+from wexample_wex_addon_app.const.service import SERVICE_TAG_DB
+
 
 @option(
     name="service",
@@ -80,7 +82,7 @@ def app__service__install(
                 config.set_by_path("global.main_service", normalized_service_name)
 
             if (
-                "db" in (manifest.get("tags") or [])
+                SERVICE_TAG_DB in (manifest.get("tags") or [])
                 and config.search("docker.db.main").is_none()
             ):
                 config.set_by_path("docker.db.main", normalized_service_name)
