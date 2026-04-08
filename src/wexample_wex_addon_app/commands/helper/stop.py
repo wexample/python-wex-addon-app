@@ -16,12 +16,14 @@ from wexample_wex_addon_app.const.app import HELPER_APPS_LIST
 
 @option(
     name="name",
+    short_name="n",
     type=str,
     required=True,
     description="Helper app short name (e.g. proxy)",
 )
 @option(
     name="env",
+    short_name="e",
     type=str,
     required=False,
     description="Environment (defaults to local)",

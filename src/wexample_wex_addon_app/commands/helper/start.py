@@ -16,12 +16,14 @@ from wexample_wex_addon_app.const.app import HELPER_APPS_LIST
 
 @option(
     name="name",
+    short_name="n",
     type=str,
     required=True,
     description="Helper app short name (e.g. proxy)",
 )
 @option(
     name="env",
+    short_name="e",
     type=str,
     required=False,
     description="Environment (defaults to local)",
@@ -49,6 +51,9 @@ def app__helper__start(
         if helper_path.exists():
             import shutil
 
+            from wexample_app.response.queue_collection.queued_collection_stop_response import (
+                QueuedCollectionStopResponse,
+            )
             from wexample_wex_addon_app.commands.app.started import (
                 APP_STARTED_CHECK_MODE_ANY_CONTAINER,
                 _check_started,
@@ -58,8 +63,10 @@ def app__helper__start(
             if helper_workdir and _check_started(
                 helper_workdir, APP_STARTED_CHECK_MODE_ANY_CONTAINER, context
             ):
-                context.io.log(f"Helper '{name}' already running, skipping creation")
-                return
+                return QueuedCollectionStopResponse(
+                    kernel=context.kernel,
+                    reason=f"Helper '{name}' already running",
+                )
 
             shutil.rmtree(helper_path)
 
