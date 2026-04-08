@@ -19,7 +19,7 @@ if TYPE_CHECKING:
     name="key",
     type=str,
     required=True,
-    description="Dot-separated key path (e.g. docker.main_db_container)",
+    description="Dot-separated key path (e.g. docker.db.main)",
 )
 @option(
     name="value",

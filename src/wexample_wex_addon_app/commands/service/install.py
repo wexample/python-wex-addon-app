@@ -77,6 +77,12 @@ def app__service__install(
             if config.search("global.main_service").is_none():
                 config.set_by_path("global.main_service", normalized_service_name)
 
+            if (
+                normalized_service_name in app_addon_manager.find_services_by_tag("db")
+                and config.search("docker.db.main").is_none()
+            ):
+                config.set_by_path("docker.db.main", normalized_service_name)
+
             config_file.write_config(config)
             app_workdir.get_runtime_config(rebuild=True)
 

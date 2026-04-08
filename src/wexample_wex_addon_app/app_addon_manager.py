@@ -158,6 +158,34 @@ class AppAddonManager(AbstractAddonManager):
                 return service_dir
         return None
 
+    def get_service_manifest(self, service_name: str) -> dict[str, Any]:
+        from wexample_helpers_yaml.helpers.yaml_helpers import yaml_read
+
+        service_dir = self.find_service_dir(service_name)
+        if service_dir is None:
+            return {}
+
+        return yaml_read(file_path=str(service_dir / "service.yml"), default={}) or {}
+
+    def find_services_by_tag(self, tag: str) -> list[str]:
+        from wexample_wex_core.resolver.service_command_resolver import _SERVICES_SUBDIR
+
+        matches: list[str] = []
+        for addon in self.kernel.get_addons().values():
+            services_dir = addon.workdir.get_path() / _SERVICES_SUBDIR
+            if not services_dir.is_dir():
+                continue
+
+            for service_dir in sorted(services_dir.iterdir()):
+                if not service_dir.is_dir():
+                    continue
+
+                manifest = self.get_service_manifest(service_dir.name)
+                if tag in (manifest.get("tags") or []):
+                    matches.append(service_dir.name)
+
+        return matches
+
     @staticmethod
     def get_helper_app_path(name: str, env: str) -> Path:
         from wexample_wex_addon_app.helpers.app import get_helper_app_path
