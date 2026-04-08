@@ -15,7 +15,7 @@ if TYPE_CHECKING:
     from wexample_wex_core.middleware.abstract_middleware import AbstractMiddleware
 
     from wexample_wex_addon_app.service.app_service import AppService
-    from wexample_wex_addon_app.workdir.app_workdir import AppWorkdir
+    from wexample_wex_addon_app.workdir.app_workdir import ManagedWorkdir
 
 
 @base_class
@@ -34,19 +34,19 @@ class AppAddonManager(AbstractAddonManager):
             cls.get_package_source_path() / "resources" / f"{APP_FILE_APP_MANAGER}.sh"
         )
 
-    def create_app_workdir(self, path: PathOrString | None = None) -> AppWorkdir | None:
+    def create_app_workdir(self, path: PathOrString | None = None) -> ManagedWorkdir | None:
         from pathlib import Path
 
         from wexample_helpers.helpers.cli import cli_make_clickable_path
         from wexample_helpers.helpers.module import module_load_class_from_file
 
-        from wexample_wex_addon_app.workdir.app_workdir import AppWorkdir
+        from wexample_wex_addon_app.workdir.app_workdir import ManagedWorkdir
 
         app_path = (
             Path(path) if path is not None else self.kernel.call_workdir.get_path()
         )
 
-        if not AppWorkdir.is_app_workdir_path(path=app_path):
+        if not ManagedWorkdir.is_app_workdir_path(path=app_path):
             self.kernel.warning(
                 f"Path does not match with an application directory structure: {cli_make_clickable_path(app_path)}"
             )
@@ -57,10 +57,10 @@ class AppAddonManager(AbstractAddonManager):
         )
         if custom_app_workdir_class_path.exists():
             app_workdir_class = module_load_class_from_file(
-                file_path=custom_app_workdir_class_path, class_name=AppWorkdir.__name__
+                file_path=custom_app_workdir_class_path, class_name=ManagedWorkdir.__name__
             )
         else:
-            app_workdir_class = AppWorkdir
+            app_workdir_class = ManagedWorkdir
 
         return app_workdir_class.create_from_path(
             path=app_path.resolve(),
@@ -74,7 +74,7 @@ class AppAddonManager(AbstractAddonManager):
                 return addon
         raise RuntimeError("AppAddonManager not registered in kernel")
 
-    def get_app_services(self, app_workdir: AppWorkdir) -> list[AppService]:
+    def get_app_services(self, app_workdir: ManagedWorkdir) -> list[AppService]:
         from wexample_wex_addon_app.service.app_service import AppService
 
         def _make_service(service_name: str) -> AppService:
@@ -101,7 +101,7 @@ class AppAddonManager(AbstractAddonManager):
     def run_service_hook(
         self,
         hook: str,
-        app_workdir: AppWorkdir,
+        app_workdir: ManagedWorkdir,
         arguments: dict | None = None,
     ) -> dict[str, Any]:
         """Call a hook on each service that declares it, return merged results.

@@ -7,7 +7,7 @@ from wexample_wex_core.decorator.command import command
 from wexample_wex_core.decorator.middleware import middleware
 
 from wexample_wex_addon_app.middleware.app_middleware import AppMiddleware
-from wexample_wex_addon_app.workdir.app_workdir import AppWorkdir
+from wexample_wex_addon_app.workdir.app_workdir import ManagedWorkdir
 
 if TYPE_CHECKING:
     from wexample_wex_core.context.execution_context import ExecutionContext
@@ -17,7 +17,7 @@ if TYPE_CHECKING:
 @command(type=COMMAND_TYPE_ADDON)
 def app__registry__write(
     context: ExecutionContext,
-    app_workdir: AppWorkdir,
+    app_workdir: ManagedWorkdir,
 ) -> None:
     from wexample_helpers.helpers.cli import cli_make_clickable_path
 

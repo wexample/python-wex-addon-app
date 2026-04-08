@@ -12,7 +12,7 @@ from wexample_wex_addon_app.middleware.app_middleware import AppMiddleware
 if TYPE_CHECKING:
     from wexample_wex_core.context.execution_context import ExecutionContext
 
-    from wexample_wex_addon_app.workdir.app_workdir import AppWorkdir
+    from wexample_wex_addon_app.workdir.app_workdir import ManagedWorkdir
 
 from wexample_wex_addon_app.const.service import SERVICE_TAG_DB
 
@@ -36,7 +36,7 @@ from wexample_wex_addon_app.const.service import SERVICE_TAG_DB
 @command(type=COMMAND_TYPE_ADDON, description="Install a service into an app")
 def app__service__install(
     context: ExecutionContext,
-    app_workdir: AppWorkdir,
+    app_workdir: ManagedWorkdir,
     service: str,
     force: bool = False,
 ) -> None:

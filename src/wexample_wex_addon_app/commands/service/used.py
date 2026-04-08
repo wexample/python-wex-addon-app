@@ -13,7 +13,7 @@ if TYPE_CHECKING:
     from wexample_app.response.boolean_response import BooleanResponse
     from wexample_wex_core.context.execution_context import ExecutionContext
 
-    from wexample_wex_addon_app.workdir.app_workdir import AppWorkdir
+    from wexample_wex_addon_app.workdir.app_workdir import ManagedWorkdir
 
 
 @option(
@@ -27,7 +27,7 @@ if TYPE_CHECKING:
 @command(type=COMMAND_TYPE_ADDON, description="Return true if service is installed on app")
 def app__service__used(
     context: ExecutionContext,
-    app_workdir: AppWorkdir,
+    app_workdir: ManagedWorkdir,
     service: str,
 ) -> BooleanResponse:
     from wexample_app.response.boolean_response import BooleanResponse

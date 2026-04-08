@@ -11,14 +11,14 @@ if TYPE_CHECKING:
     from wexample_app.response.abstract_response import AbstractResponse
     from wexample_wex_core.context.execution_context import ExecutionContext
 
-    from wexample_wex_addon_app.workdir.app_workdir import AppWorkdir
+    from wexample_wex_addon_app.workdir.app_workdir import ManagedWorkdir
 
 
 @middleware(middleware=AppMiddleware)
 @command(type=COMMAND_TYPE_ADDON, description="Generate runtime config and docker-compose.runtime.yml")
 def app__config__write(
         context: ExecutionContext,
-        app_workdir: AppWorkdir,
+        app_workdir: ManagedWorkdir,
 ) -> AbstractResponse:
     import socket
 

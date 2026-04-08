@@ -8,13 +8,13 @@ from wexample_helpers.decorator.base_class import base_class
 
 if TYPE_CHECKING:
     from wexample_wex_addon_app.app_addon_manager import AppAddonManager
-    from wexample_wex_addon_app.workdir.app_workdir import AppWorkdir
+    from wexample_wex_addon_app.workdir.app_workdir import ManagedWorkdir
 
 
 @base_class
 class AppService:
     name: str = public_field(description="Service name (e.g. 'mysql')")
-    app_workdir: AppWorkdir = public_field(description="The app this service belongs to")
+    app_workdir: ManagedWorkdir = public_field(description="The app this service belongs to")
     addon_manager: AppAddonManager = public_field(description="Manager used to resolve service dirs and manifests")
     service_dir: Path | None = public_field(default=None, description="Path to the service directory in the addon package")
     manifest: dict = public_field(factory=dict, description="Parsed service.yml content")

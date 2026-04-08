@@ -12,7 +12,7 @@ from wexample_wex_addon_app.middleware.app_middleware import AppMiddleware
 if TYPE_CHECKING:
     from wexample_wex_core.context.execution_context import ExecutionContext
 
-    from wexample_wex_addon_app.workdir.app_workdir import AppWorkdir
+    from wexample_wex_addon_app.workdir.app_workdir import ManagedWorkdir
 
 
 @option(
@@ -31,7 +31,7 @@ if TYPE_CHECKING:
 @command(type=COMMAND_TYPE_ADDON, description="Set a configuration value in config.yml")
 def app__config__set(
     context: ExecutionContext,
-    app_workdir: AppWorkdir,
+    app_workdir: ManagedWorkdir,
     key: str,
     value: str,
 ) -> None:

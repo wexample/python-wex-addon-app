@@ -13,7 +13,7 @@ if TYPE_CHECKING:
     from wexample_app.response.abstract_response import AbstractResponse
     from wexample_wex_core.context.execution_context import ExecutionContext
 
-    from wexample_wex_addon_app.workdir.app_workdir import AppWorkdir
+    from wexample_wex_addon_app.workdir.app_workdir import ManagedWorkdir
 
 
 @option(
@@ -33,7 +33,7 @@ if TYPE_CHECKING:
 @command(type=COMMAND_TYPE_ADDON, description="Follow container logs")
 def app__logs__follow(
     context: ExecutionContext,
-    app_workdir: AppWorkdir,
+    app_workdir: ManagedWorkdir,
     tail: int = 100,
     container_name: str | None = None,
 ) -> AbstractResponse:

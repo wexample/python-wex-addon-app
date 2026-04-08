@@ -12,7 +12,7 @@ from wexample_wex_addon_app.middleware.app_middleware import AppMiddleware
 if TYPE_CHECKING:
     from wexample_wex_core.context.execution_context import ExecutionContext
 
-    from wexample_wex_addon_app.workdir.app_workdir import AppWorkdir
+    from wexample_wex_addon_app.workdir.app_workdir import ManagedWorkdir
 
 
 @as_sudo()
@@ -20,7 +20,7 @@ if TYPE_CHECKING:
 @command(type=COMMAND_TYPE_ADDON, description="Fix app file permissions and ownership")
 def app__app__perms(
     context: ExecutionContext,
-    app_workdir: AppWorkdir,
+    app_workdir: ManagedWorkdir,
 ) -> None:
     from wexample_filestate.enum.scopes import Scope
     from wexample_filestate.item.abstract_item_target import AbstractItemTarget

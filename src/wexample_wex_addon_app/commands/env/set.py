@@ -12,7 +12,7 @@ from wexample_wex_addon_app.middleware.app_middleware import AppMiddleware
 if TYPE_CHECKING:
     from wexample_wex_core.context.execution_context import ExecutionContext
 
-    from wexample_wex_addon_app.workdir.app_workdir import AppWorkdir
+    from wexample_wex_addon_app.workdir.app_workdir import ManagedWorkdir
 
 
 @option(
@@ -25,7 +25,7 @@ if TYPE_CHECKING:
 @command(type=COMMAND_TYPE_ADDON, description="Set APP_ENV value in .wex/.env")
 def app__env__set(
     context: ExecutionContext,
-    app_workdir: AppWorkdir,
+    app_workdir: ManagedWorkdir,
     environment: str,
 ) -> bool:
     app_workdir.set_app_env(environment)

@@ -11,7 +11,7 @@ from wexample_wex_addon_app.middleware.app_middleware import AppMiddleware
 if TYPE_CHECKING:
     from wexample_wex_core.context.execution_context import ExecutionContext
 
-    from wexample_wex_addon_app.workdir.app_workdir import AppWorkdir
+    from wexample_wex_addon_app.workdir.app_workdir import ManagedWorkdir
 
 
 @middleware(middleware=AppMiddleware)
@@ -19,7 +19,7 @@ if TYPE_CHECKING:
     type=COMMAND_TYPE_ADDON,
     description="Show the migration status of the current app",
 )
-def app__migration__status(context: ExecutionContext, app_workdir: AppWorkdir) -> None:
+def app__migration__status(context: ExecutionContext, app_workdir: ManagedWorkdir) -> None:
     from wexample_migration.workdir.mixin.with_migration_workdir_mixin import (
         WithMigrationWorkdirMixin,
     )

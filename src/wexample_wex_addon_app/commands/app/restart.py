@@ -13,7 +13,7 @@ if TYPE_CHECKING:
     from wexample_app.response.abstract_response import AbstractResponse
     from wexample_wex_core.context.execution_context import ExecutionContext
 
-    from wexample_wex_addon_app.workdir.app_workdir import AppWorkdir
+    from wexample_wex_addon_app.workdir.app_workdir import ManagedWorkdir
 
 
 @option(
@@ -27,7 +27,7 @@ if TYPE_CHECKING:
 @command(type=COMMAND_TYPE_ADDON, description="Restart the app (stop then start)")
 def app__app__restart(
     context: ExecutionContext,
-    app_workdir: AppWorkdir,
+    app_workdir: ManagedWorkdir,
     fast: bool = False,
 ) -> AbstractResponse:
     from wexample_app.response.queued_collection_response import QueuedCollectionResponse

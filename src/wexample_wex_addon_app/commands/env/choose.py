@@ -12,7 +12,7 @@ from wexample_wex_addon_app.middleware.app_middleware import AppMiddleware
 if TYPE_CHECKING:
     from wexample_wex_core.context.execution_context import ExecutionContext
 
-    from wexample_wex_addon_app.workdir.app_workdir import AppWorkdir
+    from wexample_wex_addon_app.workdir.app_workdir import ManagedWorkdir
 
 
 @option(
@@ -25,7 +25,7 @@ if TYPE_CHECKING:
 @command(type=COMMAND_TYPE_ADDON, description="Prompt user to choose an environment, then persist it via env/set")
 def app__env__choose(
     context: ExecutionContext,
-    app_workdir: AppWorkdir,
+    app_workdir: ManagedWorkdir,
     question: str = "Choose an environment",
 ) -> str | None:
     from wexample_app.const.env import (

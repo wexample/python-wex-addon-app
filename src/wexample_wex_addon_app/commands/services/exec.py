@@ -13,7 +13,7 @@ if TYPE_CHECKING:
     from wexample_app.response.dict_response import DictResponse
     from wexample_wex_core.context.execution_context import ExecutionContext
 
-    from wexample_wex_addon_app.workdir.app_workdir import AppWorkdir
+    from wexample_wex_addon_app.workdir.app_workdir import ManagedWorkdir
 
 
 @option(
@@ -33,7 +33,7 @@ if TYPE_CHECKING:
 @command(type=COMMAND_TYPE_ADDON, description="Execute a hook for all installed services")
 def app__services__exec(
     context: ExecutionContext,
-    app_workdir: AppWorkdir,
+    app_workdir: ManagedWorkdir,
     hook: str,
     arguments: str | None = None,
 ) -> DictResponse:

@@ -15,7 +15,7 @@ if TYPE_CHECKING:
     from wexample_app.response.abstract_response import AbstractResponse
     from wexample_wex_core.context.execution_context import ExecutionContext
 
-    from wexample_wex_addon_app.workdir.app_workdir import AppWorkdir
+    from wexample_wex_addon_app.workdir.app_workdir import ManagedWorkdir
 
 
 @option(
@@ -62,7 +62,7 @@ if TYPE_CHECKING:
 @command(type=COMMAND_TYPE_ADDON, description="Start the app")
 def app__app__start(
     context: ExecutionContext,
-    app_workdir: AppWorkdir,
+    app_workdir: ManagedWorkdir,
     clear_cache: bool = False,
     user: str | None = None,
     group: str | None = None,

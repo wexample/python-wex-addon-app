@@ -11,7 +11,7 @@ from wexample_wex_addon_app.middleware.app_middleware import AppMiddleware
 if TYPE_CHECKING:
     from wexample_wex_core.context.execution_context import ExecutionContext
 
-    from wexample_wex_addon_app.workdir.app_workdir import AppWorkdir
+    from wexample_wex_addon_app.workdir.app_workdir import ManagedWorkdir
 
 
 @middleware(middleware=AppMiddleware)
@@ -20,7 +20,7 @@ if TYPE_CHECKING:
     description="Rollback the last applied migration on the current app",
 )
 def app__migration__rollback(
-    context: ExecutionContext, app_workdir: AppWorkdir
+    context: ExecutionContext, app_workdir: ManagedWorkdir
 ) -> None:
     from wexample_migration.workdir.mixin.with_migration_workdir_mixin import (
         WithMigrationWorkdirMixin,

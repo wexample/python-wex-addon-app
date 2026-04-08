@@ -13,7 +13,7 @@ from wexample_wex_addon_app.middleware.app_middleware import AppMiddleware
 if TYPE_CHECKING:
     from wexample_wex_core.context.execution_context import ExecutionContext
 
-    from wexample_wex_addon_app.workdir.app_workdir import AppWorkdir
+    from wexample_wex_addon_app.workdir.app_workdir import ManagedWorkdir
 
 
 def _format_state(status: str | None, health: str | None) -> str:
@@ -55,7 +55,7 @@ def _format_ports(port_bindings: dict[str, Any] | None) -> str:
     return ", ".join(items) if items else "-"
 
 
-def _format_role(service_name: str, app_workdir: AppWorkdir) -> str:
+def _format_role(service_name: str, app_workdir: ManagedWorkdir) -> str:
     if service_name == app_workdir.get_main_service():
         return "@cyan{main}"
     if service_name == app_workdir.get_main_db_service():
@@ -67,7 +67,7 @@ def _format_role(service_name: str, app_workdir: AppWorkdir) -> str:
 @command(type=COMMAND_TYPE_ADDON, description="List app containers in a compact table")
 def app__container__list(
     context: ExecutionContext,
-    app_workdir: AppWorkdir,
+    app_workdir: ManagedWorkdir,
 ) -> None:
     import yaml
 

@@ -43,7 +43,7 @@ if TYPE_CHECKING:
 
 
 @base_class
-class AppWorkdir(
+class ManagedWorkdir(
     WithMigrationWorkdirMixin,
     WithRunnersRootMixin,
     WithAppConfigWorkdirMixin,
@@ -334,8 +334,8 @@ class AppWorkdir(
         ):
             self.log(f"Searching in @path{{{library_path_config.get_str()}}}")
 
-            if AppWorkdir.is_app_workdir_path(path=library_path_config.get_str()):
-                publishable_dependencies = AppWorkdir.manager_run_command_from_path(
+            if ManagedWorkdir.is_app_workdir_path(path=library_path_config.get_str()):
+                publishable_dependencies = ManagedWorkdir.manager_run_command_from_path(
                     command=app__dependencies__publish,
                     path=library_path_config.get_str(),
                 ).get_output()

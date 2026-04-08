@@ -5,13 +5,13 @@ from typing import TYPE_CHECKING
 from wexample_filestate.const.types_state_items import TargetFileOrDirectoryType
 from wexample_helpers.classes.abstract_method import abstract_method
 
-from wexample_wex_addon_app.workdir.app_workdir import AppWorkdir
+from wexample_wex_addon_app.workdir.app_workdir import ManagedWorkdir
 
 if TYPE_CHECKING:
     pass
 
 
-class RepoWorkdir(AppWorkdir):
+class RepoWorkdir(ManagedWorkdir):
     def bump(self, interactive: bool = False, force: bool = False, **kwargs) -> bool:
         """Create a version-x.y.z branch, update the version number in config. Don't commit changes."""
         from wexample_helpers.helpers.version import version_increment

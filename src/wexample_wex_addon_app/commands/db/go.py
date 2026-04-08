@@ -13,7 +13,7 @@ if TYPE_CHECKING:
     from wexample_app.response.abstract_response import AbstractResponse
     from wexample_wex_core.context.execution_context import ExecutionContext
 
-    from wexample_wex_addon_app.workdir.app_workdir import AppWorkdir
+    from wexample_wex_addon_app.workdir.app_workdir import ManagedWorkdir
 
 
 @option(
@@ -26,7 +26,7 @@ if TYPE_CHECKING:
 @command(type=COMMAND_TYPE_ADDON, description="Open an interactive DB CLI")
 def app__db__go(
     context: ExecutionContext,
-    app_workdir: AppWorkdir,
+    app_workdir: ManagedWorkdir,
     service: str | None = None,
 ) -> AbstractResponse:
     service_name = service or app_workdir.get_main_db_service()

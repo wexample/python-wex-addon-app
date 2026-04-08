@@ -12,14 +12,14 @@ if TYPE_CHECKING:
     from wexample_app.response.list_response import ListResponse
     from wexample_wex_core.context.execution_context import ExecutionContext
 
-    from wexample_wex_addon_app.workdir.app_workdir import AppWorkdir
+    from wexample_wex_addon_app.workdir.app_workdir import ManagedWorkdir
 
 
 @middleware(middleware=AppMiddleware)
 @command(type=COMMAND_TYPE_ADDON, description="List app domains")
 def app__domain__list(
     context: ExecutionContext,
-    app_workdir: AppWorkdir,
+    app_workdir: ManagedWorkdir,
 ) -> ListResponse:
     from wexample_app.response.list_response import ListResponse
 

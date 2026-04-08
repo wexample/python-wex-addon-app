@@ -13,7 +13,7 @@ if TYPE_CHECKING:
     from wexample_app.response.boolean_response import BooleanResponse
     from wexample_wex_core.context.execution_context import ExecutionContext
 
-    from wexample_wex_addon_app.workdir.app_workdir import AppWorkdir
+    from wexample_wex_addon_app.workdir.app_workdir import ManagedWorkdir
 
 APP_STARTED_CHECK_MODE_CONFIG = "config"
 APP_STARTED_CHECK_MODE_FULL = "full"
@@ -31,7 +31,7 @@ APP_STARTED_CHECK_MODE_ANY_CONTAINER = "any-container"
 @command(type=COMMAND_TYPE_ADDON, description="Return true if app is started")
 def app__app__started(
     context: ExecutionContext,
-    app_workdir: AppWorkdir,
+    app_workdir: ManagedWorkdir,
     mode: str = APP_STARTED_CHECK_MODE_ANY_CONTAINER,
 ) -> BooleanResponse:
     from wexample_app.response.boolean_response import BooleanResponse
@@ -42,7 +42,7 @@ def app__app__started(
     )
 
 
-def _check_started(app_workdir: AppWorkdir, mode: str, context) -> bool:
+def _check_started(app_workdir: ManagedWorkdir, mode: str, context) -> bool:
     import subprocess
 
     import yaml

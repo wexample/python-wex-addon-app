@@ -7,7 +7,7 @@ from wexample_wex_core.decorator.command import command
 from wexample_wex_core.decorator.middleware import middleware
 
 from wexample_wex_addon_app.middleware.app_middleware import AppMiddleware
-from wexample_wex_addon_app.workdir.app_workdir import AppWorkdir
+from wexample_wex_addon_app.workdir.app_workdir import ManagedWorkdir
 
 if TYPE_CHECKING:
     from wexample_app.response.dict_response import DictResponse
@@ -18,7 +18,7 @@ if TYPE_CHECKING:
 @command(type=COMMAND_TYPE_ADDON)
 def app__info__show(
     context: ExecutionContext,
-    app_workdir: AppWorkdir,
+    app_workdir: ManagedWorkdir,
 ) -> DictResponse:
     from wexample_wex_addon_app.response.app_info_response import AppInfoResponse
 

@@ -15,7 +15,7 @@ if TYPE_CHECKING:
     from wexample_app.response.abstract_response import AbstractResponse
     from wexample_wex_core.context.execution_context import ExecutionContext
 
-    from wexample_wex_addon_app.workdir.app_workdir import AppWorkdir
+    from wexample_wex_addon_app.workdir.app_workdir import ManagedWorkdir
 
 _HOSTS_PATH = "/etc/hosts"
 _WEX_BLOCK_START = "#[ wex ]#"
@@ -47,7 +47,7 @@ def _add_wex_block(content: str, block_lines: list[str]) -> str:
 @command(type=COMMAND_TYPE_ADDON, description="Update /etc/hosts with app domains")
 def app__hosts__update(
     context: ExecutionContext,
-    app_workdir: AppWorkdir,
+    app_workdir: ManagedWorkdir,
 ) -> AbstractResponse:
     from wexample_app.response.null_response import NullResponse
 

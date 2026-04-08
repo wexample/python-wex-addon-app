@@ -13,7 +13,7 @@ if TYPE_CHECKING:
     from wexample_app.response.abstract_response import AbstractResponse
     from wexample_wex_core.context.execution_context import ExecutionContext
 
-    from wexample_wex_addon_app.workdir.app_workdir import AppWorkdir
+    from wexample_wex_addon_app.workdir.app_workdir import ManagedWorkdir
 
 
 @option(
@@ -32,7 +32,7 @@ if TYPE_CHECKING:
 @command(type=COMMAND_TYPE_ADDON, description="Enter into the main app container interactively")
 def app__app__go(
     context: ExecutionContext,
-    app_workdir: AppWorkdir,
+    app_workdir: ManagedWorkdir,
     container_name: str | None = None,
     user: str | None = None,
 ) -> AbstractResponse:

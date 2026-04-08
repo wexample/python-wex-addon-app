@@ -12,7 +12,7 @@ from wexample_wex_addon_app.middleware.app_middleware import AppMiddleware
 if TYPE_CHECKING:
     from wexample_wex_core.context.execution_context import ExecutionContext
 
-    from wexample_wex_addon_app.workdir.app_workdir import AppWorkdir
+    from wexample_wex_addon_app.workdir.app_workdir import ManagedWorkdir
 
 
 @option(
@@ -37,7 +37,7 @@ if TYPE_CHECKING:
 @command(type=COMMAND_TYPE_ADDON, description="Restore a database from a dump")
 def app__db__restore(
     context: ExecutionContext,
-    app_workdir: AppWorkdir,
+    app_workdir: ManagedWorkdir,
     file_path: str | None = None,
     database: str | None = None,
     service: str | None = None,
