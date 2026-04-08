@@ -31,7 +31,12 @@ class ServiceCommandResolver(CoreServiceCommandResolver):
 
         service_name = string_to_snake_case(request.match.group(1))
 
-        app_path = function_kwargs.pop("app_path", str(request.kernel.call_workdir.get_path()))
+        arguments_dict = request.arguments if isinstance(request.arguments, dict) else {}
+        app_path = (
+            function_kwargs.pop("app_path", None)
+            or arguments_dict.get("app_path")
+            or str(request.kernel.call_workdir.get_path())
+        )
         app_addon_manager = self._get_app_addon_manager()
         app_workdir = app_addon_manager.create_app_workdir(path=app_path)
 
