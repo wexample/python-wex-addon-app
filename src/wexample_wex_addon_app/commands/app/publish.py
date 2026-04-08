@@ -47,7 +47,10 @@ def app__app__publish(
             app__file_state__rectify,
         )
 
-        context.kernel.run_function(app__file_state__rectify)
+        context.kernel.run_function(
+            app__file_state__rectify,
+            arguments={"loop": True, "yes": yes},
+        )
 
     def _commit(previous_value=None):
         app_workdir.commit_changes()
