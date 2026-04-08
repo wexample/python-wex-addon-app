@@ -11,42 +11,13 @@ if TYPE_CHECKING:
     from wexample_app.response.abstract_response import AbstractResponse
     from wexample_wex_core.context.execution_context import ExecutionContext
 
-_PROXY_DOCKER_COMPOSE = """\
-services:
-  proxy:
-    image: nginxproxy/nginx-proxy:1.3
-    container_name: ${APP_PROJECT_NAME}_proxy
-    ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - /var/run/docker.sock:/tmp/docker.sock:ro
-      - ${APP_PATH}proxy/certs:/etc/nginx/certs:ro
-      - ${APP_PATH}proxy/logs:/var/log/nginx
-      - ${APP_PATH}proxy/vhost.d:/etc/nginx/vhost.d
-      - ${APP_PATH}proxy/html:/usr/share/nginx/html
-      - ${APP_PATH}proxy/wex.conf:/etc/nginx/conf.d/wex.conf
-    privileged: true
-    extends:
-      file: ${SERVICE_DEFAULT_COMPOSE}
-      service: default
-"""
 
-_PROXY_WEX_CONF = """\
-# Allow big files transfer.
-client_max_body_size 100M;
-
-server {
-    listen 80 default_server;
-    server_name _;
-    location / {
-        root /usr/share/nginx/html;
-        index index.html;
-    }
-}
-"""
-
-
+@option(
+    name="name",
+    type=str,
+    required=True,
+    description="Helper app short name (e.g. proxy)",
+)
 @option(
     name="env",
     type=str,
@@ -54,76 +25,81 @@ server {
     description="Environment (defaults to local)",
 )
 @as_sudo()
-@command(type=COMMAND_TYPE_ADDON, description="Create and start the proxy helper app")
+@command(type=COMMAND_TYPE_ADDON, description="Start a helper app")
 def app__helper__start(
     context: ExecutionContext,
+    name: str,
     env: str | None = None,
 ) -> AbstractResponse:
     import shutil
-    from pathlib import Path
 
     from wexample_app.response.queued_collection_response import QueuedCollectionResponse
+    from wexample_wex_addon_app.app_addon_manager import AppAddonManager
 
     env = env or "local"
-    proxy_path = Path(f"/var/www/{env}/wex-proxy")
+    helper_path = AppAddonManager.get_helper_app_path(name=name, env=env)
 
     def _create(previous_value=None) -> None:
-        if proxy_path.exists():
-            from wexample_wex_addon_app.app_addon_manager import AppAddonManager
+        if helper_path.exists():
             from wexample_wex_addon_app.commands.app.started import (
                 APP_STARTED_CHECK_MODE_ANY_CONTAINER,
                 _check_started,
             )
 
-            proxy_workdir = AppAddonManager.from_kernel(context.kernel).create_app_workdir(
-                path=proxy_path
+            helper_workdir = AppAddonManager.from_kernel(context.kernel).create_app_workdir(
+                path=helper_path
             )
-            if proxy_workdir and _check_started(
-                proxy_workdir, APP_STARTED_CHECK_MODE_ANY_CONTAINER, context
+            if helper_workdir and _check_started(
+                helper_workdir, APP_STARTED_CHECK_MODE_ANY_CONTAINER, context
             ):
-                context.io.log("Proxy helper already running, skipping creation")
+                context.io.log(f"Helper '{name}' already running, skipping creation")
                 return
 
-            shutil.rmtree(proxy_path)
+            shutil.rmtree(helper_path)
 
+        # TODO: replace with app__app__init once ported to v6
         # Directory structure
         for subdir in [
             ".wex/docker",
             ".wex/tmp",
-            "proxy/certs",
-            "proxy/html",
-            "proxy/logs",
-            "proxy/vhost.d",
+            f"{name}/certs",
+            f"{name}/html",
+            f"{name}/logs",
+            f"{name}/vhost.d",
         ]:
-            (proxy_path / subdir).mkdir(parents=True)
+            (helper_path / subdir).mkdir(parents=True)
 
         # .wex/config.yml
-        (proxy_path / ".wex" / "config.yml").write_text(
+        (helper_path / ".wex" / "config.yml").write_text(
             "global:\n"
-            "  type: app\n"
-            "  name: wex-proxy\n"
-            "  main_service: proxy\n"
+            f"  type: app\n"
+            f"  name: wex-{name}\n"
+            f"  main_service: {name}\n"
             "  version: 1.0.0\n"
             "service:\n"
-            "  proxy: {}\n"
+            f"  {name}: {{}}\n"
         )
 
         # .wex/.env
-        (proxy_path / ".wex" / ".env").write_text(f"APP_ENV={env}\n")
+        (helper_path / ".wex" / ".env").write_text(f"APP_ENV={env}\n")
 
         # .wex/docker/docker-compose.yml
-        (proxy_path / ".wex" / "docker" / "docker-compose.yml").write_text(
-            _PROXY_DOCKER_COMPOSE
+        from wexample_wex_addon_app.helpers.app import get_helper_docker_compose
+
+        (helper_path / ".wex" / "docker" / "docker-compose.yml").write_text(
+            get_helper_docker_compose(name=name)
         )
 
         # proxy/wex.conf
-        (proxy_path / "proxy" / "wex.conf").write_text(_PROXY_WEX_CONF)
+        from wexample_wex_addon_app.helpers.app import get_helper_wex_conf
 
-        context.io.log(f"Proxy app created at {proxy_path}")
+        (helper_path / "proxy" / "wex.conf").write_text(get_helper_wex_conf())
+
+        context.io.log(f"Helper '{name}' app created at {helper_path}")
 
     def _start(previous_value=None):
         from wexample_wex_addon_app.commands.app.start import app__app__start
 
-        return context.kernel.run_function(app__app__start, {"app_path": str(proxy_path)})
+        return context.kernel.run_function(app__app__start, {"app_path": str(helper_path)})
 
     return QueuedCollectionResponse(kernel=context.kernel, content=[_create, _start])

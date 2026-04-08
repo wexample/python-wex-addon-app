@@ -13,25 +13,31 @@ if TYPE_CHECKING:
 
 
 @option(
+    name="name",
+    type=str,
+    required=True,
+    description="Helper app short name (e.g. proxy)",
+)
+@option(
     name="env",
     type=str,
     required=False,
     description="Environment (defaults to local)",
 )
 @as_sudo()
-@command(type=COMMAND_TYPE_ADDON, description="Stop the proxy helper app")
+@command(type=COMMAND_TYPE_ADDON, description="Stop a helper app")
 def app__helper__stop(
     context: ExecutionContext,
+    name: str,
     env: str | None = None,
 ) -> AbstractResponse:
-    from pathlib import Path
+    from wexample_wex_addon_app.app_addon_manager import AppAddonManager
+    from wexample_wex_addon_app.commands.app.stop import app__app__stop
 
     env = env or "local"
-    proxy_path = Path(f"/var/www/{env}/wex-proxy")
-
-    from wexample_wex_addon_app.commands.app.stop import app__app__stop
+    helper_path = AppAddonManager.get_helper_app_path(name=name, env=env)
 
     return context.kernel.run_function(
         app__app__stop,
-        {"app_path": str(proxy_path)},
+        {"app_path": str(helper_path)},
     )

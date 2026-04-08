@@ -112,17 +112,15 @@ def app__app__start(
         return True
 
     def _proxy(previous_value=None):
-        from pathlib import Path
-
+        from wexample_wex_addon_app.app_addon_manager import AppAddonManager
         from wexample_wex_addon_app.commands.app.started import (
             APP_STARTED_CHECK_MODE_ANY_CONTAINER,
             _check_started,
         )
+        from wexample_wex_addon_app.const.app import HELPER_APP_PROXY_SHORT_NAME
 
         env = app_workdir.get_app_env()
-
-        # Proxy helper app lives at /var/www/{env}/wex-proxy/
-        proxy_path = Path(f"/var/www/{env}/wex-proxy")
+        proxy_path = AppAddonManager.get_helper_app_path(name=HELPER_APP_PROXY_SHORT_NAME, env=env)
 
         # Skip if this app IS the proxy
         if app_workdir.get_path().resolve() == proxy_path.resolve():
@@ -136,12 +134,13 @@ def app__app__start(
             context.io.log("Proxy explicitly disabled")
             return
 
-        from wexample_wex_addon_app.app_addon_manager import AppAddonManager
-
         if not proxy_path.exists():
             from wexample_wex_addon_app.commands.helper.start import app__helper__start
 
-            return context.kernel.run_function(app__helper__start, {"env": env})
+            return context.kernel.run_function(
+                app__helper__start,
+                {"name": HELPER_APP_PROXY_SHORT_NAME, "env": env},
+            )
 
         proxy_workdir = AppAddonManager.from_kernel(context.kernel).create_app_workdir(
             path=proxy_path
