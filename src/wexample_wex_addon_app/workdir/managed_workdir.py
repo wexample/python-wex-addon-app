@@ -405,6 +405,7 @@ class ManagedWorkdir(
                                 "name": APP_FILE_APP_MANAGER,
                                 "type": DiskItemType.FILE,
                                 "should_exist": True,
+                                "mode": {"permissions": "755"},
                                 "content": FileContentConfigValue(
                                     path=AppAddonManager.get_shell_manager_path()
                                 ),
