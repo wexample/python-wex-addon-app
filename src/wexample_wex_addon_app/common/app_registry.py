@@ -10,7 +10,7 @@ from wexample_wex_core.const.globals import CORE_COMMAND_NAME, CORE_FILE_NAME_AP
 if TYPE_CHECKING:
     from wexample_wex_addon_app.workdir.managed_workdir import ManagedWorkdir
 
-_REGISTRY_PATH = Path.home() / ".local" / "share" / CORE_COMMAND_NAME / CORE_FILE_NAME_APPS_REGISTRY
+_REGISTRY_PATH = Path("/var/lib") / CORE_COMMAND_NAME / CORE_FILE_NAME_APPS_REGISTRY
 _REGISTRY_LOCK_PATH = _REGISTRY_PATH.with_suffix(".lock")
 
 
@@ -39,9 +39,10 @@ def registry_read() -> dict:
 def registry_write(data: dict) -> None:
     import yaml
 
-    _REGISTRY_PATH.parent.mkdir(parents=True, exist_ok=True)
+    _REGISTRY_PATH.parent.mkdir(mode=0o755, parents=True, exist_ok=True)
     with open(_REGISTRY_PATH, "w") as f:
         yaml.dump(data, f, default_flow_style=False)
+    _REGISTRY_PATH.chmod(0o644)
 
 
 def registry_register_app(app_workdir: ManagedWorkdir) -> None:
