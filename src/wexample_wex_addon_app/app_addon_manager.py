@@ -76,12 +76,24 @@ class AppAddonManager(AbstractAddonManager):
         raise RuntimeError("AppAddonManager not registered in kernel")
 
     def get_app_services(self, app_workdir: ManagedWorkdir) -> list[AppService]:
+        from wexample_helpers.helpers.module import module_load_class_from_file
+
         from wexample_wex_addon_app.service.app_service import AppService
 
         def _make_service(service_name: str) -> AppService:
             service_dir = self.find_service_dir(service_name)
             manifest = self.get_service_manifest(service_name) if service_dir else {}
-            return AppService(
+
+            service_class = AppService
+            if service_dir:
+                custom_class_path = service_dir / "app_service.py"
+                if custom_class_path.exists():
+                    service_class = module_load_class_from_file(
+                        file_path=custom_class_path,
+                        class_name="AppService",
+                    )
+
+            return service_class(
                 name=service_name,
                 app_workdir=app_workdir,
                 addon_manager=self,
