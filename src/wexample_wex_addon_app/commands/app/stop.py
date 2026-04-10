@@ -54,7 +54,6 @@ def app__app__stop(
         return True
 
     def _stop(previous_value=None) -> ShellCommandResponse:
-        # v6: todo — appeler hook app/stop-pre via @service::hook/exec (bloqué par migration services)
         return ShellCommandResponse(
             kernel=context.kernel,
             content=["docker", "compose", "-f", compose_file, "stop"],
@@ -67,8 +66,6 @@ def app__app__stop(
         )
 
     def _complete(previous_value=None) -> None:
-        # v6: todo — proxy unregister (bloqué par migration proxy)
-        # v6: todo — appeler hook app/stop-post (bloqué par migration services)
         from wexample_wex_addon_app.commands.hosts.update import app__hosts__update
         from wexample_wex_addon_app.common.app_registry import registry_unregister_app
 
