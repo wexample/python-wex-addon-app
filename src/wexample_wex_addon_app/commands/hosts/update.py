@@ -52,8 +52,8 @@ def app__hosts__update(
 
     from wexample_wex_addon_app.common.app_registry import registry_purge_stopped, registry_read
 
-    registry_purge_stopped()
-    data = registry_read()
+    registry_purge_stopped(context.kernel)
+    data = registry_read(context.kernel)
 
     block_lines: list[str] = []
     total_domains = 0

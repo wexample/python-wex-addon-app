@@ -45,9 +45,8 @@ def app__app__stop(
     )
 
     def _checkup(previous_value=None):
-        # v6: todo — appeler app::app/started pour vérifier si l'app tourne
-        #             actuellement on vérifie directement le runtime config
         from wexample_app.response.queue_collection.queued_collection_stop_response import QueuedCollectionStopResponse as QueuedCollectionStop
+
         runtime = app_workdir.get_runtime_config()
         if not runtime.search("app.started").get_bool_or_default(False):
             context.io.log("App already stopped")
@@ -70,22 +69,19 @@ def app__app__stop(
     def _complete(previous_value=None) -> None:
         # v6: todo — proxy unregister (bloqué par migration proxy)
         # v6: todo — appeler hook app/stop-post (bloqué par migration services)
-        import yaml
-
         from wexample_wex_addon_app.commands.hosts.update import app__hosts__update
         from wexample_wex_addon_app.common.app_registry import registry_unregister_app
 
-        runtime_path = (
-            app_path / WORKDIR_SETUP_DIR / CORE_DIR_NAME_TMP / "config.runtime.yml"
-        )
+        import yaml as _yaml
+
+        runtime_path = app_workdir.get_runtime_config_file().get_path()
         if runtime_path.exists():
             with open(runtime_path) as f:
-                data = yaml.safe_load(f) or {}
-            data.setdefault("app", {})["started"] = False
+                _data = _yaml.safe_load(f) or {}
+            _data.setdefault("app", {})["started"] = False
             with open(runtime_path, "w") as f:
-                yaml.dump(data, f)
-
-        registry_unregister_app(app_workdir)
+                _yaml.dump(_data, f)
+        registry_unregister_app(context.kernel, app_workdir)
         context.kernel.run_function(app__hosts__update, {"app_path": str(app_path)})
 
     if fast:

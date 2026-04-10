@@ -173,20 +173,20 @@ def app__app__start(
         )
 
     def _update_hosts(previous_value=None):
-        import yaml
-
         from wexample_wex_addon_app.commands.hosts.update import app__hosts__update
         from wexample_wex_addon_app.common.app_registry import registry_register_app
 
-        runtime_path = app_path / WORKDIR_SETUP_DIR / CORE_DIR_NAME_TMP / "config.runtime.yml"
+        import yaml as _yaml
+
+        runtime_path = app_workdir.get_runtime_config_file().get_path()
         if runtime_path.exists():
             with open(runtime_path) as f:
-                data = yaml.safe_load(f) or {}
-            data.setdefault("app", {})["started"] = True
+                _data = _yaml.safe_load(f) or {}
+            _data.setdefault("app", {})["started"] = True
             with open(runtime_path, "w") as f:
-                yaml.dump(data, f)
+                _yaml.dump(_data, f)
 
-        registry_register_app(app_workdir)
+        registry_register_app(context.kernel, app_workdir)
         context.kernel.run_function(app__hosts__update, {"app_path": str(app_path)})
 
     def _pending(previous_value=None):

@@ -26,7 +26,7 @@ def app__hosts__clean(
     from wexample_wex_addon_app.commands.hosts.update import app__hosts__update
     from wexample_wex_addon_app.common.app_registry import registry_purge_stopped
 
-    registry_purge_stopped()
+    registry_purge_stopped(context.kernel)
     context.io.log("Registry purged")
 
     return context.kernel.run_function(app__hosts__update, {"app_path": str(app_workdir.get_path())})
