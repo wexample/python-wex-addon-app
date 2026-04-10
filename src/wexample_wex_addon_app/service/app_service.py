@@ -28,15 +28,6 @@ class AppService:
         compose_abs = self.service_dir / compose_rel
         return compose_abs if compose_abs.exists() else None
 
-    def setup(self) -> None:
-        """Idempotent one-time setup for this service, called before docker up.
-
-        Override to perform filesystem initialisation (generate secrets, seed
-        config files, etc.) that must happen after filestate apply but before
-        the containers start.
-        """
-        pass
-
     def get_workdir_contribution(self) -> dict | None:
         """Return filestate children rules to be merged into the app workdir.
 

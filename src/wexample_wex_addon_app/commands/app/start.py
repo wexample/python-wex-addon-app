@@ -163,9 +163,10 @@ def app__app__start(
     def _setup_services(previous_value=None):
         from wexample_wex_addon_app.app_addon_manager import AppAddonManager
 
-        manager = AppAddonManager.from_kernel(context.kernel)
-        for service in manager.get_app_services(app_workdir):
-            service.setup()
+        AppAddonManager.from_kernel(context.kernel).run_service_hook(
+            hook="service/setup",
+            app_workdir=app_workdir,
+        )
 
     def _starting(previous_value=None):
         from wexample_app.response.interactive_shell_command_response import InteractiveShellCommandResponse
