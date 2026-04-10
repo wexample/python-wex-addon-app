@@ -181,7 +181,7 @@ def app__app__start(
         if runtime_path.exists():
             with open(runtime_path) as f:
                 data = yaml.safe_load(f) or {}
-            data["started"] = True
+            data.setdefault("app", {})["started"] = True
             with open(runtime_path, "w") as f:
                 yaml.dump(data, f)
 
