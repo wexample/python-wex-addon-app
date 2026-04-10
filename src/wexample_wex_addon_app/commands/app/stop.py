@@ -17,20 +17,12 @@ if TYPE_CHECKING:
     from wexample_wex_addon_app.workdir.managed_workdir import ManagedWorkdir
 
 
-@option(
-    name="fast",
-    type=bool,
-    is_flag=True,
-    required=False,
-    description="Skip checkup and config steps, just remove containers",
-)
 @as_sudo()
 @middleware(middleware=AppMiddleware)
 @command(type=COMMAND_TYPE_ADDON, description="Stop the app containers")
 def app__app__stop(
     context: ExecutionContext,
     app_workdir: ManagedWorkdir,
-    fast: bool = False,
 ) -> AbstractResponse:
     from pathlib import Path
 
@@ -84,9 +76,4 @@ def app__app__stop(
         registry_unregister_app(context.kernel, app_workdir)
         context.kernel.run_function(app__hosts__update, {"app_path": str(app_path)})
 
-    if fast:
-        steps = [_rm]
-    else:
-        steps = [_checkup, _stop, _rm, _complete]
-
-    return QueuedCollectionResponse(kernel=context.kernel, content=steps)
+    return QueuedCollectionResponse(kernel=context.kernel, content=[_checkup, _stop, _rm, _complete])
