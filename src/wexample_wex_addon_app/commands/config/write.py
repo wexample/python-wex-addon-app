@@ -106,6 +106,11 @@ def app__config__write(
 
         compose_files = []
 
+        # Always include the addon base compose (defines wex_net and other shared infrastructure)
+        addon_base_compose = AppAddonManager.get_package_source_path() / "resources" / "docker" / "docker-compose.yml"
+        if addon_base_compose.exists():
+            compose_files.append(str(addon_base_compose))
+
         # Base app compose
         base_compose = app_path / WORKDIR_SETUP_DIR / "docker" / "docker-compose.yml"
         if base_compose.exists():
