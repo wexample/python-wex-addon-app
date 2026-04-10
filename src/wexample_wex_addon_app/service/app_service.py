@@ -28,6 +28,28 @@ class AppService:
         compose_abs = self.service_dir / compose_rel
         return compose_abs if compose_abs.exists() else None
 
+    def get_workdir_contribution(self) -> dict | None:
+        """Return filestate children rules to be merged into the app workdir.
+
+        Override in service subclasses to declare filesystem requirements
+        (directories, files, permissions, ownership) that this service needs
+        at the app root level.
+
+        Example return value::
+
+            {
+                "children": [
+                    {
+                        "name": "logs",
+                        "type": DiskItemType.DIRECTORY,
+                        "should_exist": True,
+                        "mode": {"owner": "999:999", "permissions": "750", "recursive": True},
+                    }
+                ]
+            }
+        """
+        return None
+
     def get_runtime_contribution(self) -> dict:
         """Return this service's contribution to the runtime config.
 
