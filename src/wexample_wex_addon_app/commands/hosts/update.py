@@ -9,7 +9,6 @@ from wexample_wex_core.decorator.command import command
 from wexample_wex_core.decorator.middleware import middleware
 
 from wexample_wex_addon_app.middleware.app_middleware import AppMiddleware
-from wexample_wex_addon_app.helpers.app import get_docker_local_ip
 
 if TYPE_CHECKING:
     from wexample_app.response.abstract_response import AbstractResponse
@@ -18,18 +17,18 @@ if TYPE_CHECKING:
     from wexample_wex_addon_app.workdir.managed_workdir import ManagedWorkdir
 
 _HOSTS_PATH = "/etc/hosts"
-_WEX_BLOCK_START = "#[ wex ]#"
-_WEX_BLOCK_END = "#[ end-wex ]#"
+_BLOCK_START = "#[ wex ]#"
+_BLOCK_END = "#[ end-wex ]#"
 
 
-def _remove_wex_block(content: str) -> str:
+def _remove_block(content: str) -> str:
     lines = content.split(os.linesep)
     result = []
     in_block = False
     for line in lines:
-        if _WEX_BLOCK_START in line:
+        if _BLOCK_START in line:
             in_block = True
-        elif _WEX_BLOCK_END in line:
+        elif _BLOCK_END in line:
             in_block = False
             continue
         if not in_block:
@@ -37,50 +36,44 @@ def _remove_wex_block(content: str) -> str:
     return os.linesep.join(result)
 
 
-def _add_wex_block(content: str, block_lines: list[str]) -> str:
+def _add_block(content: str, block_lines: list[str]) -> str:
     block = os.linesep.join(block_lines)
-    return content + f"{_WEX_BLOCK_START}{os.linesep}{block}{os.linesep}{_WEX_BLOCK_END}{os.linesep}"
+    return content + f"{_BLOCK_START}{os.linesep}{block}{os.linesep}{_BLOCK_END}{os.linesep}"
 
 
 @as_sudo()
 @middleware(middleware=AppMiddleware)
-@command(type=COMMAND_TYPE_ADDON, description="Update /etc/hosts with app domains")
+@command(type=COMMAND_TYPE_ADDON, description="Update /etc/hosts with all registered app domains")
 def app__hosts__update(
     context: ExecutionContext,
     app_workdir: ManagedWorkdir,
 ) -> AbstractResponse:
     from wexample_app.response.null_response import NullResponse
 
-    runtime = app_workdir.get_runtime_config()
-    domains_config = runtime.search("app.domains")
+    from wexample_wex_addon_app.common.app_registry import registry_purge_stopped, registry_read
 
-    if domains_config.is_none():
-        return NullResponse(kernel=context.kernel)
+    registry_purge_stopped()
+    data = registry_read()
 
-    domains = [d.get_str() for d in domains_config.get_list_or_default([]) if not d.is_none()]
-    if not domains:
-        return NullResponse(kernel=context.kernel)
-
-    env = app_workdir.get_app_env()
-    ip = (
-        get_docker_local_ip()
-        if env == "local"
-        else runtime.search("app.host.ip").get_str_or_default(get_docker_local_ip())
-    )
+    block_lines: list[str] = []
+    total_domains = 0
+    for entry in data["apps"].values():
+        ip = entry.get("ip", "127.0.1.1")
+        for domain in entry.get("domains", []):
+            block_lines.append(f"{ip}\t{domain}")
+            total_domains += 1
 
     with open(_HOSTS_PATH, "r") as f:
         content = f.read()
 
-    content = _remove_wex_block(content)
+    content = _remove_block(content)
 
-    # Preserve existing non-current-app entries from the old block (not needed yet, single-app mode)
-    new_lines = [f"{ip}\t{domain}" for domain in domains]
-
-    content = _add_wex_block(content, new_lines)
+    if block_lines:
+        content = _add_block(content, block_lines)
 
     with open(_HOSTS_PATH, "w") as f:
         f.write(content)
 
-    context.io.log(f"Hosts updated: {', '.join(domains)} → {ip}")
+    context.io.log(f"Hosts updated: {total_domains} domain(s) from {len(data['apps'])} app(s)")
 
     return NullResponse(kernel=context.kernel)
