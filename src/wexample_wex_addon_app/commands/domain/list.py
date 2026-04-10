@@ -25,5 +25,5 @@ def app__domain__list(
 
     return ListResponse(
         kernel=context.kernel,
-        content=app_workdir.get_domains_config()["domains"],
+        content=app_workdir.get_domains_config().get("domains", []),
     )
