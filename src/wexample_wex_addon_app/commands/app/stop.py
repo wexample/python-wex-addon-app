@@ -78,7 +78,7 @@ def app__app__stop(
             _data.setdefault("app", {})["started"] = False
             with open(runtime_path, "w") as f:
                 _yaml.dump(_data, f)
-        registry_unregister_app(context.kernel, app_workdir)
+        registry_unregister_app(app_workdir)
         context.kernel.run_function(app__hosts__update, {"app_path": str(app_path)})
 
     steps = [_stop, _rm, _complete] if force else [_checkup, _stop, _rm, _complete]

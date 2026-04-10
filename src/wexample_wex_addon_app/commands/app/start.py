@@ -186,7 +186,7 @@ def app__app__start(
             with open(runtime_path, "w") as f:
                 _yaml.dump(_data, f)
 
-        registry_register_app(context.kernel, app_workdir)
+        registry_register_app(app_workdir)
         context.kernel.run_function(app__hosts__update, {"app_path": str(app_path)})
 
     def _pending(previous_value=None):
