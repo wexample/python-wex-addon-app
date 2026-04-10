@@ -27,7 +27,8 @@ def app__apps__list(
         context.io.title(f"{app_path}  [{entry.get('env', '?')}]")
 
         domains = entry.get("domains") or []
-        context.io.log("  Domains: " + (", ".join(domains) if domains else "-"))
+        domains_str = ", ".join(f"@magenta{{{d}}}" for d in domains) if domains else "-"
+        context.io.log(f"  Domains: {domains_str}")
 
         context.io.log("  Containers:")
         context.kernel.run_function(app__container__list, {"app_path": app_path})
