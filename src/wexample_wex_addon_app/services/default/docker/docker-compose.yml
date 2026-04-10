@@ -4,6 +4,6 @@ services:
     tty: ${APP_DOCKER_COMPOSE_TTY:-true}
     restart: unless-stopped
     environment:
-      - APP_ENV=${APP_ENV}
+      - MANAGED_APP_ENV=${APP_ENV}
     networks:
       - wex_net

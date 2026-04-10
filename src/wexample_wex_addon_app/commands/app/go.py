@@ -42,6 +42,8 @@ def app__app__go(
     long_name = app_workdir.docker_build_long_container_name(container)
     shell = app_workdir.get_service_shell()
 
+    context.io.info(f"Entering container @magenta{{{long_name}}}...")
+
     docker_command = ["docker", "exec", "-ti"]
     if user:
         docker_command += ["-u", user]
