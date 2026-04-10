@@ -100,6 +100,8 @@ def app__config__write(
 
         import yaml as _yaml
 
+        from wexample_wex_addon_app.app_addon_manager import AppAddonManager
+
         runtime = app_workdir.get_runtime_config_file().read_config().to_dict()
         docker_env_path = tmp_dir / "docker.env"
         compose_runtime_path = tmp_dir / "docker-compose.runtime.yml"
