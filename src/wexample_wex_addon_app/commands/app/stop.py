@@ -17,12 +17,20 @@ if TYPE_CHECKING:
     from wexample_wex_addon_app.workdir.managed_workdir import ManagedWorkdir
 
 
+@option(
+    name="force",
+    type=bool,
+    is_flag=True,
+    required=False,
+    description="Skip started check and stop containers regardless of runtime state",
+)
 @as_sudo()
 @middleware(middleware=AppMiddleware)
 @command(type=COMMAND_TYPE_ADDON, description="Stop the app containers")
 def app__app__stop(
     context: ExecutionContext,
     app_workdir: ManagedWorkdir,
+    force: bool = False,
 ) -> AbstractResponse:
     from pathlib import Path
 
@@ -76,4 +84,5 @@ def app__app__stop(
         registry_unregister_app(context.kernel, app_workdir)
         context.kernel.run_function(app__hosts__update, {"app_path": str(app_path)})
 
-    return QueuedCollectionResponse(kernel=context.kernel, content=[_checkup, _stop, _rm, _complete])
+    steps = [_stop, _rm, _complete] if force else [_checkup, _stop, _rm, _complete]
+    return QueuedCollectionResponse(kernel=context.kernel, content=steps)

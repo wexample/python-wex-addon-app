@@ -25,10 +25,8 @@ def app__app__restart(
 
     from wexample_wex_addon_app.commands.app.stop import app__app__stop
 
-    def _stop(previous_value=None) -> None:
-        # Absorb any QueuedCollectionStop from stop (e.g. app already stopped) —
-        # restart must always proceed to _start regardless.
-        context.kernel.run_function(app__app__stop)
+    def _stop(previous_value=None) -> AbstractResponse:
+        return context.kernel.run_function(app__app__stop, arguments={"force": True})
 
     def _start(previous_value=None) -> AbstractResponse:
         from wexample_wex_addon_app.commands.app.start import app__app__start
