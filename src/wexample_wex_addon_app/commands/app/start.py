@@ -161,12 +161,9 @@ def app__app__start(
         return context.kernel.run_function(app__config__write, {"app_path": app_path_str})
 
     def _setup_services(previous_value=None):
-        from wexample_wex_addon_app.app_addon_manager import AppAddonManager
+        from wexample_wex_addon_app.commands.app.setup import app__app__setup
 
-        AppAddonManager.from_kernel(context.kernel).run_service_hook(
-            hook="service/setup",
-            app_workdir=app_workdir,
-        )
+        context.kernel.run_function(app__app__setup, {"app_path": str(app_path)})
 
     def _starting(previous_value=None):
         from wexample_app.response.interactive_shell_command_response import InteractiveShellCommandResponse
