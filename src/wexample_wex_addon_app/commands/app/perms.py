@@ -30,4 +30,3 @@ def app__app__perms(
         interactive=False,
         scopes={Scope.PERMISSIONS, Scope.OWNERSHIP},
     )
-    context.io.log("Permissions applied")
