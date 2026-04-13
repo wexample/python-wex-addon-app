@@ -107,9 +107,13 @@ def app__service__install(
                     app_setup_path = app_workdir.get_path() / WORKDIR_SETUP_DIR
                     file_copytree_as_real_user(samples_dir, app_setup_path)
 
-            # Write default vars declared in service.yml into .env (skip if already present)
+            # Write vars declared in service.yml into .env (skip if already present)
             app_service = app_addon_manager.get_app_service(normalized_service_name, app_workdir)
             service_vars = app_service.get_vars()
+            env_file = app_workdir.get_path() / ".wex" / ".env"
+            existing_env = env_file.read_text() if env_file.exists() else ""
+
+            # Step 1: defaults (no prompt)
             defaults_to_write = {
                 key: str(meta["default"])
                 for key, meta in service_vars.items()
@@ -118,10 +122,28 @@ def app__service__install(
             if defaults_to_write:
                 from wexample_helpers.helpers.file import file_env_append_as_real_user
 
-                file_env_append_as_real_user(
-                    app_workdir.get_path() / ".wex" / ".env",
-                    defaults_to_write,
-                )
+                file_env_append_as_real_user(env_file, defaults_to_write)
+                existing_env = env_file.read_text()
+
+            # Step 2: required vars that need interactive prompt
+            for key, meta in service_vars.items():
+                if meta.get("generated") or "default" in meta:
+                    continue
+                if not meta.get("required"):
+                    continue
+                if f"{key}=" in existing_env:
+                    continue
+
+                description = meta.get("description", "")
+                question = f"{key}" + (f" — {description}" if description else "")
+                response = context.io.input(question=question)
+                value = response.get_value()
+
+                if value:
+                    from wexample_helpers.helpers.file import file_env_append_as_real_user
+
+                    file_env_append_as_real_user(env_file, {key: value})
+                    existing_env = env_file.read_text()
 
             app_addon_manager.run_service_hook(
                 hook="service/install",
