@@ -53,6 +53,7 @@ def app__app__init(
     env: str | None = None,
     app_path: str | None = None,
 ) -> None:
+    from wexample_helpers.helpers.file import file_mkdir_as_real_user, file_write_as_real_user
     from wexample_helpers.helpers.string import string_to_snake_case
 
     from wexample_wex_addon_app.commands.file_state.rectify import app__file_state__rectify
@@ -64,15 +65,16 @@ def app__app__init(
     normalized_services = [string_to_snake_case(s) for s in (services or [])]
 
     for subdir in [".wex", ".wex/tmp"]:
-        (target_path / subdir).mkdir(parents=True, exist_ok=True)
+        file_mkdir_as_real_user(target_path / subdir)
 
-    (target_path / ".wex" / "config.yml").write_text(
+    file_write_as_real_user(
+        target_path / ".wex" / "config.yml",
         "global:\n"
         f"  name: {app_name}\n"
         "  version: 1.0.0\n"
-        "  type: app\n"
+        "  type: app\n",
     )
-    (target_path / ".wex" / ".env").write_text(f"APP_ENV={env_name}\n")
+    file_write_as_real_user(target_path / ".wex" / ".env", f"APP_ENV={env_name}\n")
 
     for service_name in normalized_services:
         context.kernel.run_function(

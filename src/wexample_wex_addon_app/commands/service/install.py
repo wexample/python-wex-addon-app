@@ -99,13 +99,13 @@ def app__service__install(
                 if inherited_service_dir is None:
                     continue
 
-                import shutil
                 from wexample_app.const.globals import WORKDIR_SETUP_DIR
+                from wexample_helpers.helpers.file import file_copytree_as_real_user
 
                 samples_dir = inherited_service_dir / "samples"
                 if samples_dir.is_dir():
                     app_setup_path = app_workdir.get_path() / WORKDIR_SETUP_DIR
-                    shutil.copytree(samples_dir, app_setup_path, dirs_exist_ok=True)
+                    file_copytree_as_real_user(samples_dir, app_setup_path)
 
             app_addon_manager.run_service_hook(
                 hook="service/install",
