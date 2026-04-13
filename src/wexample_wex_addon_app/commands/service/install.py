@@ -113,11 +113,11 @@ def app__service__install(
             env_file = app_workdir.get_path() / ".wex" / ".env"
             existing_env = env_file.read_text() if env_file.exists() else ""
 
-            # Step 1: defaults (no prompt)
+            # Step 1: non-required defaults (write silently, no prompt)
             defaults_to_write = {
                 key: str(meta["default"])
                 for key, meta in service_vars.items()
-                if "default" in meta and not meta.get("generated")
+                if "default" in meta and not meta.get("generated") and not meta.get("required")
             }
             if defaults_to_write:
                 from wexample_helpers.helpers.file import file_env_append_as_real_user
@@ -125,9 +125,9 @@ def app__service__install(
                 file_env_append_as_real_user(env_file, defaults_to_write)
                 existing_env = env_file.read_text()
 
-            # Step 2: required vars that need interactive prompt
+            # Step 2: required vars — prompt (with optional pre-fill from default)
             for key, meta in service_vars.items():
-                if meta.get("generated") or "default" in meta:
+                if meta.get("generated"):
                     continue
                 if not meta.get("required"):
                     continue
@@ -136,12 +136,13 @@ def app__service__install(
 
                 description = meta.get("description", "")
                 question = f"{key}" + (f" — {description}" if description else "")
+                suggested = str(meta["default"]) if "default" in meta else None
 
                 value = None
                 while not value:
                     if value is not None:
                         context.io.log(f"  '{key}' is required, please enter a value.")
-                    response = context.io.input(question=question)
+                    response = context.io.input(question=question, default_value=suggested)
                     value = response.get_value()
 
                 from wexample_helpers.helpers.file import file_env_append_as_real_user
