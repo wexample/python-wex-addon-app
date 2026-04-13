@@ -4,6 +4,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 from wexample_wex_core.const.globals import COMMAND_TYPE_ADDON
+from wexample_wex_core.decorator.as_sudo import as_sudo
 from wexample_wex_core.decorator.command import command
 from wexample_wex_core.decorator.option import option
 
@@ -41,6 +42,9 @@ if TYPE_CHECKING:
     required=False,
     description="Target app path (defaults to current directory)",
 )
+# as_sudo is required upfront: service installs triggered by --services may run rectify
+# operations that need elevated permissions (e.g. chown on data directories).
+@as_sudo()
 @command(type=COMMAND_TYPE_ADDON, description="Initialize an app")
 def app__app__init(
     context: ExecutionContext,

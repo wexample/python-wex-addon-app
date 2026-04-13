@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from wexample_wex_core.const.globals import COMMAND_TYPE_ADDON
+from wexample_wex_core.decorator.as_sudo import as_sudo
 from wexample_wex_core.decorator.command import command
 from wexample_wex_core.decorator.middleware import middleware
 from wexample_wex_core.decorator.option import option
@@ -32,6 +33,7 @@ from wexample_wex_addon_app.const.service import SERVICE_TAG_DB
     required=False,
     description="Install even if the service already exists in config.yml",
 )
+@as_sudo()
 @middleware(middleware=AppMiddleware)
 @command(type=COMMAND_TYPE_ADDON, description="Install a service into an app")
 def app__service__install(
