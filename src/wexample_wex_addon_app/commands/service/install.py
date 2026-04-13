@@ -107,6 +107,22 @@ def app__service__install(
                     app_setup_path = app_workdir.get_path() / WORKDIR_SETUP_DIR
                     file_copytree_as_real_user(samples_dir, app_setup_path)
 
+            # Write default vars declared in service.yml into .env (skip if already present)
+            app_service = app_addon_manager.get_app_service(normalized_service_name, app_workdir)
+            service_vars = app_service.get_vars()
+            defaults_to_write = {
+                key: str(meta["default"])
+                for key, meta in service_vars.items()
+                if "default" in meta and not meta.get("generated")
+            }
+            if defaults_to_write:
+                from wexample_helpers.helpers.file import file_env_append_as_real_user
+
+                file_env_append_as_real_user(
+                    app_workdir.get_path() / ".wex" / ".env",
+                    defaults_to_write,
+                )
+
             app_addon_manager.run_service_hook(
                 hook="service/install",
                 app_workdir=app_workdir,
