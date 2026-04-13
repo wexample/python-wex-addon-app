@@ -19,6 +19,17 @@ class AppService:
     service_dir: Path | None = public_field(default=None, description="Path to the service directory in the addon package")
     manifest: dict = public_field(factory=dict, description="Parsed service.yml content")
 
+    def get_vars(self) -> dict[str, dict]:
+        """Return the vars declared in service.yml under the `vars:` key.
+
+        Each entry is a dict with optional keys:
+          - required (bool): var must be present before app/start
+          - generated (bool): skip interactive prompt; install.py handles generation
+          - default (str): written to .env without prompt if the key is absent
+          - description (str): shown during prompt or in service/vars/list
+        """
+        return self.manifest.get("vars", {})
+
     def get_compose_file(self) -> Path | None:
         if not self.service_dir:
             return None
