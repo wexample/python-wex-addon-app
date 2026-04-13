@@ -75,39 +75,39 @@ class AppAddonManager(AbstractAddonManager):
                 return addon
         raise RuntimeError("AppAddonManager not registered in kernel")
 
-    def get_app_services(self, app_workdir: ManagedWorkdir) -> list[AppService]:
+    def get_app_service(self, service_name: str, app_workdir: ManagedWorkdir) -> AppService:
         from wexample_helpers.helpers.module import module_load_class_from_file
 
         from wexample_wex_addon_app.service.app_service import AppService
 
-        def _make_service(service_name: str) -> AppService:
-            service_dir = self.find_service_dir(service_name)
-            manifest = self.get_service_manifest(service_name) if service_dir else {}
+        service_dir = self.find_service_dir(service_name)
+        manifest = self.get_service_manifest(service_name) if service_dir else {}
 
-            service_class = AppService
-            if service_dir:
-                custom_class_path = service_dir / "app_service.py"
-                if custom_class_path.exists():
-                    service_class = module_load_class_from_file(
-                        file_path=custom_class_path,
-                        class_name="AppService",
-                    )
+        service_class = AppService
+        if service_dir:
+            custom_class_path = service_dir / "app_service.py"
+            if custom_class_path.exists():
+                service_class = module_load_class_from_file(
+                    file_path=custom_class_path,
+                    class_name="AppService",
+                )
 
-            return service_class(
-                name=service_name,
-                app_workdir=app_workdir,
-                addon_manager=self,
-                service_dir=service_dir,
-                manifest=manifest,
-            )
+        return service_class(
+            name=service_name,
+            app_workdir=app_workdir,
+            addon_manager=self,
+            service_dir=service_dir,
+            manifest=manifest,
+        )
 
+    def get_app_services(self, app_workdir: ManagedWorkdir) -> list[AppService]:
         # "default" is always injected first — provides base compose (stdin_open, tty, restart, network)
-        result = [_make_service("default")]
+        result = [self.get_app_service("default", app_workdir)]
 
         services_config = app_workdir.get_config().search("service")
         if not services_config.is_none():
             for service_name in services_config.to_dict():
-                result.append(_make_service(service_name))
+                result.append(self.get_app_service(service_name, app_workdir))
 
         return result
 
