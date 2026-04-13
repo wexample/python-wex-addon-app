@@ -136,14 +136,18 @@ def app__service__install(
 
                 description = meta.get("description", "")
                 question = f"{key}" + (f" — {description}" if description else "")
-                response = context.io.input(question=question)
-                value = response.get_value()
 
-                if value:
-                    from wexample_helpers.helpers.file import file_env_append_as_real_user
+                value = None
+                while not value:
+                    if value is not None:
+                        context.io.log(f"  '{key}' is required, please enter a value.")
+                    response = context.io.input(question=question)
+                    value = response.get_value()
 
-                    file_env_append_as_real_user(env_file, {key: value})
-                    existing_env = env_file.read_text()
+                from wexample_helpers.helpers.file import file_env_append_as_real_user
+
+                file_env_append_as_real_user(env_file, {key: value})
+                existing_env = env_file.read_text()
 
             app_addon_manager.run_service_hook(
                 hook="service/install",
