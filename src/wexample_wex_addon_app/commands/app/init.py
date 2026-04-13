@@ -53,8 +53,9 @@ def app__app__init(
     env: str | None = None,
     app_path: str | None = None,
 ) -> None:
+    from wexample_app.const.globals import CORE_COMMAND_NAME
     from wexample_helpers.helpers.file import file_mkdir_as_real_user, file_write_as_real_user
-    from wexample_helpers.helpers.string import string_to_snake_case
+    from wexample_helpers.helpers.string import string_to_kebab_case, string_to_snake_case
 
     from wexample_wex_addon_app.commands.file_state.rectify import app__file_state__rectify
     from wexample_wex_addon_app.commands.service.install import app__service__install
@@ -63,6 +64,7 @@ def app__app__init(
     app_name = name or target_path.name
     env_name = env or "local"
     normalized_services = [string_to_snake_case(s) for s in (services or [])]
+    domain = f"{string_to_kebab_case(app_name)}.{CORE_COMMAND_NAME}"
 
     for subdir in [".wex", ".wex/tmp"]:
         file_mkdir_as_real_user(target_path / subdir)
@@ -72,7 +74,8 @@ def app__app__init(
         "global:\n"
         f"  name: {app_name}\n"
         "  version: 1.0.0\n"
-        "  type: app\n",
+        "  type: app\n"
+        f"domain: {domain}\n",
     )
     file_write_as_real_user(target_path / ".wex" / ".env", f"APP_ENV={env_name}\n")
 
