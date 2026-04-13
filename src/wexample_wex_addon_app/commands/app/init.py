@@ -51,6 +51,7 @@ def app__app__init(
 ) -> None:
     from wexample_helpers.helpers.string import string_to_snake_case
 
+    from wexample_wex_addon_app.commands.file_state.rectify import app__file_state__rectify
     from wexample_wex_addon_app.commands.service.install import app__service__install
 
     target_path = Path(app_path or context.kernel.call_workdir.get_path()).resolve()
@@ -74,5 +75,10 @@ def app__app__init(
             app__service__install,
             {"app_path": str(target_path), "service": service_name},
         )
+
+    context.kernel.run_function(
+        app__file_state__rectify,
+        {"app_path": str(target_path), "yes": True},
+    )
 
     context.io.log(f"Initialized app '{app_name}' at {target_path}")
