@@ -69,7 +69,7 @@ def app__config__write(
             if isinstance(hook_contribution, dict):
                 merged = dict_merge(merged, hook_contribution)
 
-        app_workdir.get_runtime_config_file().write_config(NestedConfigValue(raw=merged))
+        app_workdir.write_runtime_config(NestedConfigValue(raw=merged))
         context.io.log(f"Runtime config written ({len(services) - 1} service(s))")
 
     def _env(previous_value=None) -> None:
