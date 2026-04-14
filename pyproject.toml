@@ -15,7 +15,7 @@ dependencies = [
     "tomlkit",
     "wexample-migration>=0.1.0",
     "wexample-runner>=0.0.1",
-    "wexample-wex-core>=7.0.0",
+    "wexample-wex-core>=7.1.0",
 ]
 
 [project.readme]
