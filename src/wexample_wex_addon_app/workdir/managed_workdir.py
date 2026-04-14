@@ -35,6 +35,9 @@ from wexample_migration.workdir.mixin.with_migration_workdir_mixin import (
 from wexample_wex_addon_app.workdir.mixin.with_suite_tree_workdir_mixin import (
     WithSuiteTreeWorkdirMixin,
 )
+from wexample_wex_addon_app.workdir.mixin.with_agents_workdir_mixin import (
+    WithAgentsWorkdirMixin,
+)
 
 if TYPE_CHECKING:
     from wexample_config.config_value.config_value import ConfigValue
@@ -49,6 +52,7 @@ class ManagedWorkdir(
     WithAppConfigWorkdirMixin,
     WithSuiteTreeWorkdirMixin,
     WithReadmeWorkdirMixin,
+    WithAgentsWorkdirMixin,
     WithAppVersionWorkdirMixin,
     WithRuntimeConfigMixin,
     WithAppRegistryMixin,
@@ -189,7 +193,9 @@ class ManagedWorkdir(
         main_service = self.get_main_service()
         if main_service:
             return main_service
-        raise ValueError("No main container configured (docker.main_container or global.main_service)")
+        raise ValueError(
+            "No main container configured (docker.main_container or global.main_service)"
+        )
 
     def get_service_shell(self, service: str | None = None) -> str:
         config = self.get_runtime_config().search("docker.main_container_shell")
@@ -198,7 +204,9 @@ class ManagedWorkdir(
         return "/bin/bash"
 
     def docker_build_long_container_name(self, container_name: str) -> str:
-        project_name = self.get_runtime_config().search("app.project_name").get_str_or_none()
+        project_name = (
+            self.get_runtime_config().search("app.project_name").get_str_or_none()
+        )
         if not project_name:
             project_name = self.get_project_name()
         return f"{project_name}_{container_name}"
@@ -369,6 +377,7 @@ class ManagedWorkdir(
         raw_value.update({"mode": {"permissions": "777", "recursive": True}})
 
         self.append_readme(config=raw_value)
+        self.append_agents(config=raw_value)
         self.append_version(config=raw_value)
 
         raw_value["children"].append(
@@ -422,7 +431,10 @@ class ManagedWorkdir(
                         "name": ".gitignore",
                         "type": DiskItemType.FILE,
                         "should_exist": True,
-                        "should_contain_lines": [EnvFile.EXTENSION_DOT_ENV],
+                        "should_contain_lines": [
+                            EnvFile.EXTENSION_DOT_ENV,
+                            str(CORE_DIR_NAME_TMP) + "/",
+                        ],
                         TextOption.get_name(): {"end_new_line": True},
                     },
                 ],

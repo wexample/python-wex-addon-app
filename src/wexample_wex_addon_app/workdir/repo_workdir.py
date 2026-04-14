@@ -185,7 +185,15 @@ class RepoWorkdir(ManagedWorkdir):
         return git_has_changes_since_tag(last_tag, ".", cwd=self.get_path())
 
     def publish(self, force: bool = False) -> None:
+        import pwd
+
+        from wexample_helpers.helpers.file import file_chown_recursive
+        from wexample_helpers.helpers.user import user_get_real_username
         from wexample_helpers_git.const.common import GIT_BRANCH_MAIN
+
+        username = user_get_real_username()
+        pw = pwd.getpwnam(username)
+        file_chown_recursive(self.get_path(), pw.pw_uid, pw.pw_gid)
 
         if not self.should_be_published(force=force):
             return
