@@ -18,11 +18,11 @@ if TYPE_CHECKING:
     description="Run performance benchmarks and display a report. Python only (requires pytest-benchmark tests).",
 )
 def app__performance__report(context: ExecutionContext, app_workdir: AppMiddleware) -> None:
-    from wexample_wex_addon_dev_python.workdir.mixin.with_profiling_workdir_mixin import (
-        WithProfilingWorkdirMixin,
+    from wexample_wex_addon_app.workdir.mixin.abstract_profiling_workdir_mixin import (
+        AbstractProfilingWorkdirMixin,
     )
 
-    if not isinstance(app_workdir, WithProfilingWorkdirMixin):
+    if not isinstance(app_workdir, AbstractProfilingWorkdirMixin):
         context.io.warning(
             f"Performance profiling is not supported for workdir type: {type(app_workdir).__name__}"
         )
