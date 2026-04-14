@@ -1,0 +1,6 @@
+name: proxy
+tags:
+  - proxy
+  - network
+docker:
+  compose: docker/docker-compose.yml

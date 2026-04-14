@@ -24,6 +24,34 @@ class WithSuiteTreeWorkdirMixin(BaseClass):
         default=None, description="Cache reference to the parent suite"
     )
 
+    def build_runtime_config_value(self):
+        from wexample_config.config_value.nested_config_value import NestedConfigValue
+        from wexample_helpers.helpers.dict import dict_interpolate, dict_merge
+
+        if not self.get_shallow_suite_workdir():
+            return super().build_runtime_config_value()
+
+        # Collect env params from the full suite tree (self + all parent suites).
+        # collect_stack_in_suites_tree returns [self, suite, parent_suite, ...].
+        # We merge outermost-first so inner levels win (package > suite > parent suite).
+        env_stack = self.collect_stack_in_suites_tree(
+            lambda workdir: workdir.get_env_parameters().to_dict()
+        )
+        merged_env = {}
+        for env in reversed(env_stack):
+            merged_env = dict_merge(merged_env, env)
+
+        return NestedConfigValue(
+            raw=dict_interpolate(
+                dict_merge(
+                    self.get_config().to_dict(),
+                    self.get_config(env_name=self.get_app_env()).to_dict_or_none()
+                    or {},
+                ),
+                merged_env,
+            )
+        )
+
     def collect_stack_in_suites_tree(
         self, callback: Callable[[Any], Any], include_self: bool = True
     ) -> list[Any]:
@@ -50,14 +78,14 @@ class WithSuiteTreeWorkdirMixin(BaseClass):
         """
         from wexample_helpers.helpers.directory import directory_iterate_parent_dirs
 
-        from wexample_wex_addon_app.workdir.app_workdir import AppWorkdir
+        from wexample_wex_addon_app.workdir.managed_workdir import ManagedWorkdir
 
         if self._suite_workdir_path is None:
             source_path = self.get_path()
             self._suite_workdir_path = False
 
             def _found(path: Path) -> bool:
-                config = AppWorkdir.get_config_from_path(
+                config = ManagedWorkdir.get_config_from_path(
                     path=path,
                 )
                 if config:
@@ -93,7 +121,7 @@ class WithSuiteTreeWorkdirMixin(BaseClass):
         return value
 
     def get_shallow_suite_workdir(self) -> False | FrameworkPackageSuiteWorkdir:
-        suite_class = self._get_suite_package_workdir_class()
+        suite_class = self._get_suite_workdir_class()
         if not suite_class:
             return None
 
@@ -104,7 +132,7 @@ class WithSuiteTreeWorkdirMixin(BaseClass):
     def get_suite_workdir(
         self, reload: bool = False
     ) -> False | FrameworkPackageSuiteWorkdir:
-        suite_class = self._get_suite_package_workdir_class()
+        suite_class = self._get_suite_workdir_class()
         if not suite_class:
             return None
 
@@ -139,7 +167,7 @@ class WithSuiteTreeWorkdirMixin(BaseClass):
 
     def search_in_package_or_suite_config(self, key: str) -> ConfigValue:
         """Search for a config value in the package config, fallback to suite config if not found."""
-        from wexample_wex_addon_app.workdir.app_workdir import AppWorkdir
+        from wexample_wex_addon_app.workdir.managed_workdir import ManagedWorkdir
 
         value = self.get_config().search(key)
 
@@ -147,7 +175,7 @@ class WithSuiteTreeWorkdirMixin(BaseClass):
             suite_path = self.find_suite_workdir_path()
             if suite_path:
                 # Also avoid using children tree as method may be executed before configuration process.
-                suite_config_file = AppWorkdir.get_config_from_path(
+                suite_config_file = ManagedWorkdir.get_config_from_path(
                     path=suite_path,
                 )
 
@@ -155,3 +183,6 @@ class WithSuiteTreeWorkdirMixin(BaseClass):
                     return suite_config_file.read_config().search(key)
 
         return value
+
+    def _get_suite_workdir_class(self) -> type | None:
+        return None

@@ -10,8 +10,7 @@ if TYPE_CHECKING:
 
 class AppConfig(TypedDict):
     branch: str | None
-    domain_main: str
-    domain_tld: str
+    domain: str
     domains: list[str]
     domains_string: str
     env: StringKeysDict

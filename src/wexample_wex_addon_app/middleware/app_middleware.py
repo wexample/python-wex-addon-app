@@ -41,7 +41,6 @@ class AppMiddleware(AbstractMiddleware):
         return request.get_addon_manager().create_app_workdir(path=app_path)
 
     def _get_middleware_options(self) -> list[Option]:
-        """Get the default file option definition."""
         from wexample_app.command.option import Option
 
         return [

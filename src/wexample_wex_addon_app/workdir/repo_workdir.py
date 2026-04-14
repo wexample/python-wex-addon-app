@@ -3,14 +3,15 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from wexample_filestate.const.types_state_items import TargetFileOrDirectoryType
+from wexample_helpers.classes.abstract_method import abstract_method
 
-from wexample_wex_addon_app.workdir.app_workdir import AppWorkdir
+from wexample_wex_addon_app.workdir.managed_workdir import ManagedWorkdir
 
 if TYPE_CHECKING:
     pass
 
 
-class RepoWorkdir(AppWorkdir):
+class RepoWorkdir(ManagedWorkdir):
     def bump(self, interactive: bool = False, force: bool = False, **kwargs) -> bool:
         """Create a version-x.y.z branch, update the version number in config. Don't commit changes."""
         from wexample_helpers.helpers.version import version_increment
@@ -24,17 +25,26 @@ class RepoWorkdir(AppWorkdir):
             return False
 
         current_version = self.get_project_version()
+        if "type" not in kwargs:
+            kwargs["type"] = self.classify_version_bump()
         new_version = version_increment(version=current_version, **kwargs)
         branch_name = f"version-{new_version}"
 
         self.info(f"Bumping version to {new_version}", prefix=True)
 
         def _bump() -> None:
-            from wexample_helpers_git.helpers.git import git_create_or_switch_branch
+            from wexample_helpers.helpers.shell import shell_run
+            from wexample_helpers_git.helpers.git import git_switch_branch
 
-            git_create_or_switch_branch(
-                branch_name, cwd=self.get_path(), inherit_stdio=True
+            # `git branch -f` creates the branch if it doesn't exist, or resets it to
+            # HEAD if it does (e.g. a previous failed bump left a stale branch).
+            # This is always safe: we're on main at this point, never on branch_name.
+            shell_run(
+                ["git", "branch", "-f", branch_name, "HEAD"],
+                cwd=self.get_path(),
+                inherit_stdio=False,
             )
+            git_switch_branch(branch_name, cwd=self.get_path(), inherit_stdio=True)
             self.log(message=f'Switched to branch "{branch_name}"', indentation=1)
 
             self.write_config_value("global.version", new_version)
@@ -52,7 +62,7 @@ class RepoWorkdir(AppWorkdir):
             )
 
             confirm = self.confirm(
-                f"Do you want to create a new version for package {self.get_package_name()} in @path{{{self.get_path()}}}?{changes_message} "
+                f"Do you want to create a new version for @color:magenta{{{self.get_project_name()}}} in @path{{{self.get_path()}}}?{changes_message} "
                 f'This will create/switch to branch "{branch_name}".',
                 choices=ConfirmPromptResponse.MAPPING_PRESET_YES_NO,
                 default="yes",
@@ -66,6 +76,21 @@ class RepoWorkdir(AppWorkdir):
             return True
         return False
 
+    def classify_version_bump(self) -> str:
+        """Return the version bump type for this package based on changes since last tag.
+
+        Handles the no-previous-tag case (first publication → patch) then delegates
+        to _classify_version_bump() for language-specific logic.
+        """
+        from wexample_helpers.const.types import UPGRADE_TYPE_MINOR
+
+        last_tag = self.get_last_publication_tag()
+        if last_tag is None:
+            # First publication — no previous consumers, nothing to break
+            return UPGRADE_TYPE_MINOR
+
+        return self._classify_version_bump(last_tag)
+
     def count_source_code_lines(self) -> int:
         return self._count_code_lines(self._get_source_code_directories())
 
@@ -77,9 +102,6 @@ class RepoWorkdir(AppWorkdir):
 
     def count_test_files(self) -> int:
         return self._count_files(self._get_test_code_directories())
-
-    def get_dependencies_versions(self) -> dict[str, str]:
-        return {}
 
     def get_last_publication_tag(self) -> str | None:
         """Return the last publication tag for this package, or None if none exists."""
@@ -144,12 +166,22 @@ class RepoWorkdir(AppWorkdir):
         return git_has_changes_since_tag(last_tag, ".", cwd=self.get_path())
 
     def publish(self, force: bool = False) -> None:
+        import pwd
+
+        from wexample_helpers.helpers.file import file_chown_recursive
+        from wexample_helpers.helpers.user import user_get_real_username
         from wexample_helpers_git.const.common import GIT_BRANCH_MAIN
+
+        username = user_get_real_username()
+        pw = pwd.getpwnam(username)
+        file_chown_recursive(self.get_path(), pw.pw_uid, pw.pw_gid)
 
         if not self.should_be_published(force=force):
             return
 
+        self.clear_runtime_config_cache()
         self._publish(force=force)
+        self._wait_for_registry()
         self.success(
             f"Published {self.get_package_name()} as {self.get_publication_tag_name()}."
         )
@@ -157,10 +189,18 @@ class RepoWorkdir(AppWorkdir):
         self.merge_to_main()
         self.push_to_deployment_remote(branch_name=GIT_BRANCH_MAIN)
 
-    def publish_bumped(self, force: bool = False, interactive: bool = True) -> None:
+    def publish_bumped(
+        self,
+        force: bool = False,
+        interactive: bool = True,
+        has_changes: bool | None = None,
+    ) -> None:
+        from wexample_prompt.enums.terminal_color import TerminalColor
+
         from wexample_wex_addon_app.commands.file_state.rectify import (
             app__file_state__rectify,
         )
+        from wexample_wex_addon_app.commands.package.bump import app__package__bump
         from wexample_wex_addon_app.commands.package.commit_and_push import (
             app__package__commit_and_push,
         )
@@ -171,39 +211,89 @@ class RepoWorkdir(AppWorkdir):
             app__version__propagate,
         )
 
-        if force or self.has_changes_since_last_publication_tag():
-            if interactive:
-                if not self.io.confirm(
-                    f"Package {self.get_package_name()} has changes, do you want to publish it?"
-                ):
-                    return
+        # When called from a suite publish, has_changes is pre-computed before the
+        # loop so that propagate_version side-effects on sibling packages do not
+        # create false positives.  When called standalone, fall back to the live check.
+        _has_changes = (
+            has_changes
+            if has_changes is not None
+            else self.has_changes_since_last_publication_tag()
+        )
 
-            bumped = self.bump(interactive=interactive, force=force)
-
-            if not bumped:
+        # Rectify runs only when there are actual changes (or force=True).
+        # This is intentional: rectify itself may generate files (version.txt, README...),
+        # but we consider those a consequence of real changes, not a trigger.
+        # Use --force to publish even without detected changes (e.g. to force a rectify pass).
+        if force or _has_changes:
+            sub_progress = self.progress(
+                total=5, color=TerminalColor.YELLOW, indentation=1, print_response=False
+            ).get_handle()
+            sub_progress.advance(step=1, label=f"Bumping {self.get_project_name()}")
+            bump_args = []
+            if force:
+                bump_args.append("--force")
+            if not interactive:
+                bump_args.append("--yes")
+            bump_response = self.manager_run_command(
+                command=app__package__bump, arguments=bump_args
+            ).get_output_value()
+            if not bump_response.is_true():
                 return
-
-            rectify_args = ["--loop"] + (["--yes"] if not interactive else [])
+            sub_progress.advance(
+                step=1, label=f"Rectifying file state for {self.get_project_name()}"
+            )
+            rectify_args = ["--loop"]
+            if not interactive:
+                rectify_args.append("--yes")
             self.manager_run_command(
                 command=app__file_state__rectify, arguments=rectify_args
             )
-
+            sub_progress.advance(
+                step=1, label=f"Committing and pushing {self.get_project_name()}"
+            )
             self.manager_run_command(command=app__package__commit_and_push)
-
+            sub_progress.advance(
+                step=1, label=f"Propagating version for {self.get_project_name()}"
+            )
             self.manager_run_command(command=app__version__propagate)
-
+            sub_progress.advance(step=1, label=f"Publishing {self.get_project_name()}")
             self.manager_run_command(
-                command=app__package__publish, arguments=["--force"]
+                command=app__package__publish,
+                arguments=(["--force"] if force else []),
             )
 
-    def publish_dependencies(self) -> None:
-        pass
+    def publish_dependencies(self) -> dict[str, str]:
+        return {self.get_package_name(): self.get_project_version()}
 
     def should_be_published(self, force: bool = False) -> bool:
-        return force or self.has_changes_since_last_publication_tag()
+        current_tag = self.get_publication_tag_name()
+        last_tag = self.get_last_publication_tag()
+        if not force and last_tag == current_tag:
+            self.log(f"{self.get_package_name()} already published as {current_tag}.")
+            return False
+        return True
 
     def update_dependencies(self, dependencies_map: dict[str, str]) -> None:
         pass
+
+    def _classify_version_bump(self, last_tag: str) -> str:
+        """Classify the version bump type given a known previous tag.
+
+        Any change inside a critical directory is treated as major
+        (conservative). Falls back to minor (patch) otherwise.
+        Override in language-specific workdirs for finer-grained detection.
+        """
+        from wexample_helpers.const.types import UPGRADE_TYPE_MAJOR, UPGRADE_TYPE_MINOR
+        from wexample_helpers_git.helpers.git import git_has_changes_since_tag
+
+        for directory in self._get_critical_directories():
+            dir_path = self.get_path() / directory
+            if dir_path.exists() and git_has_changes_since_tag(
+                last_tag, directory, cwd=self.get_path()
+            ):
+                return UPGRADE_TYPE_MAJOR
+
+        return UPGRADE_TYPE_MINOR
 
     def _count_code_lines(self, directories: list[TargetFileOrDirectoryType]) -> int:
         from wexample_file.helper.line import line_count_recursive
@@ -223,6 +313,10 @@ class RepoWorkdir(AppWorkdir):
                 count += len(list(path.rglob("*")))
         return count
 
+    @abstract_method
+    def _get_critical_directories(self) -> list[str]:
+        pass
+
     def _get_source_code_directories(self) -> list[TargetFileOrDirectoryType]:
         return []
 
@@ -231,3 +325,12 @@ class RepoWorkdir(AppWorkdir):
 
     def _publish(self, force: bool = False) -> None:
         pass
+
+    def _wait_for_registry(self) -> None:
+        """Wait until the just-published package version is available on the registry.
+
+        No-op by default. Override in language-specific workdirs (npm, PyPI, Packagist…)
+        to block the pipeline until the registry has propagated the new version.
+        This prevents downstream packages from failing when they try to resolve a
+        dependency that was published moments ago.
+        """

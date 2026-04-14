@@ -16,29 +16,79 @@ if TYPE_CHECKING:
 class AppReadmeConfigValue(ReadmeContentConfigValue):
     """README generation for applications with workdir and suite support.
 
-    This class handles all common operations for app-based READMEs:
-    - Workdir-based template search paths
-    - Suite-level template inheritance
-    - Predefined section list
-    - Common project metadata extraction
+    Sections are discovered automatically from template files. Order is
+    controlled via `readme.sections` in any suite's config.yml — sections
+    listed there appear first, the rest follow in discovery order.
 
-    Subclasses only need to implement language-specific methods.
+    Search path priority (first match wins per section):
+      1. Workdir-specific  (.wex/knowledge/readme/)
+      2. Language addon    (bundled in the language wex addon)
+      3. App addon         (bundled in wex-addon-app)
+      4. Suite parents     (.wex/knowledge/package-readme/, closest first)
     """
 
     workdir = public_field(description="The application workdir")
 
-    def _append_template_path_from_module(
-        self, module, search_paths: list[str]
-    ) -> str | None:
+    def _append_template_path_from_module(self, module, search_paths: list) -> None:
         from wexample_helpers.helpers.module import module_get_path
 
         """Consider the template directory and the module files are placed at the same relative location into the module directory"""
         template_path = (
             module_get_path(module).parent / "resources" / "readme_templates"
         )
-
         if template_path.exists():
             search_paths.append(template_path)
+
+    def _collect_suite_paths(self) -> list[Path]:
+        """Return suite paths from closest to farthest."""
+        from wexample_helpers.helpers.directory import directory_iterate_parent_dirs
+
+        from wexample_wex_addon_app.workdir.managed_workdir import ManagedWorkdir
+
+        def _is_suite(path: Path) -> bool:
+            config = ManagedWorkdir.get_config_from_path(path=path)
+            return bool(
+                config and not config.read_config().search("package_suite").is_none()
+            )
+
+        suite_paths = []
+        current = self.workdir.get_path()
+        while True:
+            suite_path = directory_iterate_parent_dirs(
+                path=current.parent, condition=_is_suite
+            )
+            if not suite_path:
+                break
+            suite_paths.append(suite_path)
+            current = suite_path
+
+        return suite_paths
+
+    def _discover_sections(self) -> list[str]:
+        """Scan all search paths for .md.j2 and .md files, deduplicating."""
+        seen: set[str] = set()
+        sections: list[str] = []
+
+        for search_path in self._get_readme_search_paths():
+            if not search_path.exists():
+                continue
+            for entry in sorted(search_path.iterdir()):
+                if not entry.is_file():
+                    continue
+                name = entry.name
+                if name.startswith("_"):
+                    continue
+                if name.endswith(".md.j2"):
+                    section = name[: -len(".md.j2")]
+                elif name.endswith(".md"):
+                    section = name[: -len(".md")]
+                else:
+                    continue
+                if section not in seen:
+                    seen.add(section)
+                    sections.append(section)
+
+        return sections
 
     def _get_app_description(self) -> str | None:
         return None
@@ -47,23 +97,12 @@ class AppReadmeConfigValue(ReadmeContentConfigValue):
         return None
 
     def _get_dependencies(self) -> dict[str, str]:
-        """Extract dependencies from pyproject.toml."""
         return self.workdir.get_dependencies_versions()
 
     def _get_project_license(self) -> str | None:
         return None
 
     def _get_readme_search_paths(self) -> list[Path]:
-        """Return list of paths to search for README templates.
-
-        Searches in order:
-        1. Workdir-specific templates
-        2. Suite-level templates (if available)
-        3. Bundled default templates
-
-        Returns:
-            List of paths to search for templates
-        """
         from wexample_app.const.globals import WORKDIR_SETUP_DIR
 
         workdir_path = self.workdir.get_path()
@@ -71,88 +110,86 @@ class AppReadmeConfigValue(ReadmeContentConfigValue):
             workdir_path / WORKDIR_SETUP_DIR / "knowledge" / "readme",
         ]
 
-        # Language package specific template
         if __name__ != self.__module__:
             self._append_template_path_from_module(
                 module=self.__module__, search_paths=search_paths
             )
 
-        # App package template
         self._append_template_path_from_module(
             module=__name__, search_paths=search_paths
         )
 
-        def _get_template(workdir) -> None:
+        for suite_path in self._collect_suite_paths():
             search_paths.append(
-                workdir.get_path() / WORKDIR_SETUP_DIR / "knowledge" / "package-readme"
+                suite_path / WORKDIR_SETUP_DIR / "knowledge" / "package-readme"
             )
-
-        search_paths.extend(
-            self.workdir.collect_stack_in_suites_tree(
-                callback=_get_template, include_self=False
-            )
-        )
 
         return search_paths
 
     def _get_section_names(self) -> list[str]:
-        """Return the list of section names to include in the README.
+        """Discover sections from template files, ordered by suite config.yml.
 
-        Default sections common to all packages. Subclasses can override
-        to add language-specific sections.
+        Any suite can declare ordering via:
+            readme:
+              sections:
+                - title
+                - installation
+                - quickstart
 
-        Returns:
-            List of section names in order
+        Listed sections appear first. Discovered but unlisted sections follow
+        in discovery order. The closest suite's ordering takes precedence.
         """
-        return super()._get_section_names() + [
-            "status-compatibility",
-            "prerequisites",
-            "installation",
-            "quickstart",
-            "basic-usage",
-            "configuration",
-            "logging",
-            "api-reference",
-            "examples",
-            "tests",
-            "code-quality",
-            "versioning",
-            "changelog",
-            "migration-notes",
-            "roadmap",
-            "troubleshooting",
-            "security",
-            "privacy",
-            "support",
-            "contribution-guidelines",
-            "maintainers",
-            "license",
-            "useful-links",
-            "suite-integration",
-            "compatibility-matrix",
-            "requirements",
-            "dependencies",
-            "links",
-            "suite-signature",
-        ]
+        discovered = self._discover_sections()
+        order = self._read_suite_section_order()
+        return self._merge_section_order(discovered, order)
 
     def _get_template_context(self) -> dict:
-        """Build the template context with all variables.
-
-        Common variables for all app-based READMEs. Subclasses should
-        override and call super() to add language-specific variables.
-
-        Returns:
-            Dictionary of template variables
-        """
         return {
             # filestate: python-iterable-sort
             "dependencies": self._get_dependencies(),
             "description": self._get_app_description(),
             "homepage": self._get_app_homepage(),
             "license_info": self._get_project_license(),
-            "package_name": self.workdir.get_package_name(),
+            "package_name": self.workdir.get_project_name(),
             "project_name": self.workdir.get_project_name(),
             "version": self.workdir.get_project_version(),
             "workdir": self.workdir,
         }
+
+    def _merge_section_order(
+        self, discovered: list[str], order: list[str]
+    ) -> list[str]:
+        """Pin title/table-of-contents first, apply order to the rest.
+
+        title and table-of-contents are structural anchors always rendered
+        first regardless of config. Everything else is driven by
+        readme.sections in the suite config.yml.
+        """
+        pinned = {"title", "table-of-contents"}
+        first = [s for s in ["title", "table-of-contents"] if s in discovered]
+        rest = [s for s in discovered if s not in pinned]
+
+        ordered = [s for s in order if s in rest]
+        remainder = [s for s in rest if s not in set(order)]
+
+        return first + ordered + remainder
+
+    def _read_suite_section_order(self) -> list[str]:
+        """Read readme.sections from suite configs, closest suite wins."""
+        import yaml
+        from wexample_app.const.globals import WORKDIR_SETUP_DIR
+
+        order: list[str] = []
+        for suite_path in reversed(self._collect_suite_paths()):
+            config_file = suite_path / WORKDIR_SETUP_DIR / "config.yml"
+            if not config_file.exists():
+                continue
+            with open(config_file, encoding="utf-8") as f:
+                config = yaml.safe_load(f)
+            if not config:
+                continue
+            suite_order = config.get("readme", {}).get("sections", [])
+            if suite_order:
+                order = [s for s in suite_order if isinstance(s, str)]
+
+        return order

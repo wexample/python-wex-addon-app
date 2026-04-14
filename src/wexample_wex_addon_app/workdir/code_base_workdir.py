@@ -86,6 +86,35 @@ class CodeBaseWorkdir(RepoWorkdir):
         else:
             progress.finish(label="No changes to commit")
 
+    def commit_propagated_dependency_updates(self) -> None:
+        """Commit and push dependency-version updates written by propagate_version.
+
+        Called for packages skipped during suite publication (no real source
+        changes) but whose config files (e.g. composer.json) were modified by
+        a sibling package's propagate_version step.  Committing here prevents
+        those diffs from accumulating as false positives on the next publish run.
+        """
+        from wexample_helpers_git.const.common import GIT_BRANCH_MAIN
+        from wexample_helpers_git.helpers.git import (
+            git_commit_all_with_message,
+            git_has_uncommitted_changes,
+        )
+
+        cwd = self.get_path()
+        if not git_has_uncommitted_changes(cwd=cwd):
+            return
+
+        self.log(
+            f"Committing propagated dependency updates for {self.get_package_name()}",
+            prefix=True,
+        )
+        git_commit_all_with_message(
+            "Update dependency versions",
+            cwd=cwd,
+            inherit_stdio=True,
+        )
+        self.push_to_deployment_remote(branch_name=GIT_BRANCH_MAIN)
+
     def depends_from(self, package: CodeBaseWorkdir) -> bool:
         for dependence_name in self.get_dependencies_versions().keys():
             if package.get_package_dependency_name() == dependence_name:
@@ -218,12 +247,14 @@ class CodeBaseWorkdir(RepoWorkdir):
         remote_name: str | None = None,
         branch_name: str | None = None,
     ) -> None:
+        from wexample_helpers_git.helpers.git import git_current_branch
         from wexample_helpers_git.helpers.git_retryable_callback_manager import (
             GitRetryableCallbackManager,
         )
 
         remote = remote_name or GIT_REMOTE_ORIGIN
-        branch_name = branch_name or GIT_BRANCH_MAIN
+        if branch_name is None:
+            branch_name = git_current_branch(cwd=self.get_path(), inherit_stdio=False)
 
         local_branch, remote_branch = (
             branch_name.split(":", 1)
@@ -276,10 +307,12 @@ class CodeBaseWorkdir(RepoWorkdir):
             branch_name=branch_name,
         )
 
-    def save_dependency(self, package: str, version: str) -> bool:
-        """Add or update a dependency with strict version."""
+    def save_dependency(self, package: str, version: str, operator: str = ">=") -> bool:
+        """Add or update a dependency constraint."""
         config = self.get_app_config_file()
-        return config.add_dependency(package=package, version=version)
+        return config.add_dependency(
+            package=package, version=version, operator=operator
+        )
 
     def update_dependencies(self, dependencies_map: dict[str, str]) -> None:
         """Update dependencies versions based on the provided map.
@@ -316,7 +349,12 @@ class CodeBaseWorkdir(RepoWorkdir):
     def _build_dependency_string(self, package_name: str, version: str) -> str:
         return f"{package_name}=={version}"
 
+    def _get_critical_directories(self) -> list[str]:
+        return []
+
     def _get_deployment_remote_name(self) -> str | None:
+        from wexample_helpers_git.const.common import GIT_REMOTE_ORIGIN
+
         return self.search_app_or_suite_runtime_config(
-            "git.main_deployment_remote_name", default=None
-        )
+            "git.main_deployment_remote_name", default=GIT_REMOTE_ORIGIN
+        ).get_str_or_none()

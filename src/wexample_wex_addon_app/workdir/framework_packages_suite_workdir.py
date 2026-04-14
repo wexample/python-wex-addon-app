@@ -7,7 +7,7 @@ from wexample_helpers.classes.abstract_method import abstract_method
 from wexample_helpers.const.types import PathOrString
 from wexample_wex_core.resolver.addon_command_resolver import AddonCommandResolver
 
-from wexample_wex_addon_app.workdir.app_workdir import AppWorkdir
+from wexample_wex_addon_app.workdir.managed_workdir import ManagedWorkdir
 from wexample_wex_addon_app.workdir.repo_workdir import RepoWorkdir
 
 if TYPE_CHECKING:
@@ -192,7 +192,7 @@ class FrameworkPackageSuiteWorkdir(RepoWorkdir):
         """Execute a manager command on all packages."""
         self._packages_execute(
             cmd=[command] + (arguments or []),
-            executor_method=AppWorkdir.manager_run_from_path,
+            executor_method=ManagedWorkdir.manager_run_from_path,
             message="Executing command",
             force=force,
         )
@@ -201,7 +201,7 @@ class FrameworkPackageSuiteWorkdir(RepoWorkdir):
         """Execute a raw shell command on all packages."""
         self._packages_execute(
             cmd=cmd,
-            executor_method=AppWorkdir.shell_run_from_path,
+            executor_method=ManagedWorkdir.shell_run_from_path,
             message="Executing shell",
             force=force,
         )
@@ -282,7 +282,7 @@ class FrameworkPackageSuiteWorkdir(RepoWorkdir):
             package_path = package_path.resolve()
 
             # Skip invalid paths
-            if not AppWorkdir.is_app_workdir_path(path=package_path):
+            if not ManagedWorkdir.is_app_workdir_path(path=package_path):
                 continue
 
             # Build relative path between the configured root and the package path
@@ -328,12 +328,26 @@ class FrameworkPackageSuiteWorkdir(RepoWorkdir):
             self.propagate_version_of(package=package)
 
     def propagate_version_of(self, package: WithSuiteTreeWorkdirMixin) -> None:
+        from wexample_helpers.const.types import UPGRADE_TYPE_MINOR
+
+        bump_type = package.classify_version_bump()
+
+        # Patch bumps do not propagate — dependents with >= already satisfy the new version
+        if bump_type == UPGRADE_TYPE_MINOR:
+            package.log(
+                f"Patch bump for {package.get_project_name()}, skipping propagation.",
+                prefix=True,
+            )
+            return
+
         package.log(f"Propagating version {package.get_project_version()}", prefix=True)
         package.io.indentation_up()
 
         for dependent in self.get_dependents(package):
             updated = dependent.save_dependency(
-                package=package, version=package.get_project_version()
+                package=package,
+                version=package.get_project_version(),
+                operator=">=",
             )
             if updated:
                 package.log(
@@ -353,19 +367,14 @@ class FrameworkPackageSuiteWorkdir(RepoWorkdir):
         return dependencies
 
     def setup_install(self, env: str | None = None, force: bool = False) -> None:
-        from wexample_wex_addon_app.commands.setup.install import app__setup__install
+        self.subtitle(f"Installing suite: {self.get_project_name()}")
+        super().setup_install(env=env, force=force)
 
-        self.subtitle(f"Installing suite app")
-        super().setup_install(env=env)
-
-        self.subtitle(f"Installing local packages")
+        self.subtitle(f"Installing packages")
         for package in self.get_packages():
             package.ensure_app_manager_setup()
-
-        self.packages_execute_function(
-            command=app__setup__install,
-            arguments=["--env", env],
-        )
+            self.log(f"Installing {package.get_project_name()}...")
+            package.setup_install(env=env, force=force)
 
     def topological_order(self, dep_map: dict[str, list[str]]) -> list[str]:
         """Deterministic topological order (leaves -> trunk) using graphlib."""
@@ -427,7 +436,7 @@ class FrameworkPackageSuiteWorkdir(RepoWorkdir):
 
         return CodeBaseWorkdir
 
-    def _get_suite_package_workdir_class(self) -> None:
+    def _get_suite_workdir_class(self) -> None:
         # Suite workdirs have no parent suite by default.
         # Subclasses can override if a suite-of-suites hierarchy exists.
         return None
@@ -459,7 +468,7 @@ class FrameworkPackageSuiteWorkdir(RepoWorkdir):
         from wexample_prompt.enums.terminal_color import TerminalColor
 
         for package_path in self.get_packages_paths():
-            if not force and not AppWorkdir.is_app_workdir_path(path=package_path):
+            if not force and not ManagedWorkdir.is_app_workdir_path(path=package_path):
                 continue
 
             self._package_title(path=package_path, message=message)

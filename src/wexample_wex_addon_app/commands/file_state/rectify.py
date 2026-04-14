@@ -11,7 +11,7 @@ from wexample_wex_addon_app.middleware.app_middleware import AppMiddleware
 from wexample_wex_addon_app.middleware.each_suite_package_middleware import (
     EachSuitePackageMiddleware,
 )
-from wexample_wex_addon_app.workdir.app_workdir import AppWorkdir
+from wexample_wex_addon_app.workdir.managed_workdir import ManagedWorkdir
 
 if TYPE_CHECKING:
     from wexample_wex_core.context.execution_context import ExecutionContext
@@ -31,7 +31,7 @@ if TYPE_CHECKING:
 @command(type=COMMAND_TYPE_ADDON)
 def app__file_state__rectify(
     context: ExecutionContext,
-    app_workdir: AppWorkdir,
+    app_workdir: ManagedWorkdir,
     force: bool = False,
     yes: bool = False,
     dry_run: bool = False,
@@ -91,6 +91,8 @@ def app__file_state__rectify(
             context.io.log(
                 f"Pass {iterations} completed with {len(result.operations)} operation(s); starting pass {iterations + 1} of {loop_limit}."
             )
+
+        workdir.stop_runners()
     else:
         workdir = context.request.get_addon_manager().create_app_workdir(reload=True)
         workdir.dry_run()
