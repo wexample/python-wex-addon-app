@@ -17,7 +17,10 @@ if TYPE_CHECKING:
 
 @as_sudo()
 @middleware(middleware=AppMiddleware)
-@command(type=COMMAND_TYPE_ADDON, description="Run one-time idempotent setup for all active services")
+@command(
+    type=COMMAND_TYPE_ADDON,
+    description="Run one-time idempotent setup for all active services",
+)
 def app__app__setup(
     context: ExecutionContext,
     app_workdir: ManagedWorkdir,

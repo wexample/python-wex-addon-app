@@ -16,7 +16,9 @@ _WEX6_APP_MANAGER = Path(
 
 class MigrationWex600(AbstractMigration):
     VERSION = "6.0.0"
-    DESCRIPTION = "Migrate wex-5 app structure to wex-6: create .wex/bin/app-manager symlink"
+    DESCRIPTION = (
+        "Migrate wex-5 app structure to wex-6: create .wex/bin/app-manager symlink"
+    )
 
     def apply(self, context: MigrationContext) -> None:
         bin_dir = context.target_path / ".wex" / "bin"
@@ -27,17 +29,6 @@ class MigrationWex600(AbstractMigration):
             symlink.unlink()
 
         os.symlink(_WEX6_APP_MANAGER, symlink)
-
-    def rollback(self, context: MigrationContext) -> None:
-        symlink = context.target_path / ".wex" / "bin" / "app-manager"
-        if symlink.is_symlink():
-            symlink.unlink()
-
-        bin_dir = context.target_path / ".wex" / "bin"
-        try:
-            bin_dir.rmdir()
-        except OSError:
-            pass
 
     def guess_version(self, context: MigrationContext) -> bool:
         # A wex-5 app has wex.version starting with "5." in config.yml
@@ -51,9 +42,19 @@ class MigrationWex600(AbstractMigration):
         with open(config_path) as f:
             data = yaml.safe_load(f) or {}
 
-        wex_version = (
-            data.get("wex", {}).get("version")
-            or data.get("global", {}).get("version")
+        wex_version = data.get("wex", {}).get("version") or data.get("global", {}).get(
+            "version"
         )
 
         return isinstance(wex_version, str) and wex_version.startswith("5.")
+
+    def rollback(self, context: MigrationContext) -> None:
+        symlink = context.target_path / ".wex" / "bin" / "app-manager"
+        if symlink.is_symlink():
+            symlink.unlink()
+
+        bin_dir = context.target_path / ".wex" / "bin"
+        try:
+            bin_dir.rmdir()
+        except OSError:
+            pass

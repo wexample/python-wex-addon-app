@@ -29,7 +29,9 @@ if TYPE_CHECKING:
     description="DB service name (defaults to docker.db.main)",
 )
 @middleware(middleware=AppMiddleware)
-@command(type=COMMAND_TYPE_ADDON, description="Execute a SQL command in the DB container")
+@command(
+    type=COMMAND_TYPE_ADDON, description="Execute a SQL command in the DB container"
+)
 def app__db__exec(
     context: ExecutionContext,
     app_workdir: ManagedWorkdir,

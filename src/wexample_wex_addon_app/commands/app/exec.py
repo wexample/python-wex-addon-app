@@ -49,7 +49,9 @@ if TYPE_CHECKING:
     description="Do not fail on non-zero exit code",
 )
 @middleware(middleware=AppMiddleware)
-@command(type=COMMAND_TYPE_ADDON, description="Execute a command inside an app container")
+@command(
+    type=COMMAND_TYPE_ADDON, description="Execute a command inside an app container"
+)
 def app__app__exec(
     context: ExecutionContext,
     app_workdir: ManagedWorkdir,
@@ -75,16 +77,16 @@ def app__app__exec(
 
     # v6: todo — appeler le hook @service::hook/exec pour injecter des commandes préalables
     #             (ex: charger l'env du service avant d'exécuter). Bloqué par migration des services.
-
     # v6: todo — --sync : distinguer "capturer la sortie" vs "juste exécuter" (NonInteractiveShellCommandResponse)
     #             actuellement tout passe par ShellCommandResponse (capture).
-
     # v6: todo — args_parse_one : parser intelligemment --command (string ou liste imbriquée)
-
     docker_command += [long_name, shell, "-c", command]
 
     if interactive:
-        from wexample_app.response.interactive_shell_command_response import InteractiveShellCommandResponse
+        from wexample_app.response.interactive_shell_command_response import (
+            InteractiveShellCommandResponse,
+        )
+
         return InteractiveShellCommandResponse(
             kernel=context.kernel,
             content=docker_command,

@@ -10,7 +10,6 @@ from wexample_wex_core.decorator.option import option
 from wexample_wex_addon_app.middleware.app_middleware import AppMiddleware
 
 if TYPE_CHECKING:
-    from wexample_app.response.abstract_response import AbstractResponse
     from wexample_wex_core.context.execution_context import ExecutionContext
 
     from wexample_wex_addon_app.workdir.managed_workdir import ManagedWorkdir
@@ -86,6 +85,7 @@ def app__db__dump(
         return None
 
     from pathlib import Path
+
     dump_path = Path(dump_path_str)
 
     if not dump_path.exists():

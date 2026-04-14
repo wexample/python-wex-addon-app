@@ -29,14 +29,19 @@ if TYPE_CHECKING:
     description="User name or uid to run as",
 )
 @middleware(middleware=AppMiddleware)
-@command(type=COMMAND_TYPE_ADDON, description="Enter into the main app container interactively")
+@command(
+    type=COMMAND_TYPE_ADDON,
+    description="Enter into the main app container interactively",
+)
 def app__app__go(
     context: ExecutionContext,
     app_workdir: ManagedWorkdir,
     container_name: str | None = None,
     user: str | None = None,
 ) -> AbstractResponse:
-    from wexample_app.response.interactive_shell_command_response import InteractiveShellCommandResponse
+    from wexample_app.response.interactive_shell_command_response import (
+        InteractiveShellCommandResponse,
+    )
 
     container = container_name or app_workdir.get_main_container_name()
     long_name = app_workdir.docker_build_long_container_name(container)

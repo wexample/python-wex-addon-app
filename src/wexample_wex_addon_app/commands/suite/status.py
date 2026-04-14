@@ -46,12 +46,14 @@ def app__suite__status(
             bump_colored = "-"
             status = "@green{up to date}"
 
-        rows.append([
-            package.get_package_name(),
-            package.get_project_version(),
-            bump_colored,
-            status,
-        ])
+        rows.append(
+            [
+                package.get_package_name(),
+                package.get_project_version(),
+                bump_colored,
+                status,
+            ]
+        )
 
     context.io.table(
         data=rows,

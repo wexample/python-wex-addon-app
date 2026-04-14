@@ -7,11 +7,11 @@ from wexample_wex_core.decorator.as_sudo import as_sudo
 from wexample_wex_core.decorator.command import command
 from wexample_wex_core.decorator.option import option
 
+from wexample_wex_addon_app.const.app import HELPER_APPS_LIST
+
 if TYPE_CHECKING:
     from wexample_app.response.abstract_response import AbstractResponse
     from wexample_wex_core.context.execution_context import ExecutionContext
-
-from wexample_wex_addon_app.const.app import HELPER_APPS_LIST
 
 
 @option(

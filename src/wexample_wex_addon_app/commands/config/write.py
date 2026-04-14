@@ -2,10 +2,11 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from wexample_wex_addon_app.middleware.app_middleware import AppMiddleware
 from wexample_wex_core.const.globals import COMMAND_TYPE_ADDON
 from wexample_wex_core.decorator.command import command
 from wexample_wex_core.decorator.middleware import middleware
+
+from wexample_wex_addon_app.middleware.app_middleware import AppMiddleware
 
 if TYPE_CHECKING:
     from wexample_app.response.abstract_response import AbstractResponse
@@ -15,15 +16,20 @@ if TYPE_CHECKING:
 
 
 @middleware(middleware=AppMiddleware)
-@command(type=COMMAND_TYPE_ADDON, description="Generate runtime config and docker-compose.runtime.yml")
+@command(
+    type=COMMAND_TYPE_ADDON,
+    description="Generate runtime config and docker-compose.runtime.yml",
+)
 def app__config__write(
-        context: ExecutionContext,
-        app_workdir: ManagedWorkdir,
+    context: ExecutionContext,
+    app_workdir: ManagedWorkdir,
 ) -> AbstractResponse:
     import socket
 
     from wexample_app.const.globals import WORKDIR_SETUP_DIR
-    from wexample_app.response.queued_collection_response import QueuedCollectionResponse
+    from wexample_app.response.queued_collection_response import (
+        QueuedCollectionResponse,
+    )
     from wexample_config.config_value.nested_config_value import NestedConfigValue
     from wexample_helpers.helpers.dict import dict_merge
     from wexample_wex_core.const.globals import CORE_DIR_NAME_TMP
@@ -41,16 +47,19 @@ def app__config__write(
         domains_config = app_workdir.get_domains_config()
 
         merged = {
-            "app": dict_merge(app_config, {
-                "env": env,
-                "name": name,
-                "project_name": project_name,
-                "host": {"ip": socket.gethostbyname(socket.gethostname())},
-                "started": False,
-                "path": str(app_path) + "/",
-                "setup_path": str(app_path / WORKDIR_SETUP_DIR) + "/",
-                **domains_config,
-            }),
+            "app": dict_merge(
+                app_config,
+                {
+                    "env": env,
+                    "name": name,
+                    "project_name": project_name,
+                    "host": {"ip": socket.gethostbyname(socket.gethostname())},
+                    "started": False,
+                    "path": str(app_path) + "/",
+                    "setup_path": str(app_path / WORKDIR_SETUP_DIR) + "/",
+                    **domains_config,
+                },
+            ),
         }
 
         from wexample_wex_addon_app.app_addon_manager import AppAddonManager
@@ -98,8 +107,6 @@ def app__config__write(
     def _docker(previous_value=None) -> None:
         import subprocess
 
-        import yaml as _yaml
-
         from wexample_wex_addon_app.app_addon_manager import AppAddonManager
 
         app_manager = AppAddonManager.from_kernel(context.kernel)
@@ -117,7 +124,9 @@ def app__config__write(
         )
 
         # Include the base compose that either creates wex_net (proxy) or references it as external
-        resources_dir = AppAddonManager.get_package_source_path() / "resources" / "docker"
+        resources_dir = (
+            AppAddonManager.get_package_source_path() / "resources" / "docker"
+        )
         addon_base_compose = resources_dir / (
             "docker-compose.network.yml" if creates_network else "docker-compose.yml"
         )
@@ -142,7 +151,9 @@ def app__config__write(
             compose_files.append(str(base_compose))
 
         # Env-specific app compose — highest priority, overrides everything above
-        env_compose = app_path / WORKDIR_SETUP_DIR / "env" / env / "docker" / "docker-compose.yml"
+        env_compose = (
+            app_path / WORKDIR_SETUP_DIR / "env" / env / "docker" / "docker-compose.yml"
+        )
         if env_compose.exists():
             compose_files.append(str(env_compose))
 
@@ -154,23 +165,29 @@ def app__config__write(
         for f in compose_files:
             cmd += ["-f", f]
         cmd += [
-            "--profile", f"env_{env}",
-            "--project-name", project_name,
-            "--env-file", str(docker_env_path),
+            "--profile",
+            f"env_{env}",
+            "--project-name",
+            project_name,
+            "--env-file",
+            str(docker_env_path),
             "config",
         ]
 
         result = subprocess.run(cmd, capture_output=True, text=True)
         if result.returncode != 0:
-            raise RuntimeError(
-                f"docker compose config failed:\n{result.stderr}"
-            )
+            raise RuntimeError(f"docker compose config failed:\n{result.stderr}")
 
         compose_runtime_path.write_text(result.stdout)
-        context.io.log(f"docker-compose.runtime.yml written ({len(compose_files)} file(s))")
+        context.io.log(
+            f"docker-compose.runtime.yml written ({len(compose_files)} file(s))"
+        )
 
-    return QueuedCollectionResponse(kernel=context.kernel, content=[
-        _runtime,
-        _env,
-        _docker,
-    ])
+    return QueuedCollectionResponse(
+        kernel=context.kernel,
+        content=[
+            _runtime,
+            _env,
+            _docker,
+        ],
+    )

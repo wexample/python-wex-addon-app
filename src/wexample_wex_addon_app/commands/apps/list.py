@@ -9,7 +9,10 @@ if TYPE_CHECKING:
     from wexample_wex_core.context.execution_context import ExecutionContext
 
 
-@command(type=COMMAND_TYPE_ADDON, description="List all running apps with their domains and containers")
+@command(
+    type=COMMAND_TYPE_ADDON,
+    description="List all running apps with their domains and containers",
+)
 def app__apps__list(
     context: ExecutionContext,
 ) -> None:

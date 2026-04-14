@@ -4,7 +4,6 @@ import logging
 from typing import TYPE_CHECKING, Any
 
 import yaml
-
 from wexample_migration.abstract_migration import AbstractMigration
 
 if TYPE_CHECKING:
@@ -17,6 +16,26 @@ class MigrationWex606(AbstractMigration):
         "Move per-environment config from .wex/config.yml env.* to "
         ".wex/env/<env>/config.yml"
     )
+
+    @classmethod
+    def _merge_with_existing_priority(
+        cls,
+        source: dict[str, Any],
+        existing: dict[str, Any],
+    ) -> dict[str, Any]:
+        merged = dict(source)
+
+        for key, existing_value in existing.items():
+            source_value = merged.get(key)
+            if isinstance(source_value, dict) and isinstance(existing_value, dict):
+                merged[key] = cls._merge_with_existing_priority(
+                    source=source_value,
+                    existing=existing_value,
+                )
+            else:
+                merged[key] = existing_value
+
+        return merged
 
     def apply(self, context: MigrationContext) -> None:
         wex_dir = context.target_path / ".wex"
@@ -68,23 +87,3 @@ class MigrationWex606(AbstractMigration):
         root_config.pop("env", None)
         with open(root_config_path, "w") as file:
             yaml.safe_dump(root_config, file, sort_keys=False)
-
-    @classmethod
-    def _merge_with_existing_priority(
-        cls,
-        source: dict[str, Any],
-        existing: dict[str, Any],
-    ) -> dict[str, Any]:
-        merged = dict(source)
-
-        for key, existing_value in existing.items():
-            source_value = merged.get(key)
-            if isinstance(source_value, dict) and isinstance(existing_value, dict):
-                merged[key] = cls._merge_with_existing_priority(
-                    source=source_value,
-                    existing=existing_value,
-                )
-            else:
-                merged[key] = existing_value
-
-        return merged

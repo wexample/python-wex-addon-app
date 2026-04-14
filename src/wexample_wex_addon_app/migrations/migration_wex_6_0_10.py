@@ -3,7 +3,6 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 import yaml
-
 from wexample_migration.abstract_migration import AbstractMigration
 
 if TYPE_CHECKING:

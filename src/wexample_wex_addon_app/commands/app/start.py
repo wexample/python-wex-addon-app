@@ -71,7 +71,9 @@ def app__app__start(
     fast: bool = False,
 ) -> AbstractResponse:
     from wexample_app.const.globals import WORKDIR_SETUP_DIR
-    from wexample_app.response.queued_collection_response import QueuedCollectionResponse
+    from wexample_app.response.queued_collection_response import (
+        QueuedCollectionResponse,
+    )
     from wexample_wex_core.const.globals import CORE_DIR_NAME_TMP
 
     app_path = app_workdir.get_path()
@@ -91,7 +93,9 @@ def app__app__start(
             _check_started,
         )
 
-        env_file = app_workdir.get_path() / WORKDIR_SETUP_DIR / EnvFile.EXTENSION_DOT_ENV
+        env_file = (
+            app_workdir.get_path() / WORKDIR_SETUP_DIR / EnvFile.EXTENSION_DOT_ENV
+        )
         if not env_file.exists():
             from wexample_wex_addon_app.commands.env.choose import app__env__choose
 
@@ -120,7 +124,9 @@ def app__app__start(
         from wexample_wex_addon_app.const.app import HELPER_APP_PROXY_SHORT_NAME
 
         env = app_workdir.get_app_env()
-        proxy_path = AppAddonManager.get_helper_app_path(name=HELPER_APP_PROXY_SHORT_NAME, env=env)
+        proxy_path = AppAddonManager.get_helper_app_path(
+            name=HELPER_APP_PROXY_SHORT_NAME, env=env
+        )
 
         # Skip if this app IS the proxy
         if app_workdir.get_path().resolve() == proxy_path.resolve():
@@ -150,7 +156,9 @@ def app__app__start(
         ):
             return
 
-        return context.kernel.run_function(app__app__start, {"app_path": str(proxy_path)})
+        return context.kernel.run_function(
+            app__app__start, {"app_path": str(proxy_path)}
+        )
 
     def _config(previous_value=None) -> AbstractResponse:
         from wexample_wex_addon_app.commands.app.perms import app__app__perms
@@ -158,15 +166,19 @@ def app__app__start(
 
         app_path_str = str(app_path)
         context.kernel.run_function(app__app__perms, {"app_path": app_path_str})
-        return context.kernel.run_function(app__config__write, {"app_path": app_path_str})
+        return context.kernel.run_function(
+            app__config__write, {"app_path": app_path_str}
+        )
 
-    def _setup_services(previous_value=None):
+    def _setup_services(previous_value=None) -> None:
         from wexample_wex_addon_app.commands.app.setup import app__app__setup
 
         context.kernel.run_function(app__app__setup, {"app_path": str(app_path)})
 
-    def _starting(previous_value=None):
-        from wexample_app.response.interactive_shell_command_response import InteractiveShellCommandResponse
+    def _starting(previous_value=None) -> InteractiveShellCommandResponse:
+        from wexample_app.response.interactive_shell_command_response import (
+            InteractiveShellCommandResponse,
+        )
 
         compose_options = ["up", "-d"]
         if clear_cache:
@@ -174,14 +186,22 @@ def app__app__start(
 
         return InteractiveShellCommandResponse(
             kernel=context.kernel,
-            content=["docker", "compose", "--env-file", docker_env_file, "-f", compose_file] + compose_options,
+            content=[
+                "docker",
+                "compose",
+                "--env-file",
+                docker_env_file,
+                "-f",
+                compose_file,
+            ]
+            + compose_options,
         )
 
-    def _update_hosts(previous_value=None):
+    def _update_hosts(previous_value=None) -> None:
+        import yaml as _yaml
+
         from wexample_wex_addon_app.commands.hosts.update import app__hosts__update
         from wexample_wex_addon_app.common.app_registry import registry_register_app
-
-        import yaml as _yaml
 
         runtime_path = app_workdir.get_runtime_config_file().get_path()
         if runtime_path.exists():
@@ -194,12 +214,12 @@ def app__app__start(
         registry_register_app(app_workdir)
         context.kernel.run_function(app__hosts__update, {"app_path": str(app_path)})
 
-    def _rectify_perms(previous_value=None):
+    def _rectify_perms(previous_value=None) -> None:
         from wexample_wex_addon_app.commands.app.perms import app__app__perms
 
         context.kernel.run_function(app__app__perms, {"app_path": str(app_path)})
 
-    def _pending(previous_value=None):
+    def _pending(previous_value=None) -> None:
         from wexample_wex_addon_app.app_addon_manager import AppAddonManager
 
         app_manager = AppAddonManager.from_kernel(context.kernel)
@@ -223,11 +243,14 @@ def app__app__start(
             interval=2.0,
         )
 
-    def _complete(previous_value=None):
+    def _complete(previous_value=None) -> None:
+        from wexample_wex_core.resolver.addon_command_resolver import (
+            AddonCommandResolver,
+        )
+
         from wexample_wex_addon_app.commands.app.go import app__app__go
         from wexample_wex_addon_app.commands.app.stop import app__app__stop
         from wexample_wex_addon_app.commands.db.go import app__db__go
-        from wexample_wex_core.resolver.addon_command_resolver import AddonCommandResolver
 
         runtime = app_workdir.get_runtime_config()
         name = runtime.search("app.name").get_str_or_none() or "app"

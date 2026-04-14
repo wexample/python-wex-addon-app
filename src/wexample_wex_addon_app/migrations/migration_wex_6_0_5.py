@@ -10,10 +10,7 @@ if TYPE_CHECKING:
 
 class MigrationWex605(AbstractMigration):
     VERSION = "6.0.5"
-    DESCRIPTION = (
-        "Move root .wex/config.<env>.yml files to .wex/env/<env>/config.yml"
-    )
-
+    DESCRIPTION = "Move root .wex/config.<env>.yml files to .wex/env/<env>/config.yml"
     ENVIRONMENTS = ("prod", "dev", "local", "test")
 
     def apply(self, context: MigrationContext) -> None:

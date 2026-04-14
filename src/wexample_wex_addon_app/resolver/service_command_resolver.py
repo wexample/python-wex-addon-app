@@ -8,7 +8,6 @@ from wexample_wex_core.resolver.service_command_resolver import (
 
 if TYPE_CHECKING:
     from wexample_helpers.const.types import Kwargs
-
     from wexample_wex_core.common.command_method_wrapper import CommandMethodWrapper
     from wexample_wex_core.common.command_request import CommandRequest
     from wexample_wex_core.context.execution_context import ExecutionContext
@@ -31,7 +30,9 @@ class ServiceCommandResolver(CoreServiceCommandResolver):
 
         service_name = string_to_snake_case(request.match.group(1))
 
-        arguments_dict = request.arguments if isinstance(request.arguments, dict) else {}
+        arguments_dict = (
+            request.arguments if isinstance(request.arguments, dict) else {}
+        )
         app_path = (
             function_kwargs.pop("app_path", None)
             or arguments_dict.get("app_path")
@@ -40,7 +41,9 @@ class ServiceCommandResolver(CoreServiceCommandResolver):
         app_addon_manager = self._get_app_addon_manager()
         app_workdir = app_addon_manager.create_app_workdir(path=app_path)
 
-        function_kwargs["service"] = AppService(name=service_name, app_workdir=app_workdir, addon_manager=app_addon_manager)
+        function_kwargs["service"] = AppService(
+            name=service_name, app_workdir=app_workdir, addon_manager=app_addon_manager
+        )
 
         return super().build_execution_context(
             middleware=middleware,

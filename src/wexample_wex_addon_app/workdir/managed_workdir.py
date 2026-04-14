@@ -9,8 +9,13 @@ from wexample_app.const.output import OUTPUT_FORMAT_JSON, OUTPUT_TARGET_FILE
 from wexample_app.helpers.request import request_build_id
 from wexample_app.item.file.iml_file import ImlFile
 from wexample_app.workdir.mixin.with_runtime_config_mixin import WithRuntimeConfigMixin
+from wexample_filestate.item.mixin.with_runners_root_mixin import WithRunnersRootMixin
 from wexample_helpers.const.types import FileStringOrPath
 from wexample_helpers.decorator.base_class import base_class
+from wexample_migration.abstract_migration import AbstractMigration
+from wexample_migration.workdir.mixin.with_migration_workdir_mixin import (
+    WithMigrationWorkdirMixin,
+)
 from wexample_wex_core.common.app_manager_shell_result import AppManagerShellResult
 from wexample_wex_core.resolver.addon_command_resolver import AddonCommandResolver
 from wexample_wex_core.workdir.mixin.with_app_version_workdir_mixin import (
@@ -18,6 +23,9 @@ from wexample_wex_core.workdir.mixin.with_app_version_workdir_mixin import (
 )
 from wexample_wex_core.workdir.workdir import Workdir
 
+from wexample_wex_addon_app.workdir.mixin.with_agents_workdir_mixin import (
+    WithAgentsWorkdirMixin,
+)
 from wexample_wex_addon_app.workdir.mixin.with_app_config_workdir_mixin import (
     WithAppConfigWorkdirMixin,
 )
@@ -27,16 +35,8 @@ from wexample_wex_addon_app.workdir.mixin.with_app_registry_mixin import (
 from wexample_wex_addon_app.workdir.mixin.with_readme_workdir_mixin import (
     WithReadmeWorkdirMixin,
 )
-from wexample_filestate.item.mixin.with_runners_root_mixin import WithRunnersRootMixin
-from wexample_migration.abstract_migration import AbstractMigration
-from wexample_migration.workdir.mixin.with_migration_workdir_mixin import (
-    WithMigrationWorkdirMixin,
-)
 from wexample_wex_addon_app.workdir.mixin.with_suite_tree_workdir_mixin import (
     WithSuiteTreeWorkdirMixin,
-)
-from wexample_wex_addon_app.workdir.mixin.with_agents_workdir_mixin import (
-    WithAgentsWorkdirMixin,
 )
 
 if TYPE_CHECKING:
@@ -58,37 +58,6 @@ class ManagedWorkdir(
     WithAppRegistryMixin,
     Workdir,
 ):
-    def get_migrations(self):
-        package = importlib.import_module("wexample_wex_addon_app.migrations")
-        migrations: list[type[AbstractMigration]] = []
-
-        for module_info in pkgutil.iter_modules(package.__path__):
-            if module_info.name.startswith("_"):
-                continue
-
-            module = importlib.import_module(
-                f"wexample_wex_addon_app.migrations.{module_info.name}"
-            )
-
-            for _, migration_class in inspect.getmembers(module, inspect.isclass):
-                if not issubclass(migration_class, AbstractMigration):
-                    continue
-                if migration_class is AbstractMigration:
-                    continue
-                if migration_class.__module__ != module.__name__:
-                    continue
-
-                migrations.append(migration_class)
-
-        return sorted(migrations, key=self._migration_version_key)
-
-    @staticmethod
-    def _migration_version_key(
-        migration_class: type[AbstractMigration],
-    ) -> tuple[int, ...]:
-        version = getattr(migration_class, "VERSION", "")
-        return tuple(int(part) for part in str(version).split("."))
-
     @classmethod
     def is_app_workdir_path(cls, path: FileStringOrPath) -> bool:
         config = cls.get_config_from_path(path=path)
@@ -179,40 +148,12 @@ class ManagedWorkdir(
             inherit_stdio=True,
         )
 
-    def get_main_service(self) -> str | None:
-        config = self.get_runtime_config().search("app.global.main_service")
-        return config.get_str_or_none() if not config.is_none() else None
-
-    def get_main_db_service(self) -> str | None:
-        return self.get_config().search("docker.db.main").get_str_or_none()
-
-    def get_main_container_name(self) -> str:
-        config = self.get_runtime_config().search("docker.main_container")
-        if not config.is_none():
-            return config.get_str()
-        main_service = self.get_main_service()
-        if main_service:
-            return main_service
-        raise ValueError(
-            "No main container configured (docker.main_container or global.main_service)"
-        )
-
-    def get_service_shell(self, service: str | None = None) -> str:
-        config = self.get_runtime_config().search("docker.main_container_shell")
-        if not config.is_none():
-            return config.get_str()
-        return "/bin/bash"
-
-    def docker_build_long_container_name(self, container_name: str) -> str:
-        project_name = (
-            self.get_runtime_config().search("app.project_name").get_str_or_none()
-        )
-        if not project_name:
-            project_name = self.get_project_name()
-        return f"{project_name}_{container_name}"
-
-    def get_public_remote_repository_url(self) -> str | None:
-        return None
+    @staticmethod
+    def _migration_version_key(
+        migration_class: type[AbstractMigration],
+    ) -> tuple[int, ...]:
+        version = getattr(migration_class, "VERSION", "")
+        return tuple(int(part) for part in str(version).split("."))
 
     def app_install(self, env: str | None = None, force: bool = False) -> bool:
         return True
@@ -250,6 +191,14 @@ class ManagedWorkdir(
 
         self._init_env(env_dict=self.get_env_parameters().to_dict())
 
+    def docker_build_long_container_name(self, container_name: str) -> str:
+        project_name = (
+            self.get_runtime_config().search("app.project_name").get_str_or_none()
+        )
+        if not project_name:
+            project_name = self.get_project_name()
+        return f"{project_name}_{container_name}"
+
     def ensure_app_manager(self) -> None:
         from wexample_app.const.globals import APP_PATH_APP_MANAGER
 
@@ -268,8 +217,74 @@ class ManagedWorkdir(
         # APP_ENV is always set via .wex/.env — never in config.yml (which uses "env:" as a block).
         return self.get_env_parameter("APP_ENV") or ENV_NAME_PROD
 
+    def get_dependencies_versions(self) -> dict[str, str]:
+        return {}
+
+    def get_domains_config(self) -> dict[str, str | list[str]]:
+        app_config = self.get_runtime_app_config()
+        domain = app_config.get("domain")
+
+        configured_domains = app_config.get("domains")
+        if isinstance(configured_domains, list) and configured_domains:
+            domains = [d for d in configured_domains if d]
+        elif domain:
+            domains = [domain]
+        else:
+            domains = []
+
+        result: dict[str, str | list[str]] = {}
+        if domain:
+            result["domain"] = domain
+        if domains:
+            result["domains"] = domains
+            result["domains_string"] = ",".join(domains)
+
+        return result
+
     def get_local_libraries_paths(self) -> list[ConfigValue]:
         return self.get_runtime_config().search(f"libraries").get_list_or_default()
+
+    def get_main_container_name(self) -> str:
+        config = self.get_runtime_config().search("docker.main_container")
+        if not config.is_none():
+            return config.get_str()
+        main_service = self.get_main_service()
+        if main_service:
+            return main_service
+        raise ValueError(
+            "No main container configured (docker.main_container or global.main_service)"
+        )
+
+    def get_main_db_service(self) -> str | None:
+        return self.get_config().search("docker.db.main").get_str_or_none()
+
+    def get_main_service(self) -> str | None:
+        config = self.get_runtime_config().search("app.global.main_service")
+        return config.get_str_or_none() if not config.is_none() else None
+
+    def get_migrations(self):
+        package = importlib.import_module("wexample_wex_addon_app.migrations")
+        migrations: list[type[AbstractMigration]] = []
+
+        for module_info in pkgutil.iter_modules(package.__path__):
+            if module_info.name.startswith("_"):
+                continue
+
+            module = importlib.import_module(
+                f"wexample_wex_addon_app.migrations.{module_info.name}"
+            )
+
+            for _, migration_class in inspect.getmembers(module, inspect.isclass):
+                if not issubclass(migration_class, AbstractMigration):
+                    continue
+                if migration_class is AbstractMigration:
+                    continue
+                if migration_class.__module__ != module.__name__:
+                    continue
+
+                migrations.append(migration_class)
+
+        return sorted(migrations, key=self._migration_version_key)
 
     def get_project_name(self) -> str:
         from wexample_app.const.globals import APP_FILE_APP_CONFIG
@@ -295,6 +310,9 @@ class ManagedWorkdir(
             )
         return str(version).strip()
 
+    def get_public_remote_repository_url(self) -> str | None:
+        return None
+
     def get_runtime_app_config(self) -> dict:
         from wexample_helpers.helpers.dict import dict_merge
 
@@ -309,26 +327,11 @@ class ManagedWorkdir(
 
         return app_config
 
-    def get_domains_config(self) -> dict[str, str | list[str]]:
-        app_config = self.get_runtime_app_config()
-        domain = app_config.get("domain")
-
-        configured_domains = app_config.get("domains")
-        if isinstance(configured_domains, list) and configured_domains:
-            domains = [d for d in configured_domains if d]
-        elif domain:
-            domains = [domain]
-        else:
-            domains = []
-
-        result: dict[str, str | list[str]] = {}
-        if domain:
-            result["domain"] = domain
-        if domains:
-            result["domains"] = domains
-            result["domains_string"] = ",".join(domains)
-
-        return result
+    def get_service_shell(self, service: str | None = None) -> str:
+        config = self.get_runtime_config().search("docker.main_container_shell")
+        if not config.is_none():
+            return config.get_str()
+        return "/bin/bash"
 
     def libraries_sync(self) -> None:
         from wexample_wex_addon_app.commands.dependencies.publish import (
@@ -465,63 +468,6 @@ class ManagedWorkdir(
 
         return raw_value
 
-    def _collect_workdir_contributions(self, raw_value: DictConfig) -> None:
-        """Merge filestate children from active services and app-level config."""
-        # 1. Service contributions
-        if self.parent_io_handler is not None:
-            try:
-                from wexample_wex_addon_app.app_addon_manager import AppAddonManager
-
-                manager = AppAddonManager.from_kernel(self.parent_io_handler)
-                for service in manager.get_app_services(self):
-                    contribution = service.get_workdir_contribution()
-                    if contribution:
-                        raw_value.setdefault("children", []).extend(
-                            contribution.get("children", [])
-                        )
-            except RuntimeError:
-                # AppAddonManager not in kernel (e.g. standalone test context)
-                pass
-
-        # 2. App-level config.yml: workdir.children
-        try:
-            app_config = self.get_config()
-            extra = app_config.search("workdir.children")
-            if not extra.is_none():
-                raw_value.setdefault("children", []).extend(extra.to_list())
-        except Exception:
-            pass
-
-    def search_app_or_suite_runtime_config(
-        self, key_path: str, default: Any = None
-    ) -> ConfigValue:
-        from wexample_config.config_value.config_value import ConfigValue
-
-        def _test_path(workdir) -> ConfigValue | None:
-            config = workdir.get_runtime_config().search(path=key_path)
-            if not config.is_none():
-                return config
-            return None
-
-        return self.search_closest_in_suites_tree(callback=_test_path) or ConfigValue(
-            raw=default
-        )
-
-    def search_closest_app_manager_bin_path(self) -> Path | None:
-        def _test_path(workdir):
-            from wexample_app.const.globals import APP_PATH_BIN_APP_MANAGER
-
-            bin_path = workdir.get_path() / APP_PATH_BIN_APP_MANAGER
-            return bin_path if bin_path.exists() else None
-
-        return self.search_closest_in_suites_tree(callback=_test_path)
-
-    def set_app_env(self, env: str | None) -> None:
-        from wexample_app.const.globals import ENV_VAR_NAME_APP_ENV
-
-        self.set_env_parameter(key=ENV_VAR_NAME_APP_ENV, value=env)
-        self.get_registry(rebuild=True)
-
     def runtime_cleanup(self) -> tuple[int, int]:
         from wexample_helpers.helpers.docker import (
             docker_container_is_running,
@@ -559,12 +505,35 @@ class ManagedWorkdir(
 
         return removed_containers, removed_images
 
-    def _collect_docker_image_names(self) -> set[str]:
-        return {
-            name
-            for provider in self.get_options_providers()
-            if (name := provider.get_docker_image_name()) is not None
-        }
+    def search_app_or_suite_runtime_config(
+        self, key_path: str, default: Any = None
+    ) -> ConfigValue:
+        from wexample_config.config_value.config_value import ConfigValue
+
+        def _test_path(workdir) -> ConfigValue | None:
+            config = workdir.get_runtime_config().search(path=key_path)
+            if not config.is_none():
+                return config
+            return None
+
+        return self.search_closest_in_suites_tree(callback=_test_path) or ConfigValue(
+            raw=default
+        )
+
+    def search_closest_app_manager_bin_path(self) -> Path | None:
+        def _test_path(workdir):
+            from wexample_app.const.globals import APP_PATH_BIN_APP_MANAGER
+
+            bin_path = workdir.get_path() / APP_PATH_BIN_APP_MANAGER
+            return bin_path if bin_path.exists() else None
+
+        return self.search_closest_in_suites_tree(callback=_test_path)
+
+    def set_app_env(self, env: str | None) -> None:
+        from wexample_app.const.globals import ENV_VAR_NAME_APP_ENV
+
+        self.set_env_parameter(key=ENV_VAR_NAME_APP_ENV, value=env)
+        self.get_registry(rebuild=True)
 
     def setup_install(self, env: str | None = None, force: bool = False) -> bool:
         return self.app_install(env=env, force=force)
@@ -572,8 +541,39 @@ class ManagedWorkdir(
     def shell_run_for_app(self, **kwargs) -> ShellResult:
         return self.shell_run_from_path(path=self.get_path(), **kwargs)
 
-    def get_dependencies_versions(self) -> dict[str, str]:
-        return {}
+    def _collect_docker_image_names(self) -> set[str]:
+        return {
+            name
+            for provider in self.get_options_providers()
+            if (name := provider.get_docker_image_name()) is not None
+        }
+
+    def _collect_workdir_contributions(self, raw_value: DictConfig) -> None:
+        """Merge filestate children from active services and app-level config."""
+        # 1. Service contributions
+        if self.parent_io_handler is not None:
+            try:
+                from wexample_wex_addon_app.app_addon_manager import AppAddonManager
+
+                manager = AppAddonManager.from_kernel(self.parent_io_handler)
+                for service in manager.get_app_services(self):
+                    contribution = service.get_workdir_contribution()
+                    if contribution:
+                        raw_value.setdefault("children", []).extend(
+                            contribution.get("children", [])
+                        )
+            except RuntimeError:
+                # AppAddonManager not in kernel (e.g. standalone test context)
+                pass
+
+        # 2. App-level config.yml: workdir.children
+        try:
+            app_config = self.get_config()
+            extra = app_config.search("workdir.children")
+            if not extra.is_none():
+                raw_value.setdefault("children", []).extend(extra.to_list())
+        except Exception:
+            pass
 
     def _get_iml_file_class(self) -> type[ImlFile]:
         return ImlFile

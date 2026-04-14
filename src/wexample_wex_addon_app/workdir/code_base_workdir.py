@@ -36,9 +36,6 @@ class CodeBaseWorkdir(RepoWorkdir):
             tag, cwd=cwd, remote=self._get_deployment_remote_name(), inherit_stdio=True
         )
 
-    def _get_critical_directories(self) -> list[str]:
-        return []
-
     def build_dependencies_stack(
         self, package: CodeBaseWorkdir, dependency: CodeBaseWorkdir
     ) -> list[CodeBaseWorkdir]:
@@ -250,11 +247,10 @@ class CodeBaseWorkdir(RepoWorkdir):
         remote_name: str | None = None,
         branch_name: str | None = None,
     ) -> None:
+        from wexample_helpers_git.helpers.git import git_current_branch
         from wexample_helpers_git.helpers.git_retryable_callback_manager import (
             GitRetryableCallbackManager,
         )
-
-        from wexample_helpers_git.helpers.git import git_current_branch
 
         remote = remote_name or GIT_REMOTE_ORIGIN
         if branch_name is None:
@@ -314,7 +310,9 @@ class CodeBaseWorkdir(RepoWorkdir):
     def save_dependency(self, package: str, version: str, operator: str = ">=") -> bool:
         """Add or update a dependency constraint."""
         config = self.get_app_config_file()
-        return config.add_dependency(package=package, version=version, operator=operator)
+        return config.add_dependency(
+            package=package, version=version, operator=operator
+        )
 
     def update_dependencies(self, dependencies_map: dict[str, str]) -> None:
         """Update dependencies versions based on the provided map.
@@ -350,6 +348,9 @@ class CodeBaseWorkdir(RepoWorkdir):
 
     def _build_dependency_string(self, package_name: str, version: str) -> str:
         return f"{package_name}=={version}"
+
+    def _get_critical_directories(self) -> list[str]:
+        return []
 
     def _get_deployment_remote_name(self) -> str | None:
         from wexample_helpers_git.const.common import GIT_REMOTE_ORIGIN

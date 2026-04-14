@@ -35,7 +35,9 @@ if TYPE_CHECKING:
     description="Search in runtime config instead of config.yml",
 )
 @middleware(middleware=AppMiddleware)
-@command(type=COMMAND_TYPE_ADDON, description="Get a configuration value from config.yml")
+@command(
+    type=COMMAND_TYPE_ADDON, description="Get a configuration value from config.yml"
+)
 def app__config__get(
     context: ExecutionContext,
     app_workdir: ManagedWorkdir,

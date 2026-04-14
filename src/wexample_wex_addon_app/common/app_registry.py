@@ -1,11 +1,15 @@
 from __future__ import annotations
 
 import fcntl
+from collections.abc import Generator
 from contextlib import contextmanager
 from pathlib import Path
-from typing import TYPE_CHECKING, Generator
+from typing import TYPE_CHECKING
 
-from wexample_wex_core.const.globals import CORE_COMMAND_NAME, CORE_FILE_NAME_APPS_REGISTRY
+from wexample_wex_core.const.globals import (
+    CORE_COMMAND_NAME,
+    CORE_FILE_NAME_APPS_REGISTRY,
+)
 
 if TYPE_CHECKING:
     from wexample_wex_addon_app.workdir.managed_workdir import ManagedWorkdir
@@ -14,17 +18,35 @@ _REGISTRY_PATH = Path("/var/lib") / CORE_COMMAND_NAME / CORE_FILE_NAME_APPS_REGI
 _REGISTRY_LOCK_PATH = _REGISTRY_PATH.with_suffix(".lock")
 
 
-@contextmanager
-def _registry_lock() -> Generator[None, None, None]:
-    _REGISTRY_LOCK_PATH.parent.mkdir(parents=True, exist_ok=True)
-    with open(_REGISTRY_LOCK_PATH, "w") as f:
-        fcntl.flock(f, fcntl.LOCK_EX)
-        yield
-        # OS releases the lock automatically when the fd closes
-
-
 def registry_get_path() -> Path:
     return _REGISTRY_PATH
+
+
+def registry_purge_stopped() -> None:
+    """Remove entries whose containers are no longer running."""
+    import subprocess
+
+    with _registry_lock():
+        data = registry_read()
+        active = {}
+
+        for app_path, entry in data["apps"].items():
+            runtime_compose = (
+                Path(app_path) / ".wex" / "tmp" / "docker-compose.runtime.yml"
+            )
+            if not runtime_compose.exists():
+                continue
+
+            result = subprocess.run(
+                ["docker", "compose", "-f", str(runtime_compose), "ps", "-q"],
+                capture_output=True,
+                text=True,
+            )
+            if result.returncode == 0 and result.stdout.strip():
+                active[app_path] = entry
+
+        data["apps"] = active
+        registry_write(data)
 
 
 def registry_read() -> dict:
@@ -33,16 +55,9 @@ def registry_read() -> dict:
     if not _REGISTRY_PATH.exists():
         return {"apps": {}}
 
-    return yaml_read(file_path=str(_REGISTRY_PATH), default={"apps": {}}) or {"apps": {}}
-
-
-def registry_write(data: dict) -> None:
-    import yaml
-
-    _REGISTRY_PATH.parent.mkdir(mode=0o755, parents=True, exist_ok=True)
-    with open(_REGISTRY_PATH, "w") as f:
-        yaml.dump(data, f, default_flow_style=False)
-    _REGISTRY_PATH.chmod(0o644)
+    return yaml_read(file_path=str(_REGISTRY_PATH), default={"apps": {}}) or {
+        "apps": {}
+    }
 
 
 def registry_register_app(app_workdir: ManagedWorkdir) -> None:
@@ -73,26 +88,19 @@ def registry_unregister_app(app_workdir: ManagedWorkdir) -> None:
         registry_write(data)
 
 
-def registry_purge_stopped() -> None:
-    """Remove entries whose containers are no longer running."""
-    import subprocess
+def registry_write(data: dict) -> None:
+    import yaml
 
-    with _registry_lock():
-        data = registry_read()
-        active = {}
+    _REGISTRY_PATH.parent.mkdir(mode=0o755, parents=True, exist_ok=True)
+    with open(_REGISTRY_PATH, "w") as f:
+        yaml.dump(data, f, default_flow_style=False)
+    _REGISTRY_PATH.chmod(0o644)
 
-        for app_path, entry in data["apps"].items():
-            runtime_compose = Path(app_path) / ".wex" / "tmp" / "docker-compose.runtime.yml"
-            if not runtime_compose.exists():
-                continue
 
-            result = subprocess.run(
-                ["docker", "compose", "-f", str(runtime_compose), "ps", "-q"],
-                capture_output=True,
-                text=True,
-            )
-            if result.returncode == 0 and result.stdout.strip():
-                active[app_path] = entry
-
-        data["apps"] = active
-        registry_write(data)
+@contextmanager
+def _registry_lock() -> Generator[None]:
+    _REGISTRY_LOCK_PATH.parent.mkdir(parents=True, exist_ok=True)
+    with open(_REGISTRY_LOCK_PATH, "w") as f:
+        fcntl.flock(f, fcntl.LOCK_EX)
+        yield
+        # OS releases the lock automatically when the fd closes

@@ -30,7 +30,9 @@ if TYPE_CHECKING:
     description='Optional dict-like arguments string, e.g. \'{"foo": "bar"}\'',
 )
 @middleware(middleware=AppMiddleware)
-@command(type=COMMAND_TYPE_ADDON, description="Execute a hook for all installed services")
+@command(
+    type=COMMAND_TYPE_ADDON, description="Execute a hook for all installed services"
+)
 def app__services__exec(
     context: ExecutionContext,
     app_workdir: ManagedWorkdir,

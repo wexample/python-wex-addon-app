@@ -1,148 +1,127 @@
-# wexample-wex-addon-app
+# wex_addon_app
 
-Version: 0.0.56
+Version: 1.0.0
 
 App management with wex
 
 ## Table of Contents
 
-- [Status Compatibility](#status-compatibility)
-- [Basic Usage](#basic-usage)
-- [Api Reference](#api-reference)
 - [Tests](#tests)
+- [Suite Integration](#suite-integration)
+- [Dependencies](#dependencies)
+- [Versioning](#versioning)
+- [License](#license)
+- [Suite Integration](#suite-integration)
+- [Suite Signature](#suite-signature)
+- [Api Reference](#api-reference)
+- [Basic Usage](#basic-usage)
+- [Introduction](#introduction)
 - [Roadmap](#roadmap)
+- [Status Compatibility](#status-compatibility)
 - [Useful Links](#useful-links)
+- [Migration Notes](#migration-notes)
 
+## Tests
 
-## Status & Compatibility
+This project uses `pytest` for testing and `pytest-cov` for code coverage analysis.
 
-**Maturity**: Production-ready
+### Installation
 
-**Python Support**: >=3.10
-
-**OS Support**: Linux, macOS, Windows
-
-**Status**: Actively maintained
-
-## Usage
-
-### Setup & Installation
-
-**Initial setup of the development environment:**
+First, install the required testing dependencies:
 ```bash
-# Install dependencies for the suite and all packages (production mode)
-app::setup/install
-
-# Install dependencies + local editable packages (development mode)
-app::setup/install --env local
+.venv/bin/python -m pip install pytest pytest-cov
 ```
 
-**For a single package:**
-```bash
-# Production: Install PDM dependencies only
-.wex/bin/app-manager setup
+### Basic Usage
 
-# Development: Install dependencies + local editable packages
-.wex/bin/app-manager app::setup/install --env local
+Run all tests with coverage:
+```bash
+.venv/bin/python -m pytest --cov --cov-report=html
 ```
 
-### Complete Development & Publication Workflow
-
-**1. Initial Setup (one-time)**
+### Common Commands
 ```bash
-# Install dependencies and local editable packages for development
-app::setup/install --env local
+# Run tests with coverage for a specific module
+.venv/bin/python -m pytest --cov=your_module
+
+# Show which lines are not covered
+.venv/bin/python -m pytest --cov=your_module --cov-report=term-missing
+
+# Generate an HTML coverage report
+.venv/bin/python -m pytest --cov=your_module --cov-report=html
+
+# Combine terminal and HTML reports
+.venv/bin/python -m pytest --cov=your_module --cov-report=term-missing --cov-report=html
+
+# Run specific test file with coverage
+.venv/bin/python -m pytest tests/test_file.py --cov=your_module --cov-report=term-missing
 ```
 
-**2. Development Cycle**
+### Viewing HTML Reports
+
+After generating an HTML report, open `htmlcov/index.html` in your browser to view detailed line-by-line coverage information.
+
+### Coverage Threshold
+
+To enforce a minimum coverage percentage:
 ```bash
-# Rectify code across all packages
-app::file-state/rectify --all-packages
-
-# Bump only packages with changes (excluding suite)
-app::package/bump --packages-only --force
-
-# Check for circular dependencies
-app::dependencies/check
-
-# Propagate versions across all packages
-app::version/propagate --packages-only
-
-# Commit and push all changes
-app::package/commit-and-push --all-packages --yes
+.venv/bin/python -m pytest --cov=your_module --cov-fail-under=80
 ```
 
-**3. Publication**
-```bash
-# Publish packages with changes to PyPI
-app::suite/publish
-```
+This will cause the test suite to fail if coverage drops below 80%.
 
-### File State Management
-* `app::file-state/rectify [--all-packages]`: Normalizes/rectifies code for a single app or across all packages in the suite; no commits.
+## Integration in the Suite
 
-### Version Management
+This package is part of the Wexample Suite — a collection of high-quality, modular tools designed to work seamlessly together across multiple languages and environments.
 
-The version management commands use `SuiteOrEachPackageMiddleware` which provides flexible execution control:
-- **Default**: Executes on the suite (or single package if app_path points to a package)
-- **`--all-packages`**: Executes on both the suite AND all packages
-- **`--packages-only`**: Executes only on packages (excludes suite, implies `--all-packages`)
-- **`--suite-only`**: Executes only on the suite (excludes packages)
+### Related Packages
 
-Commands:
-* `app::package/bump [--all-packages|--packages-only|--suite-only] [--yes] [--force]`: Bumps version for suite and/or packages. Use `--force` to bump only packages/suite with changes (no current version tag on HEAD).
-* `app::version/propagate [--packages-only]`: Propagates the current package version to other packages in the suite that depend on it. Use `--packages-only` to propagate all versions at once.
+The suite includes packages for configuration management, file handling, prompts, and more. Each package can be used independently or as part of the integrated suite.
 
-### Git Operations
-* `app::package/commit-and-push [--all-packages] [--yes]`: Commits and pushes changes for a single package or all packages with uncommitted changes when using `--all-packages`.
+Visit the [Wexample Suite documentation](https://docs.wexample.com) for the complete package ecosystem.
 
-### Dependencies Management
-* `app::dependencies/check`: Validates internal dependencies across the suite to prevent circular dependencies.
+## Dependencies
 
-### Suite Execution
-* `app::suite/exec-command -c <command> [--arguments "<args>"]`: Executes a manager command on all packages (e.g., `app::info/show`).
-* `app::suite/exec-shell -c "<command>"`: Executes a shell command on all packages.
+- attrs: >=23.1.0
+- cattrs: >=23.1.0
+- tomlkit: 
+- wexample-migration: >=0.1.0
+- wexample-runner: >=0.0.1
+- wexample-wex-core: >=7.0.0
 
-### Setup & Installation
-* `app::setup/install`: Installs PDM dependencies for the suite and all packages. Runs `pdm install` in the suite and each package.
-* `app::setup/install --env local`: Development mode - installs dependencies + all local packages as editable dependencies (pip install -e) for cross-package development.
-* `.wex/bin/app-manager setup`: Low-level command that runs `pdm install` for a single package (called by app-manager.sh).
+## Versioning & Compatibility Policy
 
-### Publishing
-* `app::suite/publish`: Publishes packages to PyPI. Only publishes packages with changes since their last publication tag. Automatically bumps versions, rectifies file state, commits, propagates versions, and publishes. Creates and pushes publication tags after successful publish.
+Wexample packages follow **Semantic Versioning** (SemVer):
 
-### Common Workflows
+- **MAJOR**: Breaking changes
+- **MINOR**: New features, backward compatible
+- **PATCH**: Bug fixes, backward compatible
 
-**Setup development environment:**
-```bash
-# Full development setup with editable packages
-app::setup/install --env local
-```
+We maintain backward compatibility within major versions and provide clear migration guides for breaking changes.
 
-**Bump only packages with changes (excluding suite):**
-```bash
-app::package/bump --packages-only --force && app::version/propagate --packages-only && app::package/commit-and-push --all-packages --yes
-```
+## License
 
-**Bump suite and all packages:**
-```bash
-app::package/bump --all-packages
-```
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-**Bump only the suite:**
-```bash
-app::package/bump --suite-only
-```
+Free to use in both personal and commercial projects.
 
-**Rectify all packages:**
-```bash
-app::file-state/rectify --all-packages
-```
+## Integration in the Suite
 
-**Get info for all packages:**
-```bash
-app::suite/exec-command -c app::info/show
-```
+This package is part of the Wexample Suite — a collection of high-quality, modular tools designed to work seamlessly together across multiple languages and environments.
+
+### Related Packages
+
+The suite includes packages for configuration management, file handling, prompts, and more. Each package can be used independently or as part of the integrated suite.
+
+Visit the [Wexample Suite documentation](https://docs.wexample.com) for the complete package ecosystem.
+
+# About us
+
+[Wexample](https://wexample.com) stands as a cornerstone of the digital ecosystem — a collective of seasoned engineers, researchers, and creators driven by a relentless pursuit of technological excellence. More than a media platform, it has grown into a vibrant community where innovation meets craftsmanship, and where every line of code reflects a commitment to clarity, durability, and shared intelligence.
+
+This packages suite embodies this spirit. Trusted by professionals and enthusiasts alike, it delivers a consistent, high-quality foundation for modern development — open, elegant, and battle-tested. Its reputation is built on years of collaboration, refinement, and rigorous attention to detail, making it a natural choice for those who demand both robustness and beauty in their tools.
+
+Wexample cultivates a culture of mastery. Each package, each contribution carries the mark of a community that values precision, ethics, and innovation — a community proud to shape the future of digital craftsmanship.
 
 ## API Reference
 
@@ -275,54 +254,173 @@ def suite_command(context, app_workdir: FrameworkPackageSuiteWorkdir):
   - Iteration is always required (no single-app mode)
   - You're executing shell commands or other manager commands on packages
 
-## Tests
+## Usage
 
-This project uses `pytest` for testing and `pytest-cov` for code coverage analysis.
+### Setup & Installation
 
-### Installation
-
-First, install the required testing dependencies:
+**Initial setup of the development environment:**
 ```bash
-.venv/bin/python -m pip install pytest pytest-cov
+# Install dependencies for the suite and all packages (production mode)
+app::setup/install
+
+# Install dependencies + local editable packages (development mode)
+app::setup/install --env local
 ```
 
-### Basic Usage
-
-Run all tests with coverage:
+**For a single package:**
 ```bash
-.venv/bin/python -m pytest --cov --cov-report=html
+# Production: Install PDM dependencies only
+.wex/bin/app-manager setup
+
+# Development: Install dependencies + local editable packages
+.wex/bin/app-manager app::setup/install --env local
 ```
 
-### Common Commands
+### Complete Development & Publication Workflow
+
+**1. Initial Setup (one-time)**
 ```bash
-# Run tests with coverage for a specific module
-.venv/bin/python -m pytest --cov=your_module
-
-# Show which lines are not covered
-.venv/bin/python -m pytest --cov=your_module --cov-report=term-missing
-
-# Generate an HTML coverage report
-.venv/bin/python -m pytest --cov=your_module --cov-report=html
-
-# Combine terminal and HTML reports
-.venv/bin/python -m pytest --cov=your_module --cov-report=term-missing --cov-report=html
-
-# Run specific test file with coverage
-.venv/bin/python -m pytest tests/test_file.py --cov=your_module --cov-report=term-missing
+# Install dependencies and local editable packages for development
+app::setup/install --env local
 ```
 
-### Viewing HTML Reports
-
-After generating an HTML report, open `htmlcov/index.html` in your browser to view detailed line-by-line coverage information.
-
-### Coverage Threshold
-
-To enforce a minimum coverage percentage:
+**2. Development Cycle**
 ```bash
-.venv/bin/python -m pytest --cov=your_module --cov-fail-under=80
+# Rectify code across all packages
+app::file-state/rectify --all-packages
+
+# Bump only packages with changes (excluding suite)
+app::package/bump --packages-only --force
+
+# Check for circular dependencies
+app::dependencies/check
+
+# Propagate versions across all packages
+app::version/propagate --packages-only
+
+# Commit and push all changes
+app::package/commit-and-push --all-packages --yes
 ```
 
-This will cause the test suite to fail if coverage drops below 80%.
+**3. Publication**
+```bash
+# Publish packages with changes to PyPI
+app::suite/publish
+```
+
+### File State Management
+* `app::file-state/rectify [--all-packages]`: Normalizes/rectifies code for a single app or across all packages in the suite; no commits.
+
+### Version Management
+
+The version management commands use `SuiteOrEachPackageMiddleware` which provides flexible execution control:
+- **Default**: Executes on the suite (or single package if app_path points to a package)
+- **`--all-packages`**: Executes on both the suite AND all packages
+- **`--packages-only`**: Executes only on packages (excludes suite, implies `--all-packages`)
+- **`--suite-only`**: Executes only on the suite (excludes packages)
+
+Commands:
+* `app::package/bump [--all-packages|--packages-only|--suite-only] [--yes] [--force]`: Bumps version for suite and/or packages. Use `--force` to bump only packages/suite with changes (no current version tag on HEAD).
+* `app::version/propagate [--packages-only]`: Propagates the current package version to other packages in the suite that depend on it. Use `--packages-only` to propagate all versions at once.
+
+### Git Operations
+* `app::package/commit-and-push [--all-packages] [--yes]`: Commits and pushes changes for a single package or all packages with uncommitted changes when using `--all-packages`.
+
+### Dependencies Management
+* `app::dependencies/check`: Validates internal dependencies across the suite to prevent circular dependencies.
+
+### Suite Execution
+* `app::suite/exec-command -c <command> [--arguments "<args>"]`: Executes a manager command on all packages (e.g., `app::info/show`).
+* `app::suite/exec-shell -c "<command>"`: Executes a shell command on all packages.
+
+### Setup & Installation
+* `app::setup/install`: Installs PDM dependencies for the suite and all packages. Runs `pdm install` in the suite and each package.
+* `app::setup/install --env local`: Development mode - installs dependencies + all local packages as editable dependencies (pip install -e) for cross-package development.
+* `.wex/bin/app-manager setup`: Low-level command that runs `pdm install` for a single package (called by app-manager.sh).
+
+### Publishing
+* `app::suite/publish`: Publishes packages to PyPI. Only publishes packages with changes since their last publication tag. Automatically bumps versions, rectifies file state, commits, propagates versions, and publishes. Creates and pushes publication tags after successful publish.
+
+### Common Workflows
+
+**Setup development environment:**
+```bash
+# Full development setup with editable packages
+app::setup/install --env local
+```
+
+**Bump only packages with changes (excluding suite):**
+```bash
+app::package/bump --packages-only --force && app::version/propagate --packages-only && app::package/commit-and-push --all-packages --yes
+```
+
+**Bump suite and all packages:**
+```bash
+app::package/bump --all-packages
+```
+
+**Bump only the suite:**
+```bash
+app::package/bump --suite-only
+```
+
+**Rectify all packages:**
+```bash
+app::file-state/rectify --all-packages
+```
+
+**Get info for all packages:**
+```bash
+app::suite/exec-command -c app::info/show
+```
+
+## Introduction
+
+### App Manager Architecture
+
+The wex-addon-app framework uses a subprocess-based architecture to manage individual packages within a suite. Each package is managed through its own **App Manager** instance, which is a self-contained Python application that handles package-specific operations.
+
+#### How It Works
+
+Each package in a suite has access to an App Manager executable located at `.wex/bin/app-manager`. This manager is automatically installed and configured for each package, providing a consistent interface for executing commands on that specific package.
+
+**Key characteristics:**
+
+- **Isolation**: Each package runs commands in its own subprocess via the App Manager
+- **Custom behavior**: Packages can have specialized classes, imports, and dependencies without affecting others
+- **Consistency**: All packages share the same command interface through their App Manager
+- **Flexibility**: Package-specific configurations and behaviors are encapsulated within each package's context
+
+#### Example Usage
+
+From any package directory, you can execute commands through the App Manager:
+
+```bash
+# Show information about the current package
+.wex/bin/app-manager app::info/show
+
+# Rectify file state for the current package
+.wex/bin/app-manager app::file-state/rectify
+
+# Bump the package version
+.wex/bin/app-manager app::package/bump
+```
+
+The App Manager executable is located at:
+```
+/path/to/package/.wex/bin/app-manager
+```
+
+This architecture enables suite-level operations to delegate work to individual packages while maintaining proper isolation and allowing each package to implement custom behavior as needed.
+
+### Suite-Level Operations
+
+When working with a package suite (a collection of related packages), the framework provides commands that can iterate over all packages, executing the App Manager for each one. This is handled through two main patterns:
+
+1. **Middleware-based iteration** (`EachSuitePackageMiddleware`): Commands that can optionally iterate over all packages using the `--all-packages` flag
+2. **Delegated iteration** (`PackageSuiteMiddleware`): Suite-specific commands that always operate on multiple packages
+
+See the [API Reference](api-reference.md.j2) for detailed information on these patterns.
 
 ## Known Limitations & Roadmap
 
@@ -330,11 +428,26 @@ Current limitations and planned features are tracked in the GitHub issues.
 
 See the [project roadmap](https://github.com/wexample/python-wex_addon_app/issues) for upcoming features and improvements.
 
+## Status & Compatibility
+
+**Maturity**: Production-ready
+
+**Python Support**: >=3.10
+
+**OS Support**: Linux, macOS, Windows
+
+**Status**: Actively maintained
+
 ## Useful Links
 
 - **Homepage**: https://github.com/wexample/python-wex-addon-app
 - **Documentation**: [docs.wexample.com](https://docs.wexample.com)
 - **Issue Tracker**: https://github.com/wexample/python-wex-addon-app/issues
 - **Discussions**: https://github.com/wexample/python-wex-addon-app/discussions
-- **PyPI**: [pypi.org/project/wexample-wex-addon-app](https://pypi.org/project/wexample-wex-addon-app/)
+- **PyPI**: [pypi.org/project/wex_addon_app](https://pypi.org/project/wex_addon_app/)
 
+## Migration Notes
+
+When upgrading between major versions, refer to the migration guides in the documentation.
+
+Breaking changes are clearly documented with upgrade paths and examples.

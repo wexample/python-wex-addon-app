@@ -7,11 +7,11 @@ from wexample_wex_core.decorator.as_sudo import as_sudo
 from wexample_wex_core.decorator.command import command
 from wexample_wex_core.decorator.option import option
 
+from wexample_wex_addon_app.const.app import HELPER_APPS_LIST
+
 if TYPE_CHECKING:
     from wexample_app.response.abstract_response import AbstractResponse
     from wexample_wex_core.context.execution_context import ExecutionContext
-
-from wexample_wex_addon_app.const.app import HELPER_APPS_LIST
 
 
 @option(
@@ -35,7 +35,10 @@ def app__helper__start(
     name: str,
     env: str | None = None,
 ) -> AbstractResponse:
-    from wexample_app.response.queued_collection_response import QueuedCollectionResponse
+    from wexample_app.response.queued_collection_response import (
+        QueuedCollectionResponse,
+    )
+
     from wexample_wex_addon_app.app_addon_manager import AppAddonManager
 
     if name not in HELPER_APPS_LIST:
@@ -54,6 +57,7 @@ def app__helper__start(
             from wexample_app.response.queue_collection.queued_collection_stop_response import (
                 QueuedCollectionStopResponse,
             )
+
             from wexample_wex_addon_app.commands.app.started import (
                 APP_STARTED_CHECK_MODE_ANY_CONTAINER,
                 _check_started,
@@ -87,6 +91,8 @@ def app__helper__start(
     def _start(previous_value=None):
         from wexample_wex_addon_app.commands.app.start import app__app__start
 
-        return context.kernel.run_function(app__app__start, {"app_path": str(helper_path)})
+        return context.kernel.run_function(
+            app__app__start, {"app_path": str(helper_path)}
+        )
 
     return QueuedCollectionResponse(kernel=context.kernel, content=[_create, _start])

@@ -39,21 +39,10 @@ class AppReadmeConfigValue(ReadmeContentConfigValue):
         if template_path.exists():
             search_paths.append(template_path)
 
-    def _get_app_description(self) -> str | None:
-        return None
-
-    def _get_app_homepage(self) -> str | None:
-        return None
-
-    def _get_dependencies(self) -> dict[str, str]:
-        return self.workdir.get_dependencies_versions()
-
-    def _get_project_license(self) -> str | None:
-        return None
-
     def _collect_suite_paths(self) -> list[Path]:
         """Return suite paths from closest to farthest."""
         from wexample_helpers.helpers.directory import directory_iterate_parent_dirs
+
         from wexample_wex_addon_app.workdir.managed_workdir import ManagedWorkdir
 
         def _is_suite(path: Path) -> bool:
@@ -74,6 +63,44 @@ class AppReadmeConfigValue(ReadmeContentConfigValue):
             current = suite_path
 
         return suite_paths
+
+    def _discover_sections(self) -> list[str]:
+        """Scan all search paths for .md.j2 and .md files, deduplicating."""
+        seen: set[str] = set()
+        sections: list[str] = []
+
+        for search_path in self._get_readme_search_paths():
+            if not search_path.exists():
+                continue
+            for entry in sorted(search_path.iterdir()):
+                if not entry.is_file():
+                    continue
+                name = entry.name
+                if name.startswith("_"):
+                    continue
+                if name.endswith(".md.j2"):
+                    section = name[: -len(".md.j2")]
+                elif name.endswith(".md"):
+                    section = name[: -len(".md")]
+                else:
+                    continue
+                if section not in seen:
+                    seen.add(section)
+                    sections.append(section)
+
+        return sections
+
+    def _get_app_description(self) -> str | None:
+        return None
+
+    def _get_app_homepage(self) -> str | None:
+        return None
+
+    def _get_dependencies(self) -> dict[str, str]:
+        return self.workdir.get_dependencies_versions()
+
+    def _get_project_license(self) -> str | None:
+        return None
 
     def _get_readme_search_paths(self) -> list[Path]:
         from wexample_app.const.globals import WORKDIR_SETUP_DIR
@@ -116,31 +143,36 @@ class AppReadmeConfigValue(ReadmeContentConfigValue):
         order = self._read_suite_section_order()
         return self._merge_section_order(discovered, order)
 
-    def _discover_sections(self) -> list[str]:
-        """Scan all search paths for .md.j2 and .md files, deduplicating."""
-        seen: set[str] = set()
-        sections: list[str] = []
+    def _get_template_context(self) -> dict:
+        return {
+            # filestate: python-iterable-sort
+            "dependencies": self._get_dependencies(),
+            "description": self._get_app_description(),
+            "homepage": self._get_app_homepage(),
+            "license_info": self._get_project_license(),
+            "package_name": self.workdir.get_project_name(),
+            "project_name": self.workdir.get_project_name(),
+            "version": self.workdir.get_project_version(),
+            "workdir": self.workdir,
+        }
 
-        for search_path in self._get_readme_search_paths():
-            if not search_path.exists():
-                continue
-            for entry in sorted(search_path.iterdir()):
-                if not entry.is_file():
-                    continue
-                name = entry.name
-                if name.startswith("_"):
-                    continue
-                if name.endswith(".md.j2"):
-                    section = name[: -len(".md.j2")]
-                elif name.endswith(".md"):
-                    section = name[: -len(".md")]
-                else:
-                    continue
-                if section not in seen:
-                    seen.add(section)
-                    sections.append(section)
+    def _merge_section_order(
+        self, discovered: list[str], order: list[str]
+    ) -> list[str]:
+        """Pin title/table-of-contents first, apply order to the rest.
 
-        return sections
+        title and table-of-contents are structural anchors always rendered
+        first regardless of config. Everything else is driven by
+        readme.sections in the suite config.yml.
+        """
+        pinned = {"title", "table-of-contents"}
+        first = [s for s in ["title", "table-of-contents"] if s in discovered]
+        rest = [s for s in discovered if s not in pinned]
+
+        ordered = [s for s in order if s in rest]
+        remainder = [s for s in rest if s not in set(order)]
+
+        return first + ordered + remainder
 
     def _read_suite_section_order(self) -> list[str]:
         """Read readme.sections from suite configs, closest suite wins."""
@@ -161,34 +193,3 @@ class AppReadmeConfigValue(ReadmeContentConfigValue):
                 order = [s for s in suite_order if isinstance(s, str)]
 
         return order
-
-    def _merge_section_order(
-        self, discovered: list[str], order: list[str]
-    ) -> list[str]:
-        """Pin title/table-of-contents first, apply order to the rest.
-
-        title and table-of-contents are structural anchors always rendered
-        first regardless of config. Everything else is driven by
-        readme.sections in the suite config.yml.
-        """
-        pinned = {"title", "table-of-contents"}
-        first = [s for s in ["title", "table-of-contents"] if s in discovered]
-        rest = [s for s in discovered if s not in pinned]
-
-        ordered = [s for s in order if s in rest]
-        remainder = [s for s in rest if s not in set(order)]
-
-        return first + ordered + remainder
-
-    def _get_template_context(self) -> dict:
-        return {
-            # filestate: python-iterable-sort
-            "dependencies": self._get_dependencies(),
-            "description": self._get_app_description(),
-            "homepage": self._get_app_homepage(),
-            "license_info": self._get_project_license(),
-            "package_name": self.workdir.get_project_name(),
-            "project_name": self.workdir.get_project_name(),
-            "version": self.workdir.get_project_version(),
-            "workdir": self.workdir,
-        }

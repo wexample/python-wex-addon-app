@@ -58,8 +58,7 @@ def app__suite__publish(
     packages_with_changes: set[str] | None = None
     if not force:
         packages_with_changes = {
-            p.get_package_name()
-            for p in app_workdir.compute_packages_to_publish()
+            p.get_package_name() for p in app_workdir.compute_packages_to_publish()
         }
         to_publish = [
             p.get_package_name()
@@ -96,7 +95,9 @@ def app__suite__publish(
         has_changes = (
             None if force else package.get_package_name() in packages_with_changes
         )
-        package.publish_bumped(force=force, interactive=not yes, has_changes=has_changes)
+        package.publish_bumped(
+            force=force, interactive=not yes, has_changes=has_changes
+        )
 
     # Commit propagated dependency-version updates for packages that were not
     # published (no real source changes).  Their config files (e.g. composer.json)

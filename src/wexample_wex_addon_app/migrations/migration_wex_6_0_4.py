@@ -18,9 +18,7 @@ class MigrationWex604(AbstractMigration):
         "Map v5 docker-compose environment variables to their v6 names in all "
         "docker-compose.yml files under .wex/, excluding tmp/"
     )
-
     _VAR_PATTERN = re.compile(r"\$\{([A-Z0-9_]+)\}")
-
     _EXACT_MAPPING = {
         "RUNTIME_NAME": "APP_NAME",
         "RUNTIME_ENV": "APP_ENV",
@@ -32,38 +30,15 @@ class MigrationWex604(AbstractMigration):
         "RUNTIME_PATH_APP_ENV": "APP_SETUP_PATH",
     }
 
-    def apply(self, context: MigrationContext) -> None:
-        wex_dir = context.target_path / ".wex"
-
-        for compose_path in self._find_compose_files(wex_dir):
-            content = compose_path.read_text()
-            updated = self._replace_known_variables(content)
-
-            for variable in self._find_unmapped_v5_variables(updated):
-                logging.warning(
-                    "Unmapped v5 variable left in place in %s: %s",
-                    compose_path,
-                    variable,
-                )
-
-            if updated != content:
-                compose_path.write_text(updated)
-
-    def _find_compose_files(self, wex_dir: Path) -> list[Path]:
-        return [
-            path
-            for path in wex_dir.rglob("docker-compose.yml")
-            if "tmp" not in path.parts
-        ]
-
     @classmethod
-    def _replace_known_variables(cls, content: str) -> str:
-        def replace(match: re.Match[str]) -> str:
-            variable = match.group(1)
-            mapped = cls._map_variable(variable)
-            return "${" + mapped + "}" if mapped else match.group(0)
-
-        return cls._VAR_PATTERN.sub(replace, content)
+    def _find_unmapped_v5_variables(cls, content: str) -> list[str]:
+        return sorted(
+            {
+                variable
+                for variable in cls._VAR_PATTERN.findall(content)
+                if variable.startswith("RUNTIME_") or variable.startswith("GLOBAL_")
+            }
+        )
 
     @classmethod
     def _map_variable(cls, variable: str) -> str | None:
@@ -88,11 +63,34 @@ class MigrationWex604(AbstractMigration):
         return None
 
     @classmethod
-    def _find_unmapped_v5_variables(cls, content: str) -> list[str]:
-        return sorted(
-            {
-                variable
-                for variable in cls._VAR_PATTERN.findall(content)
-                if variable.startswith("RUNTIME_") or variable.startswith("GLOBAL_")
-            }
-        )
+    def _replace_known_variables(cls, content: str) -> str:
+        def replace(match: re.Match[str]) -> str:
+            variable = match.group(1)
+            mapped = cls._map_variable(variable)
+            return "${" + mapped + "}" if mapped else match.group(0)
+
+        return cls._VAR_PATTERN.sub(replace, content)
+
+    def apply(self, context: MigrationContext) -> None:
+        wex_dir = context.target_path / ".wex"
+
+        for compose_path in self._find_compose_files(wex_dir):
+            content = compose_path.read_text()
+            updated = self._replace_known_variables(content)
+
+            for variable in self._find_unmapped_v5_variables(updated):
+                logging.warning(
+                    "Unmapped v5 variable left in place in %s: %s",
+                    compose_path,
+                    variable,
+                )
+
+            if updated != content:
+                compose_path.write_text(updated)
+
+    def _find_compose_files(self, wex_dir: Path) -> list[Path]:
+        return [
+            path
+            for path in wex_dir.rglob("docker-compose.yml")
+            if "tmp" not in path.parts
+        ]

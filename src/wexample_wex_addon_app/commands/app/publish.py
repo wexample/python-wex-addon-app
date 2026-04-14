@@ -16,12 +16,39 @@ if TYPE_CHECKING:
     from wexample_wex_addon_app.workdir.code_base_workdir import CodeBaseWorkdir
 
 
-@option(name="yes", type=bool, default=False, is_flag=True, description="Non-interactive mode")
-@option(name="no_bump", type=bool, default=False, is_flag=True, description="Skip version bump")
-@option(name="skip_rectify", type=bool, default=False, is_flag=True, description="Skip file state rectification")
-@option(name="force", type=bool, default=False, is_flag=True, description="Force bump even if no changes detected")
+@option(
+    name="yes",
+    type=bool,
+    default=False,
+    is_flag=True,
+    description="Non-interactive mode",
+)
+@option(
+    name="no_bump",
+    type=bool,
+    default=False,
+    is_flag=True,
+    description="Skip version bump",
+)
+@option(
+    name="skip_rectify",
+    type=bool,
+    default=False,
+    is_flag=True,
+    description="Skip file state rectification",
+)
+@option(
+    name="force",
+    type=bool,
+    default=False,
+    is_flag=True,
+    description="Force bump even if no changes detected",
+)
 @middleware(middleware=CodeBaseMiddleware)
-@command(type=COMMAND_TYPE_ADDON, description="Publish a new version of the app: bump, rectify, commit, tag.")
+@command(
+    type=COMMAND_TYPE_ADDON,
+    description="Publish a new version of the app: bump, rectify, commit, tag.",
+)
 def app__app__publish(
     context: ExecutionContext,
     app_workdir: CodeBaseWorkdir,
@@ -30,7 +57,7 @@ def app__app__publish(
     skip_rectify: bool = False,
     force: bool = False,
 ) -> QueuedCollectionResponse:
-    def _bump(previous_value=None):
+    def _bump(previous_value=None) -> QueuedCollectionStopResponse:
         from wexample_app.response.queue_collection.queued_collection_stop_response import (
             QueuedCollectionStopResponse,
         )
@@ -42,7 +69,7 @@ def app__app__publish(
                 reason="Bump aborted — publication cancelled.",
             )
 
-    def _rectify(previous_value=None):
+    def _rectify(previous_value=None) -> None:
         from wexample_wex_addon_app.commands.file_state.rectify import (
             app__file_state__rectify,
         )
@@ -52,12 +79,12 @@ def app__app__publish(
             arguments={"loop": True, "yes": yes},
         )
 
-    def _commit(previous_value=None):
+    def _commit(previous_value=None) -> None:
         app_workdir.commit_changes()
         app_workdir.push_to_deployment_remote()
         context.io.success(f"Pushed {app_workdir.get_project_name()}.")
 
-    def _tag(previous_value=None):
+    def _tag(previous_value=None) -> None:
         app_workdir.add_publication_tag()
         context.io.success(
             f"Published {app_workdir.get_project_name()} v{app_workdir.get_project_version()}."

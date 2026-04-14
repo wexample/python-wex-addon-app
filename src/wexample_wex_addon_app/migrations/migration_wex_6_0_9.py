@@ -17,6 +17,14 @@ class MigrationWex609(AbstractMigration):
         "${APP_PROJECT_NAME}_ in docker-compose.yml files under .wex/"
     )
 
+    @staticmethod
+    def _find_compose_files(wex_dir: Path) -> list[Path]:
+        return [
+            path
+            for path in wex_dir.rglob("docker-compose.yml")
+            if "tmp" not in path.parts
+        ]
+
     def apply(self, context: MigrationContext) -> None:
         wex_dir = context.target_path / ".wex"
 
@@ -28,11 +36,3 @@ class MigrationWex609(AbstractMigration):
             )
             if updated != content:
                 compose_path.write_text(updated)
-
-    @staticmethod
-    def _find_compose_files(wex_dir: Path) -> list[Path]:
-        return [
-            path
-            for path in wex_dir.rglob("docker-compose.yml")
-            if "tmp" not in path.parts
-        ]

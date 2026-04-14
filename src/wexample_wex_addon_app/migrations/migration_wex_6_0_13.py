@@ -3,7 +3,6 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 import yaml
-
 from wexample_migration.abstract_migration import AbstractMigration
 
 if TYPE_CHECKING:
@@ -12,10 +11,7 @@ if TYPE_CHECKING:
 
 class MigrationWex6013(AbstractMigration):
     VERSION = "6.0.13"
-    DESCRIPTION = (
-        "Ensure .wex/env/<env>/cron/default.cron exists as a file for php-derived services"
-    )
-
+    DESCRIPTION = "Ensure .wex/env/<env>/cron/default.cron exists as a file for php-derived services"
     PHP_SERVICES = {"php", "symfony"}
     DEFAULT_ENVS = ("local", "dev", "prod", "test")
 
@@ -35,7 +31,9 @@ class MigrationWex6013(AbstractMigration):
         if not isinstance(service_config, dict):
             return
 
-        if not any(service_name in service_config for service_name in self.PHP_SERVICES):
+        if not any(
+            service_name in service_config for service_name in self.PHP_SERVICES
+        ):
             return
 
         env_dir = wex_dir / "env"
@@ -55,4 +53,6 @@ class MigrationWex6013(AbstractMigration):
 
             cron_path.parent.mkdir(parents=True, exist_ok=True)
             if not cron_path.exists():
-                cron_path.write_text("#* * * * * echo \"Hello world\" > /var/log/cron.log 2>&1\n")
+                cron_path.write_text(
+                    '#* * * * * echo "Hello world" > /var/log/cron.log 2>&1\n'
+                )

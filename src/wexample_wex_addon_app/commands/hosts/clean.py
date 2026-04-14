@@ -18,7 +18,10 @@ if TYPE_CHECKING:
 
 @as_sudo()
 @middleware(middleware=AppMiddleware)
-@command(type=COMMAND_TYPE_ADDON, description="Remove stopped apps from the registry and update /etc/hosts")
+@command(
+    type=COMMAND_TYPE_ADDON,
+    description="Remove stopped apps from the registry and update /etc/hosts",
+)
 def app__hosts__clean(
     context: ExecutionContext,
     app_workdir: ManagedWorkdir,
@@ -29,4 +32,6 @@ def app__hosts__clean(
     registry_purge_stopped()
     context.io.log("Registry purged")
 
-    return context.kernel.run_function(app__hosts__update, {"app_path": str(app_workdir.get_path())})
+    return context.kernel.run_function(
+        app__hosts__update, {"app_path": str(app_workdir.get_path())}
+    )

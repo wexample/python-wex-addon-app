@@ -32,10 +32,12 @@ def app__app__stop(
     app_workdir: ManagedWorkdir,
     force: bool = False,
 ) -> AbstractResponse:
-    from pathlib import Path
+    pass
 
     from wexample_app.const.globals import WORKDIR_SETUP_DIR
-    from wexample_app.response.queued_collection_response import QueuedCollectionResponse
+    from wexample_app.response.queued_collection_response import (
+        QueuedCollectionResponse,
+    )
     from wexample_app.response.shell_command_response import ShellCommandResponse
     from wexample_wex_core.const.globals import CORE_DIR_NAME_TMP
 
@@ -45,12 +47,16 @@ def app__app__stop(
     )
 
     def _checkup(previous_value=None):
-        from wexample_app.response.queue_collection.queued_collection_stop_response import QueuedCollectionStopResponse as QueuedCollectionStop
+        from wexample_app.response.queue_collection.queued_collection_stop_response import (
+            QueuedCollectionStopResponse as QueuedCollectionStop,
+        )
 
         runtime = app_workdir.get_runtime_config()
         if not runtime.search("app.started").get_bool_or_default(False):
             context.io.log("App already stopped")
-            return QueuedCollectionStop(kernel=context.kernel, reason="App already stopped")
+            return QueuedCollectionStop(
+                kernel=context.kernel, reason="App already stopped"
+            )
         return True
 
     def _stop(previous_value=None) -> ShellCommandResponse:
@@ -66,10 +72,10 @@ def app__app__stop(
         )
 
     def _complete(previous_value=None) -> None:
+        import yaml as _yaml
+
         from wexample_wex_addon_app.commands.hosts.update import app__hosts__update
         from wexample_wex_addon_app.common.app_registry import registry_unregister_app
-
-        import yaml as _yaml
 
         runtime_path = app_workdir.get_runtime_config_file().get_path()
         if runtime_path.exists():

@@ -21,6 +21,13 @@ if TYPE_CHECKING:
 @base_class
 class AppAddonManager(AbstractAddonManager):
     @classmethod
+    def from_kernel(cls, kernel) -> AppAddonManager:
+        for addon in kernel.get_addons().values():
+            if isinstance(addon, cls):
+                return addon
+        raise RuntimeError("AppAddonManager not registered in kernel")
+
+    @classmethod
     def get_package_module(cls) -> Any:
         import wexample_wex_addon_app
 
@@ -34,7 +41,15 @@ class AppAddonManager(AbstractAddonManager):
             cls.get_package_source_path() / "resources" / f"{APP_FILE_APP_MANAGER}.sh"
         )
 
-    def create_app_workdir(self, path: PathOrString | None = None) -> ManagedWorkdir | None:
+    @staticmethod
+    def get_helper_app_path(name: str, env: str) -> Path:
+        from wexample_wex_addon_app.helpers.app import get_helper_app_path
+
+        return get_helper_app_path(name=name, env=env)
+
+    def create_app_workdir(
+        self, path: PathOrString | None = None
+    ) -> ManagedWorkdir | None:
         from pathlib import Path
 
         from wexample_helpers.helpers.cli import cli_make_clickable_path
@@ -57,8 +72,7 @@ class AppAddonManager(AbstractAddonManager):
         )
         if custom_app_workdir_class_path.exists():
             app_workdir_class = module_load_class_from_file(
-                file_path=custom_app_workdir_class_path,
-                class_name="AppWorkdir"
+                file_path=custom_app_workdir_class_path, class_name="AppWorkdir"
             )
         else:
             app_workdir_class = ManagedWorkdir
@@ -68,14 +82,37 @@ class AppAddonManager(AbstractAddonManager):
             parent_io_handler=self.kernel,
         )
 
-    @classmethod
-    def from_kernel(cls, kernel) -> AppAddonManager:
-        for addon in kernel.get_addons().values():
-            if isinstance(addon, cls):
-                return addon
-        raise RuntimeError("AppAddonManager not registered in kernel")
+    def find_service_dir(self, service_name: str) -> Path | None:
+        from wexample_wex_core.resolver.service_command_resolver import _SERVICES_SUBDIR
 
-    def get_app_service(self, service_name: str, app_workdir: ManagedWorkdir) -> AppService:
+        for addon in self.kernel.get_addons().values():
+            service_dir = addon.workdir.get_path() / _SERVICES_SUBDIR / service_name
+            if service_dir.is_dir():
+                return service_dir
+        return None
+
+    def find_services_by_tag(self, tag: str) -> list[str]:
+        from wexample_wex_core.resolver.service_command_resolver import _SERVICES_SUBDIR
+
+        matches: list[str] = []
+        for addon in self.kernel.get_addons().values():
+            services_dir = addon.workdir.get_path() / _SERVICES_SUBDIR
+            if not services_dir.is_dir():
+                continue
+
+            for service_dir in sorted(services_dir.iterdir()):
+                if not service_dir.is_dir():
+                    continue
+
+                manifest = self.get_service_manifest(service_dir.name)
+                if tag in (manifest.get("tags") or []):
+                    matches.append(service_dir.name)
+
+        return matches
+
+    def get_app_service(
+        self, service_name: str, app_workdir: ManagedWorkdir
+    ) -> AppService:
         from wexample_helpers.helpers.module import module_load_class_from_file
 
         from wexample_wex_addon_app.service.app_service import AppService
@@ -110,6 +147,91 @@ class AppAddonManager(AbstractAddonManager):
                 result.append(self.get_app_service(service_name, app_workdir))
 
         return result
+
+    def get_command_resolver_classes(self) -> list[type[AbstractCommandResolver]]:
+        from wexample_wex_addon_app.resolver.app_command_resolver import (
+            AppCommandResolver,
+        )
+        from wexample_wex_addon_app.resolver.service_command_resolver import (
+            ServiceCommandResolver,
+        )
+
+        return [AppCommandResolver, ServiceCommandResolver]
+
+    def get_middlewares_classes(self) -> list[type[AbstractMiddleware]]:
+        from wexample_wex_addon_app.middleware.app_middleware import AppMiddleware
+        from wexample_wex_addon_app.middleware.code_base_middleware import (
+            CodeBaseMiddleware,
+        )
+        from wexample_wex_addon_app.middleware.each_suite_package_middleware import (
+            EachSuitePackageMiddleware,
+        )
+        from wexample_wex_addon_app.middleware.package_suite_middleware import (
+            PackageSuiteMiddleware,
+        )
+        from wexample_wex_addon_app.middleware.suite_or_each_package_middleware import (
+            SuiteOrEachPackageMiddleware,
+        )
+
+        return [
+            AppMiddleware,
+            CodeBaseMiddleware,
+            EachSuitePackageMiddleware,
+            PackageSuiteMiddleware,
+            SuiteOrEachPackageMiddleware,
+        ]
+
+    def get_service_inheritance_chain(self, service_name: str) -> list[str]:
+        chain: list[str] = []
+        current = service_name
+        visiting: set[str] = set()
+
+        while current:
+            if current in visiting:
+                raise ValueError(
+                    f"Cyclic service inheritance detected: {' -> '.join(chain + [current])}"
+                )
+
+            visiting.add(current)
+            chain.append(current)
+            manifest = self.get_service_manifest_raw(current)
+            parent = manifest.get("extends")
+            current = str(parent) if parent else ""
+
+        chain.reverse()
+        return chain
+
+    def get_service_manifest(self, service_name: str) -> dict[str, Any]:
+        from wexample_helpers.helpers.dict import dict_merge
+
+        chain = self.get_service_inheritance_chain(service_name)
+        merged: dict[str, Any] = {}
+        list_keys = {"tags", "dependencies"}
+
+        for inherited_service_name in chain:
+            raw_manifest = self.get_service_manifest_raw(inherited_service_name)
+            merged = dict_merge(merged, raw_manifest)
+
+            for key in list_keys:
+                values: list[Any] = []
+                for source in (merged, raw_manifest):
+                    for value in source.get(key, []) or []:
+                        if value not in values:
+                            values.append(value)
+                if values:
+                    merged[key] = values
+
+        merged.pop("extends", None)
+        return merged
+
+    def get_service_manifest_raw(self, service_name: str) -> dict[str, Any]:
+        from wexample_helpers_yaml.helpers.yaml_helpers import yaml_read
+
+        service_dir = self.find_service_dir(service_name)
+        if service_dir is None:
+            return {}
+
+        return yaml_read(file_path=str(service_dir / "service.yml"), default={}) or {}
 
     def run_service_hook(
         self,
@@ -147,7 +269,10 @@ class AppAddonManager(AbstractAddonManager):
             request = CommandRequest(
                 kernel=self.kernel,
                 name=f"@{service.name}::{hook}",
-                arguments={"app_path": str(app_workdir.get_path()), **(arguments or {})},
+                arguments={
+                    "app_path": str(app_workdir.get_path()),
+                    **(arguments or {}),
+                },
                 output_target=[OUTPUT_TARGET_NONE],
             )
             response = self.kernel.execute_kernel_command(request)
@@ -156,118 +281,3 @@ class AppAddonManager(AbstractAddonManager):
             )
 
         return results
-
-    def find_service_dir(self, service_name: str) -> Path | None:
-        from wexample_wex_core.resolver.service_command_resolver import _SERVICES_SUBDIR
-
-        for addon in self.kernel.get_addons().values():
-            service_dir = addon.workdir.get_path() / _SERVICES_SUBDIR / service_name
-            if service_dir.is_dir():
-                return service_dir
-        return None
-
-    def get_service_inheritance_chain(self, service_name: str) -> list[str]:
-        chain: list[str] = []
-        current = service_name
-        visiting: set[str] = set()
-
-        while current:
-            if current in visiting:
-                raise ValueError(
-                    f"Cyclic service inheritance detected: {' -> '.join(chain + [current])}"
-                )
-
-            visiting.add(current)
-            chain.append(current)
-            manifest = self.get_service_manifest_raw(current)
-            parent = manifest.get("extends")
-            current = str(parent) if parent else ""
-
-        chain.reverse()
-        return chain
-
-    def get_service_manifest_raw(self, service_name: str) -> dict[str, Any]:
-        from wexample_helpers_yaml.helpers.yaml_helpers import yaml_read
-
-        service_dir = self.find_service_dir(service_name)
-        if service_dir is None:
-            return {}
-
-        return yaml_read(file_path=str(service_dir / "service.yml"), default={}) or {}
-
-    def get_service_manifest(self, service_name: str) -> dict[str, Any]:
-        from wexample_helpers.helpers.dict import dict_merge
-
-        chain = self.get_service_inheritance_chain(service_name)
-        merged: dict[str, Any] = {}
-        list_keys = {"tags", "dependencies"}
-
-        for inherited_service_name in chain:
-            raw_manifest = self.get_service_manifest_raw(inherited_service_name)
-            merged = dict_merge(merged, raw_manifest)
-
-            for key in list_keys:
-                values: list[Any] = []
-                for source in (merged, raw_manifest):
-                    for value in source.get(key, []) or []:
-                        if value not in values:
-                            values.append(value)
-                if values:
-                    merged[key] = values
-
-        merged.pop("extends", None)
-        return merged
-
-    def find_services_by_tag(self, tag: str) -> list[str]:
-        from wexample_wex_core.resolver.service_command_resolver import _SERVICES_SUBDIR
-
-        matches: list[str] = []
-        for addon in self.kernel.get_addons().values():
-            services_dir = addon.workdir.get_path() / _SERVICES_SUBDIR
-            if not services_dir.is_dir():
-                continue
-
-            for service_dir in sorted(services_dir.iterdir()):
-                if not service_dir.is_dir():
-                    continue
-
-                manifest = self.get_service_manifest(service_dir.name)
-                if tag in (manifest.get("tags") or []):
-                    matches.append(service_dir.name)
-
-        return matches
-
-    @staticmethod
-    def get_helper_app_path(name: str, env: str) -> Path:
-        from wexample_wex_addon_app.helpers.app import get_helper_app_path
-
-        return get_helper_app_path(name=name, env=env)
-
-    def get_command_resolver_classes(self) -> list[type[AbstractCommandResolver]]:
-        from wexample_wex_addon_app.resolver.app_command_resolver import AppCommandResolver
-        from wexample_wex_addon_app.resolver.service_command_resolver import ServiceCommandResolver
-
-        return [AppCommandResolver, ServiceCommandResolver]
-
-    def get_middlewares_classes(self) -> list[type[AbstractMiddleware]]:
-        from wexample_wex_addon_app.middleware.app_middleware import AppMiddleware
-        from wexample_wex_addon_app.middleware.code_base_middleware import (
-            CodeBaseMiddleware,
-        )
-        from wexample_wex_addon_app.middleware.each_suite_package_middleware import (
-            EachSuitePackageMiddleware,
-        )
-        from wexample_wex_addon_app.middleware.package_suite_middleware import (
-            PackageSuiteMiddleware,
-        )
-        from wexample_wex_addon_app.middleware.suite_or_each_package_middleware import (
-            SuiteOrEachPackageMiddleware,
-        )
-
-        return [
-            AppMiddleware,
-            CodeBaseMiddleware,
-            EachSuitePackageMiddleware,
-            PackageSuiteMiddleware,
-            SuiteOrEachPackageMiddleware,
-        ]

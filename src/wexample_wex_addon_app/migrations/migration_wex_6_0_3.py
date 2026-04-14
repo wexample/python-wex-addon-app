@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import shutil
-from pathlib import Path
 from typing import TYPE_CHECKING
 
 from wexample_migration.abstract_migration import AbstractMigration
@@ -16,7 +15,6 @@ class MigrationWex603(AbstractMigration):
         "Move env-specific config files from .wex/<service>/<name>.<env>.<ext> "
         "to .wex/env/<env>/<service>/<name>.<ext>"
     )
-
     ENVIRONMENTS = ("prod", "dev", "local", "test")
     SERVICE_WHITELIST = (
         "apache",
@@ -36,6 +34,19 @@ class MigrationWex603(AbstractMigration):
         "tmp",
         "uploads",
     )
+
+    @classmethod
+    def _parse_env_file(cls, filename: str) -> tuple[str, str] | None:
+        parts = filename.split(".")
+        if len(parts) < 3:
+            return None
+
+        env_name = parts[-2]
+        if env_name not in cls.ENVIRONMENTS:
+            return None
+
+        generic_name = ".".join(parts[:-2] + [parts[-1]])
+        return generic_name, env_name
 
     def apply(self, context: MigrationContext) -> None:
         wex_dir = context.target_path / ".wex"
@@ -66,16 +77,3 @@ class MigrationWex603(AbstractMigration):
                     target_path.unlink()
 
                 source.rename(target_path)
-
-    @classmethod
-    def _parse_env_file(cls, filename: str) -> tuple[str, str] | None:
-        parts = filename.split(".")
-        if len(parts) < 3:
-            return None
-
-        env_name = parts[-2]
-        if env_name not in cls.ENVIRONMENTS:
-            return None
-
-        generic_name = ".".join(parts[:-2] + [parts[-1]])
-        return generic_name, env_name

@@ -18,7 +18,9 @@ class PackageSuiteMiddleware(AppMiddleware):
         default=True, description="The called method works only on package suite"
     )
 
-    def _create_app_workdir(self, request: CommandRequest, app_path: str) -> ManagedWorkdir:
+    def _create_app_workdir(
+        self, request: CommandRequest, app_path: str
+    ) -> ManagedWorkdir:
         """Create and validate that the app workdir is a FrameworkPackageSuiteWorkdir."""
         from wexample_wex_addon_app.exception.invalid_workdir_type_exception import (
             InvalidWorkdirTypeException,

@@ -15,7 +15,10 @@ if TYPE_CHECKING:
 
 
 @middleware(middleware=AppMiddleware)
-@command(type=COMMAND_TYPE_ADDON, description="Return the current app environment (APP_ENV from .wex/.env)")
+@command(
+    type=COMMAND_TYPE_ADDON,
+    description="Return the current app environment (APP_ENV from .wex/.env)",
+)
 def app__env__get(
     context: ExecutionContext,
     app_workdir: ManagedWorkdir,

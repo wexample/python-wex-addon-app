@@ -76,6 +76,21 @@ class RepoWorkdir(ManagedWorkdir):
             return True
         return False
 
+    def classify_version_bump(self) -> str:
+        """Return the version bump type for this package based on changes since last tag.
+
+        Handles the no-previous-tag case (first publication → patch) then delegates
+        to _classify_version_bump() for language-specific logic.
+        """
+        from wexample_helpers.const.types import UPGRADE_TYPE_MINOR
+
+        last_tag = self.get_last_publication_tag()
+        if last_tag is None:
+            # First publication — no previous consumers, nothing to break
+            return UPGRADE_TYPE_MINOR
+
+        return self._classify_version_bump(last_tag)
+
     def count_source_code_lines(self) -> int:
         return self._count_code_lines(self._get_source_code_directories())
 
@@ -136,40 +151,6 @@ class RepoWorkdir(ManagedWorkdir):
         return git_has_uncommitted_changes(
             cwd=self.get_path()
         ) or git_has_changes_since_tag(last_commit, ".", cwd=self.get_path())
-
-    def classify_version_bump(self) -> str:
-        """Return the version bump type for this package based on changes since last tag.
-
-        Handles the no-previous-tag case (first publication → patch) then delegates
-        to _classify_version_bump() for language-specific logic.
-        """
-        from wexample_helpers.const.types import UPGRADE_TYPE_MINOR
-
-        last_tag = self.get_last_publication_tag()
-        if last_tag is None:
-            # First publication — no previous consumers, nothing to break
-            return UPGRADE_TYPE_MINOR
-
-        return self._classify_version_bump(last_tag)
-
-    def _classify_version_bump(self, last_tag: str) -> str:
-        """Classify the version bump type given a known previous tag.
-
-        Any change inside a critical directory is treated as major
-        (conservative). Falls back to minor (patch) otherwise.
-        Override in language-specific workdirs for finer-grained detection.
-        """
-        from wexample_helpers.const.types import UPGRADE_TYPE_MAJOR, UPGRADE_TYPE_MINOR
-        from wexample_helpers_git.helpers.git import git_has_changes_since_tag
-
-        for directory in self._get_critical_directories():
-            dir_path = self.get_path() / directory
-            if dir_path.exists() and git_has_changes_since_tag(
-                last_tag, directory, cwd=self.get_path()
-            ):
-                return UPGRADE_TYPE_MAJOR
-
-        return UPGRADE_TYPE_MINOR
 
     def has_changes_since_last_publication_tag(self) -> bool:
         """Return True if there are changes in the package directory since the last publication tag.
@@ -275,9 +256,7 @@ class RepoWorkdir(ManagedWorkdir):
                 step=1, label=f"Propagating version for {self.get_project_name()}"
             )
             self.manager_run_command(command=app__version__propagate)
-            sub_progress.advance(
-                step=1, label=f"Publishing {self.get_project_name()}"
-            )
+            sub_progress.advance(step=1, label=f"Publishing {self.get_project_name()}")
             self.manager_run_command(
                 command=app__package__publish,
                 arguments=(["--force"] if force else []),
@@ -296,6 +275,25 @@ class RepoWorkdir(ManagedWorkdir):
 
     def update_dependencies(self, dependencies_map: dict[str, str]) -> None:
         pass
+
+    def _classify_version_bump(self, last_tag: str) -> str:
+        """Classify the version bump type given a known previous tag.
+
+        Any change inside a critical directory is treated as major
+        (conservative). Falls back to minor (patch) otherwise.
+        Override in language-specific workdirs for finer-grained detection.
+        """
+        from wexample_helpers.const.types import UPGRADE_TYPE_MAJOR, UPGRADE_TYPE_MINOR
+        from wexample_helpers_git.helpers.git import git_has_changes_since_tag
+
+        for directory in self._get_critical_directories():
+            dir_path = self.get_path() / directory
+            if dir_path.exists() and git_has_changes_since_tag(
+                last_tag, directory, cwd=self.get_path()
+            ):
+                return UPGRADE_TYPE_MAJOR
+
+        return UPGRADE_TYPE_MINOR
 
     def _count_code_lines(self, directories: list[TargetFileOrDirectoryType]) -> int:
         from wexample_file.helper.line import line_count_recursive
@@ -336,4 +334,3 @@ class RepoWorkdir(ManagedWorkdir):
         This prevents downstream packages from failing when they try to resolve a
         dependency that was published moments ago.
         """
-        pass

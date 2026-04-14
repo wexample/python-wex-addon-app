@@ -8,14 +8,13 @@ from wexample_wex_core.decorator.command import command
 from wexample_wex_core.decorator.middleware import middleware
 from wexample_wex_core.decorator.option import option
 
+from wexample_wex_addon_app.const.service import SERVICE_TAG_DB
 from wexample_wex_addon_app.middleware.app_middleware import AppMiddleware
 
 if TYPE_CHECKING:
     from wexample_wex_core.context.execution_context import ExecutionContext
 
     from wexample_wex_addon_app.workdir.managed_workdir import ManagedWorkdir
-
-from wexample_wex_addon_app.const.service import SERVICE_TAG_DB
 
 
 @option(
@@ -64,8 +63,13 @@ def app__service__install(
         config_file = app_workdir.get_config_file()
         config = config_file.read_config()
 
-        if not config.search(f"service.{normalized_service_name}").is_none() and not force_install:
-            context.io.log(f"Service '{normalized_service_name}' already installed, skipping")
+        if (
+            not config.search(f"service.{normalized_service_name}").is_none()
+            and not force_install
+        ):
+            context.io.log(
+                f"Service '{normalized_service_name}' already installed, skipping"
+            )
             return
 
         installing.add(normalized_service_name)
@@ -92,10 +96,14 @@ def app__service__install(
             app_workdir.get_runtime_config(rebuild=True)
 
             # Copy service samples into app
-            for inherited_service_name in app_addon_manager.get_service_inheritance_chain(
+            for (
+                inherited_service_name
+            ) in app_addon_manager.get_service_inheritance_chain(
                 normalized_service_name
             ):
-                inherited_service_dir = app_addon_manager.find_service_dir(inherited_service_name)
+                inherited_service_dir = app_addon_manager.find_service_dir(
+                    inherited_service_name
+                )
                 if inherited_service_dir is None:
                     continue
 
@@ -108,7 +116,9 @@ def app__service__install(
                     file_copytree_as_real_user(samples_dir, app_setup_path)
 
             # Write vars declared in service.yml into .env (skip if already present)
-            app_service = app_addon_manager.get_app_service(normalized_service_name, app_workdir)
+            app_service = app_addon_manager.get_app_service(
+                normalized_service_name, app_workdir
+            )
             service_vars = app_service.get_vars()
             env_file = app_workdir.get_path() / ".wex" / ".env"
             existing_env = env_file.read_text() if env_file.exists() else ""
@@ -117,7 +127,9 @@ def app__service__install(
             defaults_to_write = {
                 key: str(meta["default"])
                 for key, meta in service_vars.items()
-                if "default" in meta and not meta.get("generated") and not meta.get("required")
+                if "default" in meta
+                and not meta.get("generated")
+                and not meta.get("required")
             }
             if defaults_to_write:
                 from wexample_helpers.helpers.file import file_env_append_as_real_user
@@ -142,7 +154,9 @@ def app__service__install(
                 while not value:
                     if value is not None:
                         context.io.log(f"  '{key}' is required, please enter a value.")
-                    response = context.io.input(question=question, default_value=suggested)
+                    response = context.io.input(
+                        question=question, default_value=suggested
+                    )
                     value = response.get_value()
 
                 from wexample_helpers.helpers.file import file_env_append_as_real_user
@@ -155,7 +169,9 @@ def app__service__install(
                 app_workdir=app_workdir,
             )
 
-            from wexample_wex_addon_app.commands.file_state.rectify import app__file_state__rectify
+            from wexample_wex_addon_app.commands.file_state.rectify import (
+                app__file_state__rectify,
+            )
 
             context.kernel.run_function(
                 app__file_state__rectify,

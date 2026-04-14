@@ -8,8 +8,9 @@ from wexample_wex_core.const.globals import COMMAND_TYPE_SERVICE
 from wexample_wex_core.decorator.command import command
 
 if TYPE_CHECKING:
-    from wexample_wex_addon_app.service.app_service import AppService
     from wexample_wex_core.context.execution_context import ExecutionContext
+
+    from wexample_wex_addon_app.service.app_service import AppService
 
 
 @command(

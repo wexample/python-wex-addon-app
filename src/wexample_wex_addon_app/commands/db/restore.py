@@ -43,7 +43,6 @@ def app__db__restore(
     service: str | None = None,
 ) -> None:
     import zipfile
-    from glob import glob
     from pathlib import Path
 
     from wexample_app.const.globals import WORKDIR_SETUP_DIR
@@ -57,7 +56,8 @@ def app__db__restore(
 
     # Build list of available dumps (zip + sql, excluding symlinks)
     all_dumps = sorted(
-        p for pattern in ("*.zip", "*.sql")
+        p
+        for pattern in ("*.zip", "*.sql")
         for p in dumps_dir.glob(pattern)
         if not p.is_symlink()
     )
@@ -73,7 +73,8 @@ def app__db__restore(
         if not resolved.is_absolute():
             resolved = dump_map.get(file_path) or dumps_dir / file_path
     else:
-        from wexample_prompt.common.abstract_prompt_io import AbstractPromptIo
+        pass
+
         choice = context.io.prompt_choice(
             "Please select a dump to restore",
             list(dump_map.keys()),

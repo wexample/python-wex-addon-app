@@ -18,53 +18,6 @@ if TYPE_CHECKING:
     from wexample_wex_addon_app.workdir.managed_workdir import ManagedWorkdir
 
 
-def _format_state(status: str | None, health: str | None) -> str:
-    status = status or "missing"
-    if status == "running":
-        state = "@green{running}"
-    elif status in {"created", "restarting"}:
-        state = f"@yellow{{{status}}}"
-    else:
-        state = f"@red{{{status}}}"
-
-    if health:
-        if health == "healthy":
-            state += " @green{healthy}"
-        elif health == "starting":
-            state += " @yellow{starting}"
-        else:
-            state += f" @red{{{health}}}"
-
-    return state
-
-
-def _format_ports(port_bindings: dict[str, Any] | None) -> str:
-    if not port_bindings:
-        return "-"
-
-    items: list[str] = []
-    for container_port, bindings in sorted(port_bindings.items()):
-        target = container_port.split("/", 1)[0]
-        if not bindings:
-            items.append(target)
-            continue
-
-        for binding in bindings:
-            host_port = binding.get("HostPort")
-            if host_port:
-                items.append(f"{host_port}->{target}")
-
-    return ", ".join(items) if items else "-"
-
-
-def _format_role(service_name: str, app_workdir: ManagedWorkdir) -> str:
-    if service_name == app_workdir.get_main_service():
-        return "@cyan{main}"
-    if service_name == app_workdir.get_main_db_service():
-        return "@yellow{db}"
-    return "-"
-
-
 @middleware(middleware=AppMiddleware)
 @command(type=COMMAND_TYPE_ADDON, description="List app containers in a compact table")
 def app__container__list(
@@ -73,7 +26,12 @@ def app__container__list(
 ) -> None:
     from wexample_app.const.globals import WORKDIR_SETUP_DIR
 
-    compose_path = app_workdir.get_path() / WORKDIR_SETUP_DIR / "tmp" / "docker-compose.runtime.yml"
+    compose_path = (
+        app_workdir.get_path()
+        / WORKDIR_SETUP_DIR
+        / "tmp"
+        / "docker-compose.runtime.yml"
+    )
     if not compose_path.exists():
         context.io.log("Runtime docker-compose file is missing")
         return
@@ -133,3 +91,50 @@ def app__container__list(
         data=rows,
         headers=headers,
     )
+
+
+def _format_ports(port_bindings: dict[str, Any] | None) -> str:
+    if not port_bindings:
+        return "-"
+
+    items: list[str] = []
+    for container_port, bindings in sorted(port_bindings.items()):
+        target = container_port.split("/", 1)[0]
+        if not bindings:
+            items.append(target)
+            continue
+
+        for binding in bindings:
+            host_port = binding.get("HostPort")
+            if host_port:
+                items.append(f"{host_port}->{target}")
+
+    return ", ".join(items) if items else "-"
+
+
+def _format_role(service_name: str, app_workdir: ManagedWorkdir) -> str:
+    if service_name == app_workdir.get_main_service():
+        return "@cyan{main}"
+    if service_name == app_workdir.get_main_db_service():
+        return "@yellow{db}"
+    return "-"
+
+
+def _format_state(status: str | None, health: str | None) -> str:
+    status = status or "missing"
+    if status == "running":
+        state = "@green{running}"
+    elif status in {"created", "restarting"}:
+        state = f"@yellow{{{status}}}"
+    else:
+        state = f"@red{{{status}}}"
+
+    if health:
+        if health == "healthy":
+            state += " @green{healthy}"
+        elif health == "starting":
+            state += " @yellow{starting}"
+        else:
+            state += f" @red{{{health}}}"
+
+    return state

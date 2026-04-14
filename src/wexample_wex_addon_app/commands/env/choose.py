@@ -22,7 +22,10 @@ if TYPE_CHECKING:
     description="Question to display to the user",
 )
 @middleware(middleware=AppMiddleware)
-@command(type=COMMAND_TYPE_ADDON, description="Prompt user to choose an environment, then persist it via env/set")
+@command(
+    type=COMMAND_TYPE_ADDON,
+    description="Prompt user to choose an environment, then persist it via env/set",
+)
 def app__env__choose(
     context: ExecutionContext,
     app_workdir: ManagedWorkdir,

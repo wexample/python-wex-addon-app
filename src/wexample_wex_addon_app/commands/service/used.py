@@ -24,7 +24,9 @@ if TYPE_CHECKING:
     description="Service name",
 )
 @middleware(middleware=AppMiddleware)
-@command(type=COMMAND_TYPE_ADDON, description="Return true if service is installed on app")
+@command(
+    type=COMMAND_TYPE_ADDON, description="Return true if service is installed on app"
+)
 def app__service__used(
     context: ExecutionContext,
     app_workdir: ManagedWorkdir,

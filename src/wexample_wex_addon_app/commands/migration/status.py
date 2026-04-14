@@ -19,7 +19,9 @@ if TYPE_CHECKING:
     type=COMMAND_TYPE_ADDON,
     description="Show the migration status of the current app",
 )
-def app__migration__status(context: ExecutionContext, app_workdir: ManagedWorkdir) -> None:
+def app__migration__status(
+    context: ExecutionContext, app_workdir: ManagedWorkdir
+) -> None:
     from wexample_migration.workdir.mixin.with_migration_workdir_mixin import (
         WithMigrationWorkdirMixin,
     )

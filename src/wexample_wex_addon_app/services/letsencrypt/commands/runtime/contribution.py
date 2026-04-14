@@ -8,13 +8,16 @@ from wexample_wex_core.decorator.command import command
 if TYPE_CHECKING:
     from wexample_app.response.abstract_response import AbstractResponse
     from wexample_wex_core.context.execution_context import ExecutionContext
+
     from wexample_wex_addon_app.service.app_service import AppService
 
 
-@command(type=COMMAND_TYPE_SERVICE, description="Contribute domains_string to runtime config")
+@command(
+    type=COMMAND_TYPE_SERVICE, description="Contribute domains_string to runtime config"
+)
 def letsencrypt__runtime__contribution(
-        context: ExecutionContext,
-        service: AppService,
+    context: ExecutionContext,
+    service: AppService,
 ) -> AbstractResponse:
     from wexample_app.response.dict_response import DictResponse
 

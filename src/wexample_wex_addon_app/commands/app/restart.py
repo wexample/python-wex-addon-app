@@ -21,7 +21,9 @@ def app__app__restart(
     context: ExecutionContext,
     app_workdir: ManagedWorkdir,
 ) -> AbstractResponse:
-    from wexample_app.response.queued_collection_response import QueuedCollectionResponse
+    from wexample_app.response.queued_collection_response import (
+        QueuedCollectionResponse,
+    )
 
     from wexample_wex_addon_app.commands.app.stop import app__app__stop
 

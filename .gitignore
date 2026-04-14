@@ -55,3 +55,7 @@ coverage*.lcov
 *.pid
 *.pid.lock
 /coverage.json
+logs/
+log/
+.cache/
+cache/

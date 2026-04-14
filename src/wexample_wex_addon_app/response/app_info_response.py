@@ -69,31 +69,6 @@ class AppInfoResponse(AbstractResponse):
 
         return total_int, covered_int, coverage_percent, coverage_color
 
-    def _has_repo_metrics(self) -> bool:
-        return all(
-            hasattr(self.app_workdir, method_name)
-            for method_name in [
-                "count_source_code_lines",
-                "count_test_code_lines",
-            ]
-        )
-
-    def _has_repo_status(self) -> bool:
-        return all(
-            hasattr(self.app_workdir, method_name)
-            for method_name in [
-                "has_changes_since_last_publication_tag",
-                "has_a_test",
-                "has_changes_since_last_coverage",
-            ]
-        )
-
-    def _get_project_version_display(self) -> str:
-        try:
-            return self.app_workdir.get_project_version()
-        except (AttributeError, ValueError):
-            return "@color:yellow{N/A}"
-
     def _get_formatted_prompt_response(self) -> AbstractPromptResponse:
         """Build the complete app info response with all sections.
 
@@ -259,3 +234,28 @@ class AppInfoResponse(AbstractResponse):
                     )
 
         return libraries
+
+    def _get_project_version_display(self) -> str:
+        try:
+            return self.app_workdir.get_project_version()
+        except (AttributeError, ValueError):
+            return "@color:yellow{N/A}"
+
+    def _has_repo_metrics(self) -> bool:
+        return all(
+            hasattr(self.app_workdir, method_name)
+            for method_name in [
+                "count_source_code_lines",
+                "count_test_code_lines",
+            ]
+        )
+
+    def _has_repo_status(self) -> bool:
+        return all(
+            hasattr(self.app_workdir, method_name)
+            for method_name in [
+                "has_changes_since_last_publication_tag",
+                "has_a_test",
+                "has_changes_since_last_coverage",
+            ]
+        )
