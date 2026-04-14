@@ -259,6 +259,36 @@ class FrameworkPackageSuiteWorkdir(RepoWorkdir):
             progress.advance(label=f"Package {package.get_project_name()}", step=1)
 
         self.io.success("Internal dependencies match.")
+
+        # Auto-fix any internal package pinned with == (must use >=).
+        # An exact pin on an internal dep will silently survive minor bumps and
+        # cause resolution failures downstream (pip/uv backtracking).
+        # We convert them in-place so the package is detected as changed and
+        # gets republished automatically in the same suite/publish run.
+        local_names = set(self.get_local_packages_names())
+        fixed: list[str] = []
+
+        for package in self.get_packages():
+            config_file = package.get_app_config_file()
+            if config_file is None:
+                continue
+            for dep_name, dep_specifier in config_file.get_dependencies_versions().items():
+                if dep_name in local_names and dep_specifier.startswith("=="):
+                    new_version = dep_specifier[2:]
+                    config_file.add_dependency_from_string(
+                        package_name=dep_name, version=new_version, operator=">="
+                    )
+                    fixed.append(
+                        f"  {package.get_package_name()}: "
+                        f"{dep_name}{dep_specifier}  →  >={new_version}"
+                    )
+
+        if fixed:
+            self.io.warning(
+                "Auto-fixed internal == pins to >=:\n" + "\n".join(fixed)
+            )
+        else:
+            self.io.success("No pinned internal dependencies.")
         self.io.indentation_down()
 
     def prepare_value(self, raw_value: DictConfig | None = None) -> DictConfig:

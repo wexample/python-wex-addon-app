@@ -333,14 +333,21 @@ class CodeBaseWorkdir(RepoWorkdir):
 
         current_deps = config_file.get_dependencies_versions()
 
-        # Update each dependency if it's in the map
-        for dep_name, dep_version in current_deps.items():
+        # Update each dependency if it's in the map.
+        # Preserve the existing operator (>= stays >=, == stays ==) so callers
+        # that deliberately use exact pins for external packages are not silently
+        # converted. Internal-package pins are caught by suite validation.
+        for dep_name, dep_specifier in current_deps.items():
             canonical_name = canonicalize_name(dep_name)
 
             if canonical_name in canonical_map:
                 new_version = canonical_map[canonical_name]
+                # Extract operator from current specifier (e.g. ">=0.1.0" → ">=")
+                import re
+                match = re.match(r"^([><=!~^]+)", dep_specifier)
+                operator = match.group(1) if match else ">="
                 config_file.add_dependency_from_string(
-                    package_name=dep_name, version=new_version
+                    package_name=dep_name, version=new_version, operator=operator
                 )
 
         # Save the updated config
