@@ -344,6 +344,7 @@ class CodeBaseWorkdir(RepoWorkdir):
                 new_version = canonical_map[canonical_name]
                 # Extract operator from current specifier (e.g. ">=0.1.0" → ">=")
                 import re
+
                 match = re.match(r"^([><=!~^]+)", dep_specifier)
                 operator = match.group(1) if match else ">="
                 config_file.add_dependency_from_string(

@@ -272,7 +272,10 @@ class FrameworkPackageSuiteWorkdir(RepoWorkdir):
             config_file = package.get_app_config_file()
             if config_file is None:
                 continue
-            for dep_name, dep_specifier in config_file.get_dependencies_versions().items():
+            for (
+                dep_name,
+                dep_specifier,
+            ) in config_file.get_dependencies_versions().items():
                 if dep_name in local_names and dep_specifier.startswith("=="):
                     new_version = dep_specifier[2:]
                     config_file.add_dependency_from_string(
@@ -284,9 +287,7 @@ class FrameworkPackageSuiteWorkdir(RepoWorkdir):
                     )
 
         if fixed:
-            self.io.warning(
-                "Auto-fixed internal == pins to >=:\n" + "\n".join(fixed)
-            )
+            self.io.warning("Auto-fixed internal == pins to >=:\n" + "\n".join(fixed))
         else:
             self.io.success("No pinned internal dependencies.")
         self.io.indentation_down()
