@@ -195,27 +195,28 @@ def app__app__start(
         context.kernel.run_function(app__hosts__update, {"app_path": str(app_path)})
 
     def _pending(previous_value=None):
-        import time
-
         from wexample_wex_addon_app.app_addon_manager import AppAddonManager
 
         app_manager = AppAddonManager.from_kernel(context.kernel)
 
-        def _check() -> bool:
+        def _check() -> tuple[bool, list[str]]:
             results = app_manager.run_service_hook(
                 hook="service/ready",
                 app_workdir=app_workdir,
             )
             all_ready = True
+            status_lines = []
             for service_name, ready in results.items():
                 if not ready:
-                    context.io.log(f"{service_name} is not ready yet...")
+                    status_lines.append(f"{service_name} is not ready yet...")
                     all_ready = False
-            return all_ready
+            return all_ready, status_lines
 
-        while not _check():
-            context.io.log("Waiting for services...")
-            time.sleep(2)
+        context.io.pending(
+            callback=_check,
+            label="Waiting for services...",
+            interval=2.0,
+        )
 
     def _complete(previous_value=None):
         from wexample_wex_addon_app.commands.app.go import app__app__go
