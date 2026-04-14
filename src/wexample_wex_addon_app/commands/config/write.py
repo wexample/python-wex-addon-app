@@ -102,28 +102,30 @@ def app__config__write(
 
         from wexample_wex_addon_app.app_addon_manager import AppAddonManager
 
+        app_manager = AppAddonManager.from_kernel(context.kernel)
         runtime = app_workdir.get_runtime_config_file().read_config().to_dict()
         docker_env_path = tmp_dir / "docker.env"
         compose_runtime_path = tmp_dir / "docker-compose.runtime.yml"
 
         compose_files = []
 
-        # Always include the addon base compose (defines wex_net and other shared infrastructure)
-        addon_base_compose = AppAddonManager.get_package_source_path() / "resources" / "docker" / "docker-compose.yml"
+        # Check if any service in this app creates the docker network (tagged "network", e.g. proxy)
+        creates_network = any(
+            "network" in app_manager.get_service_manifest(s.name).get("tags", [])
+            for s in app_manager.get_app_services(app_workdir)
+            if s.name != "default"
+        )
+
+        # Include the base compose that either creates wex_net (proxy) or references it as external
+        resources_dir = AppAddonManager.get_package_source_path() / "resources" / "docker"
+        addon_base_compose = resources_dir / (
+            "docker-compose.network.yml" if creates_network else "docker-compose.yml"
+        )
         if addon_base_compose.exists():
             compose_files.append(str(addon_base_compose))
 
-        # Base app compose
-        base_compose = app_path / WORKDIR_SETUP_DIR / "docker" / "docker-compose.yml"
-        if base_compose.exists():
-            compose_files.append(str(base_compose))
-
-        # Env-specific app compose
-        env_compose = app_path / WORKDIR_SETUP_DIR / "env" / env / "docker" / "docker-compose.yml"
-        if env_compose.exists():
-            compose_files.append(str(env_compose))
-
-        # Service composes — skip "default" (template with no image), include all others
+        # Service composes first — base templates (e.g. php, symfony from wex addons).
+        # App-level and env-level composes come after so they can override service defaults.
         for service_name, service_data in runtime.get("service", {}).items():
             if service_name == "default":
                 continue
@@ -133,6 +135,16 @@ def app__config__write(
                 compose_path = service_data["compose"]
                 if compose_path not in compose_files:
                     compose_files.append(compose_path)
+
+        # Base app compose
+        base_compose = app_path / WORKDIR_SETUP_DIR / "docker" / "docker-compose.yml"
+        if base_compose.exists():
+            compose_files.append(str(base_compose))
+
+        # Env-specific app compose — highest priority, overrides everything above
+        env_compose = app_path / WORKDIR_SETUP_DIR / "env" / env / "docker" / "docker-compose.yml"
+        if env_compose.exists():
+            compose_files.append(str(env_compose))
 
         if not compose_files:
             context.io.log("No docker compose files found, skipping")

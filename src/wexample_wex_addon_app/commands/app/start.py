@@ -194,6 +194,11 @@ def app__app__start(
         registry_register_app(app_workdir)
         context.kernel.run_function(app__hosts__update, {"app_path": str(app_path)})
 
+    def _rectify_perms(previous_value=None):
+        from wexample_wex_addon_app.commands.app.perms import app__app__perms
+
+        context.kernel.run_function(app__app__perms, {"app_path": str(app_path)})
+
     def _pending(previous_value=None):
         from wexample_wex_addon_app.app_addon_manager import AppAddonManager
 
@@ -261,6 +266,7 @@ def app__app__start(
             _setup_services,
             _starting,
             _update_hosts,
+            _rectify_perms,
             _pending,
             _complete,
         ]
