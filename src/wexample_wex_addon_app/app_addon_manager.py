@@ -188,6 +188,12 @@ class AppAddonManager(AbstractAddonManager):
 
         return [AppShouldRunStepGuard]
 
+    def get_service_docker_container_name(self, service: str) -> str | None:
+        app_workdir = self.create_app_workdir()
+        if app_workdir is None:
+            return None
+        return app_workdir.docker_build_long_container_name(service)
+
     def get_service_inheritance_chain(self, service_name: str) -> list[str]:
         chain: list[str] = []
         current = service_name
