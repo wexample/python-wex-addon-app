@@ -17,7 +17,9 @@ if TYPE_CHECKING:
     type=COMMAND_TYPE_ADDON,
     description="Run performance benchmarks and display a report. Python only (requires pytest-benchmark tests).",
 )
-def app__performance__report(context: ExecutionContext, app_workdir: AppMiddleware) -> None:
+def app__performance__report(
+    context: ExecutionContext, app_workdir: AppMiddleware
+) -> None:
     from wexample_wex_addon_app.workdir.mixin.abstract_profiling_workdir_mixin import (
         AbstractProfilingWorkdirMixin,
     )
