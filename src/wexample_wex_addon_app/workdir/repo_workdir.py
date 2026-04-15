@@ -300,7 +300,11 @@ class RepoWorkdir(ManagedWorkdir):
 
         count = 0
         for directory in directories:
-            path = self.get_path() / directory
+            path = (
+                directory.get_path()
+                if hasattr(directory, "get_path")
+                else self.get_path() / directory
+            )
             if path.exists():
                 count += line_count_recursive(path)
         return count
@@ -308,7 +312,11 @@ class RepoWorkdir(ManagedWorkdir):
     def _count_files(self, directories: list[TargetFileOrDirectoryType]) -> int:
         count = 0
         for directory in directories:
-            path = self.get_path() / directory
+            path = (
+                directory.get_path()
+                if hasattr(directory, "get_path")
+                else self.get_path() / directory
+            )
             if path.exists():
                 count += len(list(path.rglob("*")))
         return count
