@@ -10,6 +10,7 @@ if TYPE_CHECKING:
     from wexample_migration.migration_context import MigrationContext
 
 _WEX6_APP_MANAGER = Path(
+    # @todo use absolute
     "/home/weeger/Desktop/WIP/WEB/WEXAMPLE/WEX/local/wex-6/.wex/bin/app-manager"
 )
 
