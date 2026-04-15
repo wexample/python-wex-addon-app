@@ -181,6 +181,13 @@ class AppAddonManager(AbstractAddonManager):
             SuiteOrEachPackageMiddleware,
         ]
 
+    def get_step_guard_classes(self) -> list[type]:
+        from wexample_wex_addon_app.yaml.app_should_run_step_guard import (
+            AppShouldRunStepGuard,
+        )
+
+        return [AppShouldRunStepGuard]
+
     def get_service_inheritance_chain(self, service_name: str) -> list[str]:
         chain: list[str] = []
         current = service_name
