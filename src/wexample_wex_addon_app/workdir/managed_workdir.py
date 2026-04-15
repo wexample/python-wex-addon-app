@@ -8,6 +8,7 @@ from typing import TYPE_CHECKING, Any
 from wexample_app.const.output import OUTPUT_FORMAT_JSON, OUTPUT_TARGET_FILE
 from wexample_app.helpers.request import request_build_id
 from wexample_app.item.file.iml_file import ImlFile
+from wexample_app.workdir.mixin.with_local_data_mixin import WithLocalDataMixin
 from wexample_app.workdir.mixin.with_runtime_config_mixin import WithRuntimeConfigMixin
 from wexample_filestate.item.mixin.with_runners_root_mixin import WithRunnersRootMixin
 from wexample_helpers.const.types import FileStringOrPath
@@ -56,6 +57,7 @@ class ManagedWorkdir(
     WithAppVersionWorkdirMixin,
     WithRuntimeConfigMixin,
     WithAppRegistryMixin,
+    WithLocalDataMixin,
     Workdir,
 ):
     @classmethod
@@ -361,6 +363,7 @@ class ManagedWorkdir(
         from wexample_app.const.globals import (
             APP_FILE_APP_CONFIG,
             APP_FILE_APP_MANAGER,
+            WORKDIR_LOCAL_DIR_NAME,
             WORKDIR_SETUP_DIR,
         )
         from wexample_filestate.config_value.file_content_config_value import (
@@ -431,12 +434,26 @@ class ManagedWorkdir(
                         "should_exist": True,
                     },
                     {
+                        # local — machine-specific state, never committed
+                        "name": WORKDIR_LOCAL_DIR_NAME,
+                        "type": DiskItemType.DIRECTORY,
+                        "should_exist": True,
+                        "children": [
+                            {
+                                "name": ".gitkeep",
+                                "type": DiskItemType.FILE,
+                                "should_exist": True,
+                            }
+                        ],
+                    },
+                    {
                         "name": ".gitignore",
                         "type": DiskItemType.FILE,
                         "should_exist": True,
                         "should_contain_lines": [
                             EnvFile.EXTENSION_DOT_ENV,
                             str(CORE_DIR_NAME_TMP) + "/",
+                            f"{WORKDIR_LOCAL_DIR_NAME}/",
                         ],
                         TextOption.get_name(): {"end_new_line": True},
                     },
