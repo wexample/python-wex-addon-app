@@ -10,9 +10,9 @@ if TYPE_CHECKING:
     from wexample_migration.migration_context import MigrationContext
 
 # Keys dropped silently during step conversion
-_STEP_KEYS_DROP = {"type", "context", "sync", "app_should_run", "interpreter"}
+_STEP_KEYS_DROP = {"type", "context", "sync", "interpreter"}
 # Keys that require a runtime warning when dropped
-_STEP_KEYS_WARN = {"sync", "app_should_run"}
+_STEP_KEYS_WARN = {"sync"}
 
 
 def _convert_properties(properties: list) -> list[dict]:
@@ -78,6 +78,8 @@ def _convert_step(step, yaml_path: Path) -> dict:
         result["workdir"] = step["workdir"]
     if "ignore_error" in step:
         result["ignore_error"] = step["ignore_error"]
+    if "app_should_run" in step:
+        result["app_should_run"] = step["app_should_run"]
 
     return result
 
