@@ -147,9 +147,24 @@ class MigrationWex6017(AbstractMigration):
             return
 
         if not context.dry_run:
-            old_dir.rename(new_dir)
+            if new_dir.is_dir():
+                # Destination exists — move contents of old_dir into new_dir (merge)
+                for item in sorted(old_dir.rglob("*")):
+                    rel = item.relative_to(old_dir)
+                    dest = new_dir / rel
+                    if item.is_dir():
+                        dest.mkdir(parents=True, exist_ok=True)
+                    else:
+                        dest.parent.mkdir(parents=True, exist_ok=True)
+                        if not dest.exists():
+                            item.rename(dest)
+                # Remove old_dir tree (should be empty or contain only dirs now)
+                import shutil
+                shutil.rmtree(old_dir)
+            else:
+                old_dir.rename(new_dir)
 
-        # Rewrite each YAML file
+        # Rewrite each YAML file in new_dir
         target = new_dir if not context.dry_run else old_dir
         for yaml_path in sorted(target.rglob("*.yml")):
             if not context.dry_run:
