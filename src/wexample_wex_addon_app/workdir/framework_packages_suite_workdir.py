@@ -4,7 +4,9 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 from wexample_helpers.classes.abstract_method import abstract_method
+from wexample_helpers.classes.private_field import private_field
 from wexample_helpers.const.types import PathOrString
+from wexample_helpers.decorator.base_class import base_class
 from wexample_wex_core.resolver.addon_command_resolver import AddonCommandResolver
 
 from wexample_wex_addon_app.workdir.managed_workdir import ManagedWorkdir
@@ -21,7 +23,16 @@ if TYPE_CHECKING:
     )
 
 
+@base_class
 class FrameworkPackageSuiteWorkdir(RepoWorkdir):
+    _packages_cache: list | None = private_field(
+        default=None,
+        description="Cached package list, invalidated on reload",
+    )
+    _packages_by_name_cache: dict | None = private_field(
+        default=None,
+        description="Cached name→package lookup, invalidated on reload",
+    )
     def build_dependencies_map(self) -> dict[str, list[str]]:
         dependencies = {}
         for package in self.get_packages():
@@ -131,16 +142,20 @@ class FrameworkPackageSuiteWorkdir(RepoWorkdir):
         by_name = {p.get_package_name(): p for p in self.get_packages()}
         return [by_name[name] for name in order if name in by_name]
 
-    def get_package(self, package_name: str) -> CodeBaseWorkdir | None:
-        for package in self.get_packages():
-            if package.get_package_name() == package_name:
-                return package
-        return None
+    def get_package(self, package_name: str, reload: bool = False) -> CodeBaseWorkdir | None:
+        if reload or self._packages_by_name_cache is None:
+            self._packages_by_name_cache = {
+                p.get_package_name(): p for p in self.get_packages(reload=reload)
+            }
+        return self._packages_by_name_cache.get(package_name)
 
-    def get_packages(self) -> list[CodeBaseWorkdir]:
-        return self.find_all_by_type(
-            class_type=self._get_children_package_workdir_class(), recursive=True
-        )
+    def get_packages(self, reload: bool = False) -> list[CodeBaseWorkdir]:
+        if reload or self._packages_cache is None:
+            self._packages_cache = self.find_all_by_type(
+                class_type=self._get_children_package_workdir_class(), recursive=True
+            )
+            self._packages_by_name_cache = None
+        return self._packages_cache
 
     def get_packages_paths(self) -> list[Path]:
         """Return all resolved package paths that are directories only."""
