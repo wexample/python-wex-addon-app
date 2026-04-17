@@ -177,7 +177,6 @@ class CodeBaseWorkdir(RepoWorkdir):
 
         Raises if there are uncommitted changes or merge conflicts.
         """
-        from wexample_helpers.helpers.shell import shell_run
         from wexample_helpers_git.helpers.git import (
             git_current_branch,
             git_has_uncommitted_changes,
@@ -203,9 +202,8 @@ class CodeBaseWorkdir(RepoWorkdir):
         try:
             # Step 1: Merge main into current branch to ensure compatibility
             self.info(f"Merging {branch_name} into {current_branch}...")
-            shell_run(
+            self.git_run(
                 [
-                    "git",
                     "merge",
                     branch_name,
                     "--no-ff",
@@ -222,9 +220,8 @@ class CodeBaseWorkdir(RepoWorkdir):
 
             # Step 3: Merge current branch into main
             self.info(f"Merging {current_branch} into {branch_name}...")
-            shell_run(
+            self.git_run(
                 [
-                    "git",
                     "merge",
                     current_branch,
                     "--no-ff",
