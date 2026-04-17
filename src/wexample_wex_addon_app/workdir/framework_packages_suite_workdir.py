@@ -203,6 +203,7 @@ class FrameworkPackageSuiteWorkdir(RepoWorkdir):
         command: str,
         arguments: list[str] | None = None,
         force: bool = False,
+        fail_fast: bool = True,
     ) -> None:
         """Execute a manager command on all packages."""
         self._packages_execute(
@@ -210,6 +211,7 @@ class FrameworkPackageSuiteWorkdir(RepoWorkdir):
             executor_method=ManagedWorkdir.manager_run_from_path,
             message="Executing command",
             force=force,
+            fail_fast=fail_fast,
         )
 
     def packages_execute_shell(self, cmd: list[str], force: bool = False) -> None:
@@ -499,6 +501,7 @@ class FrameworkPackageSuiteWorkdir(RepoWorkdir):
         executor_method: callable,
         message: str,
         force: bool = False,
+        fail_fast: bool = True,
     ) -> None:
         """
         Generic method to execute a command on all detected packages.
@@ -508,10 +511,13 @@ class FrameworkPackageSuiteWorkdir(RepoWorkdir):
             executor_method: Method used to execute the command (e.g. manager_run_from_path, shell_run_from_path)
             message: Displayed title message
             force: If True, run even if directory is not recognized as an app workdir
+            fail_fast: If True (default), stop on first error. If False, continue and report all failures at end.
         """
         import shlex
 
         from wexample_prompt.enums.terminal_color import TerminalColor
+
+        failed_packages = []
 
         for package_path in self.get_packages_paths():
             if not force and not ManagedWorkdir.is_app_workdir_path(path=package_path):
@@ -526,7 +532,17 @@ class FrameworkPackageSuiteWorkdir(RepoWorkdir):
                 if result is None:
                     self.log("Invalid package directory, skipping.", indentation=1)
             except Exception as e:
-                self.log(f"Error executing command: {e}", indentation=1)
-                return
+                failed_packages.append(package_path)
+                if fail_fast:
+                    raise
+                self.log(f"Package failed, continuing.", indentation=1)
+                self.separator(color=TerminalColor.BLACK)
+                continue
 
             self.separator(color=TerminalColor.BLACK)
+
+        if failed_packages and not fail_fast:
+            names = [p.name if hasattr(p, "name") else str(p) for p in failed_packages]
+            self.warning(
+                f"{len(failed_packages)} package(s) failed: {', '.join(names)}"
+            )
