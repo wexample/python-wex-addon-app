@@ -122,7 +122,7 @@ class ManagedWorkdir(
     @classmethod
     def manager_run_from_path(
         cls, path: FileStringOrPath, cmd: list[str] | str
-    ) -> None | ShellResult:
+    ) -> ShellResult:
         from wexample_app.const.globals import APP_PATH_BIN_APP_MANAGER
         from wexample_helpers.helpers.shell import shell_run
 
@@ -132,7 +132,6 @@ class ManagedWorkdir(
         full_cmd = [str(APP_PATH_BIN_APP_MANAGER), "--subprocess"]
         full_cmd.extend(cmd)
 
-        # Ask parent suite to generate the info registry that contains packages readme information
         return shell_run(
             cmd=full_cmd,
             cwd=path,
@@ -142,7 +141,7 @@ class ManagedWorkdir(
     @classmethod
     def shell_run_from_path(
         cls, path: FileStringOrPath, cmd: list[str] | str
-    ) -> None | ShellResult:
+    ) -> ShellResult:
         from wexample_helpers.helpers.shell import shell_run
 
         return shell_run(
@@ -359,6 +358,9 @@ class ManagedWorkdir(
 
     def manager_run_command(self, **kwargs) -> AppManagerShellResult:
         return self.manager_run_command_from_path(path=self.get_path(), **kwargs)
+
+    def manager_run(self, cmd: list[str] | str) -> ShellResult:
+        return self.manager_run_from_path(path=self.get_path(), cmd=cmd)
 
     def prepare_value(self, raw_value: DictConfig | None = None) -> DictConfig:
         from wexample_app.const.globals import (
