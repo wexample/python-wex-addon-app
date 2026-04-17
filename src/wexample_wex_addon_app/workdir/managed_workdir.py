@@ -362,6 +362,15 @@ class ManagedWorkdir(
     def manager_run(self, cmd: list[str] | str) -> ShellResult:
         return self.manager_run_from_path(path=self.get_path(), cmd=cmd)
 
+    def clear_logs(self) -> None:
+        import shutil
+        from wexample_app.const.path import APP_DIR_NAME_TMP
+
+        logs_dir = self.get_path() / APP_DIR_NAME_TMP / "logs" / "errors"
+        if logs_dir.exists():
+            shutil.rmtree(logs_dir)
+            logs_dir.mkdir(parents=True, exist_ok=True)
+
     def prepare_value(self, raw_value: DictConfig | None = None) -> DictConfig:
         from wexample_app.const.globals import (
             APP_FILE_APP_CONFIG,
