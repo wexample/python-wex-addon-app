@@ -110,6 +110,7 @@ class ManagedWorkdir(
             OUTPUT_FORMAT_JSON,
             "--output-target",
             OUTPUT_TARGET_FILE,
+            "--subprocess",
         ] + cmd
 
         # Run the manager command in the given workdir
@@ -128,7 +129,7 @@ class ManagedWorkdir(
         if not isinstance(cmd, list):
             cmd = [cmd]
 
-        full_cmd = [str(APP_PATH_BIN_APP_MANAGER)]
+        full_cmd = [str(APP_PATH_BIN_APP_MANAGER), "--subprocess"]
         full_cmd.extend(cmd)
 
         # Ask parent suite to generate the info registry that contains packages readme information
