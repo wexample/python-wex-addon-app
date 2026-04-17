@@ -366,10 +366,9 @@ class ManagedWorkdir(
         import shutil
         from wexample_app.const.path import APP_DIR_NAME_TMP
 
-        logs_dir = self.get_path() / APP_DIR_NAME_TMP / "logs" / "errors"
+        logs_dir = self.get_path() / APP_DIR_NAME_TMP / "logs"
         if logs_dir.exists():
             shutil.rmtree(logs_dir)
-            logs_dir.mkdir(parents=True, exist_ok=True)
 
     def prepare_value(self, raw_value: DictConfig | None = None) -> DictConfig:
         from wexample_app.const.globals import (
