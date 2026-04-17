@@ -147,12 +147,9 @@ class CodeBaseWorkdir(RepoWorkdir):
         """Return the name used by other packages to mark it as a dependency"""
         return self.get_package_name()
 
-    def git_run(self, *args, **kwargs):
-        return git_run(
-            cwd=self.get_path(),
-            *args,
-            **kwargs,
-        )
+    def git_run(self, cmd, **kwargs):
+        kwargs.setdefault("cwd", self.get_path())
+        return git_run(cmd, **kwargs)
 
     def has_working_changes(self) -> bool:
         from wexample_helpers_git.helpers.git import git_has_working_changes
@@ -211,7 +208,6 @@ class CodeBaseWorkdir(RepoWorkdir):
                     f"Merge branch '{branch_name}' into {current_branch}",
                 ],
                 inherit_stdio=True,
-                cwd=cwd,
             )
 
             # Step 2: Switch to main
@@ -229,7 +225,6 @@ class CodeBaseWorkdir(RepoWorkdir):
                     f"Merge branch '{current_branch}' into {branch_name}",
                 ],
                 inherit_stdio=True,
-                cwd=cwd,
             )
 
             self.success(f"Successfully merged {current_branch} into {branch_name}")
