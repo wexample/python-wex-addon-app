@@ -39,3 +39,4 @@ class MigrationWex607(AbstractMigration):
 
         with open(config_path, "w") as file:
             yaml.safe_dump(config, file, sort_keys=False)
+
