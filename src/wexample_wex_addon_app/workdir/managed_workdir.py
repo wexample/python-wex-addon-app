@@ -211,6 +211,16 @@ class ManagedWorkdir(
         if not self.is_app_workdir_path_setup(path=self.get_path()):
             self.setup_install()
 
+    def build_runtime_config_value(self):
+        from wexample_config.config_value.nested_config_value import NestedConfigValue
+        from wexample_helpers.helpers.dict import dict_merge
+
+        base = super().build_runtime_config_value()
+        project_name = f"{self.get_project_name()}_{self.get_app_env()}"
+        return NestedConfigValue(
+            raw=dict_merge(base.to_dict(), {"app": {"project_name": project_name}})
+        )
+
     def get_app_env(self) -> str | None:
         from wexample_app.const.env import ENV_NAME_PROD
 
