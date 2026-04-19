@@ -8,7 +8,7 @@ from wexample_wex_core.decorator.command import command
 from wexample_wex_core.decorator.middleware import middleware
 from wexample_wex_core.decorator.option import option
 
-from wexample_wex_addon_app.const.service import SERVICE_TAG_DB
+from wexample_wex_addon_app.const.service import SERVICE_CONFIG_PROXY, SERVICE_TAG_DB
 from wexample_wex_addon_app.middleware.app_middleware import AppMiddleware
 
 if TYPE_CHECKING:
@@ -91,6 +91,9 @@ def app__service__install(
                 and config.search("docker.db.main").is_none()
             ):
                 config.set_by_path("docker.db.main", normalized_service_name)
+
+            if (manifest.get("config") or {}).get(SERVICE_CONFIG_PROXY):
+                config.set_by_path("helper.proxy", {})
 
             config_file.write_config(config)
             app_workdir.get_runtime_config(rebuild=True)
