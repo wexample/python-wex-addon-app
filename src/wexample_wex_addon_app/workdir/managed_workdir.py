@@ -266,7 +266,7 @@ class ManagedWorkdir(
         return self.get_runtime_config().search(f"libraries").get_list_or_default()
 
     def get_main_container_name(self) -> str:
-        config = self.get_runtime_config().search("docker.main_container")
+        config = self.get_runtime_config().search("app.docker.main_container")
         if not config.is_none():
             return config.get_str()
         main_service = self.get_main_service()
@@ -349,7 +349,7 @@ class ManagedWorkdir(
         return app_config
 
     def get_service_shell(self, service: str | None = None) -> str:
-        config = self.get_runtime_config().search("docker.main_container_shell")
+        config = self.get_runtime_config().search("app.docker.main_container_shell")
         if not config.is_none():
             return config.get_str()
         return "/bin/bash"
