@@ -133,10 +133,18 @@ def app__config__write(
         if addon_base_compose.exists():
             compose_files.append(str(addon_base_compose))
 
-        # Service composes first — base templates (e.g. php, symfony from wex addons).
-        # App-level and env-level composes come after so they can override service defaults.
+        # Service composes first — base templates (e.g. symfony from wex addons).
+        # Parent services in an inheritance chain (e.g. php extended by symfony) are
+        # present in the runtime only to expose their compose path as an env var
+        # (e.g. SERVICE_PHP_COMPOSE) for docker-compose `extends:` references.
+        # They must NOT be merged as standalone containers.
+        installed_services = set(
+            (app_workdir.get_config().search("service").to_dict() or {}).keys()
+        )
         for service_name, service_data in runtime.get("service", {}).items():
             if service_name == "default":
+                continue
+            if service_name not in installed_services:
                 continue
             if not isinstance(service_data, dict):
                 continue

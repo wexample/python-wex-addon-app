@@ -4,7 +4,9 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 from wexample_helpers.classes.abstract_method import abstract_method
+from wexample_helpers.classes.private_field import private_field
 from wexample_helpers.const.types import PathOrString
+from wexample_helpers.decorator.base_class import base_class
 from wexample_wex_core.resolver.addon_command_resolver import AddonCommandResolver
 
 from wexample_wex_addon_app.workdir.managed_workdir import ManagedWorkdir
@@ -21,7 +23,17 @@ if TYPE_CHECKING:
     )
 
 
+@base_class
 class FrameworkPackageSuiteWorkdir(RepoWorkdir):
+    _packages_by_name_cache: dict | None = private_field(
+        default=None,
+        description="Cached name→package lookup, invalidated on reload",
+    )
+    _packages_cache: list | None = private_field(
+        default=None,
+        description="Cached package list, invalidated on reload",
+    )
+
     def build_dependencies_map(self) -> dict[str, list[str]]:
         dependencies = {}
         for package in self.get_packages():
@@ -131,16 +143,22 @@ class FrameworkPackageSuiteWorkdir(RepoWorkdir):
         by_name = {p.get_package_name(): p for p in self.get_packages()}
         return [by_name[name] for name in order if name in by_name]
 
-    def get_package(self, package_name: str) -> CodeBaseWorkdir | None:
-        for package in self.get_packages():
-            if package.get_package_name() == package_name:
-                return package
-        return None
+    def get_package(
+        self, package_name: str, reload: bool = False
+    ) -> CodeBaseWorkdir | None:
+        if reload or self._packages_by_name_cache is None:
+            self._packages_by_name_cache = {
+                p.get_package_name(): p for p in self.get_packages(reload=reload)
+            }
+        return self._packages_by_name_cache.get(package_name)
 
-    def get_packages(self) -> list[CodeBaseWorkdir]:
-        return self.find_all_by_type(
-            class_type=self._get_children_package_workdir_class(), recursive=True
-        )
+    def get_packages(self, reload: bool = False) -> list[CodeBaseWorkdir]:
+        if reload or self._packages_cache is None:
+            self._packages_cache = self.find_all_by_type(
+                class_type=self._get_children_package_workdir_class(), recursive=True
+            )
+            self._packages_by_name_cache = None
+        return self._packages_cache
 
     def get_packages_paths(self) -> list[Path]:
         """Return all resolved package paths that are directories only."""
@@ -188,6 +206,7 @@ class FrameworkPackageSuiteWorkdir(RepoWorkdir):
         command: str,
         arguments: list[str] | None = None,
         force: bool = False,
+        fail_fast: bool = True,
     ) -> None:
         """Execute a manager command on all packages."""
         self._packages_execute(
@@ -195,6 +214,7 @@ class FrameworkPackageSuiteWorkdir(RepoWorkdir):
             executor_method=ManagedWorkdir.manager_run_from_path,
             message="Executing command",
             force=force,
+            fail_fast=fail_fast,
         )
 
     def packages_execute_shell(self, cmd: list[str], force: bool = False) -> None:
@@ -484,6 +504,7 @@ class FrameworkPackageSuiteWorkdir(RepoWorkdir):
         executor_method: callable,
         message: str,
         force: bool = False,
+        fail_fast: bool = True,
     ) -> None:
         """
         Generic method to execute a command on all detected packages.
@@ -493,10 +514,13 @@ class FrameworkPackageSuiteWorkdir(RepoWorkdir):
             executor_method: Method used to execute the command (e.g. manager_run_from_path, shell_run_from_path)
             message: Displayed title message
             force: If True, run even if directory is not recognized as an app workdir
+            fail_fast: If True (default), stop on first error. If False, continue and report all failures at end.
         """
         import shlex
 
         from wexample_prompt.enums.terminal_color import TerminalColor
+
+        failed_packages = []
 
         for package_path in self.get_packages_paths():
             if not force and not ManagedWorkdir.is_app_workdir_path(path=package_path):
@@ -510,8 +534,18 @@ class FrameworkPackageSuiteWorkdir(RepoWorkdir):
                 result = executor_method(cmd=cmd, path=package_path)
                 if result is None:
                     self.log("Invalid package directory, skipping.", indentation=1)
-            except Exception as e:
-                self.log(f"Error executing command: {e}", indentation=1)
-                return
+            except Exception:
+                failed_packages.append(package_path)
+                if fail_fast:
+                    raise
+                self.log(f"Package failed, continuing.", indentation=1)
+                self.separator(color=TerminalColor.BLACK)
+                continue
 
             self.separator(color=TerminalColor.BLACK)
+
+        if failed_packages and not fail_fast:
+            names = [p.name if hasattr(p, "name") else str(p) for p in failed_packages]
+            self.warning(
+                f"{len(failed_packages)} package(s) failed: {', '.join(names)}"
+            )

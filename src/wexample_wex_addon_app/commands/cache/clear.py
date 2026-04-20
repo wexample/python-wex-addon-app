@@ -21,4 +21,5 @@ def app__cache__clear(
     app_workdir: ManagedWorkdir,
 ) -> None:
     app_workdir.clear_runtime_config_cache()
+    app_workdir.clear_logs()
     context.io.success("Cache cleared.")

@@ -42,9 +42,9 @@ def app__app__stop(
     from wexample_wex_core.const.globals import CORE_DIR_NAME_TMP
 
     app_path = app_workdir.get_path()
-    compose_file = str(
-        app_path / WORKDIR_SETUP_DIR / CORE_DIR_NAME_TMP / "docker-compose.runtime.yml"
-    )
+    tmp_dir = app_path / WORKDIR_SETUP_DIR / CORE_DIR_NAME_TMP
+    compose_file = str(tmp_dir / "docker-compose.runtime.yml")
+    docker_env_file = str(tmp_dir / "docker.env")
 
     def _checkup(previous_value=None):
         from wexample_app.response.queue_collection.queued_collection_stop_response import (
@@ -62,13 +62,30 @@ def app__app__stop(
     def _stop(previous_value=None) -> ShellCommandResponse:
         return ShellCommandResponse(
             kernel=context.kernel,
-            content=["docker", "compose", "-f", compose_file, "stop"],
+            content=[
+                "docker",
+                "compose",
+                "--env-file",
+                docker_env_file,
+                "-f",
+                compose_file,
+                "stop",
+            ],
         )
 
     def _rm(previous_value=None) -> ShellCommandResponse:
         return ShellCommandResponse(
             kernel=context.kernel,
-            content=["docker", "compose", "-f", compose_file, "rm", "-f"],
+            content=[
+                "docker",
+                "compose",
+                "--env-file",
+                docker_env_file,
+                "-f",
+                compose_file,
+                "rm",
+                "-f",
+            ],
         )
 
     def _complete(previous_value=None) -> None:

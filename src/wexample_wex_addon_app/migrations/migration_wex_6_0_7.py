@@ -11,9 +11,7 @@ if TYPE_CHECKING:
 
 class MigrationWex607(AbstractMigration):
     VERSION = "6.0.7"
-    DESCRIPTION = (
-        "Replace require_proxy: true with service.proxy: {} in .wex/config.yml"
-    )
+    DESCRIPTION = "Replace require_proxy: true with helper.proxy: {} in .wex/config.yml"
 
     def apply(self, context: MigrationContext) -> None:
         config_path = context.target_path / ".wex" / "config.yml"
@@ -29,12 +27,12 @@ class MigrationWex607(AbstractMigration):
         if config.get("require_proxy") is not True:
             return
 
-        service = config.get("service")
-        if not isinstance(service, dict):
-            service = {}
-            config["service"] = service
+        helper = config.get("helper")
+        if not isinstance(helper, dict):
+            helper = {}
+            config["helper"] = helper
 
-        service.setdefault("proxy", {})
+        helper.setdefault("proxy", {})
         config.pop("require_proxy", None)
 
         with open(config_path, "w") as file:

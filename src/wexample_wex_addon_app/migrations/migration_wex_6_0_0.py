@@ -1,7 +1,6 @@
 from __future__ import annotations
 
-import os
-from pathlib import Path
+import stat
 from typing import TYPE_CHECKING
 
 from wexample_migration.abstract_migration import AbstractMigration
@@ -9,26 +8,33 @@ from wexample_migration.abstract_migration import AbstractMigration
 if TYPE_CHECKING:
     from wexample_migration.migration_context import MigrationContext
 
-_WEX6_APP_MANAGER = Path(
-    "/home/weeger/Desktop/WIP/WEB/WEXAMPLE/WEX/local/wex-6/.wex/bin/app-manager"
-)
-
 
 class MigrationWex600(AbstractMigration):
     VERSION = "6.0.0"
-    DESCRIPTION = (
-        "Migrate wex-5 app structure to wex-6: create .wex/bin/app-manager symlink"
-    )
+    DESCRIPTION = "Migrate wex-5 app structure to wex-6: write .wex/bin/app-manager from resources"
 
     def apply(self, context: MigrationContext) -> None:
+        from wexample_wex_addon_app.app_addon_manager import AppAddonManager
+
         bin_dir = context.target_path / ".wex" / "bin"
         bin_dir.mkdir(parents=True, exist_ok=True)
 
-        symlink = bin_dir / "app-manager"
-        if symlink.exists() or symlink.is_symlink():
-            symlink.unlink()
+        target = bin_dir / "app-manager"
 
-        os.symlink(_WEX6_APP_MANAGER, symlink)
+        # Remove broken symlink or stale file before writing
+        if target.is_symlink() or target.exists():
+            target.unlink()
+
+        source = AppAddonManager.get_shell_manager_path()
+        target.write_text(source.read_text())
+        target.chmod(
+            target.stat().st_mode
+            | stat.S_IRWXU
+            | stat.S_IRGRP
+            | stat.S_IXGRP
+            | stat.S_IROTH
+            | stat.S_IXOTH
+        )
 
     def guess_version(self, context: MigrationContext) -> bool:
         # A wex-5 app has wex.version starting with "5." in config.yml
@@ -49,9 +55,9 @@ class MigrationWex600(AbstractMigration):
         return isinstance(wex_version, str) and wex_version.startswith("5.")
 
     def rollback(self, context: MigrationContext) -> None:
-        symlink = context.target_path / ".wex" / "bin" / "app-manager"
-        if symlink.is_symlink():
-            symlink.unlink()
+        target = context.target_path / ".wex" / "bin" / "app-manager"
+        if target.exists() and not target.is_symlink():
+            target.unlink()
 
         bin_dir = context.target_path / ".wex" / "bin"
         try:

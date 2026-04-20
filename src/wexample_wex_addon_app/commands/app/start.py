@@ -132,8 +132,8 @@ def app__app__start(
         if app_workdir.get_path().resolve() == proxy_path.resolve():
             return
 
-        # Skip if proxy not required (no service.proxy in config)
-        if app_workdir.get_config().search("service.proxy").is_none():
+        # Skip if proxy not required (no helper.proxy in config)
+        if app_workdir.get_config().search("helper.proxy").is_none():
             return
 
         if no_proxy:

@@ -31,17 +31,18 @@ def registry_purge_stopped() -> None:
         active = {}
 
         for app_path, entry in data["apps"].items():
-            runtime_compose = (
-                Path(app_path) / ".wex" / "tmp" / "docker-compose.runtime.yml"
-            )
+            tmp_dir = Path(app_path) / ".wex" / "tmp"
+            runtime_compose = tmp_dir / "docker-compose.runtime.yml"
+            docker_env = tmp_dir / "docker.env"
             if not runtime_compose.exists():
                 continue
 
-            result = subprocess.run(
-                ["docker", "compose", "-f", str(runtime_compose), "ps", "-q"],
-                capture_output=True,
-                text=True,
-            )
+            cmd = ["docker", "compose"]
+            if docker_env.exists():
+                cmd += ["--env-file", str(docker_env)]
+            cmd += ["-f", str(runtime_compose), "ps", "-q"]
+
+            result = subprocess.run(cmd, capture_output=True, text=True)
             if result.returncode == 0 and result.stdout.strip():
                 active[app_path] = entry
 

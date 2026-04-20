@@ -181,6 +181,12 @@ class AppAddonManager(AbstractAddonManager):
             SuiteOrEachPackageMiddleware,
         ]
 
+    def get_service_docker_container_name(self, service: str) -> str | None:
+        app_workdir = self.create_app_workdir()
+        if app_workdir is None:
+            return None
+        return app_workdir.docker_build_long_container_name(service)
+
     def get_service_inheritance_chain(self, service_name: str) -> list[str]:
         chain: list[str] = []
         current = service_name
@@ -232,6 +238,13 @@ class AppAddonManager(AbstractAddonManager):
             return {}
 
         return yaml_read(file_path=str(service_dir / "service.yml"), default={}) or {}
+
+    def get_step_guard_classes(self) -> list[type]:
+        from wexample_wex_addon_app.yaml.app_should_run_step_guard import (
+            AppShouldRunStepGuard,
+        )
+
+        return [AppShouldRunStepGuard]
 
     def run_service_hook(
         self,

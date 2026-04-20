@@ -8,6 +8,7 @@ from typing import TYPE_CHECKING, Any
 from wexample_app.const.output import OUTPUT_FORMAT_JSON, OUTPUT_TARGET_FILE
 from wexample_app.helpers.request import request_build_id
 from wexample_app.item.file.iml_file import ImlFile
+from wexample_app.workdir.mixin.with_local_data_mixin import WithLocalDataMixin
 from wexample_app.workdir.mixin.with_runtime_config_mixin import WithRuntimeConfigMixin
 from wexample_filestate.item.mixin.with_runners_root_mixin import WithRunnersRootMixin
 from wexample_helpers.const.types import FileStringOrPath
@@ -56,6 +57,7 @@ class ManagedWorkdir(
     WithAppVersionWorkdirMixin,
     WithRuntimeConfigMixin,
     WithAppRegistryMixin,
+    WithLocalDataMixin,
     Workdir,
 ):
     @classmethod
@@ -108,6 +110,7 @@ class ManagedWorkdir(
             OUTPUT_FORMAT_JSON,
             "--output-target",
             OUTPUT_TARGET_FILE,
+            "--subprocess",
         ] + cmd
 
         # Run the manager command in the given workdir
@@ -119,17 +122,16 @@ class ManagedWorkdir(
     @classmethod
     def manager_run_from_path(
         cls, path: FileStringOrPath, cmd: list[str] | str
-    ) -> None | ShellResult:
+    ) -> ShellResult:
         from wexample_app.const.globals import APP_PATH_BIN_APP_MANAGER
         from wexample_helpers.helpers.shell import shell_run
 
         if not isinstance(cmd, list):
             cmd = [cmd]
 
-        full_cmd = [str(APP_PATH_BIN_APP_MANAGER)]
+        full_cmd = [str(APP_PATH_BIN_APP_MANAGER), "--subprocess"]
         full_cmd.extend(cmd)
 
-        # Ask parent suite to generate the info registry that contains packages readme information
         return shell_run(
             cmd=full_cmd,
             cwd=path,
@@ -139,7 +141,7 @@ class ManagedWorkdir(
     @classmethod
     def shell_run_from_path(
         cls, path: FileStringOrPath, cmd: list[str] | str
-    ) -> None | ShellResult:
+    ) -> ShellResult:
         from wexample_helpers.helpers.shell import shell_run
 
         return shell_run(
@@ -185,6 +187,25 @@ class ManagedWorkdir(
             command=app__file_state__rectify,
             arguments=args,
         ).get_output()
+
+    def build_runtime_config_value(self) -> NestedConfigValue:
+        from wexample_config.config_value.nested_config_value import NestedConfigValue
+        from wexample_helpers.helpers.dict import dict_merge
+
+        base = super().build_runtime_config_value()
+        project_name = f"{self.get_project_name()}_{self.get_app_env()}"
+        return NestedConfigValue(
+            raw=dict_merge(base.to_dict(), {"app": {"project_name": project_name}})
+        )
+
+    def clear_logs(self) -> None:
+        import shutil
+
+        from wexample_app.const.path import APP_DIR_NAME_TMP
+
+        logs_dir = self.get_path() / APP_DIR_NAME_TMP / "logs"
+        if logs_dir.exists():
+            shutil.rmtree(logs_dir)
 
     def configure(self, config: DictConfig) -> None:
         super().configure(config=config)
@@ -354,6 +375,9 @@ class ManagedWorkdir(
                 self.update_dependencies(publishable_dependencies)
         self.io.success("All libraries versions are up to date.")
 
+    def manager_run(self, cmd: list[str] | str) -> ShellResult:
+        return self.manager_run_from_path(path=self.get_path(), cmd=cmd)
+
     def manager_run_command(self, **kwargs) -> AppManagerShellResult:
         return self.manager_run_command_from_path(path=self.get_path(), **kwargs)
 
@@ -361,6 +385,7 @@ class ManagedWorkdir(
         from wexample_app.const.globals import (
             APP_FILE_APP_CONFIG,
             APP_FILE_APP_MANAGER,
+            WORKDIR_LOCAL_DIR_NAME,
             WORKDIR_SETUP_DIR,
         )
         from wexample_filestate.config_value.file_content_config_value import (
@@ -431,12 +456,26 @@ class ManagedWorkdir(
                         "should_exist": True,
                     },
                     {
+                        # local — machine-specific state, never committed
+                        "name": WORKDIR_LOCAL_DIR_NAME,
+                        "type": DiskItemType.DIRECTORY,
+                        "should_exist": True,
+                        "children": [
+                            {
+                                "name": ".gitkeep",
+                                "type": DiskItemType.FILE,
+                                "should_exist": True,
+                            }
+                        ],
+                    },
+                    {
                         "name": ".gitignore",
                         "type": DiskItemType.FILE,
                         "should_exist": True,
                         "should_contain_lines": [
                             EnvFile.EXTENSION_DOT_ENV,
                             str(CORE_DIR_NAME_TMP) + "/",
+                            f"{WORKDIR_LOCAL_DIR_NAME}/",
                         ],
                         TextOption.get_name(): {"end_new_line": True},
                     },

@@ -147,12 +147,9 @@ class CodeBaseWorkdir(RepoWorkdir):
         """Return the name used by other packages to mark it as a dependency"""
         return self.get_package_name()
 
-    def git_run(self, *args, **kwargs):
-        return git_run(
-            cwd=self.get_path(),
-            *args,
-            **kwargs,
-        )
+    def git_run(self, cmd, **kwargs):
+        kwargs.setdefault("cwd", self.get_path())
+        return git_run(cmd, **kwargs)
 
     def has_working_changes(self) -> bool:
         from wexample_helpers_git.helpers.git import git_has_working_changes
@@ -177,7 +174,6 @@ class CodeBaseWorkdir(RepoWorkdir):
 
         Raises if there are uncommitted changes or merge conflicts.
         """
-        from wexample_helpers.helpers.shell import shell_run
         from wexample_helpers_git.helpers.git import (
             git_current_branch,
             git_has_uncommitted_changes,
@@ -203,9 +199,8 @@ class CodeBaseWorkdir(RepoWorkdir):
         try:
             # Step 1: Merge main into current branch to ensure compatibility
             self.info(f"Merging {branch_name} into {current_branch}...")
-            shell_run(
+            self.git_run(
                 [
-                    "git",
                     "merge",
                     branch_name,
                     "--no-ff",
@@ -213,7 +208,6 @@ class CodeBaseWorkdir(RepoWorkdir):
                     f"Merge branch '{branch_name}' into {current_branch}",
                 ],
                 inherit_stdio=True,
-                cwd=cwd,
             )
 
             # Step 2: Switch to main
@@ -222,9 +216,8 @@ class CodeBaseWorkdir(RepoWorkdir):
 
             # Step 3: Merge current branch into main
             self.info(f"Merging {current_branch} into {branch_name}...")
-            shell_run(
+            self.git_run(
                 [
-                    "git",
                     "merge",
                     current_branch,
                     "--no-ff",
@@ -232,7 +225,6 @@ class CodeBaseWorkdir(RepoWorkdir):
                     f"Merge branch '{current_branch}' into {branch_name}",
                 ],
                 inherit_stdio=True,
-                cwd=cwd,
             )
 
             self.success(f"Successfully merged {current_branch} into {branch_name}")
