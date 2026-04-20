@@ -110,7 +110,7 @@ def app__config__write(
         from wexample_wex_addon_app.app_addon_manager import AppAddonManager
 
         app_manager = AppAddonManager.from_kernel(context.kernel)
-        runtime = app_workdir.get_runtime_config_file().read_config().to_dict()
+        app_workdir.get_runtime_config_file().read_config().to_dict()
         docker_env_path = tmp_dir / "docker.env"
         compose_runtime_path = tmp_dir / "docker-compose.runtime.yml"
 
@@ -132,26 +132,6 @@ def app__config__write(
         )
         if addon_base_compose.exists():
             compose_files.append(str(addon_base_compose))
-
-        # Service composes first — base templates (e.g. symfony from wex addons).
-        # Parent services in an inheritance chain (e.g. php extended by symfony) are
-        # present in the runtime only to expose their compose path as an env var
-        # (e.g. SERVICE_PHP_COMPOSE) for docker-compose `extends:` references.
-        # They must NOT be merged as standalone containers.
-        installed_services = set(
-            (app_workdir.get_config().search("service").to_dict() or {}).keys()
-        )
-        for service_name, service_data in runtime.get("service", {}).items():
-            if service_name == "default":
-                continue
-            if service_name not in installed_services:
-                continue
-            if not isinstance(service_data, dict):
-                continue
-            if "compose" in service_data:
-                compose_path = service_data["compose"]
-                if compose_path not in compose_files:
-                    compose_files.append(compose_path)
 
         # Base app compose
         base_compose = app_path / WORKDIR_SETUP_DIR / "docker" / "docker-compose.yml"
