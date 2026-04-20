@@ -40,6 +40,16 @@ def app__suite__publish(
     context.io.title("Suite publication status")
     app_workdir.manager_run_command(command=app__suite__status)
 
+    # Fast path: check for changes before doing expensive validation/ordering.
+    packages_with_changes: set[str] | None = None
+    if not force:
+        packages_with_changes = {
+            p.get_package_name() for p in app_workdir.compute_packages_to_publish()
+        }
+        if not packages_with_changes:
+            context.io.log("No packages have changes. Nothing to publish.")
+            return
+
     if not ignore_dependencies:
         app_workdir.packages_validate_internal_dependencies_declarations()
 
@@ -50,16 +60,7 @@ def app__suite__publish(
         command="app::libraries/sync",
     )
 
-    # Pre-snapshot which packages have real source changes BEFORE the publish
-    # loop starts.  propagate_version (called inside each publish_bumped) writes
-    # the new version into dependents' config files on disk without committing.
-    # If we checked inside the loop those dirty files would create false positives
-    # for packages that have no actual source changes.
-    packages_with_changes: set[str] | None = None
     if not force:
-        packages_with_changes = {
-            p.get_package_name() for p in app_workdir.compute_packages_to_publish()
-        }
         to_publish = [
             p.get_package_name()
             for p in packages
@@ -76,9 +77,6 @@ def app__suite__publish(
         if to_skip:
             context.io.log(f"Packages with no changes, skipped ({len(to_skip)}):")
             context.io.list(to_skip)
-        if not to_publish:
-            context.io.log("No packages have changes. Nothing to publish.")
-            return
 
     context.io.log("Starting deployment...")
     context.io.indentation_up()
