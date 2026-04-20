@@ -25,14 +25,15 @@ if TYPE_CHECKING:
 
 @base_class
 class FrameworkPackageSuiteWorkdir(RepoWorkdir):
-    _packages_cache: list | None = private_field(
-        default=None,
-        description="Cached package list, invalidated on reload",
-    )
     _packages_by_name_cache: dict | None = private_field(
         default=None,
         description="Cached name→package lookup, invalidated on reload",
     )
+    _packages_cache: list | None = private_field(
+        default=None,
+        description="Cached package list, invalidated on reload",
+    )
+
     def build_dependencies_map(self) -> dict[str, list[str]]:
         dependencies = {}
         for package in self.get_packages():
@@ -142,7 +143,9 @@ class FrameworkPackageSuiteWorkdir(RepoWorkdir):
         by_name = {p.get_package_name(): p for p in self.get_packages()}
         return [by_name[name] for name in order if name in by_name]
 
-    def get_package(self, package_name: str, reload: bool = False) -> CodeBaseWorkdir | None:
+    def get_package(
+        self, package_name: str, reload: bool = False
+    ) -> CodeBaseWorkdir | None:
         if reload or self._packages_by_name_cache is None:
             self._packages_by_name_cache = {
                 p.get_package_name(): p for p in self.get_packages(reload=reload)
@@ -531,7 +534,7 @@ class FrameworkPackageSuiteWorkdir(RepoWorkdir):
                 result = executor_method(cmd=cmd, path=package_path)
                 if result is None:
                     self.log("Invalid package directory, skipping.", indentation=1)
-            except Exception as e:
+            except Exception:
                 failed_packages.append(package_path)
                 if fail_fast:
                     raise

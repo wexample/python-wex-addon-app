@@ -11,9 +11,7 @@ if TYPE_CHECKING:
 
 class MigrationWex600(AbstractMigration):
     VERSION = "6.0.0"
-    DESCRIPTION = (
-        "Migrate wex-5 app structure to wex-6: write .wex/bin/app-manager from resources"
-    )
+    DESCRIPTION = "Migrate wex-5 app structure to wex-6: write .wex/bin/app-manager from resources"
 
     def apply(self, context: MigrationContext) -> None:
         from wexample_wex_addon_app.app_addon_manager import AppAddonManager
@@ -29,7 +27,14 @@ class MigrationWex600(AbstractMigration):
 
         source = AppAddonManager.get_shell_manager_path()
         target.write_text(source.read_text())
-        target.chmod(target.stat().st_mode | stat.S_IRWXU | stat.S_IRGRP | stat.S_IXGRP | stat.S_IROTH | stat.S_IXOTH)
+        target.chmod(
+            target.stat().st_mode
+            | stat.S_IRWXU
+            | stat.S_IRGRP
+            | stat.S_IXGRP
+            | stat.S_IROTH
+            | stat.S_IXOTH
+        )
 
     def guess_version(self, context: MigrationContext) -> bool:
         # A wex-5 app has wex.version starting with "5." in config.yml

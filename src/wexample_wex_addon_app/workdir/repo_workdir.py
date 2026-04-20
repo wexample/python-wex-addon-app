@@ -34,10 +34,16 @@ class RepoWorkdir(ManagedWorkdir):
 
         def _bump() -> None:
             from wexample_helpers.helpers.shell import shell_run
-            from wexample_helpers_git.helpers.git import git_current_branch, git_switch_branch
+            from wexample_helpers_git.helpers.git import (
+                git_current_branch,
+                git_switch_branch,
+            )
 
             if git_current_branch(cwd=self.get_path()) == branch_name:
-                self.log(message=f'Already on branch "{branch_name}", resuming', indentation=1)
+                self.log(
+                    message=f'Already on branch "{branch_name}", resuming',
+                    indentation=1,
+                )
             else:
                 # `git branch -f` creates the branch if it doesn't exist, or resets it to
                 # HEAD if it does (e.g. a previous failed bump left a stale branch).
@@ -77,6 +83,52 @@ class RepoWorkdir(ManagedWorkdir):
             _bump()
             return True
         return False
+
+    def check_publish_prerequisites(self) -> None:
+        import os
+        import pathlib
+        import stat
+
+        sock = os.environ.get("SSH_AUTH_SOCK", "")
+
+        if sock:
+            try:
+                if stat.S_ISSOCK(os.stat(sock).st_mode):
+                    return
+            except OSError:
+                pass
+            self.warning(
+                f"SSH_AUTH_SOCK points to missing socket {sock!r}, trying auto-detect..."
+            )
+
+        os.getuid()
+        candidates = (
+            [
+                p
+                for uid_dir in pathlib.Path("/run/user").iterdir()
+                if pathlib.Path("/run/user").exists()
+                for p in [
+                    str(uid_dir / "keyring" / "ssh"),
+                    str(uid_dir / "gnupg" / "S.gpg-agent.ssh"),
+                ]
+            ]
+            if pathlib.Path("/run/user").exists()
+            else []
+        )
+
+        for path in candidates:
+            if pathlib.Path(path).is_socket():
+                os.environ["SSH_AUTH_SOCK"] = path
+                self._persist_env_value("SSH_AUTH_SOCK", path)
+                self.info(
+                    f"Auto-detected SSH agent socket at {path!r} — saved to .wex/local/env.yml"
+                )
+                return
+
+        raise RuntimeError(
+            "SSH_AUTH_SOCK is not set and no SSH agent socket could be auto-detected.\n"
+            "Fix: run `eval $(ssh-agent) && ssh-add`, then `wex configure/env`"
+        )
 
     def classify_version_bump(self) -> str:
         """Return the version bump type for this package based on changes since last tag.
@@ -181,6 +233,7 @@ class RepoWorkdir(ManagedWorkdir):
         if not self.should_be_published(force=force):
             return
 
+        self.check_publish_prerequisites()
         self.clear_runtime_config_cache()
         self._publish(force=force)
         self._wait_for_registry()
@@ -332,6 +385,18 @@ class RepoWorkdir(ManagedWorkdir):
 
     def _get_test_code_directories(self) -> list[TargetFileOrDirectoryType]:
         return []
+
+    def _persist_env_value(self, key: str, value: str) -> None:
+        try:
+            from wexample_wex_core.workdir.kernel_workdir import KernelWorkdir
+
+            kernel_workdir = self.parent_io_handler.workdir
+            if isinstance(kernel_workdir, KernelWorkdir):
+                data = kernel_workdir.get_local_data("env")
+                data[key] = value
+                kernel_workdir.set_local_data("env", data)
+        except Exception:
+            pass
 
     def _publish(self, force: bool = False) -> None:
         pass

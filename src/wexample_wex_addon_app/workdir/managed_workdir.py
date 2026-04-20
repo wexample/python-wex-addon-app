@@ -188,6 +188,25 @@ class ManagedWorkdir(
             arguments=args,
         ).get_output()
 
+    def build_runtime_config_value(self) -> NestedConfigValue:
+        from wexample_config.config_value.nested_config_value import NestedConfigValue
+        from wexample_helpers.helpers.dict import dict_merge
+
+        base = super().build_runtime_config_value()
+        project_name = f"{self.get_project_name()}_{self.get_app_env()}"
+        return NestedConfigValue(
+            raw=dict_merge(base.to_dict(), {"app": {"project_name": project_name}})
+        )
+
+    def clear_logs(self) -> None:
+        import shutil
+
+        from wexample_app.const.path import APP_DIR_NAME_TMP
+
+        logs_dir = self.get_path() / APP_DIR_NAME_TMP / "logs"
+        if logs_dir.exists():
+            shutil.rmtree(logs_dir)
+
     def configure(self, config: DictConfig) -> None:
         super().configure(config=config)
 
@@ -210,16 +229,6 @@ class ManagedWorkdir(
     def ensure_app_manager_setup(self) -> None:
         if not self.is_app_workdir_path_setup(path=self.get_path()):
             self.setup_install()
-
-    def build_runtime_config_value(self):
-        from wexample_config.config_value.nested_config_value import NestedConfigValue
-        from wexample_helpers.helpers.dict import dict_merge
-
-        base = super().build_runtime_config_value()
-        project_name = f"{self.get_project_name()}_{self.get_app_env()}"
-        return NestedConfigValue(
-            raw=dict_merge(base.to_dict(), {"app": {"project_name": project_name}})
-        )
 
     def get_app_env(self) -> str | None:
         from wexample_app.const.env import ENV_NAME_PROD
@@ -366,19 +375,11 @@ class ManagedWorkdir(
                 self.update_dependencies(publishable_dependencies)
         self.io.success("All libraries versions are up to date.")
 
-    def manager_run_command(self, **kwargs) -> AppManagerShellResult:
-        return self.manager_run_command_from_path(path=self.get_path(), **kwargs)
-
     def manager_run(self, cmd: list[str] | str) -> ShellResult:
         return self.manager_run_from_path(path=self.get_path(), cmd=cmd)
 
-    def clear_logs(self) -> None:
-        import shutil
-        from wexample_app.const.path import APP_DIR_NAME_TMP
-
-        logs_dir = self.get_path() / APP_DIR_NAME_TMP / "logs"
-        if logs_dir.exists():
-            shutil.rmtree(logs_dir)
+    def manager_run_command(self, **kwargs) -> AppManagerShellResult:
+        return self.manager_run_command_from_path(path=self.get_path(), **kwargs)
 
     def prepare_value(self, raw_value: DictConfig | None = None) -> DictConfig:
         from wexample_app.const.globals import (

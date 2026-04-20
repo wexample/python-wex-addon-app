@@ -126,7 +126,9 @@ def _rewrite_yaml_file(path: Path) -> None:
 
     converted = _convert_yaml(data, path)
     path.write_text(
-        yaml.dump(converted, default_flow_style=False, sort_keys=False, allow_unicode=True)
+        yaml.dump(
+            converted, default_flow_style=False, sort_keys=False, allow_unicode=True
+        )
     )
 
 
@@ -160,6 +162,7 @@ class MigrationWex6017(AbstractMigration):
                             item.rename(dest)
                 # Remove old_dir tree (should be empty or contain only dirs now)
                 import shutil
+
                 shutil.rmtree(old_dir)
             else:
                 old_dir.rename(new_dir)

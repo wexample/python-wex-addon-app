@@ -62,13 +62,30 @@ def app__app__stop(
     def _stop(previous_value=None) -> ShellCommandResponse:
         return ShellCommandResponse(
             kernel=context.kernel,
-            content=["docker", "compose", "--env-file", docker_env_file, "-f", compose_file, "stop"],
+            content=[
+                "docker",
+                "compose",
+                "--env-file",
+                docker_env_file,
+                "-f",
+                compose_file,
+                "stop",
+            ],
         )
 
     def _rm(previous_value=None) -> ShellCommandResponse:
         return ShellCommandResponse(
             kernel=context.kernel,
-            content=["docker", "compose", "--env-file", docker_env_file, "-f", compose_file, "rm", "-f"],
+            content=[
+                "docker",
+                "compose",
+                "--env-file",
+                docker_env_file,
+                "-f",
+                compose_file,
+                "rm",
+                "-f",
+            ],
         )
 
     def _complete(previous_value=None) -> None:

@@ -11,9 +11,7 @@ if TYPE_CHECKING:
 
 class MigrationWex607(AbstractMigration):
     VERSION = "6.0.7"
-    DESCRIPTION = (
-        "Replace require_proxy: true with helper.proxy: {} in .wex/config.yml"
-    )
+    DESCRIPTION = "Replace require_proxy: true with helper.proxy: {} in .wex/config.yml"
 
     def apply(self, context: MigrationContext) -> None:
         config_path = context.target_path / ".wex" / "config.yml"
@@ -39,4 +37,3 @@ class MigrationWex607(AbstractMigration):
 
         with open(config_path, "w") as file:
             yaml.safe_dump(config, file, sort_keys=False)
-

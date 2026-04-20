@@ -15,11 +15,6 @@ class AppShouldRunStepGuard(AbstractStepGuard):
     def get_step_options(cls) -> list[str]:
         return ["app_should_run"]
 
-    def should_skip(self, step: dict, kernel: Kernel) -> bool:
-        if not step.get("app_should_run"):
-            return False
-        return not self._is_app_started(kernel)
-
     @staticmethod
     def _is_app_started(kernel: Kernel) -> bool:
         try:
@@ -36,3 +31,8 @@ class AppShouldRunStepGuard(AbstractStepGuard):
             return bool(result.content) if result is not None else False
         except Exception:
             return False
+
+    def should_skip(self, step: dict, kernel: Kernel) -> bool:
+        if not step.get("app_should_run"):
+            return False
+        return not self._is_app_started(kernel)
