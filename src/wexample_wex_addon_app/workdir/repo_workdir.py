@@ -157,6 +157,10 @@ class RepoWorkdir(ManagedWorkdir):
     def count_test_files(self) -> int:
         return self._count_files(self._get_test_code_directories())
 
+    def get_dep_propagation_tag_name(self) -> str:
+        """Return the tag name used to mark the last dep-propagation-only commit."""
+        return f"{self.get_package_name()}/dep-propagation"
+
     def get_last_publication_tag(self) -> str | None:
         """Return the last publication tag for this package, or None if none exists."""
         from wexample_helpers_git.helpers.git import git_last_tag_for_prefix
@@ -169,10 +173,6 @@ class RepoWorkdir(ManagedWorkdir):
 
     def get_package_name(self) -> str:
         return self.get_project_name()
-
-    def get_dep_propagation_tag_name(self) -> str:
-        """Return the tag name used to mark the last dep-propagation-only commit."""
-        return f"{self.get_package_name()}/dep-propagation"
 
     def get_publication_tag_name(self) -> str:
         """Return the conventional tag name for this package publication.
