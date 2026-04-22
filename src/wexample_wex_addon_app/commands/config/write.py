@@ -133,6 +133,20 @@ def app__config__write(
         if addon_base_compose.exists():
             compose_files.append(str(addon_base_compose))
 
+        # DESIGN: service addon compose files are intentionally NOT added to compose_files here.
+        #
+        # Each service declares a samples/docker/docker-compose.yml that is copied into
+        # the app's .wex/docker/docker-compose.yml at service/install time. Those sample
+        # entries use `extends: file: ${SERVICE_X_COMPOSE}` so Docker Compose resolves
+        # them directly via env-var path — no need to list the base compose with -f.
+        #
+        # Adding base service composes to -f would duplicate services: if the app names
+        # its service differently from the addon (e.g. drive_maria vs maria), both would
+        # appear in the merged compose with the same container_name, causing a conflict.
+        #
+        # If you are tempted to re-add service composes here to fix missing containers,
+        # the real fix is to add a samples/docker/docker-compose.yml to the service addon
+        # with the appropriate extends entries — not to patch this function.
         # Base app compose
         base_compose = app_path / WORKDIR_SETUP_DIR / "docker" / "docker-compose.yml"
         if base_compose.exists():
