@@ -157,6 +157,10 @@ class RepoWorkdir(ManagedWorkdir):
     def count_test_files(self) -> int:
         return self._count_files(self._get_test_code_directories())
 
+    def get_dep_propagation_tag_name(self) -> str:
+        """Return the tag name used to mark the last dep-propagation-only commit."""
+        return f"{self.get_package_name()}/dep-propagation"
+
     def get_last_publication_tag(self) -> str | None:
         """Return the last publication tag for this package, or None if none exists."""
         from wexample_helpers_git.helpers.git import git_last_tag_for_prefix
@@ -210,14 +214,26 @@ class RepoWorkdir(ManagedWorkdir):
         """Return True if there are changes in the package directory since the last publication tag.
 
         If there is no previous tag, returns True (first publication).
+        Returns False when the only commits since the last pub tag are dep-propagation commits
+        (i.e. the dep-propagation tag exists and points to HEAD).
         """
-        from wexample_helpers_git.helpers.git import git_has_changes_since_tag
+        from wexample_helpers_git.helpers.git import (
+            git_has_changes_since_tag,
+            git_tag_exists,
+            git_tag_points_to_head,
+        )
 
         last_tag = self.get_last_publication_tag()
         if last_tag is None:
             return True
-        # Limit diff to current package folder, run from package cwd using '.'
-        return git_has_changes_since_tag(last_tag, ".", cwd=self.get_path())
+        if not git_has_changes_since_tag(last_tag, ".", cwd=self.get_path()):
+            return False
+        prop_tag = self.get_dep_propagation_tag_name()
+        if git_tag_exists(prop_tag, cwd=self.get_path()) and git_tag_points_to_head(
+            prop_tag, cwd=self.get_path()
+        ):
+            return False
+        return True
 
     def publish(self, force: bool = False) -> None:
         import pwd
@@ -255,6 +271,7 @@ class RepoWorkdir(ManagedWorkdir):
         from wexample_wex_addon_app.commands.file_state.rectify import (
             app__file_state__rectify,
         )
+        from wexample_wex_addon_app.commands.libraries.sync import app__libraries__sync
         from wexample_wex_addon_app.commands.package.bump import app__package__bump
         from wexample_wex_addon_app.commands.package.commit_and_push import (
             app__package__commit_and_push,
@@ -281,8 +298,12 @@ class RepoWorkdir(ManagedWorkdir):
         # Use --force to publish even without detected changes (e.g. to force a rectify pass).
         if force or _has_changes:
             sub_progress = self.progress(
-                total=5, color=TerminalColor.YELLOW, indentation=1, print_response=False
+                total=6, color=TerminalColor.YELLOW, indentation=1, print_response=False
             ).get_handle()
+            sub_progress.advance(
+                step=1, label=f"Syncing libraries for {self.get_project_name()}"
+            )
+            self.manager_run_command(command=app__libraries__sync)
             sub_progress.advance(step=1, label=f"Bumping {self.get_project_name()}")
             bump_args = []
             if force:
