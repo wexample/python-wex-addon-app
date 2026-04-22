@@ -271,6 +271,7 @@ class RepoWorkdir(ManagedWorkdir):
         from wexample_wex_addon_app.commands.file_state.rectify import (
             app__file_state__rectify,
         )
+        from wexample_wex_addon_app.commands.libraries.sync import app__libraries__sync
         from wexample_wex_addon_app.commands.package.bump import app__package__bump
         from wexample_wex_addon_app.commands.package.commit_and_push import (
             app__package__commit_and_push,
@@ -297,8 +298,12 @@ class RepoWorkdir(ManagedWorkdir):
         # Use --force to publish even without detected changes (e.g. to force a rectify pass).
         if force or _has_changes:
             sub_progress = self.progress(
-                total=5, color=TerminalColor.YELLOW, indentation=1, print_response=False
+                total=6, color=TerminalColor.YELLOW, indentation=1, print_response=False
             ).get_handle()
+            sub_progress.advance(
+                step=1, label=f"Syncing libraries for {self.get_project_name()}"
+            )
+            self.manager_run_command(command=app__libraries__sync)
             sub_progress.advance(step=1, label=f"Bumping {self.get_project_name()}")
             bump_args = []
             if force:

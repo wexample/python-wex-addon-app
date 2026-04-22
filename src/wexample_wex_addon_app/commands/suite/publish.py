@@ -55,11 +55,6 @@ def app__suite__publish(
 
     packages = app_workdir.get_ordered_packages()
 
-    # Sync libraries if configured.
-    app_workdir.packages_execute_manager(
-        command="app::libraries/sync",
-    )
-
     if not force:
         to_publish = [
             p.get_package_name()
