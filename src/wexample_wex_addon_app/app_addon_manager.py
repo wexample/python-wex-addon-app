@@ -82,6 +82,34 @@ class AppAddonManager(AbstractAddonManager):
             parent_io_handler=self.kernel,
         )
 
+    def docker_cp(
+        self, service: str, local_src: Path | str, container_dest: str
+    ) -> None:
+        import subprocess
+
+        container = self.get_service_docker_container_name(service)
+        if not container:
+            raise RuntimeError(f"No Docker container found for service '{service}'")
+        subprocess.run(
+            ["docker", "cp", str(local_src), f"{container}:{container_dest}"],
+            check=True,
+        )
+
+    def docker_exec(
+        self, service: str, args: list[str], capture: bool = True
+    ) -> subprocess.CompletedProcess[str]:
+        import subprocess
+
+        container = self.get_service_docker_container_name(service)
+        if not container:
+            raise RuntimeError(f"No Docker container found for service '{service}'")
+        return subprocess.run(
+            ["docker", "exec", container] + args,
+            check=True,
+            capture_output=capture,
+            text=True,
+        )
+
     def find_service_dir(self, service_name: str) -> Path | None:
         from wexample_wex_core.resolver.service_command_resolver import _SERVICES_SUBDIR
 
@@ -186,31 +214,6 @@ class AppAddonManager(AbstractAddonManager):
         if app_workdir is None:
             return None
         return app_workdir.docker_build_long_container_name(service)
-
-    def docker_exec(self, service: str, args: list[str], capture: bool = True) -> "subprocess.CompletedProcess[str]":
-        import subprocess
-
-        container = self.get_service_docker_container_name(service)
-        if not container:
-            raise RuntimeError(f"No Docker container found for service '{service}'")
-        return subprocess.run(
-            ["docker", "exec", container] + args,
-            check=True,
-            capture_output=capture,
-            text=True,
-        )
-
-    def docker_cp(self, service: str, local_src: "Path | str", container_dest: str) -> None:
-        import subprocess
-        from pathlib import Path
-
-        container = self.get_service_docker_container_name(service)
-        if not container:
-            raise RuntimeError(f"No Docker container found for service '{service}'")
-        subprocess.run(
-            ["docker", "cp", str(local_src), f"{container}:{container_dest}"],
-            check=True,
-        )
 
     def get_service_inheritance_chain(self, service_name: str) -> list[str]:
         chain: list[str] = []

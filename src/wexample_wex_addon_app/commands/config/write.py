@@ -147,7 +147,6 @@ def app__config__write(
         # If you are tempted to re-add service composes here to fix missing containers,
         # the real fix is to add a samples/docker/docker-compose.yml to the service addon
         # with the appropriate extends entries — not to patch this function.
-
         # Base app compose
         base_compose = app_path / WORKDIR_SETUP_DIR / "docker" / "docker-compose.yml"
         if base_compose.exists():

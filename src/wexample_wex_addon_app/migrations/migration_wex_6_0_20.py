@@ -16,18 +16,6 @@ class MigrationWex6020(AbstractMigration):
         ".wex/env/*/apache/ directories, and update references in docker-compose files."
     )
 
-    def _apache_dirs(self, target_path: Path) -> list[Path]:
-        dirs = [target_path / ".wex" / "apache"]
-        env_dir = target_path / ".wex" / "env"
-        if env_dir.is_dir():
-            for d in env_dir.glob("*/apache"):
-                if d.is_dir():
-                    dirs.append(d)
-        return dirs
-
-    def _docker_compose_files(self, target_path: Path) -> list[Path]:
-        return list((target_path / ".wex").rglob("docker-compose.yml"))
-
     def apply(self, context: MigrationContext) -> None:
         for apache_dir in self._apache_dirs(context.target_path):
             old = apache_dir / "apache.conf"
@@ -38,7 +26,9 @@ class MigrationWex6020(AbstractMigration):
         for compose_file in self._docker_compose_files(context.target_path):
             content = compose_file.read_text()
             if "apache/apache.conf" in content:
-                compose_file.write_text(content.replace("apache/apache.conf", "apache/web.conf"))
+                compose_file.write_text(
+                    content.replace("apache/apache.conf", "apache/web.conf")
+                )
 
     def rollback(self, context: MigrationContext) -> None:
         for apache_dir in self._apache_dirs(context.target_path):
@@ -50,4 +40,18 @@ class MigrationWex6020(AbstractMigration):
         for compose_file in self._docker_compose_files(context.target_path):
             content = compose_file.read_text()
             if "apache/web.conf" in content:
-                compose_file.write_text(content.replace("apache/web.conf", "apache/apache.conf"))
+                compose_file.write_text(
+                    content.replace("apache/web.conf", "apache/apache.conf")
+                )
+
+    def _apache_dirs(self, target_path: Path) -> list[Path]:
+        dirs = [target_path / ".wex" / "apache"]
+        env_dir = target_path / ".wex" / "env"
+        if env_dir.is_dir():
+            for d in env_dir.glob("*/apache"):
+                if d.is_dir():
+                    dirs.append(d)
+        return dirs
+
+    def _docker_compose_files(self, target_path: Path) -> list[Path]:
+        return list((target_path / ".wex").rglob("docker-compose.yml"))
