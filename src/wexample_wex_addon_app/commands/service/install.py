@@ -98,7 +98,9 @@ def app__service__install(
             config_file.write_config(config)
             app_workdir.get_runtime_config(rebuild=True)
 
-            # Copy service samples into app
+            # Copy service samples into app — docker-compose.yml files are merged
+            # (services: section) instead of overwritten, so installing a new service
+            # never erases compose entries from previously installed services.
             for (
                 inherited_service_name
             ) in app_addon_manager.get_service_inheritance_chain(
@@ -114,9 +116,54 @@ def app__service__install(
                 from wexample_helpers.helpers.file import file_copytree_as_real_user
 
                 samples_dir = inherited_service_dir / "samples"
-                if samples_dir.is_dir():
-                    app_setup_path = app_workdir.get_path() / WORKDIR_SETUP_DIR
-                    file_copytree_as_real_user(samples_dir, app_setup_path)
+                if not samples_dir.is_dir():
+                    continue
+
+                app_setup_path = app_workdir.get_path() / WORKDIR_SETUP_DIR
+
+                # Merge docker-compose.yml files rather than overwriting
+                import yaml
+                from pathlib import Path
+
+                for src_compose in samples_dir.rglob("docker-compose.yml"):
+                    rel = src_compose.relative_to(samples_dir)
+                    dst_compose = app_setup_path / rel
+
+                    if dst_compose.exists():
+                        existing = yaml.safe_load(dst_compose.read_text()) or {}
+                        incoming = yaml.safe_load(src_compose.read_text()) or {}
+
+                        for top_key in ("services", "volumes", "networks"):
+                            if top_key in incoming:
+                                existing.setdefault(top_key, {})
+                                # Incoming entries win if key already present
+                                existing[top_key].update(incoming[top_key])
+
+                        import os
+                        from wexample_helpers.helpers.user import user_get_real_uid, user_get_real_gid
+                        dst_compose.write_text(yaml.dump(existing, default_flow_style=False, allow_unicode=True))
+                        os.chown(dst_compose, user_get_real_uid(), user_get_real_gid())
+                        continue
+
+                    # File doesn't exist yet — use normal copy for this one file
+                    dst_compose.parent.mkdir(parents=True, exist_ok=True)
+                    import shutil, os
+                    from wexample_helpers.helpers.user import user_get_real_uid, user_get_real_gid
+                    shutil.copy2(src_compose, dst_compose)
+                    os.chown(dst_compose, user_get_real_uid(), user_get_real_gid())
+
+                # Copy all non-compose files normally
+                non_compose = [f for f in samples_dir.rglob("*") if f.is_file() and f.name != "docker-compose.yml"]
+                if non_compose:
+                    import shutil, os
+                    from wexample_helpers.helpers.user import user_get_real_uid, user_get_real_gid
+                    uid, gid = user_get_real_uid(), user_get_real_gid()
+                    for src_file in non_compose:
+                        rel = src_file.relative_to(samples_dir)
+                        dst_file = app_setup_path / rel
+                        dst_file.parent.mkdir(parents=True, exist_ok=True)
+                        shutil.copy2(src_file, dst_file)
+                        os.chown(dst_file, uid, gid)
 
             # Write vars declared in service.yml into .env (skip if already present)
             app_service = app_addon_manager.get_app_service(
