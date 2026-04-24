@@ -125,6 +125,7 @@ class CodeBaseWorkdir(RepoWorkdir):
             prop_tag,
             cwd=cwd,
             remote=self._get_deployment_remote_name(),
+            force=True,
             inherit_stdio=True,
         )
 
