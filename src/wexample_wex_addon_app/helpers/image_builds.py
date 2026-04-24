@@ -4,16 +4,17 @@ from pathlib import Path
 
 import yaml
 
-BUILDS_FILE = ".wex/docker/builds.yml"
-
 
 def load_builds(app_path: Path) -> dict:
-    builds_file = app_path / BUILDS_FILE
-    if not builds_file.exists():
-        raise FileNotFoundError(f"No builds.yml found at {builds_file}")
-    with open(builds_file) as f:
+    config_file = app_path / ".wex" / "config.yml"
+    if not config_file.exists():
+        raise FileNotFoundError(f"No config.yml found at {config_file}")
+    with open(config_file) as f:
         data = yaml.safe_load(f) or {}
-    return data.get("builds", {})
+    images = data.get("docker", {}).get("images", {})
+    if not images:
+        raise KeyError("No docker.images section found in .wex/config.yml")
+    return images
 
 
 def resolve_build_order(builds: dict, name: str | None = None) -> list[str]:
@@ -23,7 +24,7 @@ def resolve_build_order(builds: dict, name: str | None = None) -> list[str]:
     """
     if name is not None:
         if name not in builds:
-            raise KeyError(f"Build '{name}' not found in builds.yml")
+            raise KeyError(f"Build '{name}' not found in docker.images config")
         targets = _collect_deps(builds, name)
     else:
         targets = set(builds.keys())
