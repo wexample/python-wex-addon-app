@@ -98,7 +98,9 @@ def app__service__install(
             config_file.write_config(config)
             app_workdir.get_runtime_config(rebuild=True)
 
-            # Copy service samples into app
+            # Copy service samples into app — docker-compose.yml files are merged
+            # (services: section) instead of overwritten, so installing a new service
+            # never erases compose entries from previously installed services.
             for (
                 inherited_service_name
             ) in app_addon_manager.get_service_inheritance_chain(
@@ -111,12 +113,19 @@ def app__service__install(
                     continue
 
                 from wexample_app.const.globals import WORKDIR_SETUP_DIR
-                from wexample_helpers.helpers.file import file_copytree_as_real_user
+                from wexample_helpers.helpers.file import file_copytree_merge_yaml
 
                 samples_dir = inherited_service_dir / "samples"
-                if samples_dir.is_dir():
-                    app_setup_path = app_workdir.get_path() / WORKDIR_SETUP_DIR
-                    file_copytree_as_real_user(samples_dir, app_setup_path)
+                if not samples_dir.is_dir():
+                    continue
+
+                app_setup_path = app_workdir.get_path() / WORKDIR_SETUP_DIR
+                file_copytree_merge_yaml(
+                    samples_dir,
+                    app_setup_path,
+                    merge_filenames=["docker-compose.yml"],
+                    merge_keys=["services", "volumes", "networks"],
+                )
 
             # Write vars declared in service.yml into .env (skip if already present)
             app_service = app_addon_manager.get_app_service(

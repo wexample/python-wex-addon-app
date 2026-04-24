@@ -110,6 +110,11 @@ class AppCommandResolver(AbstractCommandResolver):
                 return None
             current = parent
 
+    def get_request_addon_manager(self, request: CommandRequest):
+        from wexample_wex_addon_app.app_addon_manager import AppAddonManager
+
+        return AppAddonManager.from_kernel(request.kernel)
+
     def supports(self, request: CommandRequest) -> object:
         import sys
 
