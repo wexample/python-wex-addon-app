@@ -12,22 +12,33 @@ if TYPE_CHECKING:
 class MigrationWex6021(AbstractMigration):
     VERSION = "6.0.21"
     DESCRIPTION = (
-        "Move Dockerfile.* files from .wex/docker/ into .wex/docker/images/, "
-        "populate docker.images in .wex/config.yml from docker-compose build sections "
-        "and Dockerfile FROM lines, and update dockerfile references in all docker-compose files."
+        "Move Dockerfile.* files (and plain Dockerfile → Dockerfile.base) from "
+        ".wex/docker/ into .wex/docker/images/, populate docker.images in "
+        ".wex/config.yml from docker-compose build sections and Dockerfile FROM lines, "
+        "and update dockerfile references in all docker-compose files."
     )
 
     def apply(self, context: MigrationContext) -> None:
         docker_dir = context.target_path / ".wex" / "docker"
         images_dir = docker_dir / "images"
 
-        dockerfiles = list(docker_dir.glob("Dockerfile.*")) if docker_dir.is_dir() else []
+        if not docker_dir.is_dir():
+            return
+
+        # Normalize plain Dockerfile → Dockerfile.base before collecting
+        renamed_map: dict[str, str] = {}
+        plain = docker_dir / "Dockerfile"
+        if plain.exists() and not (docker_dir / "Dockerfile.base").exists():
+            plain.rename(docker_dir / "Dockerfile.base")
+            renamed_map["Dockerfile.base"] = "Dockerfile"
+
+        dockerfiles = list(docker_dir.glob("Dockerfile.*"))
         if not dockerfiles:
             return
 
         images_dir.mkdir(exist_ok=True)
 
-        moved = []
+        moved: list[str] = []
         for dockerfile in dockerfiles:
             dest = images_dir / dockerfile.name
             if not dest.exists():
@@ -41,8 +52,9 @@ class MigrationWex6021(AbstractMigration):
             content = compose_file.read_text()
             updated = content
             for name in moved:
+                original = renamed_map.get(name, name)
                 updated = updated.replace(
-                    f"docker/{name}",
+                    f"docker/{original}",
                     f"docker/images/{name}",
                 )
             if updated != content:
@@ -60,7 +72,7 @@ class MigrationWex6021(AbstractMigration):
             return
 
         dockerfiles = list(images_dir.glob("Dockerfile.*"))
-        moved = []
+        moved: list[str] = []
         for dockerfile in dockerfiles:
             dest = docker_dir / dockerfile.name
             if not dest.exists():
@@ -106,15 +118,21 @@ class MigrationWex6021(AbstractMigration):
         if data.get("docker", {}).get("images"):
             return
 
-        tags = self._extract_tags_from_composes(target_path, dockerfile_names)
         app_name = data.get("global", {}).get("name", "app")
-        images = {}
+        tags = self._extract_tags_from_composes(target_path, dockerfile_names)
 
+        # Build suffix→tag map (including fallbacks) for depends_on detection
+        suffix_tags: dict[str, str] = {}
         for name in dockerfile_names:
             suffix = name.replace("Dockerfile.", "")
-            tag = tags.get(name) or f"{app_name}-{suffix}:local"
+            suffix_tags[suffix] = tags.get(name) or f"{app_name}-{suffix}:local"
+
+        images = {}
+        for name in dockerfile_names:
+            suffix = name.replace("Dockerfile.", "")
+            tag = suffix_tags[suffix]
             depends_on = self._detect_depends_on(
-                images_dir / name, suffix, dockerfile_names
+                images_dir / name, suffix, suffix_tags
             )
             entry: dict = {
                 "dockerfile": f".wex/docker/images/{name}",
@@ -156,26 +174,36 @@ class MigrationWex6021(AbstractMigration):
         return tags
 
     def _detect_depends_on(
-        self, dockerfile_path: Path, own_suffix: str, all_names: list[str]
+        self,
+        dockerfile_path: Path,
+        own_suffix: str,
+        suffix_tags: dict[str, str],
     ) -> str | None:
-        """Read the first FROM line and match its image name against known build suffixes."""
+        """Read the first FROM line and match against known build suffixes or local tags."""
         if not dockerfile_path.exists():
             return None
         try:
             with open(dockerfile_path) as f:
                 for line in f:
                     stripped = line.strip()
-                    if stripped.upper().startswith("FROM "):
-                        parts = stripped.split()
-                        if len(parts) < 2:
-                            break
-                        image_ref = parts[1]
-                        image_name = image_ref.split(":")[0].split("/")[-1]
-                        for name in all_names:
-                            dep_suffix = name.replace("Dockerfile.", "")
-                            if image_name == dep_suffix and dep_suffix != own_suffix:
-                                return dep_suffix
+                    if not stripped.upper().startswith("FROM "):
+                        continue
+                    parts = stripped.split()
+                    if len(parts) < 2:
                         break
+                    image_ref = parts[1]
+                    image_name = image_ref.split(":")[0].split("/")[-1]
+
+                    for suffix, tag in suffix_tags.items():
+                        if suffix == own_suffix:
+                            continue
+                        # Match by suffix name (e.g., FROM .../core-base:master → core-base)
+                        if image_name == suffix:
+                            return suffix
+                        # Match by local tag (e.g., FROM pdf-generator:local)
+                        if image_ref == tag or image_ref.split(":")[0] == tag.split(":")[0]:
+                            return suffix
+                    break
         except Exception:
             pass
         return None

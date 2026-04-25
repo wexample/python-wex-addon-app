@@ -109,6 +109,14 @@ def app__config__write(
 
         from wexample_wex_addon_app.app_addon_manager import AppAddonManager
 
+        net_check = subprocess.run(
+            ["docker", "network", "inspect", "wex_net"],
+            capture_output=True,
+        )
+        if net_check.returncode != 0:
+            subprocess.run(["docker", "network", "create", "wex_net"], check=True)
+            context.io.log("Created docker network: wex_net")
+
         app_manager = AppAddonManager.from_kernel(context.kernel)
         app_workdir.get_runtime_config_file().read_config().to_dict()
         docker_env_path = tmp_dir / "docker.env"
