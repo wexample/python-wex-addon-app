@@ -141,7 +141,7 @@ def app__config__write(
         if addon_base_compose.exists():
             compose_files.append(str(addon_base_compose))
 
-        # DESIGN: service addon compose files are intentionally NOT added to compose_files here.
+        # Samples addon compose files are NOT added to compose_files here.
         #
         # Each service declares a samples/docker/docker-compose.yml that is copied into
         # the app's .wex/docker/docker-compose.yml at service/install time. Those sample
