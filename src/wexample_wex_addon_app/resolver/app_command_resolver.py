@@ -21,6 +21,32 @@ class AppCommandResolver(AbstractCommandResolver):
     directory, exactly as a user would expect when working inside a project.
     """
 
+    def autocomplete_suggest(self, cursor: int, search_split: list[str]) -> str | None:
+        from wexample_wex_core.const.globals import COMMAND_CHAR_APP
+
+        base = self.get_base_path()
+        if not base:
+            return None
+
+        # App commands are cwd-relative — scan filesystem directly, not the registry
+        commands_base = base / _COMMANDS_SUBDIR
+        app_data = self._scan_commands_dir(commands_base, "app")
+        app_cmds = sorted(cmd["command"] for cmd in app_data.values())
+
+        if not app_cmds:
+            return None
+
+        first = search_split[0] if search_split else ""
+
+        if cursor == 0:
+            if first == "":
+                return COMMAND_CHAR_APP
+            if first.startswith(COMMAND_CHAR_APP):
+                matches = [c for c in app_cmds if c.startswith(first)]
+                return " ".join(matches) or None
+
+        return None
+
     @classmethod
     def address_to_command(cls, address: CommandAddress) -> str:
         from wexample_helpers.helpers.string import string_to_kebab_case
