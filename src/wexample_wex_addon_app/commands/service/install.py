@@ -93,7 +93,7 @@ def app__service__install(
                 config.set_by_path("docker.db.main", normalized_service_name)
 
             if (manifest.get("config") or {}).get(SERVICE_CONFIG_PROXY):
-                config.set_by_path("helper.proxy", {})
+                config.set_by_path("sidecar.proxy", {})
 
             config_file.write_config(config)
             app_workdir.get_runtime_config(rebuild=True)

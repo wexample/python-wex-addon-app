@@ -121,19 +121,19 @@ def app__app__start(
             APP_STARTED_CHECK_MODE_ANY_CONTAINER,
             _check_started,
         )
-        from wexample_wex_addon_app.const.app import HELPER_APP_PROXY_SHORT_NAME
+        from wexample_wex_addon_app.const.app import SIDECAR_PROXY_NAME
 
         env = app_workdir.get_app_env()
-        proxy_path = AppAddonManager.get_helper_app_path(
-            name=HELPER_APP_PROXY_SHORT_NAME, env=env
+        proxy_path = AppAddonManager.get_sidecar_path(
+            name=SIDECAR_PROXY_NAME, env=env
         )
 
         # Skip if this app IS the proxy
         if app_workdir.get_path().resolve() == proxy_path.resolve():
             return
 
-        # Skip if proxy not required (no helper.proxy in config)
-        if app_workdir.get_config().search("helper.proxy").is_none():
+        # Skip if proxy not required (no sidecar.proxy in config)
+        if app_workdir.get_config().search("sidecar.proxy").is_none():
             return
 
         if no_proxy:
@@ -141,11 +141,11 @@ def app__app__start(
             return
 
         if not proxy_path.exists():
-            from wexample_wex_addon_app.commands.helper.start import app__helper__start
+            from wexample_wex_addon_app.commands.sidecar.start import app__sidecar__start
 
             return context.kernel.run_function(
-                app__helper__start,
-                {"name": HELPER_APP_PROXY_SHORT_NAME, "env": env},
+                app__sidecar__start,
+                {"name": SIDECAR_PROXY_NAME, "env": env},
             )
 
         proxy_workdir = AppAddonManager.from_kernel(context.kernel).create_app_workdir(

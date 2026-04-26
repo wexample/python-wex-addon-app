@@ -42,10 +42,10 @@ class AppAddonManager(AbstractAddonManager):
         )
 
     @staticmethod
-    def get_helper_app_path(name: str, env: str) -> Path:
-        from wexample_wex_addon_app.helpers.app import get_helper_app_path
+    def get_sidecar_path(name: str, env: str) -> Path:
+        from wexample_wex_addon_app.helpers.app import get_sidecar_path
 
-        return get_helper_app_path(name=name, env=env)
+        return get_sidecar_path(name=name, env=env)
 
     def create_app_workdir(
         self, path: PathOrString | None = None
