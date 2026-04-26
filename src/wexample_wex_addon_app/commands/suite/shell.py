@@ -29,7 +29,7 @@ if TYPE_CHECKING:
     type=COMMAND_TYPE_ADDON,
     description="Bump version for one or all package of the suite.",
 )
-def app__suite__exec_shell(
+def app__suite__shell(
     context: ExecutionContext,
     command: str,
     app_workdir: FrameworkPackageSuiteWorkdir,

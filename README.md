@@ -183,7 +183,7 @@ Commands use `PackageSuiteMiddleware` to ensure they receive a `FrameworkPackage
 - **`packages_execute_shell(cmd)`**: Execute shell commands on all packages
 - **`packages_execute_manager(command, arguments, context)`**: Execute manager commands (e.g., `app::info/show`) on all packages
 
-#### Example: `app::suite/exec-command`
+#### Example: `app::suite/run`
 
 ```python
 @middleware(middleware=PackageSuiteMiddleware)
@@ -205,10 +205,10 @@ def app__suite__exec_command(
 **Usage:**
 ```bash
 # Execute a manager command on all packages
-.wex/bin/app-manager app::suite/exec-command -c app::info/show
+.wex/bin/app-manager app::suite/run -c app::info/show
 
 # Execute a shell command on all packages
-.wex/bin/app-manager app::suite/exec-shell -c "ls -la"
+.wex/bin/app-manager app::suite/shell -c "ls -la"
 ```
 
 **Benefits:**
@@ -331,8 +331,8 @@ Commands:
 * `app::dependency/check`: Validates internal dependencies across the suite to prevent circular dependencies.
 
 ### Suite Execution
-* `app::suite/exec-command -c <command> [--arguments "<args>"]`: Executes a manager command on all packages (e.g., `app::info/show`).
-* `app::suite/exec-shell -c "<command>"`: Executes a shell command on all packages.
+* `app::suite/run -c <command> [--arguments "<args>"]`: Executes a manager command on all packages (e.g., `app::info/show`).
+* `app::suite/shell -c "<command>"`: Executes a shell command on all packages.
 
 ### Setup & Installation
 * `app::setup/install`: Installs PDM dependencies for the suite and all packages. Runs `pdm install` in the suite and each package.
@@ -372,7 +372,7 @@ app::state/rectify --all-packages
 
 **Get info for all packages:**
 ```bash
-app::suite/exec-command -c app::info/show
+app::suite/run -c app::info/show
 ```
 
 ## Introduction

@@ -44,7 +44,7 @@ if TYPE_CHECKING:
     type=COMMAND_TYPE_ADDON,
     description="Execute a command on all packages of the suite.",
 )
-def app__suite__exec_command(
+def app__suite__run(
     context: ExecutionContext,
     command: str,
     app_workdir: FrameworkPackageSuiteWorkdir,
