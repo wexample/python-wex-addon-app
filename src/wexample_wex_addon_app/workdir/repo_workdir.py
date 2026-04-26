@@ -272,13 +272,9 @@ class RepoWorkdir(ManagedWorkdir):
             app__state__rectify,
         )
         from wexample_wex_addon_app.commands.library.sync import app__library__sync
-        from wexample_wex_addon_app.commands.package.bump import app__package__bump
-        from wexample_wex_addon_app.commands.package.push import (
-            app__package__push,
-        )
-        from wexample_wex_addon_app.commands.package.publish import (
-            app__package__publish,
-        )
+        from wexample_wex_addon_app.commands.version.bump import app__version__bump
+        from wexample_wex_addon_app.commands.version.push import app__version__push
+        from wexample_wex_addon_app.commands.version.publish import app__version__publish
         from wexample_wex_addon_app.commands.version.propagate import (
             app__version__propagate,
         )
@@ -311,7 +307,7 @@ class RepoWorkdir(ManagedWorkdir):
             if not interactive:
                 bump_args.append("--yes")
             bump_response = self.manager_run_command(
-                command=app__package__bump, arguments=bump_args
+                command=app__version__bump, arguments=bump_args
             ).get_output_value()
             if not bump_response.is_true():
                 return
@@ -327,14 +323,14 @@ class RepoWorkdir(ManagedWorkdir):
             sub_progress.advance(
                 step=1, label=f"Committing and pushing {self.get_project_name()}"
             )
-            self.manager_run_command(command=app__package__push)
+            self.manager_run_command(command=app__version__push)
             sub_progress.advance(
                 step=1, label=f"Propagating version for {self.get_project_name()}"
             )
             self.manager_run_command(command=app__version__propagate)
             sub_progress.advance(step=1, label=f"Publishing {self.get_project_name()}")
             self.manager_run_command(
-                command=app__package__publish,
+                command=app__version__publish,
                 arguments=(["--force"] if force else []),
             )
 

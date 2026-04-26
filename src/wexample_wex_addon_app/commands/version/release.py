@@ -7,23 +7,21 @@ from wexample_wex_core.decorator.command import command
 from wexample_wex_core.decorator.middleware import middleware
 from wexample_wex_core.decorator.option import option
 
-from wexample_wex_addon_app.middleware.suite_or_each_package_middleware import (
-    SuiteOrEachPackageMiddleware,
-)
+from wexample_wex_addon_app.middleware.app_middleware import AppMiddleware
 from wexample_wex_addon_app.workdir.code_base_workdir import CodeBaseWorkdir
 
 if TYPE_CHECKING:
     from wexample_wex_core.context.execution_context import ExecutionContext
 
 
-@middleware(middleware=SuiteOrEachPackageMiddleware)
+@middleware(middleware=AppMiddleware)
 @option(name="yes", type=bool, default=False, is_flag=True)
 @option(name="force", type=bool, default=False, is_flag=True)
 @command(
     type=COMMAND_TYPE_ADDON,
-    description="Publish package to package manager (npm, PyPI, packagist, etc.). Use --all-packages to publish all packages in suite.",
+    description="Publish package to package manager (npm, PyPI, packagist, etc.).",
 )
-def app__package__release(
+def app__version__release(
     context: ExecutionContext,
     app_workdir: CodeBaseWorkdir,
     yes: bool = False,
