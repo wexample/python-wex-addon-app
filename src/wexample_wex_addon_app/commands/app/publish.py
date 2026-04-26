@@ -70,12 +70,12 @@ def app__app__publish(
             )
 
     def _rectify(previous_value=None) -> None:
-        from wexample_wex_addon_app.commands.file_state.rectify import (
-            app__file_state__rectify,
+        from wexample_wex_addon_app.commands.file.rectify import (
+            app__file__rectify,
         )
 
         context.kernel.run_function(
-            app__file_state__rectify,
+            app__file__rectify,
             arguments={"loop": True, "yes": yes},
         )
 

@@ -181,12 +181,12 @@ def app__service__install(
                 app_workdir=app_workdir,
             )
 
-            from wexample_wex_addon_app.commands.file_state.rectify import (
-                app__file_state__rectify,
+            from wexample_wex_addon_app.commands.file.rectify import (
+                app__file__rectify,
             )
 
             context.kernel.run_function(
-                app__file_state__rectify,
+                app__file__rectify,
                 {"yes": True},
             )
 

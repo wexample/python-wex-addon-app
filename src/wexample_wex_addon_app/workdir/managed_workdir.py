@@ -169,8 +169,8 @@ class ManagedWorkdir(
         max: int = None,
         **kwargs,
     ) -> FileStateResult | None:
-        from wexample_wex_addon_app.commands.file_state.rectify import (
-            app__file_state__rectify,
+        from wexample_wex_addon_app.commands.file.rectify import (
+            app__file__rectify,
         )
 
         args = []
@@ -184,7 +184,7 @@ class ManagedWorkdir(
             args.extend(["--filter-operation", filter_operation])
 
         return self.manager_run_command(
-            command=app__file_state__rectify,
+            command=app__file__rectify,
             arguments=args,
         ).get_output()
 

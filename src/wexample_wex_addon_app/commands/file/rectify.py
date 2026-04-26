@@ -29,7 +29,7 @@ if TYPE_CHECKING:
 @middleware(middleware=AppMiddleware)
 @middleware(middleware=EachSuitePackageMiddleware)
 @command(type=COMMAND_TYPE_ADDON)
-def app__file_state__rectify(
+def app__file__rectify(
     context: ExecutionContext,
     app_workdir: ManagedWorkdir,
     force: bool = False,
