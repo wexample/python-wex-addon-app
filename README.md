@@ -300,7 +300,7 @@ app::dependency/check
 app::version/propagate --packages-only
 
 # Commit and push all changes
-app::package/commit-and-push --all-packages --yes
+app::package/push --all-packages --yes
 ```
 
 **3. Publication**
@@ -325,7 +325,7 @@ Commands:
 * `app::version/propagate [--packages-only]`: Propagates the current package version to other packages in the suite that depend on it. Use `--packages-only` to propagate all versions at once.
 
 ### Git Operations
-* `app::package/commit-and-push [--all-packages] [--yes]`: Commits and pushes changes for a single package or all packages with uncommitted changes when using `--all-packages`.
+* `app::package/push [--all-packages] [--yes]`: Commits and pushes changes for a single package or all packages with uncommitted changes when using `--all-packages`.
 
 ### Dependencies Management
 * `app::dependency/check`: Validates internal dependencies across the suite to prevent circular dependencies.
@@ -352,7 +352,7 @@ app::setup/install --env local
 
 **Bump only packages with changes (excluding suite):**
 ```bash
-app::package/bump --packages-only --force && app::version/propagate --packages-only && app::package/commit-and-push --all-packages --yes
+app::package/bump --packages-only --force && app::version/propagate --packages-only && app::package/push --all-packages --yes
 ```
 
 **Bump suite and all packages:**

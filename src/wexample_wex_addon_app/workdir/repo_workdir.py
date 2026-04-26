@@ -273,8 +273,8 @@ class RepoWorkdir(ManagedWorkdir):
         )
         from wexample_wex_addon_app.commands.library.sync import app__library__sync
         from wexample_wex_addon_app.commands.package.bump import app__package__bump
-        from wexample_wex_addon_app.commands.package.commit_and_push import (
-            app__package__commit_and_push,
+        from wexample_wex_addon_app.commands.package.push import (
+            app__package__push,
         )
         from wexample_wex_addon_app.commands.package.publish import (
             app__package__publish,
@@ -327,7 +327,7 @@ class RepoWorkdir(ManagedWorkdir):
             sub_progress.advance(
                 step=1, label=f"Committing and pushing {self.get_project_name()}"
             )
-            self.manager_run_command(command=app__package__commit_and_push)
+            self.manager_run_command(command=app__package__push)
             sub_progress.advance(
                 step=1, label=f"Propagating version for {self.get_project_name()}"
             )
