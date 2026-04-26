@@ -268,8 +268,8 @@ class RepoWorkdir(ManagedWorkdir):
     ) -> None:
         from wexample_prompt.enums.terminal_color import TerminalColor
 
-        from wexample_wex_addon_app.commands.file.rectify import (
-            app__file__rectify,
+        from wexample_wex_addon_app.commands.state.rectify import (
+            app__state__rectify,
         )
         from wexample_wex_addon_app.commands.library.sync import app__library__sync
         from wexample_wex_addon_app.commands.package.bump import app__package__bump
@@ -322,7 +322,7 @@ class RepoWorkdir(ManagedWorkdir):
             if not interactive:
                 rectify_args.append("--yes")
             self.manager_run_command(
-                command=app__file__rectify, arguments=rectify_args
+                command=app__state__rectify, arguments=rectify_args
             )
             sub_progress.advance(
                 step=1, label=f"Committing and pushing {self.get_project_name()}"

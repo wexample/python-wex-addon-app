@@ -141,7 +141,7 @@ Commands are decorated with middleware that can optionally iterate over packages
   - When `--all-packages` is **not** specified: executes the command once on the target application
   - When `--all-packages` **is** specified: automatically iterates over all packages in the suite, executing the command on each package individually
 
-#### Example: `app::file/rectify`
+#### Example: `app::state/rectify`
 
 ```python
 @middleware(middleware=AppMiddleware)
@@ -160,10 +160,10 @@ def app__file_state__rectify(
 **Usage:**
 ```bash
 # Rectify only the main suite application
-.wex/bin/app-manager app::file/rectify
+.wex/bin/app-manager app::state/rectify
 
 # Rectify all packages in the suite
-.wex/bin/app-manager app::file/rectify --all-packages
+.wex/bin/app-manager app::state/rectify --all-packages
 ```
 
 **Benefits:**
@@ -288,7 +288,7 @@ app::setup/install --env local
 **2. Development Cycle**
 ```bash
 # Rectify code across all packages
-app::file/rectify --all-packages
+app::state/rectify --all-packages
 
 # Bump only packages with changes (excluding suite)
 app::package/bump --packages-only --force
@@ -310,7 +310,7 @@ app::suite/publish
 ```
 
 ### File State Management
-* `app::file/rectify [--all-packages]`: Normalizes/rectifies code for a single app or across all packages in the suite; no commits.
+* `app::state/rectify [--all-packages]`: Normalizes/rectifies code for a single app or across all packages in the suite; no commits.
 
 ### Version Management
 
@@ -367,7 +367,7 @@ app::package/bump --suite-only
 
 **Rectify all packages:**
 ```bash
-app::file/rectify --all-packages
+app::state/rectify --all-packages
 ```
 
 **Get info for all packages:**
@@ -401,7 +401,7 @@ From any package directory, you can execute commands through the App Manager:
 .wex/bin/app-manager app::info/show
 
 # Rectify file state for the current package
-.wex/bin/app-manager app::file/rectify
+.wex/bin/app-manager app::state/rectify
 
 # Bump the package version
 .wex/bin/app-manager app::package/bump

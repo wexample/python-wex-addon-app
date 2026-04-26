@@ -63,8 +63,8 @@ def app__app__init(
         string_to_snake_case,
     )
 
-    from wexample_wex_addon_app.commands.file.rectify import (
-        app__file__rectify,
+    from wexample_wex_addon_app.commands.state.rectify import (
+        app__state__rectify,
     )
     from wexample_wex_addon_app.commands.service.install import app__service__install
 
@@ -94,7 +94,7 @@ def app__app__init(
         )
 
     context.kernel.run_function(
-        app__file__rectify,
+        app__state__rectify,
         {"app_path": str(target_path), "yes": True},
     )
 
