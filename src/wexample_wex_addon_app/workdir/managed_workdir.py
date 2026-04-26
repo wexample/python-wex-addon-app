@@ -355,8 +355,8 @@ class ManagedWorkdir(
         return "/bin/bash"
 
     def libraries_sync(self) -> None:
-        from wexample_wex_addon_app.commands.dependencies.publish import (
-            app__dependencies__publish,
+        from wexample_wex_addon_app.commands.dependency.publish import (
+            app__dependency__publish,
         )
 
         for library_path_config in (
@@ -368,7 +368,7 @@ class ManagedWorkdir(
 
             if ManagedWorkdir.is_app_workdir_path(path=library_path_config.get_str()):
                 publishable_dependencies = ManagedWorkdir.manager_run_command_from_path(
-                    command=app__dependencies__publish,
+                    command=app__dependency__publish,
                     path=library_path_config.get_str(),
                 ).get_output()
 

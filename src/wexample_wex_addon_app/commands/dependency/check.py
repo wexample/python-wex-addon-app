@@ -22,7 +22,7 @@ if TYPE_CHECKING:
     type=COMMAND_TYPE_ADDON,
     description="Validate internal dependencies and propagate versions across all packages in the suite.",
 )
-def app__dependencies__check(
+def app__dependency__check(
     context: ExecutionContext,
     app_workdir: FrameworkPackageSuiteWorkdir,
 ) -> None:

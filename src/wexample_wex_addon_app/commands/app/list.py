@@ -13,7 +13,7 @@ if TYPE_CHECKING:
     type=COMMAND_TYPE_ADDON,
     description="List all running apps with their domains and containers",
 )
-def app__apps__list(
+def app__app__list(
     context: ExecutionContext,
 ) -> None:
     from wexample_wex_addon_app.commands.container.list import app__container__list

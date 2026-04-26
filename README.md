@@ -294,7 +294,7 @@ app::file-state/rectify --all-packages
 app::package/bump --packages-only --force
 
 # Check for circular dependencies
-app::dependencies/check
+app::dependency/check
 
 # Propagate versions across all packages
 app::version/propagate --packages-only
@@ -328,7 +328,7 @@ Commands:
 * `app::package/commit-and-push [--all-packages] [--yes]`: Commits and pushes changes for a single package or all packages with uncommitted changes when using `--all-packages`.
 
 ### Dependencies Management
-* `app::dependencies/check`: Validates internal dependencies across the suite to prevent circular dependencies.
+* `app::dependency/check`: Validates internal dependencies across the suite to prevent circular dependencies.
 
 ### Suite Execution
 * `app::suite/exec-command -c <command> [--arguments "<args>"]`: Executes a manager command on all packages (e.g., `app::info/show`).

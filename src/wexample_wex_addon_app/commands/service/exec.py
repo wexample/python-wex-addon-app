@@ -33,7 +33,7 @@ if TYPE_CHECKING:
 @command(
     type=COMMAND_TYPE_ADDON, description="Execute a hook for all installed services"
 )
-def app__services__exec(
+def app__service__exec(
     context: ExecutionContext,
     app_workdir: ManagedWorkdir,
     hook: str,
