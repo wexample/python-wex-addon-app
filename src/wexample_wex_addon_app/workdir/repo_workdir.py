@@ -260,7 +260,7 @@ class RepoWorkdir(ManagedWorkdir):
         self.merge_to_main()
         self.push_to_deployment_remote(branch_name=GIT_BRANCH_MAIN)
 
-    def publish_bumped(
+    def release(
         self,
         force: bool = False,
         interactive: bool = True,

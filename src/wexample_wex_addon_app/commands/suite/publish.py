@@ -88,7 +88,7 @@ def app__suite__publish(
         has_changes = (
             None if force else package.get_package_name() in packages_with_changes
         )
-        package.publish_bumped(
+        package.release(
             force=force, interactive=not yes, has_changes=has_changes
         )
 

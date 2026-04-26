@@ -23,13 +23,13 @@ if TYPE_CHECKING:
     type=COMMAND_TYPE_ADDON,
     description="Publish package to package manager (npm, PyPI, packagist, etc.). Use --all-packages to publish all packages in suite.",
 )
-def app__package__publish_bumped(
+def app__package__release(
     context: ExecutionContext,
     app_workdir: CodeBaseWorkdir,
     yes: bool = False,
     force: bool = False,
 ) -> None:
-    app_workdir.publish_bumped(
+    app_workdir.release(
         interactive=not yes,
         force=force,
     )
