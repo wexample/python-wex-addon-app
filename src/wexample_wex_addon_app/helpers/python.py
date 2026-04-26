@@ -45,7 +45,7 @@ def python_install_dependency_in_venv(
     ]
 
     if editable:
-        cmd.append("-e")
+        cmd.extend(["-e", "--no-cache-dir"])
 
     cmd.append(str(name))
 
