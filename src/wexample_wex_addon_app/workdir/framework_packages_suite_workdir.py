@@ -418,14 +418,58 @@ class FrameworkPackageSuiteWorkdir(RepoWorkdir):
         return dependencies
 
     def setup_install(self, env: str | None = None, force: bool = False) -> None:
+        from wexample_app.const.env import ENV_NAME_LOCAL
+
         self.subtitle(f"Installing suite: {self.get_project_name()}")
         super().setup_install(env=env, force=force)
+
+        if env == ENV_NAME_LOCAL:
+            self._pre_install_python_packages_editable(force=force)
 
         self.subtitle(f"Installing packages")
         for package in self.get_packages():
             package.ensure_app_manager_setup()
             self.log(f"Installing {package.get_project_name()}...")
             package.setup_install(env=env, force=force)
+
+    def _pre_install_python_packages_editable(self, force: bool = False) -> None:
+        from pathlib import Path
+
+        from wexample_wex_addon_app.helpers.python import (
+            python_install_dependency_in_venv,
+            python_is_package_installed_editable_in_venv,
+        )
+
+        venv_path_config = self.search_app_or_suite_runtime_config("python.venv_path")
+        if venv_path_config.is_none():
+            return
+
+        venv_path = Path(venv_path_config.get_str())
+        python_packages = [
+            p for p in self.get_ordered_packages()
+            if (p.get_path() / "pyproject.toml").exists()
+        ]
+
+        if not python_packages:
+            return
+
+        self.subtitle(
+            f"Pre-installing {len(python_packages)} Python packages in editable mode"
+        )
+        for pkg in python_packages:
+            pkg_path = pkg.get_path()
+            pkg_name = pkg.get_package_name()
+            if force or not python_is_package_installed_editable_in_venv(
+                venv_path=venv_path,
+                package_name=pkg_name,
+                package_path=pkg_path,
+            ):
+                self.log(f"  -e {pkg_name}")
+                python_install_dependency_in_venv(
+                    venv_path=venv_path, name=pkg_path, editable=True
+                )
+            else:
+                self.log(f"  [skip] {pkg_name} (already editable)")
 
     def topological_order(self, dep_map: dict[str, list[str]]) -> list[str]:
         """Deterministic topological order (leaves -> trunk) using graphlib."""
