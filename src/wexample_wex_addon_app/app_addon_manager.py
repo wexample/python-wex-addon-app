@@ -23,9 +23,9 @@ class AppAddonManager(AbstractAddonManager):
     @classmethod
     def from_kernel(cls, kernel) -> AppAddonManager:
         for addon in kernel.get_addons().values():
-            if isinstance(addon, cls):
+            if type(addon) is cls:
                 return addon
-        raise RuntimeError("AppAddonManager not registered in kernel")
+        raise RuntimeError(f"{cls.__name__} not registered in kernel")
 
     @classmethod
     def get_package_module(cls) -> Any:
