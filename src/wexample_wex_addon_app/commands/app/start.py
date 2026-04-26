@@ -162,12 +162,12 @@ def app__app__start(
 
     def _config(previous_value=None) -> AbstractResponse:
         from wexample_wex_addon_app.commands.app.perms import app__app__perms
-        from wexample_wex_addon_app.commands.config.write import app__config__write
+        from wexample_wex_addon_app.commands.config.build import app__config__build
 
         app_path_str = str(app_path)
         context.kernel.run_function(app__app__perms, {"app_path": app_path_str})
         return context.kernel.run_function(
-            app__config__write, {"app_path": app_path_str}
+            app__config__build, {"app_path": app_path_str}
         )
 
     def _setup_services(previous_value=None) -> None:

@@ -20,7 +20,7 @@ if TYPE_CHECKING:
     type=COMMAND_TYPE_ADDON,
     description="Generate runtime config and docker-compose.runtime.yml",
 )
-def app__config__write(
+def app__config__build(
     context: ExecutionContext,
     app_workdir: ManagedWorkdir,
 ) -> AbstractResponse:
