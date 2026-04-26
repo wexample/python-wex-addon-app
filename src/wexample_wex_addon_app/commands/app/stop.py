@@ -91,7 +91,7 @@ def app__app__stop(
     def _complete(previous_value=None) -> None:
         import yaml as _yaml
 
-        from wexample_wex_addon_app.commands.hosts.update import app__hosts__update
+        from wexample_wex_addon_app.commands.host.update import app__host__update
         from wexample_wex_addon_app.common.app_registry import registry_unregister_app
 
         runtime_path = app_workdir.get_runtime_config_file().get_path()
@@ -102,7 +102,7 @@ def app__app__stop(
             with open(runtime_path, "w") as f:
                 _yaml.dump(_data, f)
         registry_unregister_app(app_workdir)
-        context.kernel.run_function(app__hosts__update, {"app_path": str(app_path)})
+        context.kernel.run_function(app__host__update, {"app_path": str(app_path)})
 
     steps = [_stop, _rm, _complete] if force else [_checkup, _stop, _rm, _complete]
     return QueuedCollectionResponse(kernel=context.kernel, content=steps)
