@@ -84,7 +84,7 @@ class AppCommandResolver(AbstractCommandResolver):
     def build_command_path(
         self, request: CommandRequest, extension: str
     ) -> Path | None:
-        from wexample_helpers.helpers.string import string_to_snake_case
+        from wexample_helpers.helpers.string import string_to_kebab_case
         from wexample_wex_core.common.command_address import CommandAddress
 
         base = self.get_base_path()
@@ -93,8 +93,8 @@ class AppCommandResolver(AbstractCommandResolver):
 
         address = CommandAddress(
             addon="app",
-            group=string_to_snake_case(request.match.group(1)),
-            name=string_to_snake_case(request.match.group(2)),
+            group=string_to_kebab_case(request.match.group(1)),
+            name=string_to_kebab_case(request.match.group(2)),
         )
         return base / _COMMANDS_SUBDIR / address.to_relative_path(extension)
 
@@ -109,8 +109,8 @@ class AppCommandResolver(AbstractCommandResolver):
         if not base:
             return None
 
-        group = match.group(1).replace("-", "_")
-        name = match.group(2).replace("-", "_")
+        group = match.group(1)
+        name = match.group(2)
         target = base / _COMMANDS_SUBDIR / group / f"{name}.{extension}"
         return target, {"_type": "app", "group": group, "name": name}
 
