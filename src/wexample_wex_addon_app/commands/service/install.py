@@ -93,7 +93,7 @@ def app__service__install(
                 config.set_by_path("docker.db.main", normalized_service_name)
 
             if (manifest.get("config") or {}).get(SERVICE_CONFIG_PROXY):
-                config.set_by_path("helper.proxy", {})
+                config.set_by_path("sidecar.proxy", {})
 
             config_file.write_config(config)
             app_workdir.get_runtime_config(rebuild=True)
@@ -181,12 +181,12 @@ def app__service__install(
                 app_workdir=app_workdir,
             )
 
-            from wexample_wex_addon_app.commands.file_state.rectify import (
-                app__file_state__rectify,
+            from wexample_wex_addon_app.commands.state.rectify import (
+                app__state__rectify,
             )
 
             context.kernel.run_function(
-                app__file_state__rectify,
+                app__state__rectify,
                 {"yes": True},
             )
 

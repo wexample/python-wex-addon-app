@@ -7,21 +7,16 @@ from wexample_wex_core.decorator.command import command
 from wexample_wex_core.decorator.middleware import middleware
 
 from wexample_wex_addon_app.middleware.app_middleware import AppMiddleware
-from wexample_wex_addon_app.workdir.repo_workdir import RepoWorkdir
+from wexample_wex_addon_app.workdir.managed_workdir import ManagedWorkdir
 
 if TYPE_CHECKING:
-    from wexample_app.response.dict_response import DictResponse
     from wexample_wex_core.context.execution_context import ExecutionContext
 
 
 @middleware(middleware=AppMiddleware)
 @command(type=COMMAND_TYPE_ADDON)
-def app__dependencies__publish(
+def app__library__sync(
     context: ExecutionContext,
-    app_workdir: RepoWorkdir,
-) -> DictResponse:
-    from wexample_app.response.dict_response import DictResponse
-
-    return DictResponse(
-        kernel=context.kernel, content=app_workdir.publish_dependencies()
-    )
+    app_workdir: ManagedWorkdir,
+) -> None:
+    app_workdir.libraries_sync()

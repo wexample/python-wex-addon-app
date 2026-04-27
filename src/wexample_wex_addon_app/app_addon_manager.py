@@ -23,9 +23,9 @@ class AppAddonManager(AbstractAddonManager):
     @classmethod
     def from_kernel(cls, kernel) -> AppAddonManager:
         for addon in kernel.get_addons().values():
-            if isinstance(addon, cls):
+            if type(addon) is cls:
                 return addon
-        raise RuntimeError("AppAddonManager not registered in kernel")
+        raise RuntimeError(f"{cls.__name__} not registered in kernel")
 
     @classmethod
     def get_package_module(cls) -> Any:
@@ -42,10 +42,10 @@ class AppAddonManager(AbstractAddonManager):
         )
 
     @staticmethod
-    def get_helper_app_path(name: str, env: str) -> Path:
-        from wexample_wex_addon_app.helpers.app import get_helper_app_path
+    def get_sidecar_path(name: str, env: str) -> Path:
+        from wexample_wex_addon_app.helpers.app import get_sidecar_path
 
-        return get_helper_app_path(name=name, env=env)
+        return get_sidecar_path(name=name, env=env)
 
     def create_app_workdir(
         self, path: PathOrString | None = None
@@ -111,7 +111,9 @@ class AppAddonManager(AbstractAddonManager):
         )
 
     def find_service_dir(self, service_name: str) -> Path | None:
-        from wexample_wex_core.resolver.service_command_resolver import _SERVICES_SUBDIR
+        from wexample_wex_addon_app.resolver.service_command_resolver import (
+            _SERVICES_SUBDIR,
+        )
 
         for addon in self.kernel.get_addons().values():
             service_dir = addon.workdir.get_path() / _SERVICES_SUBDIR / service_name
@@ -120,7 +122,9 @@ class AppAddonManager(AbstractAddonManager):
         return None
 
     def find_services_by_tag(self, tag: str) -> list[str]:
-        from wexample_wex_core.resolver.service_command_resolver import _SERVICES_SUBDIR
+        from wexample_wex_addon_app.resolver.service_command_resolver import (
+            _SERVICES_SUBDIR,
+        )
 
         matches: list[str] = []
         for addon in self.kernel.get_addons().values():

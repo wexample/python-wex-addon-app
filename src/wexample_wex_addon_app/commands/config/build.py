@@ -20,7 +20,7 @@ if TYPE_CHECKING:
     type=COMMAND_TYPE_ADDON,
     description="Generate runtime config and docker-compose.runtime.yml",
 )
-def app__config__write(
+def app__config__build(
     context: ExecutionContext,
     app_workdir: ManagedWorkdir,
 ) -> AbstractResponse:
@@ -109,6 +109,14 @@ def app__config__write(
 
         from wexample_wex_addon_app.app_addon_manager import AppAddonManager
 
+        net_check = subprocess.run(
+            ["docker", "network", "inspect", "wex_net"],
+            capture_output=True,
+        )
+        if net_check.returncode != 0:
+            subprocess.run(["docker", "network", "create", "wex_net"], check=True)
+            context.io.log("Created docker network: wex_net")
+
         app_manager = AppAddonManager.from_kernel(context.kernel)
         app_workdir.get_runtime_config_file().read_config().to_dict()
         docker_env_path = tmp_dir / "docker.env"
@@ -133,7 +141,7 @@ def app__config__write(
         if addon_base_compose.exists():
             compose_files.append(str(addon_base_compose))
 
-        # DESIGN: service addon compose files are intentionally NOT added to compose_files here.
+        # Samples addon compose files are NOT added to compose_files here.
         #
         # Each service declares a samples/docker/docker-compose.yml that is copied into
         # the app's .wex/docker/docker-compose.yml at service/install time. Those sample

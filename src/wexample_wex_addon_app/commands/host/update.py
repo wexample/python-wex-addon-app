@@ -27,7 +27,7 @@ _BLOCK_END = "#[ end-wex ]#"
     type=COMMAND_TYPE_ADDON,
     description="Update /etc/hosts with all registered app domains",
 )
-def app__hosts__update(
+def app__host__update(
     context: ExecutionContext,
     app_workdir: ManagedWorkdir,
 ) -> AbstractResponse:

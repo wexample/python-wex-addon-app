@@ -7,9 +7,7 @@ from wexample_wex_core.decorator.command import command
 from wexample_wex_core.decorator.middleware import middleware
 from wexample_wex_core.decorator.option import option
 
-from wexample_wex_addon_app.middleware.suite_or_each_package_middleware import (
-    SuiteOrEachPackageMiddleware,
-)
+from wexample_wex_addon_app.middleware.app_middleware import AppMiddleware
 from wexample_wex_addon_app.workdir.repo_workdir import RepoWorkdir
 
 if TYPE_CHECKING:
@@ -25,12 +23,12 @@ if TYPE_CHECKING:
     description="Force bump even if package has no new content",
 )
 @option(name="yes", type=bool, default=False, is_flag=True)
-@middleware(middleware=SuiteOrEachPackageMiddleware)
+@middleware(middleware=AppMiddleware)
 @command(
     type=COMMAND_TYPE_ADDON,
-    description="Bump version only if package has new content (HEAD not tagged). Use --force to bump regardless of changes. Use --all-packages to bump all packages, --packages-only to exclude suite, --suite-only to exclude packages.",
+    description="Bump version only if package has new content (HEAD not tagged). Use --force to bump regardless of changes.",
 )
-def app__package__bump(
+def app__version__bump(
     context: ExecutionContext,
     app_workdir: RepoWorkdir,
     yes: bool = False,

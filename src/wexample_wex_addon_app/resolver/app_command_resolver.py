@@ -23,14 +23,13 @@ class AppCommandResolver(AbstractCommandResolver):
 
     @classmethod
     def address_to_command(cls, address: CommandAddress) -> str:
+        from wexample_helpers.helpers.string import string_to_kebab_case
         from wexample_wex_core.const.globals import (
             COMMAND_CHAR_APP,
             COMMAND_SEPARATOR_GROUP,
         )
 
-        return (
-            f"{COMMAND_CHAR_APP}{address.group}{COMMAND_SEPARATOR_GROUP}{address.name}"
-        )
+        return f"{COMMAND_CHAR_APP}{string_to_kebab_case(address.group)}{COMMAND_SEPARATOR_GROUP}{string_to_kebab_case(address.name)}"
 
     @classmethod
     def get_pattern(cls) -> str:
@@ -43,6 +42,36 @@ class AppCommandResolver(AbstractCommandResolver):
         from wexample_wex_core.const.globals import COMMAND_TYPE_APP
 
         return COMMAND_TYPE_APP
+
+    @classmethod
+    def is_live(cls) -> bool:
+        return True
+
+    def autocomplete_suggest(self, cursor: int, search_split: list[str]) -> str | None:
+        from wexample_wex_core.const.globals import COMMAND_CHAR_APP
+
+        base = self.get_base_path()
+        if not base:
+            return None
+
+        # App commands are cwd-relative — scan filesystem directly, not the registry
+        commands_base = base / _COMMANDS_SUBDIR
+        app_data = self._scan_commands_dir(commands_base, "app")
+        app_cmds = sorted(cmd["command"] for cmd in app_data.values())
+
+        if not app_cmds:
+            return None
+
+        first = search_split[0] if search_split else ""
+
+        if cursor == 0:
+            if first == "":
+                return COMMAND_CHAR_APP
+            if first.startswith(COMMAND_CHAR_APP):
+                matches = [c for c in app_cmds if c.startswith(first)]
+                return " ".join(matches) or None
+
+        return None
 
     def build_command_function_name(self, request: CommandRequest) -> str | None:
         from wexample_helpers.helpers.string import string_to_snake_case

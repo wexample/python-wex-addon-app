@@ -121,19 +121,17 @@ def app__app__start(
             APP_STARTED_CHECK_MODE_ANY_CONTAINER,
             _check_started,
         )
-        from wexample_wex_addon_app.const.app import HELPER_APP_PROXY_SHORT_NAME
+        from wexample_wex_addon_app.const.app import SIDECAR_PROXY_NAME
 
         env = app_workdir.get_app_env()
-        proxy_path = AppAddonManager.get_helper_app_path(
-            name=HELPER_APP_PROXY_SHORT_NAME, env=env
-        )
+        proxy_path = AppAddonManager.get_sidecar_path(name=SIDECAR_PROXY_NAME, env=env)
 
         # Skip if this app IS the proxy
         if app_workdir.get_path().resolve() == proxy_path.resolve():
             return
 
-        # Skip if proxy not required (no helper.proxy in config)
-        if app_workdir.get_config().search("helper.proxy").is_none():
+        # Skip if proxy not required (no sidecar.proxy in config)
+        if app_workdir.get_config().search("sidecar.proxy").is_none():
             return
 
         if no_proxy:
@@ -141,11 +139,13 @@ def app__app__start(
             return
 
         if not proxy_path.exists():
-            from wexample_wex_addon_app.commands.helper.start import app__helper__start
+            from wexample_wex_addon_app.commands.sidecar.start import (
+                app__sidecar__start,
+            )
 
             return context.kernel.run_function(
-                app__helper__start,
-                {"name": HELPER_APP_PROXY_SHORT_NAME, "env": env},
+                app__sidecar__start,
+                {"name": SIDECAR_PROXY_NAME, "env": env},
             )
 
         proxy_workdir = AppAddonManager.from_kernel(context.kernel).create_app_workdir(
@@ -162,12 +162,12 @@ def app__app__start(
 
     def _config(previous_value=None) -> AbstractResponse:
         from wexample_wex_addon_app.commands.app.perms import app__app__perms
-        from wexample_wex_addon_app.commands.config.write import app__config__write
+        from wexample_wex_addon_app.commands.config.build import app__config__build
 
         app_path_str = str(app_path)
         context.kernel.run_function(app__app__perms, {"app_path": app_path_str})
         return context.kernel.run_function(
-            app__config__write, {"app_path": app_path_str}
+            app__config__build, {"app_path": app_path_str}
         )
 
     def _setup_services(previous_value=None) -> None:
@@ -198,21 +198,21 @@ def app__app__start(
         )
 
     def _update_hosts(previous_value=None) -> None:
-        import yaml as _yaml
+        import json as _json
 
-        from wexample_wex_addon_app.commands.hosts.update import app__hosts__update
+        from wexample_wex_addon_app.commands.host.update import app__host__update
         from wexample_wex_addon_app.common.app_registry import registry_register_app
 
         runtime_path = app_workdir.get_runtime_config_file().get_path()
         if runtime_path.exists():
             with open(runtime_path) as f:
-                _data = _yaml.safe_load(f) or {}
+                _data = _json.load(f) or {}
             _data.setdefault("app", {})["started"] = True
             with open(runtime_path, "w") as f:
-                _yaml.dump(_data, f)
+                _json.dump(_data, f)
 
         registry_register_app(app_workdir)
-        context.kernel.run_function(app__hosts__update, {"app_path": str(app_path)})
+        context.kernel.run_function(app__host__update, {"app_path": str(app_path)})
 
     def _rectify_perms(previous_value=None) -> None:
         from wexample_wex_addon_app.commands.app.perms import app__app__perms

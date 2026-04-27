@@ -169,8 +169,8 @@ class ManagedWorkdir(
         max: int = None,
         **kwargs,
     ) -> FileStateResult | None:
-        from wexample_wex_addon_app.commands.file_state.rectify import (
-            app__file_state__rectify,
+        from wexample_wex_addon_app.commands.state.rectify import (
+            app__state__rectify,
         )
 
         args = []
@@ -184,7 +184,7 @@ class ManagedWorkdir(
             args.extend(["--filter-operation", filter_operation])
 
         return self.manager_run_command(
-            command=app__file_state__rectify,
+            command=app__state__rectify,
             arguments=args,
         ).get_output()
 
@@ -266,7 +266,7 @@ class ManagedWorkdir(
         return self.get_runtime_config().search(f"libraries").get_list_or_default()
 
     def get_main_container_name(self) -> str:
-        config = self.get_runtime_config().search("app.docker.main_container")
+        config = self.get_runtime_config().search("docker.main_container")
         if not config.is_none():
             return config.get_str()
         main_service = self.get_main_service()
@@ -280,7 +280,7 @@ class ManagedWorkdir(
         return self.get_config().search("docker.db.main").get_str_or_none()
 
     def get_main_service(self) -> str | None:
-        config = self.get_runtime_config().search("app.global.main_service")
+        config = self.get_runtime_config().search("global.main_service")
         return config.get_str_or_none() if not config.is_none() else None
 
     def get_migrations(self):
@@ -349,14 +349,14 @@ class ManagedWorkdir(
         return app_config
 
     def get_service_shell(self, service: str | None = None) -> str:
-        config = self.get_runtime_config().search("app.docker.main_container_shell")
+        config = self.get_runtime_config().search("docker.main_container_shell")
         if not config.is_none():
             return config.get_str()
         return "/bin/bash"
 
     def libraries_sync(self) -> None:
-        from wexample_wex_addon_app.commands.dependencies.publish import (
-            app__dependencies__publish,
+        from wexample_wex_addon_app.commands.dependency.publish import (
+            app__dependency__publish,
         )
 
         for library_path_config in (
@@ -368,7 +368,7 @@ class ManagedWorkdir(
 
             if ManagedWorkdir.is_app_workdir_path(path=library_path_config.get_str()):
                 publishable_dependencies = ManagedWorkdir.manager_run_command_from_path(
-                    command=app__dependencies__publish,
+                    command=app__dependency__publish,
                     path=library_path_config.get_str(),
                 ).get_output()
 

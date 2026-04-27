@@ -22,16 +22,16 @@ if TYPE_CHECKING:
     type=COMMAND_TYPE_ADDON,
     description="Remove stopped apps from the registry and update /etc/hosts",
 )
-def app__hosts__clean(
+def app__host__clean(
     context: ExecutionContext,
     app_workdir: ManagedWorkdir,
 ) -> AbstractResponse:
-    from wexample_wex_addon_app.commands.hosts.update import app__hosts__update
+    from wexample_wex_addon_app.commands.host.update import app__host__update
     from wexample_wex_addon_app.common.app_registry import registry_purge_stopped
 
     registry_purge_stopped()
     context.io.log("Registry purged")
 
     return context.kernel.run_function(
-        app__hosts__update, {"app_path": str(app_workdir.get_path())}
+        app__host__update, {"app_path": str(app_workdir.get_path())}
     )

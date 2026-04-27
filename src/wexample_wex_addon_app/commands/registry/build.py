@@ -15,7 +15,7 @@ if TYPE_CHECKING:
 
 @middleware(middleware=AppMiddleware)
 @command(type=COMMAND_TYPE_ADDON)
-def app__registry__write(
+def app__registry__build(
     context: ExecutionContext,
     app_workdir: ManagedWorkdir,
 ) -> None:

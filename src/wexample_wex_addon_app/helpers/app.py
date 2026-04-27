@@ -30,5 +30,5 @@ def get_docker_local_ip() -> str:
         return _DEFAULT_LOCAL_IP
 
 
-def get_helper_app_path(name: str, env: str) -> Path:
+def get_sidecar_path(name: str, env: str) -> Path:
     return Path(f"/var/www/{env}/wex-{name}")

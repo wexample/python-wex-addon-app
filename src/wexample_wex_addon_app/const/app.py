@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-HELPER_APP_PROXY_SHORT_NAME: str = "proxy"
+SIDECAR_PROXY_NAME: str = "proxy"
 
-HELPER_APPS_LIST: list[str] = [
-    HELPER_APP_PROXY_SHORT_NAME,
+SIDECAR_LIST: list[str] = [
+    SIDECAR_PROXY_NAME,
 ]

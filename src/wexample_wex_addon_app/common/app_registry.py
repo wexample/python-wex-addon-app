@@ -51,14 +51,13 @@ def registry_purge_stopped() -> None:
 
 
 def registry_read() -> dict:
-    from wexample_helpers_yaml.helpers.yaml_helpers import yaml_read
+    import json
 
     if not _REGISTRY_PATH.exists():
         return {"apps": {}}
 
-    return yaml_read(file_path=str(_REGISTRY_PATH), default={"apps": {}}) or {
-        "apps": {}
-    }
+    with open(_REGISTRY_PATH) as f:
+        return json.load(f) or {"apps": {}}
 
 
 def registry_register_app(app_workdir: ManagedWorkdir) -> None:
@@ -90,11 +89,11 @@ def registry_unregister_app(app_workdir: ManagedWorkdir) -> None:
 
 
 def registry_write(data: dict) -> None:
-    import yaml
+    import json
 
     _REGISTRY_PATH.parent.mkdir(mode=0o755, parents=True, exist_ok=True)
     with open(_REGISTRY_PATH, "w") as f:
-        yaml.dump(data, f, default_flow_style=False)
+        json.dump(data, f, indent=2)
     _REGISTRY_PATH.chmod(0o644)
 
 

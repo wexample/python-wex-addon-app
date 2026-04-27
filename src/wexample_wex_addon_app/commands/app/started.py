@@ -43,23 +43,21 @@ def app__app__started(
 
 
 def _check_started(app_workdir: ManagedWorkdir, mode: str, context) -> bool:
+    import json
     import subprocess
 
     import yaml
     from wexample_app.const.globals import WORKDIR_SETUP_DIR
 
-    wex_path = app_workdir.get_path() / WORKDIR_SETUP_DIR
-
-    # Read Docker runtime state
-    runtime_path = wex_path / "tmp" / "config.runtime.yml"
+    runtime_path = app_workdir.get_runtime_config_file().get_path()
     if not runtime_path.exists():
         context.io.log("Runtime config file is missing")
         return False
 
     with open(runtime_path) as f:
-        runtime = yaml.safe_load(f) or {}
+        runtime = json.load(f) or {}
 
-    if not runtime.get("started", False):
+    if not runtime.get("app", {}).get("started", False):
         context.io.log("Runtime config is marked as stopped")
         return False
 
@@ -67,6 +65,7 @@ def _check_started(app_workdir: ManagedWorkdir, mode: str, context) -> bool:
         return True
 
     # Get container names from docker-compose.runtime.yml
+    wex_path = app_workdir.get_path() / WORKDIR_SETUP_DIR
     compose_path = wex_path / "tmp" / "docker-compose.runtime.yml"
     if not compose_path.exists():
         context.io.log("Runtime docker-compose file is missing")
