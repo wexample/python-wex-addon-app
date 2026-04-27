@@ -306,7 +306,7 @@ app::package/push --all-packages --yes
 **3. Publication**
 ```bash
 # Publish packages with changes to PyPI
-app::suite/publish
+package::suite/publish
 ```
 
 ### File State Management
@@ -340,7 +340,7 @@ Commands:
 * `.wex/bin/app-manager setup`: Low-level command that runs `pdm install` for a single package (called by app-manager.sh).
 
 ### Publishing
-* `app::suite/publish`: Publishes packages to PyPI. Only publishes packages with changes since their last publication tag. Automatically bumps versions, rectifies file state, commits, propagates versions, and publishes. Creates and pushes publication tags after successful publish.
+* `package::suite/publish`: Publishes packages to PyPI. Only publishes packages with changes since their last publication tag. Automatically bumps versions, rectifies file state, commits, propagates versions, and publishes. Creates and pushes publication tags after successful publish.
 
 ### Common Workflows
 
@@ -428,7 +428,7 @@ See the [API Reference](api-reference.md.j2) for detailed information on these p
 ## Commande
 
 ```bash
-wex app::suite/publish --yes
+wex package::suite/publish --yes
 ```
 
 Depuis la racine de la suite (ex. `PACKAGES/PYTHON/`).

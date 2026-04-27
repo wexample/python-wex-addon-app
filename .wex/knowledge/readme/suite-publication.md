@@ -3,7 +3,7 @@
 ## Commande
 
 ```bash
-wex app::suite/publish --yes
+wex package::suite/publish --yes
 ```
 
 Depuis la racine de la suite (ex. `PACKAGES/PYTHON/`).
