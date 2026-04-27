@@ -266,7 +266,7 @@ class ManagedWorkdir(
         return self.get_runtime_config().search(f"libraries").get_list_or_default()
 
     def get_main_container_name(self) -> str:
-        config = self.get_runtime_config().search("app.docker.main_container")
+        config = self.get_runtime_config().search("docker.main_container")
         if not config.is_none():
             return config.get_str()
         main_service = self.get_main_service()
@@ -280,7 +280,7 @@ class ManagedWorkdir(
         return self.get_config().search("docker.db.main").get_str_or_none()
 
     def get_main_service(self) -> str | None:
-        config = self.get_runtime_config().search("app.global.main_service")
+        config = self.get_runtime_config().search("global.main_service")
         return config.get_str_or_none() if not config.is_none() else None
 
     def get_migrations(self):
