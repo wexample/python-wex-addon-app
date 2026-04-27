@@ -432,45 +432,6 @@ class FrameworkPackageSuiteWorkdir(RepoWorkdir):
             self.log(f"Installing {package.get_project_name()}...")
             package.setup_install(env=env, force=force)
 
-    def _pre_install_python_packages_editable(self, force: bool = False) -> None:
-        from pathlib import Path
-
-        from wexample_wex_addon_app.helpers.python import (
-            python_install_dependency_in_venv,
-            python_is_package_installed_editable_in_venv,
-        )
-
-        venv_path_config = self.search_app_or_suite_runtime_config("python.venv_path")
-        if venv_path_config.is_none():
-            return
-
-        venv_path = Path(venv_path_config.get_str())
-        python_packages = [
-            p for p in self.get_ordered_packages()
-            if (p.get_path() / "pyproject.toml").exists()
-        ]
-
-        if not python_packages:
-            return
-
-        self.subtitle(
-            f"Pre-installing {len(python_packages)} Python packages in editable mode"
-        )
-        for pkg in python_packages:
-            pkg_path = pkg.get_path()
-            pkg_name = pkg.get_package_name()
-            if force or not python_is_package_installed_editable_in_venv(
-                venv_path=venv_path,
-                package_name=pkg_name,
-                package_path=pkg_path,
-            ):
-                self.log(f"  -e {pkg_name}")
-                python_install_dependency_in_venv(
-                    venv_path=venv_path, name=pkg_path, editable=True
-                )
-            else:
-                self.log(f"  [skip] {pkg_name} (already editable)")
-
     def topological_order(self, dep_map: dict[str, list[str]]) -> list[str]:
         """Deterministic topological order (leaves -> trunk) using graphlib."""
         from graphlib import CycleError, TopologicalSorter
@@ -593,3 +554,43 @@ class FrameworkPackageSuiteWorkdir(RepoWorkdir):
             self.warning(
                 f"{len(failed_packages)} package(s) failed: {', '.join(names)}"
             )
+
+    def _pre_install_python_packages_editable(self, force: bool = False) -> None:
+        from pathlib import Path
+
+        from wexample_wex_addon_app.helpers.python import (
+            python_install_dependency_in_venv,
+            python_is_package_installed_editable_in_venv,
+        )
+
+        venv_path_config = self.search_app_or_suite_runtime_config("python.venv_path")
+        if venv_path_config.is_none():
+            return
+
+        venv_path = Path(venv_path_config.get_str())
+        python_packages = [
+            p
+            for p in self.get_ordered_packages()
+            if (p.get_path() / "pyproject.toml").exists()
+        ]
+
+        if not python_packages:
+            return
+
+        self.subtitle(
+            f"Pre-installing {len(python_packages)} Python packages in editable mode"
+        )
+        for pkg in python_packages:
+            pkg_path = pkg.get_path()
+            pkg_name = pkg.get_package_name()
+            if force or not python_is_package_installed_editable_in_venv(
+                venv_path=venv_path,
+                package_name=pkg_name,
+                package_path=pkg_path,
+            ):
+                self.log(f"  -e {pkg_name}")
+                python_install_dependency_in_venv(
+                    venv_path=venv_path, name=pkg_path, editable=True
+                )
+            else:
+                self.log(f"  [skip] {pkg_name} (already editable)")

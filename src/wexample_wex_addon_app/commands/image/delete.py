@@ -74,7 +74,7 @@ def app__image__delete(
             previous_value=None,
             _tag=tag,
             _build_name=build_name,
-        ):
+        ) -> ShellCommandResponse:
             context.io.log(f"Deleting image: {_build_name} ({_tag})")
             return ShellCommandResponse(
                 kernel=context.kernel,

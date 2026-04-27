@@ -111,7 +111,9 @@ class AppAddonManager(AbstractAddonManager):
         )
 
     def find_service_dir(self, service_name: str) -> Path | None:
-        from wexample_wex_addon_app.resolver.service_command_resolver import _SERVICES_SUBDIR
+        from wexample_wex_addon_app.resolver.service_command_resolver import (
+            _SERVICES_SUBDIR,
+        )
 
         for addon in self.kernel.get_addons().values():
             service_dir = addon.workdir.get_path() / _SERVICES_SUBDIR / service_name
@@ -120,7 +122,9 @@ class AppAddonManager(AbstractAddonManager):
         return None
 
     def find_services_by_tag(self, tag: str) -> list[str]:
-        from wexample_wex_addon_app.resolver.service_command_resolver import _SERVICES_SUBDIR
+        from wexample_wex_addon_app.resolver.service_command_resolver import (
+            _SERVICES_SUBDIR,
+        )
 
         matches: list[str] = []
         for addon in self.kernel.get_addons().values():

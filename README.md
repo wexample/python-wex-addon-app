@@ -1,6 +1,6 @@
 # wex_addon_app
 
-Version: 9.7.0
+Version: 10.0.0
 
 App management with wex
 
@@ -88,7 +88,7 @@ Visit the [Wexample Suite documentation](https://docs.wexample.com) for the comp
 - tomlkit: 
 - wexample-migration: >=0.1.0
 - wexample-runner: >=0.0.1
-- wexample-wex-core: >=15.4.0
+- wexample-wex-core: >=16.0.0
 
 ## Versioning & Compatibility Policy
 
@@ -141,7 +141,7 @@ Commands are decorated with middleware that can optionally iterate over packages
   - When `--all-packages` is **not** specified: executes the command once on the target application
   - When `--all-packages` **is** specified: automatically iterates over all packages in the suite, executing the command on each package individually
 
-#### Example: `app::state/rectify`
+#### Example: `app::file-state/rectify`
 
 ```python
 @middleware(middleware=AppMiddleware)
@@ -160,10 +160,10 @@ def app__file_state__rectify(
 **Usage:**
 ```bash
 # Rectify only the main suite application
-.wex/bin/app-manager app::state/rectify
+.wex/bin/app-manager app::file-state/rectify
 
 # Rectify all packages in the suite
-.wex/bin/app-manager app::state/rectify --all-packages
+.wex/bin/app-manager app::file-state/rectify --all-packages
 ```
 
 **Benefits:**
@@ -183,7 +183,7 @@ Commands use `PackageSuiteMiddleware` to ensure they receive a `FrameworkPackage
 - **`packages_execute_shell(cmd)`**: Execute shell commands on all packages
 - **`packages_execute_manager(command, arguments, context)`**: Execute manager commands (e.g., `app::info/show`) on all packages
 
-#### Example: `app::suite/run`
+#### Example: `app::suite/exec-command`
 
 ```python
 @middleware(middleware=PackageSuiteMiddleware)
@@ -205,10 +205,10 @@ def app__suite__exec_command(
 **Usage:**
 ```bash
 # Execute a manager command on all packages
-.wex/bin/app-manager app::suite/run -c app::info/show
+.wex/bin/app-manager app::suite/exec-command -c app::info/show
 
 # Execute a shell command on all packages
-.wex/bin/app-manager app::suite/shell -c "ls -la"
+.wex/bin/app-manager app::suite/exec-shell -c "ls -la"
 ```
 
 **Benefits:**
@@ -288,13 +288,13 @@ app::setup/install --env local
 **2. Development Cycle**
 ```bash
 # Rectify code across all packages
-app::state/rectify --all-packages
+app::file-state/rectify --all-packages
 
 # Bump only packages with changes (excluding suite)
 app::package/bump --packages-only --force
 
 # Check for circular dependencies
-app::dependency/check
+app::dependencies/check
 
 # Propagate versions across all packages
 app::version/propagate --packages-only
@@ -310,7 +310,7 @@ package::suite/publish
 ```
 
 ### File State Management
-* `app::state/rectify [--all-packages]`: Normalizes/rectifies code for a single app or across all packages in the suite; no commits.
+* `app::file-state/rectify [--all-packages]`: Normalizes/rectifies code for a single app or across all packages in the suite; no commits.
 
 ### Version Management
 
@@ -328,11 +328,11 @@ Commands:
 * `app::package/push [--all-packages] [--yes]`: Commits and pushes changes for a single package or all packages with uncommitted changes when using `--all-packages`.
 
 ### Dependencies Management
-* `app::dependency/check`: Validates internal dependencies across the suite to prevent circular dependencies.
+* `app::dependencies/check`: Validates internal dependencies across the suite to prevent circular dependencies.
 
 ### Suite Execution
-* `app::suite/run -c <command> [--arguments "<args>"]`: Executes a manager command on all packages (e.g., `app::info/show`).
-* `app::suite/shell -c "<command>"`: Executes a shell command on all packages.
+* `app::suite/exec-command -c <command> [--arguments "<args>"]`: Executes a manager command on all packages (e.g., `app::info/show`).
+* `app::suite/exec-shell -c "<command>"`: Executes a shell command on all packages.
 
 ### Setup & Installation
 * `app::setup/install`: Installs PDM dependencies for the suite and all packages. Runs `pdm install` in the suite and each package.
@@ -367,12 +367,12 @@ app::package/bump --suite-only
 
 **Rectify all packages:**
 ```bash
-app::state/rectify --all-packages
+app::file-state/rectify --all-packages
 ```
 
 **Get info for all packages:**
 ```bash
-app::suite/run -c app::info/show
+app::suite/exec-command -c app::info/show
 ```
 
 ## Introduction
@@ -401,7 +401,7 @@ From any package directory, you can execute commands through the App Manager:
 .wex/bin/app-manager app::info/show
 
 # Rectify file state for the current package
-.wex/bin/app-manager app::state/rectify
+.wex/bin/app-manager app::file-state/rectify
 
 # Bump the package version
 .wex/bin/app-manager app::package/bump

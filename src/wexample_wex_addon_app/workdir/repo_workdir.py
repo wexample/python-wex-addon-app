@@ -260,6 +260,9 @@ class RepoWorkdir(ManagedWorkdir):
         self.merge_to_main()
         self.push_to_deployment_remote(branch_name=GIT_BRANCH_MAIN)
 
+    def publish_dependencies(self) -> dict[str, str]:
+        return {self.get_package_name(): self.get_project_version()}
+
     def release(
         self,
         force: bool = False,
@@ -268,16 +271,18 @@ class RepoWorkdir(ManagedWorkdir):
     ) -> None:
         from wexample_prompt.enums.terminal_color import TerminalColor
 
+        from wexample_wex_addon_app.commands.library.sync import app__library__sync
         from wexample_wex_addon_app.commands.state.rectify import (
             app__state__rectify,
         )
-        from wexample_wex_addon_app.commands.library.sync import app__library__sync
         from wexample_wex_addon_app.commands.version.bump import app__version__bump
-        from wexample_wex_addon_app.commands.version.push import app__version__push
-        from wexample_wex_addon_app.commands.version.publish import app__version__publish
         from wexample_wex_addon_app.commands.version.propagate import (
             app__version__propagate,
         )
+        from wexample_wex_addon_app.commands.version.publish import (
+            app__version__publish,
+        )
+        from wexample_wex_addon_app.commands.version.push import app__version__push
 
         # When called from a suite publish, has_changes is pre-computed before the
         # loop so that propagate_version side-effects on sibling packages do not
@@ -333,9 +338,6 @@ class RepoWorkdir(ManagedWorkdir):
                 command=app__version__publish,
                 arguments=(["--force"] if force else []),
             )
-
-    def publish_dependencies(self) -> dict[str, str]:
-        return {self.get_package_name(): self.get_project_version()}
 
     def should_be_published(self, force: bool = False) -> bool:
         current_tag = self.get_publication_tag_name()

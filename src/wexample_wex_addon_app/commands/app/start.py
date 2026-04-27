@@ -124,9 +124,7 @@ def app__app__start(
         from wexample_wex_addon_app.const.app import SIDECAR_PROXY_NAME
 
         env = app_workdir.get_app_env()
-        proxy_path = AppAddonManager.get_sidecar_path(
-            name=SIDECAR_PROXY_NAME, env=env
-        )
+        proxy_path = AppAddonManager.get_sidecar_path(name=SIDECAR_PROXY_NAME, env=env)
 
         # Skip if this app IS the proxy
         if app_workdir.get_path().resolve() == proxy_path.resolve():
@@ -141,7 +139,9 @@ def app__app__start(
             return
 
         if not proxy_path.exists():
-            from wexample_wex_addon_app.commands.sidecar.start import app__sidecar__start
+            from wexample_wex_addon_app.commands.sidecar.start import (
+                app__sidecar__start,
+            )
 
             return context.kernel.run_function(
                 app__sidecar__start,

@@ -104,75 +104,6 @@ class MigrationWex6021(AbstractMigration):
                 with open(config_file, "w") as f:
                     yaml.dump(data, f, default_flow_style=False, sort_keys=False)
 
-    # ------------------------------------------------------------------
-
-    def _write_config_images(
-        self, target_path: Path, dockerfile_names: list[str], images_dir: Path
-    ) -> None:
-        import yaml
-
-        config_file = target_path / ".wex" / "config.yml"
-        with open(config_file) as f:
-            data = yaml.safe_load(f) or {}
-
-        if data.get("docker", {}).get("images"):
-            return
-
-        app_name = data.get("global", {}).get("name", "app")
-        tags = self._extract_tags_from_composes(target_path, dockerfile_names)
-
-        # Build suffix→tag map (including fallbacks) for depends_on detection
-        suffix_tags: dict[str, str] = {}
-        for name in dockerfile_names:
-            suffix = name.replace("Dockerfile.", "")
-            suffix_tags[suffix] = tags.get(name) or f"{app_name}-{suffix}:local"
-
-        images = {}
-        for name in dockerfile_names:
-            suffix = name.replace("Dockerfile.", "")
-            tag = suffix_tags[suffix]
-            depends_on = self._detect_depends_on(
-                images_dir / name, suffix, suffix_tags
-            )
-            entry: dict = {
-                "dockerfile": f".wex/docker/images/{name}",
-                "tag": tag,
-            }
-            if depends_on:
-                entry["depends_on"] = depends_on
-            images[suffix] = entry
-
-        data.setdefault("docker", {})["images"] = images
-        with open(config_file, "w") as f:
-            yaml.dump(data, f, default_flow_style=False, sort_keys=False)
-
-    def _extract_tags_from_composes(
-        self, target_path: Path, dockerfile_names: list[str]
-    ) -> dict[str, str]:
-        import yaml
-
-        tags: dict[str, str] = {}
-        for compose_file in self._docker_compose_files(target_path):
-            try:
-                with open(compose_file) as f:
-                    data = yaml.safe_load(f) or {}
-            except Exception:
-                continue
-            for service in (data.get("services") or {}).values():
-                if not isinstance(service, dict):
-                    continue
-                build = service.get("build")
-                if not isinstance(build, dict):
-                    continue
-                dockerfile_val = build.get("dockerfile", "")
-                image_tag = service.get("image")
-                if not image_tag:
-                    continue
-                for name in dockerfile_names:
-                    if name in dockerfile_val and name not in tags:
-                        tags[name] = image_tag
-        return tags
-
     def _detect_depends_on(
         self,
         dockerfile_path: Path,
@@ -201,7 +132,10 @@ class MigrationWex6021(AbstractMigration):
                         if image_name == suffix:
                             return suffix
                         # Match by local tag (e.g., FROM pdf-generator:local)
-                        if image_ref == tag or image_ref.split(":")[0] == tag.split(":")[0]:
+                        if (
+                            image_ref == tag
+                            or image_ref.split(":")[0] == tag.split(":")[0]
+                        ):
                             return suffix
                     break
         except Exception:
@@ -210,3 +144,69 @@ class MigrationWex6021(AbstractMigration):
 
     def _docker_compose_files(self, target_path: Path) -> list[Path]:
         return list((target_path / ".wex").rglob("docker-compose.yml"))
+
+    def _extract_tags_from_composes(
+        self, target_path: Path, dockerfile_names: list[str]
+    ) -> dict[str, str]:
+        import yaml
+
+        tags: dict[str, str] = {}
+        for compose_file in self._docker_compose_files(target_path):
+            try:
+                with open(compose_file) as f:
+                    data = yaml.safe_load(f) or {}
+            except Exception:
+                continue
+            for service in (data.get("services") or {}).values():
+                if not isinstance(service, dict):
+                    continue
+                build = service.get("build")
+                if not isinstance(build, dict):
+                    continue
+                dockerfile_val = build.get("dockerfile", "")
+                image_tag = service.get("image")
+                if not image_tag:
+                    continue
+                for name in dockerfile_names:
+                    if name in dockerfile_val and name not in tags:
+                        tags[name] = image_tag
+        return tags
+
+    # ------------------------------------------------------------------
+    def _write_config_images(
+        self, target_path: Path, dockerfile_names: list[str], images_dir: Path
+    ) -> None:
+        import yaml
+
+        config_file = target_path / ".wex" / "config.yml"
+        with open(config_file) as f:
+            data = yaml.safe_load(f) or {}
+
+        if data.get("docker", {}).get("images"):
+            return
+
+        app_name = data.get("global", {}).get("name", "app")
+        tags = self._extract_tags_from_composes(target_path, dockerfile_names)
+
+        # Build suffix→tag map (including fallbacks) for depends_on detection
+        suffix_tags: dict[str, str] = {}
+        for name in dockerfile_names:
+            suffix = name.replace("Dockerfile.", "")
+            suffix_tags[suffix] = tags.get(name) or f"{app_name}-{suffix}:local"
+
+        images = {}
+        for name in dockerfile_names:
+            suffix = name.replace("Dockerfile.", "")
+            tag = suffix_tags[suffix]
+            depends_on = self._detect_depends_on(images_dir / name, suffix, suffix_tags)
+            entry: dict = {
+                "dockerfile": f".wex/docker/images/{name}",
+                "tag": tag,
+            }
+            if depends_on:
+                entry["depends_on"] = depends_on
+            images[suffix] = entry
+
+        data.setdefault("docker", {})["images"] = images
+        with open(config_file, "w") as f:
+            yaml.dump(data, f, default_flow_style=False, sort_keys=False)

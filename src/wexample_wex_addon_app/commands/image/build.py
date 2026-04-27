@@ -80,15 +80,13 @@ def app__image__build(
             _dockerfile=dockerfile,
             _tag=tag,
             _build_name=build_name,
-        ):
+        ) -> InteractiveShellCommandResponse:
             context.io.log(f"Building image: {_build_name} → {_tag}")
             cmd = ["docker", "build", "-f", _dockerfile, "-t", _tag]
             if clear_cache:
                 cmd.append("--no-cache")
             cmd.append(str(app_path))
-            return InteractiveShellCommandResponse(
-                kernel=context.kernel, content=cmd
-            )
+            return InteractiveShellCommandResponse(kernel=context.kernel, content=cmd)
 
         steps.append(_step)
 

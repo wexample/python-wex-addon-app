@@ -21,6 +21,24 @@ _COMMANDS_SUBDIR = "commands"
 class ServiceCommandResolver(AbstractCommandResolver):
     """Resolves commands scoped to a named service: ``@service::group/command``."""
 
+    @classmethod
+    def address_to_command(cls, address: CommandAddress) -> str:
+        from wexample_wex_core.const.globals import COMMAND_CHAR_SERVICE
+
+        return f"{COMMAND_CHAR_SERVICE}{super().address_to_command(address)}"
+
+    @classmethod
+    def get_pattern(cls) -> str:
+        from wexample_wex_core.const.globals import COMMAND_PATTERN_SERVICE
+
+        return COMMAND_PATTERN_SERVICE
+
+    @classmethod
+    def get_type(cls) -> str:
+        from wexample_wex_core.const.globals import COMMAND_TYPE_SERVICE
+
+        return COMMAND_TYPE_SERVICE
+
     def autocomplete_suggest(self, cursor: int, search_split: list[str]) -> str | None:
         from wexample_wex_core.const.globals import (
             COMMAND_CHAR_SERVICE,
@@ -28,9 +46,7 @@ class ServiceCommandResolver(AbstractCommandResolver):
         )
 
         service_cmds = list(
-            self.kernel.get_configuration_registry()
-            .get_all_commands()
-            .keys()
+            self.kernel.get_configuration_registry().get_all_commands().keys()
         )
         service_cmds = [c for c in service_cmds if c.startswith(COMMAND_CHAR_SERVICE)]
 
@@ -56,11 +72,13 @@ class ServiceCommandResolver(AbstractCommandResolver):
         if sep_idx is None:
             # No "::" yet — user is still typing the service name
             typed = "".join(search_split[: cursor + 1])
-            suggestions = sorted(set(
-                c[: c.index(COMMAND_SEPARATOR_ADDON) + len(COMMAND_SEPARATOR_ADDON)]
-                for c in service_cmds
-                if c.startswith(typed) and COMMAND_SEPARATOR_ADDON in c
-            ))
+            suggestions = sorted(
+                {
+                    c[: c.index(COMMAND_SEPARATOR_ADDON) + len(COMMAND_SEPARATOR_ADDON)]
+                    for c in service_cmds
+                    if c.startswith(typed) and COMMAND_SEPARATOR_ADDON in c
+                }
+            )
             return " ".join(suggestions) or None
 
         # Reconstruct "@service::" regardless of bash word splitting
@@ -68,47 +86,30 @@ class ServiceCommandResolver(AbstractCommandResolver):
 
         if cursor == sep_idx:
             # Cursor is on "::" — bash clears CURRENT to ""; suggest all group/commands
-            matches = sorted(set(
-                c[len(service_prefix):]
-                for c in service_cmds
-                if c.startswith(service_prefix)
-            ))
+            matches = sorted(
+                {
+                    c[len(service_prefix) :]
+                    for c in service_cmds
+                    if c.startswith(service_prefix)
+                }
+            )
             return " ".join(matches) or None
 
         if cursor > sep_idx:
             # After "::" — filter group/command by partial
             partial = search_split[cursor] if cursor < len(search_split) else ""
             matches = sorted(
-                c[len(service_prefix):]
+                c[len(service_prefix) :]
                 for c in service_cmds
                 if c.startswith(service_prefix)
-                and c[len(service_prefix):].startswith(partial)
+                and c[len(service_prefix) :].startswith(partial)
             )
             return " ".join(matches) or None
 
         return None
 
-    @classmethod
-    def address_to_command(cls, address: CommandAddress) -> str:
-        from wexample_wex_core.const.globals import COMMAND_CHAR_SERVICE
-
-        return f"{COMMAND_CHAR_SERVICE}{super().address_to_command(address)}"
-
-    @classmethod
-    def get_pattern(cls) -> str:
-        from wexample_wex_core.const.globals import COMMAND_PATTERN_SERVICE
-
-        return COMMAND_PATTERN_SERVICE
-
-    @classmethod
-    def get_type(cls) -> str:
-        from wexample_wex_core.const.globals import COMMAND_TYPE_SERVICE
-
-        return COMMAND_TYPE_SERVICE
-
     def build_command_function_name(self, request: CommandRequest) -> str | None:
         from wexample_helpers.helpers.string import string_to_snake_case
-
         from wexample_wex_core.common.command_address import CommandAddress
 
         address = CommandAddress(
@@ -122,7 +123,6 @@ class ServiceCommandResolver(AbstractCommandResolver):
         self, request: CommandRequest, extension: str
     ) -> Path | None:
         from wexample_helpers.helpers.string import string_to_snake_case
-
         from wexample_wex_core.common.command_address import CommandAddress
 
         service_name = string_to_snake_case(request.match.group(1))
@@ -136,30 +136,6 @@ class ServiceCommandResolver(AbstractCommandResolver):
             name=string_to_snake_case(request.match.group(3)),
         )
         return service_dir / _COMMANDS_SUBDIR / address.to_relative_path(extension)
-
-    def build_registry_data(self) -> RegistryResolverData:
-        registry: RegistryResolverData = {}
-
-        app_addon_manager = self._get_app_addon_manager()
-        for addon in self.kernel.get_addons().values():
-            services_base = addon.workdir.get_path() / _SERVICES_SUBDIR
-            if not services_base.is_dir():
-                continue
-
-            for service_dir in sorted(services_base.iterdir()):
-                if not service_dir.is_dir() or service_dir.name.startswith("_"):
-                    continue
-
-                service_name = service_dir.name
-                commands_base = service_dir / _COMMANDS_SUBDIR
-                addon_data = self._scan_commands_dir(commands_base, service_name)
-
-                if service_name not in registry:
-                    registry[service_name] = addon_data
-                else:
-                    registry[service_name].update(addon_data)
-
-        return registry
 
     def build_execution_context(
         self,
@@ -195,6 +171,30 @@ class ServiceCommandResolver(AbstractCommandResolver):
             request=request,
             function_kwargs=function_kwargs,
         )
+
+    def build_registry_data(self) -> RegistryResolverData:
+        registry: RegistryResolverData = {}
+
+        self._get_app_addon_manager()
+        for addon in self.kernel.get_addons().values():
+            services_base = addon.workdir.get_path() / _SERVICES_SUBDIR
+            if not services_base.is_dir():
+                continue
+
+            for service_dir in sorted(services_base.iterdir()):
+                if not service_dir.is_dir() or service_dir.name.startswith("_"):
+                    continue
+
+                service_name = service_dir.name
+                commands_base = service_dir / _COMMANDS_SUBDIR
+                addon_data = self._scan_commands_dir(commands_base, service_name)
+
+                if service_name not in registry:
+                    registry[service_name] = addon_data
+                else:
+                    registry[service_name].update(addon_data)
+
+        return registry
 
     def _find_service_dir(self, service_name: str) -> Path | None:
         return self._get_app_addon_manager().find_service_dir(service_name)

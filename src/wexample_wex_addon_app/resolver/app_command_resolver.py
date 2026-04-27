@@ -21,6 +21,32 @@ class AppCommandResolver(AbstractCommandResolver):
     directory, exactly as a user would expect when working inside a project.
     """
 
+    @classmethod
+    def address_to_command(cls, address: CommandAddress) -> str:
+        from wexample_helpers.helpers.string import string_to_kebab_case
+        from wexample_wex_core.const.globals import (
+            COMMAND_CHAR_APP,
+            COMMAND_SEPARATOR_GROUP,
+        )
+
+        return f"{COMMAND_CHAR_APP}{string_to_kebab_case(address.group)}{COMMAND_SEPARATOR_GROUP}{string_to_kebab_case(address.name)}"
+
+    @classmethod
+    def get_pattern(cls) -> str:
+        from wexample_wex_core.const.globals import COMMAND_PATTERN_APP
+
+        return COMMAND_PATTERN_APP
+
+    @classmethod
+    def get_type(cls) -> str:
+        from wexample_wex_core.const.globals import COMMAND_TYPE_APP
+
+        return COMMAND_TYPE_APP
+
+    @classmethod
+    def is_live(cls) -> bool:
+        return True
+
     def autocomplete_suggest(self, cursor: int, search_split: list[str]) -> str | None:
         from wexample_wex_core.const.globals import COMMAND_CHAR_APP
 
@@ -46,29 +72,6 @@ class AppCommandResolver(AbstractCommandResolver):
                 return " ".join(matches) or None
 
         return None
-
-    @classmethod
-    def address_to_command(cls, address: CommandAddress) -> str:
-        from wexample_helpers.helpers.string import string_to_kebab_case
-
-        from wexample_wex_core.const.globals import (
-            COMMAND_CHAR_APP,
-            COMMAND_SEPARATOR_GROUP,
-        )
-
-        return f"{COMMAND_CHAR_APP}{string_to_kebab_case(address.group)}{COMMAND_SEPARATOR_GROUP}{string_to_kebab_case(address.name)}"
-
-    @classmethod
-    def get_pattern(cls) -> str:
-        from wexample_wex_core.const.globals import COMMAND_PATTERN_APP
-
-        return COMMAND_PATTERN_APP
-
-    @classmethod
-    def get_type(cls) -> str:
-        from wexample_wex_core.const.globals import COMMAND_TYPE_APP
-
-        return COMMAND_TYPE_APP
 
     def build_command_function_name(self, request: CommandRequest) -> str | None:
         from wexample_helpers.helpers.string import string_to_snake_case
@@ -113,10 +116,6 @@ class AppCommandResolver(AbstractCommandResolver):
         name = match.group(2).replace("-", "_")
         target = base / _COMMANDS_SUBDIR / group / f"{name}.{extension}"
         return target, {"_type": "app", "group": group, "name": name}
-
-    @classmethod
-    def is_live(cls) -> bool:
-        return True
 
     def build_registry_data(self) -> RegistryResolverData:
         base = self.get_base_path()

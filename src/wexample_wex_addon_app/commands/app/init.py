@@ -63,10 +63,10 @@ def app__app__init(
         string_to_snake_case,
     )
 
+    from wexample_wex_addon_app.commands.service.install import app__service__install
     from wexample_wex_addon_app.commands.state.rectify import (
         app__state__rectify,
     )
-    from wexample_wex_addon_app.commands.service.install import app__service__install
 
     target_path = Path(app_path or context.kernel.call_workdir.get_path()).resolve()
     app_name = name or target_path.name
