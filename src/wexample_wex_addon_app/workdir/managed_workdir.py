@@ -473,9 +473,9 @@ class ManagedWorkdir(
                         "type": DiskItemType.FILE,
                         "should_exist": True,
                         "should_contain_lines": [
-                            EnvFile.EXTENSION_DOT_ENV,
-                            str(CORE_DIR_NAME_TMP) + "/",
-                            f"{WORKDIR_LOCAL_DIR_NAME}/",
+                            "/" + EnvFile.EXTENSION_DOT_ENV,
+                            "/" + str(CORE_DIR_NAME_TMP) + "/",
+                            f"/{WORKDIR_LOCAL_DIR_NAME}/",
                         ],
                         TextOption.get_name(): {"end_new_line": True},
                     },

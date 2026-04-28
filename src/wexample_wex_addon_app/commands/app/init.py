@@ -99,7 +99,11 @@ def app__app__init(
 
     context.kernel.run_function(
         app__state__rectify,
-        {"app_path": str(target_path), "yes": True},
+        {
+            "app_path": str(target_path),
+            "yes": True,
+            "loop": True
+        },
     )
 
     context.io.log(f"Initialized app '{app_name}' at {target_path}")
