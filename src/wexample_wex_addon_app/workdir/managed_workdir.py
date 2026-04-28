@@ -408,6 +408,12 @@ class ManagedWorkdir(
         self.append_agents(config=raw_value)
         self.append_version(config=raw_value)
 
+        gitkeep_child = [{
+            "name": ".gitkeep",
+            "type": DiskItemType.FILE,
+            "should_exist": True,
+        }]
+
         raw_value["children"].append(
             {
                 # .wex
@@ -456,17 +462,90 @@ class ManagedWorkdir(
                         "should_exist": True,
                     },
                     {
-                        # local — machine-specific state, never committed
-                        "name": WORKDIR_LOCAL_DIR_NAME,
+                        "name": "knowledge",
                         "type": DiskItemType.DIRECTORY,
                         "should_exist": True,
                         "children": [
                             {
-                                "name": ".gitkeep",
+                                "name": "__entrypoint.md",
                                 "type": DiskItemType.FILE,
                                 "should_exist": True,
-                            }
-                        ],
+                            },
+                            {
+                                "name": "documents",
+                                "type": DiskItemType.DIRECTORY,
+                                "should_exist": True,
+                                "children": [
+                                    {
+                                        "name": "readme",
+                                        "type": DiskItemType.DIRECTORY,
+                                        "should_exist": True,
+                                        "children": gitkeep_child
+                                    },
+                                    {
+                                        "name": "agents",
+                                        "type": DiskItemType.DIRECTORY,
+                                        "should_exist": True,
+                                        "children": gitkeep_child
+                                    }
+                                ]
+                            },
+                            {
+                                "name": "usage",
+                                "type": DiskItemType.DIRECTORY,
+                                "should_exist": True,
+                                "children": gitkeep_child
+                            },
+                            {
+                                "name": "contributing",
+                                "type": DiskItemType.DIRECTORY,
+                                "should_exist": True,
+                                "children": gitkeep_child
+                            },
+                            {
+                                "name": "specifications",
+                                "type": DiskItemType.DIRECTORY,
+                                "should_exist": True,
+                                "children": gitkeep_child
+                            },
+                            {
+                                "name": "roadmap",
+                                "type": DiskItemType.DIRECTORY,
+                                "should_exist": True,
+                                "children": [
+                                    {
+                                        "name": "todo",
+                                        "type": DiskItemType.DIRECTORY,
+                                        "should_exist": True,
+                                        "children": gitkeep_child
+                                    },
+                                    {
+                                        "name": "done",
+                                        "type": DiskItemType.DIRECTORY,
+                                        "should_exist": True,
+                                        "children": gitkeep_child
+                                    },
+                                    {
+                                        "name": "decisions",
+                                        "type": DiskItemType.DIRECTORY,
+                                        "should_exist": True,
+                                        "children": gitkeep_child
+                                    },
+                                ]
+                            },
+                            {
+                                "name": CORE_DIR_NAME_TMP,
+                                "type": DiskItemType.DIRECTORY,
+                                "should_exist": True,
+                            },
+                        ]
+                    },
+                    {
+                        # local — machine-specific state, never committed
+                        "name": WORKDIR_LOCAL_DIR_NAME,
+                        "type": DiskItemType.DIRECTORY,
+                        "should_exist": True,
+                        "children": gitkeep_child,
                     },
                     {
                         "name": ".gitignore",
