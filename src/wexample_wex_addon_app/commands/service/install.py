@@ -2,14 +2,13 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from wexample_wex_addon_app.const.service import SERVICE_CONFIG_PROXY, SERVICE_TAG_DB
+from wexample_wex_addon_app.middleware.app_middleware import AppMiddleware
 from wexample_wex_core.const.globals import COMMAND_TYPE_ADDON
 from wexample_wex_core.decorator.as_sudo import as_sudo
 from wexample_wex_core.decorator.command import command
 from wexample_wex_core.decorator.middleware import middleware
 from wexample_wex_core.decorator.option import option
-
-from wexample_wex_addon_app.const.service import SERVICE_CONFIG_PROXY, SERVICE_TAG_DB
-from wexample_wex_addon_app.middleware.app_middleware import AppMiddleware
 
 if TYPE_CHECKING:
     from wexample_wex_core.context.execution_context import ExecutionContext
@@ -36,10 +35,10 @@ if TYPE_CHECKING:
 @middleware(middleware=AppMiddleware)
 @command(type=COMMAND_TYPE_ADDON, description="Install a service into an app")
 def app__service__install(
-    context: ExecutionContext,
-    app_workdir: ManagedWorkdir,
-    service: str,
-    force: bool = False,
+        context: ExecutionContext,
+        app_workdir: ManagedWorkdir,
+        service: str,
+        force: bool = False,
 ) -> None:
     from wexample_helpers.helpers.string import string_to_snake_case
 
@@ -64,8 +63,8 @@ def app__service__install(
         config = config_file.read_config()
 
         if (
-            not config.search(f"service.{normalized_service_name}").is_none()
-            and not force_install
+                not config.search(f"service.{normalized_service_name}").is_none()
+                and not force_install
         ):
             context.io.log(
                 f"Service '{normalized_service_name}' already installed, skipping"
@@ -87,8 +86,8 @@ def app__service__install(
                 config.set_by_path("global.main_service", normalized_service_name)
 
             if (
-                SERVICE_TAG_DB in (manifest.get("tags") or [])
-                and config.search("docker.db.main").is_none()
+                    SERVICE_TAG_DB in (manifest.get("tags") or [])
+                    and config.search("docker.db.main").is_none()
             ):
                 config.set_by_path("docker.db.main", normalized_service_name)
 
@@ -102,7 +101,7 @@ def app__service__install(
             # (services: section) instead of overwritten, so installing a new service
             # never erases compose entries from previously installed services.
             for (
-                inherited_service_name
+                    inherited_service_name
             ) in app_addon_manager.get_service_inheritance_chain(
                 normalized_service_name
             ):
@@ -141,8 +140,8 @@ def app__service__install(
                 key: str(meta["default"])
                 for key, meta in service_vars.items()
                 if "default" in meta
-                and not meta.get("generated")
-                and not meta.get("required")
+                   and not meta.get("generated")
+                   and not meta.get("required")
             }
             if defaults_to_write:
                 from wexample_helpers.helpers.file import file_env_append_as_real_user
@@ -188,7 +187,10 @@ def app__service__install(
 
             context.kernel.run_function(
                 app__state__rectify,
-                {"yes": True},
+                {
+                    "yes": True,
+                    "loop": True
+                },
             )
 
             context.io.log(f"Installed service '{normalized_service_name}'")
