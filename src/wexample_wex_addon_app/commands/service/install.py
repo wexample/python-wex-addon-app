@@ -125,6 +125,7 @@ def app__service__install(
                     app_setup_path,
                     merge_filenames=["docker-compose.yml"],
                     merge_keys=["services", "volumes", "networks"],
+                    ignore_filenames=[".wex.yml"],
                 )
 
             # Write vars declared in service.yml into .env (skip if already present)
