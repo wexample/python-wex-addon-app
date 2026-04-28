@@ -87,22 +87,16 @@ class CodeBaseWorkdir(RepoWorkdir):
             progress.finish(label="No changes to commit")
 
     def commit_propagated_dependency_updates(self) -> None:
-        """Commit and push dependency-version updates written by propagate_version.
+        """Commit and push any uncommitted dependency-version updates.
 
-        Called for packages skipped during suite publication (no real source
-        changes) but whose config files (e.g. composer.json) were modified by
-        a sibling package's propagate_version step.  Committing here prevents
-        those diffs from accumulating as false positives on the next publish run.
-        A lightweight git tag ({package}/dep-propagation) is placed at the new
-        commit so that has_changes_since_last_publication_tag can recognise it as
-        propagation-only and skip publication on the next suite run.
+        Utility for manual use or custom workflows.  The suite publish loop no
+        longer calls this directly — packages with propagated dep changes are
+        published in-run via the live has_changes_since_last_publication_tag check.
         """
         from wexample_helpers_git.const.common import GIT_BRANCH_MAIN
         from wexample_helpers_git.helpers.git import (
             git_commit_all_with_message,
             git_has_uncommitted_changes,
-            git_push_tag,
-            git_tag_lightweight,
         )
 
         cwd = self.get_path()
@@ -118,16 +112,7 @@ class CodeBaseWorkdir(RepoWorkdir):
             cwd=cwd,
             inherit_stdio=True,
         )
-        prop_tag = self.get_dep_propagation_tag_name()
-        git_tag_lightweight(prop_tag, cwd=cwd, force=True, inherit_stdio=False)
         self.push_to_deployment_remote(branch_name=GIT_BRANCH_MAIN)
-        git_push_tag(
-            prop_tag,
-            cwd=cwd,
-            remote=self._get_deployment_remote_name(),
-            force=True,
-            inherit_stdio=True,
-        )
 
     def depends_from(self, package: CodeBaseWorkdir) -> bool:
         for dependence_name in self.get_dependencies_versions().keys():

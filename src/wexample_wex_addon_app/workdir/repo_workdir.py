@@ -157,10 +157,6 @@ class RepoWorkdir(ManagedWorkdir):
     def count_test_files(self) -> int:
         return self._count_files(self._get_test_code_directories())
 
-    def get_dep_propagation_tag_name(self) -> str:
-        """Return the tag name used to mark the last dep-propagation-only commit."""
-        return f"{self.get_package_name()}/dep-propagation"
-
     def get_last_publication_tag(self) -> str | None:
         """Return the last publication tag for this package, or None if none exists."""
         from wexample_helpers_git.helpers.git import git_last_tag_for_prefix
@@ -211,29 +207,18 @@ class RepoWorkdir(ManagedWorkdir):
         ) or git_has_changes_since_tag(last_commit, ".", cwd=self.get_path())
 
     def has_changes_since_last_publication_tag(self) -> bool:
-        """Return True if there are changes in the package directory since the last publication tag.
+        """Return True if there are any changes (code or deps) since the last publication tag.
 
-        If there is no previous tag, returns True (first publication).
-        Returns False when the only commits since the last pub tag are dep-propagation commits
-        (i.e. the dep-propagation tag exists and points to HEAD).
+        Compares the working tree against the last pub tag so that dep-version
+        bumps written by a sibling's propagate_version step are detected even
+        before they are committed.  Returns True on first publication (no tag).
         """
-        from wexample_helpers_git.helpers.git import (
-            git_has_changes_since_tag,
-            git_tag_exists,
-            git_tag_points_to_head,
-        )
+        from wexample_helpers_git.helpers.git import git_has_changes_since_tag
 
         last_tag = self.get_last_publication_tag()
         if last_tag is None:
             return True
-        if not git_has_changes_since_tag(last_tag, ".", cwd=self.get_path()):
-            return False
-        prop_tag = self.get_dep_propagation_tag_name()
-        if git_tag_exists(prop_tag, cwd=self.get_path()) and git_tag_points_to_head(
-            prop_tag, cwd=self.get_path()
-        ):
-            return False
-        return True
+        return git_has_changes_since_tag(last_tag, ".", cwd=self.get_path())
 
     def publish(self, force: bool = False) -> None:
         import pwd
@@ -284,9 +269,10 @@ class RepoWorkdir(ManagedWorkdir):
         )
         from wexample_wex_addon_app.commands.version.push import app__version__push
 
-        # When called from a suite publish, has_changes is pre-computed before the
-        # loop so that propagate_version side-effects on sibling packages do not
-        # create false positives.  When called standalone, fall back to the live check.
+        # Live check includes uncommitted working-tree changes, so dep-version bumps
+        # written by a sibling's propagate_version step during this suite run are
+        # detected before they are committed.  Pass has_changes=True/False to
+        # override (e.g. --force) or leave None for the default live check.
         _has_changes = (
             has_changes
             if has_changes is not None
