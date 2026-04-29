@@ -193,6 +193,22 @@ def app__config__build(
             f"docker-compose.runtime.yml written ({len(compose_files)} file(s))"
         )
 
+        import yaml
+
+        compose_data = yaml.safe_load(result.stdout)
+        services = compose_data.get("services", {})
+        host_paths_map = {}
+        if services:
+            first_service = next(iter(services.values()))
+            for vol in first_service.get("volumes", []):
+                if isinstance(vol, dict) and vol.get("type") == "bind":
+                    source = vol.get("source", "")
+                    target = vol.get("target", "")
+                    if source.endswith("/"):
+                        host_paths_map[target + "/"] = source
+        app_workdir.set_local_data("debug", {"host_paths_map": host_paths_map})
+        context.io.log(f"debug.yml written ({len(host_paths_map)} path(s))")
+
     return QueuedCollectionResponse(
         kernel=context.kernel,
         content=[

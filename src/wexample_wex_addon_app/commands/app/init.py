@@ -74,8 +74,12 @@ def app__app__init(
     normalized_services = [string_to_snake_case(s) for s in (services or [])]
     domain = f"{string_to_kebab_case(app_name)}.{CORE_COMMAND_NAME}"
 
-    for subdir in [".wex", ".wex/tmp"]:
+    for subdir in [".wex", ".wex/tmp", ".wex/docker"]:
         file_mkdir_as_real_user(target_path / subdir)
+
+    docker_compose_path = target_path / ".wex" / "docker" / "docker-compose.yml"
+    if not docker_compose_path.exists():
+        file_write_as_real_user(docker_compose_path, "services: {}\n")
 
     file_write_as_real_user(
         target_path / ".wex" / "config.yml",
@@ -95,7 +99,7 @@ def app__app__init(
 
     context.kernel.run_function(
         app__state__rectify,
-        {"app_path": str(target_path), "yes": True},
+        {"app_path": str(target_path), "yes": True, "loop": True},
     )
 
     context.io.log(f"Initialized app '{app_name}' at {target_path}")

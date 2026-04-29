@@ -111,6 +111,8 @@ class MigrationWex6021(AbstractMigration):
         suffix_tags: dict[str, str],
     ) -> str | None:
         """Read the first FROM line and match against known build suffixes or local tags."""
+        from wexample_helpers.helpers.string import string_to_snake_case
+
         if not dockerfile_path.exists():
             return None
         try:
@@ -128,8 +130,8 @@ class MigrationWex6021(AbstractMigration):
                     for suffix, tag in suffix_tags.items():
                         if suffix == own_suffix:
                             continue
-                        # Match by suffix name (e.g., FROM .../core-base:master → core-base)
-                        if image_name == suffix:
+                        # Match by suffix name (e.g., FROM .../core-base:master → core_base)
+                        if string_to_snake_case(image_name) == suffix:
                             return suffix
                         # Match by local tag (e.g., FROM pdf-generator:local)
                         if (
@@ -189,14 +191,16 @@ class MigrationWex6021(AbstractMigration):
         tags = self._extract_tags_from_composes(target_path, dockerfile_names)
 
         # Build suffix→tag map (including fallbacks) for depends_on detection
+        from wexample_helpers.helpers.string import string_to_snake_case
+
         suffix_tags: dict[str, str] = {}
         for name in dockerfile_names:
-            suffix = name.replace("Dockerfile.", "")
+            suffix = string_to_snake_case(name.replace("Dockerfile.", ""))
             suffix_tags[suffix] = tags.get(name) or f"{app_name}-{suffix}:local"
 
         images = {}
         for name in dockerfile_names:
-            suffix = name.replace("Dockerfile.", "")
+            suffix = string_to_snake_case(name.replace("Dockerfile.", ""))
             tag = suffix_tags[suffix]
             depends_on = self._detect_depends_on(images_dir / name, suffix, suffix_tags)
             entry: dict = {
