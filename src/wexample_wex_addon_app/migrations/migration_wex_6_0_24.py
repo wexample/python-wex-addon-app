@@ -12,12 +12,12 @@ _RE_BARE = re.compile(r"\$(?!\{)([A-Za-z_][A-Za-z0-9_]*)")
 _RE_BRACED = re.compile(r"\$\{([A-Za-z_][A-Za-z0-9_]*)\}")
 
 
-def _to_braced(text: str) -> str:
-    return _RE_BARE.sub(r"${\1}", text)
-
-
 def _to_bare(text: str) -> str:
     return _RE_BRACED.sub(r"$\1", text)
+
+
+def _to_braced(text: str) -> str:
+    return _RE_BARE.sub(r"${\1}", text)
 
 
 def _transform_scripts(scripts: list, fn) -> tuple[list, bool]:

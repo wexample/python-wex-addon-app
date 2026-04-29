@@ -34,7 +34,8 @@ class MigrationWex6023(AbstractMigration):
                 continue
 
             cleaned = [
-                step for step in scripts
+                step
+                for step in scripts
                 if not isinstance(step, dict)
                 or any(k in step for k in ("script", "file", "command"))
             ]

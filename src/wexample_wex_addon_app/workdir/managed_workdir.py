@@ -17,6 +17,13 @@ from wexample_migration.abstract_migration import AbstractMigration
 from wexample_migration.workdir.mixin.with_migration_workdir_mixin import (
     WithMigrationWorkdirMixin,
 )
+from wexample_wex_core.common.app_manager_shell_result import AppManagerShellResult
+from wexample_wex_core.resolver.addon_command_resolver import AddonCommandResolver
+from wexample_wex_core.workdir.mixin.with_app_version_workdir_mixin import (
+    WithAppVersionWorkdirMixin,
+)
+from wexample_wex_core.workdir.workdir import Workdir
+
 from wexample_wex_addon_app.workdir.mixin.with_agents_workdir_mixin import (
     WithAgentsWorkdirMixin,
 )
@@ -32,12 +39,6 @@ from wexample_wex_addon_app.workdir.mixin.with_readme_workdir_mixin import (
 from wexample_wex_addon_app.workdir.mixin.with_suite_tree_workdir_mixin import (
     WithSuiteTreeWorkdirMixin,
 )
-from wexample_wex_core.common.app_manager_shell_result import AppManagerShellResult
-from wexample_wex_core.resolver.addon_command_resolver import AddonCommandResolver
-from wexample_wex_core.workdir.mixin.with_app_version_workdir_mixin import (
-    WithAppVersionWorkdirMixin,
-)
-from wexample_wex_core.workdir.workdir import Workdir
 
 if TYPE_CHECKING:
     from wexample_config.config_value.config_value import ConfigValue
@@ -80,10 +81,10 @@ class ManagedWorkdir(
 
     @classmethod
     def manager_run_command_from_path(
-            cls,
-            path: str,
-            command: callable,
-            arguments: list[str] | None = None,
+        cls,
+        path: str,
+        command: callable,
+        arguments: list[str] | None = None,
     ) -> AppManagerShellResult:
         """
         Execute a Python addon command (e.g., app__setup__install) using the app manager,
@@ -102,15 +103,15 @@ class ManagedWorkdir(
         # Build full command
         cmd = [resolved_command] + (arguments or [])
         full_cmd = [
-                       str(APP_PATH_BIN_APP_MANAGER),
-                       "--force-request-id",
-                       request_id,
-                       "--output-format",
-                       OUTPUT_FORMAT_JSON,
-                       "--output-target",
-                       OUTPUT_TARGET_FILE,
-                       "--subprocess",
-                   ] + cmd
+            str(APP_PATH_BIN_APP_MANAGER),
+            "--force-request-id",
+            request_id,
+            "--output-format",
+            OUTPUT_FORMAT_JSON,
+            "--output-target",
+            OUTPUT_TARGET_FILE,
+            "--subprocess",
+        ] + cmd
 
         # Run the manager command in the given workdir
         return AppManagerShellResult.from_shell_result(
@@ -120,7 +121,7 @@ class ManagedWorkdir(
 
     @classmethod
     def manager_run_from_path(
-            cls, path: FileStringOrPath, cmd: list[str] | str
+        cls, path: FileStringOrPath, cmd: list[str] | str
     ) -> ShellResult:
         from wexample_app.const.globals import APP_PATH_BIN_APP_MANAGER
         from wexample_helpers.helpers.shell import shell_run
@@ -139,7 +140,7 @@ class ManagedWorkdir(
 
     @classmethod
     def shell_run_from_path(
-            cls, path: FileStringOrPath, cmd: list[str] | str
+        cls, path: FileStringOrPath, cmd: list[str] | str
     ) -> ShellResult:
         from wexample_helpers.helpers.shell import shell_run
 
@@ -151,7 +152,7 @@ class ManagedWorkdir(
 
     @staticmethod
     def _migration_version_key(
-            migration_class: type[AbstractMigration],
+        migration_class: type[AbstractMigration],
     ) -> tuple[int, ...]:
         version = getattr(migration_class, "VERSION", "")
         return tuple(int(part) for part in str(version).split("."))
@@ -160,13 +161,13 @@ class ManagedWorkdir(
         return True
 
     def apply(
-            self,
-            force: bool = False,
-            scopes=None,
-            filter_path: str | None = None,
-            filter_operation: str | None = None,
-            max: int = None,
-            **kwargs,
+        self,
+        force: bool = False,
+        scopes=None,
+        filter_path: str | None = None,
+        filter_operation: str | None = None,
+        max: int = None,
+        **kwargs,
     ) -> FileStateResult | None:
         from wexample_wex_addon_app.commands.state.rectify import (
             app__state__rectify,
@@ -359,9 +360,9 @@ class ManagedWorkdir(
         )
 
         for library_path_config in (
-                self.get_runtime_config()
-                        .search("libraries")
-                        .get_list_or_default(default=[])
+            self.get_runtime_config()
+            .search("libraries")
+            .get_list_or_default(default=[])
         ):
             self.log(f"Searching in @path{{{library_path_config.get_str()}}}")
 
@@ -407,11 +408,13 @@ class ManagedWorkdir(
         self.append_agents(config=raw_value)
         self.append_version(config=raw_value)
 
-        gitkeep_child = [{
-            "name": ".gitkeep",
-            "type": DiskItemType.FILE,
-            "should_exist": True,
-        }]
+        gitkeep_child = [
+            {
+                "name": ".gitkeep",
+                "type": DiskItemType.FILE,
+                "should_exist": True,
+            }
+        ]
 
         raw_value["children"].append(
             {
@@ -479,33 +482,33 @@ class ManagedWorkdir(
                                         "name": "readme",
                                         "type": DiskItemType.DIRECTORY,
                                         "should_exist": True,
-                                        "children": gitkeep_child
+                                        "children": gitkeep_child,
                                     },
                                     {
                                         "name": "agents",
                                         "type": DiskItemType.DIRECTORY,
                                         "should_exist": True,
-                                        "children": gitkeep_child
-                                    }
-                                ]
+                                        "children": gitkeep_child,
+                                    },
+                                ],
                             },
                             {
                                 "name": "usage",
                                 "type": DiskItemType.DIRECTORY,
                                 "should_exist": True,
-                                "children": gitkeep_child
+                                "children": gitkeep_child,
                             },
                             {
                                 "name": "contributing",
                                 "type": DiskItemType.DIRECTORY,
                                 "should_exist": True,
-                                "children": gitkeep_child
+                                "children": gitkeep_child,
                             },
                             {
                                 "name": "specifications",
                                 "type": DiskItemType.DIRECTORY,
                                 "should_exist": True,
-                                "children": gitkeep_child
+                                "children": gitkeep_child,
                             },
                             {
                                 "name": "roadmap",
@@ -516,28 +519,28 @@ class ManagedWorkdir(
                                         "name": "todo",
                                         "type": DiskItemType.DIRECTORY,
                                         "should_exist": True,
-                                        "children": gitkeep_child
+                                        "children": gitkeep_child,
                                     },
                                     {
                                         "name": "done",
                                         "type": DiskItemType.DIRECTORY,
                                         "should_exist": True,
-                                        "children": gitkeep_child
+                                        "children": gitkeep_child,
                                     },
                                     {
                                         "name": "decisions",
                                         "type": DiskItemType.DIRECTORY,
                                         "should_exist": True,
-                                        "children": gitkeep_child
+                                        "children": gitkeep_child,
                                     },
-                                ]
+                                ],
                             },
                             {
                                 "name": CORE_DIR_NAME_TMP,
                                 "type": DiskItemType.DIRECTORY,
                                 "should_exist": True,
                             },
-                        ]
+                        ],
                     },
                     {
                         # local — machine-specific state, never committed
@@ -634,7 +637,7 @@ class ManagedWorkdir(
         return removed_containers, removed_images
 
     def search_app_or_suite_runtime_config(
-            self, key_path: str, default: Any = None
+        self, key_path: str, default: Any = None
     ) -> ConfigValue:
         from wexample_config.config_value.config_value import ConfigValue
 
