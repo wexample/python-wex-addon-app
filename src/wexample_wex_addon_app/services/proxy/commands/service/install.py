@@ -27,7 +27,9 @@ def proxy__service__install(
 
     proxy_target_dir = app_path / "proxy"
     proxy_target_dir.mkdir(parents=True, exist_ok=True)
-    shutil.copytree(service_dir / "samples" / "proxy", proxy_target_dir, dirs_exist_ok=True)
+    shutil.copytree(
+        service_dir / "samples" / "proxy", proxy_target_dir, dirs_exist_ok=True
+    )
 
     config_file = service.app_workdir.get_config_file()
     config = config_file.read_config()
