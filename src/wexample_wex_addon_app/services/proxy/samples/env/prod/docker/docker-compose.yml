@@ -1,0 +1,16 @@
+services:
+  proxy:
+    labels:
+      com.github.jrcs.letsencrypt_nginx_proxy_companion.nginx_proxy: nginx_proxy
+  certs:
+    image: nginxproxy/acme-companion:2.4
+    container_name: ${APP_PROJECT_NAME}_certs
+    volumes_from:
+      - proxy
+    volumes:
+      - ${APP_PATH}proxy/certs:/etc/nginx/certs:rw
+      - ${APP_PATH}proxy/acme:/etc/acme.sh
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    extends:
+      file: ${SERVICE_DEFAULT_COMPOSE}
+      service: default
