@@ -150,6 +150,13 @@ class AppInfoResponse(AbstractResponse):
             )
             responses.extend(libraries)
 
+        # Add webhook section
+        webhook_props = self._get_webhook_properties()
+        if webhook_props:
+            responses.append(
+                PropertiesPromptResponse(title="Webhooks", properties=webhook_props)
+            )
+
         # Add status sections
         responses.extend(
             [
@@ -249,6 +256,33 @@ class AppInfoResponse(AbstractResponse):
                 "count_test_code_lines",
             ]
         )
+
+    def _get_webhook_properties(self) -> dict | None:
+        from wexample_wex_core.webhook.const import WEBHOOK_LISTEN_PORT_DEFAULT
+        from wexample_wex_core.addons.system.helpers import system_find_process_by_port
+
+        all_webhook = self.kernel.get_configuration_registry().get_webhook_commands()
+        app_cmds = [
+            cmd["command"]
+            for cmd in all_webhook.values()
+            if cmd["command"].startswith(".")
+        ]
+        if not app_cmds:
+            return None
+
+        proc = system_find_process_by_port(WEBHOOK_LISTEN_PORT_DEFAULT)
+        daemon_status = "@color:green{running}" if proc else "@color:red{stopped}"
+
+        tokens = self.app_workdir.get_local_data("webhook_tokens")
+        with_token = sum(1 for cmd in app_cmds if cmd in tokens)
+        total = len(app_cmds)
+        token_color = "green" if with_token == total else ("yellow" if with_token else "red")
+
+        return {
+            "Daemon": daemon_status,
+            "Commands": f"@color:magenta{{{total}}}",
+            "Tokens": f"@color:{token_color}{{{with_token}/{total}}}",
+        }
 
     def _has_repo_status(self) -> bool:
         return all(
