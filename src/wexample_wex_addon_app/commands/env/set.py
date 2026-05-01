@@ -28,6 +28,17 @@ def app__env__set(
     app_workdir: ManagedWorkdir,
     environment: str,
 ) -> bool:
+    import pathlib
+
     app_workdir.set_app_env(environment)
     context.io.log(f'Environment set to "{environment}"')
+
+    www_dir = pathlib.Path("/var/www") / environment
+    if not www_dir.exists():
+        try:
+            www_dir.mkdir(parents=True, exist_ok=True)
+            context.io.log(f"Created {www_dir}")
+        except PermissionError:
+            context.io.warning(f"Could not create {www_dir} — run as root if needed")
+
     return True
