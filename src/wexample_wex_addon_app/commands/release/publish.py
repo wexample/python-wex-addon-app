@@ -18,9 +18,9 @@ if TYPE_CHECKING:
 @middleware(middleware=AppMiddleware)
 @command(
     type=COMMAND_TYPE_ADDON,
-    description="Publish package to PyPI.",
+    description="Publish a new version of the app.",
 )
-def app__version__publish(
+def app__release__publish(
     context: ExecutionContext,
     app_workdir: RepoWorkdir,
     force: bool = False,
