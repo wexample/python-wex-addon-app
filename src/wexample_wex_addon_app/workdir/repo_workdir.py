@@ -89,7 +89,7 @@ class RepoWorkdir(ManagedWorkdir):
         import pathlib
         import stat
 
-        sock = os.environ.get("SSH_AUTH_SOCK", "")
+        sock = self.get_env_parameter("SSH_AUTH_SOCK") or ""
 
         if sock:
             try:
