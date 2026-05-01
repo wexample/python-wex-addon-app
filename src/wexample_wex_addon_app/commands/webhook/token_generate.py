@@ -21,17 +21,28 @@ if TYPE_CHECKING:
     required=True,
     description="App command to secure, e.g. '.ping/pong'",
 )
+@option(
+    "force",
+    type=bool,
+    is_flag=True,
+    required=False,
+    default=False,
+    description="Revoke existing token and generate a new one",
+)
 @middleware(middleware=AppMiddleware)
 @command(type=COMMAND_TYPE_ADDON, description="Generate and store a webhook token for an app command")
 def app__webhook__token_generate(
     context: ExecutionContext,
     app_workdir: ManagedWorkdir,
     command_name: str,
+    force: bool = False,
 ) -> None:
     existing = app_workdir.get_local_data_value("webhook_tokens", command_name)
     if existing:
-        context.io.warning(f"A token already exists for {command_name}. Use token-revoke first.")
-        return
+        if not force:
+            context.io.warning(f"A token already exists for {command_name}. Use --force to regenerate.")
+            return
+        app_workdir.delete_local_data_value("webhook_tokens", command_name)
 
     token = app_workdir.rotate_local_token("webhook_tokens", command_name)
 

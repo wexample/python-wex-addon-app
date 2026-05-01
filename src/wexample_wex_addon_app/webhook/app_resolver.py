@@ -38,10 +38,12 @@ class AppWebhookTypeResolver:
     def resolve_token(self, command_path: str, command_str: str) -> str | None:
         import yaml
 
+        from wexample_app.const.globals import WORKDIR_LOCAL_DIR_NAME, WORKDIR_SETUP_DIR
+
         cwd = self.resolve_cwd(command_path)
         if not cwd:
             return None
-        token_file = Path(cwd) / ".wex" / "local" / "webhook_tokens.yml"
+        token_file = Path(cwd) / WORKDIR_SETUP_DIR / WORKDIR_LOCAL_DIR_NAME / "webhook_tokens.yml"
         if not token_file.exists():
             return None
         try:
