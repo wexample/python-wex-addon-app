@@ -278,6 +278,11 @@ class AppAddonManager(AbstractAddonManager):
 
         return [AppShouldRunStepGuard]
 
+    def get_webhook_resolvers(self) -> dict:
+        from wexample_wex_addon_app.webhook.app_resolver import AppWebhookTypeResolver
+
+        return {"app": AppWebhookTypeResolver()}
+
     def run_service_hook(
         self,
         hook: str,

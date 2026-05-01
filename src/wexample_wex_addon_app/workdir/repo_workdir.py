@@ -89,6 +89,8 @@ class RepoWorkdir(ManagedWorkdir):
         import pathlib
         import stat
 
+        # OS-level variable — not stored in .wex/local/env.yml on every workdir,
+        # so get_env_parameter() would raise KeyNotFoundError. Use os.environ.get() here.
         sock = os.environ.get("SSH_AUTH_SOCK", "")
 
         if sock:
@@ -225,7 +227,6 @@ class RepoWorkdir(ManagedWorkdir):
 
         from wexample_helpers.helpers.file import file_chown_recursive
         from wexample_helpers.helpers.user import user_get_real_username
-        from wexample_helpers_git.const.common import GIT_BRANCH_MAIN
 
         username = user_get_real_username()
         pw = pwd.getpwnam(username)
@@ -242,8 +243,7 @@ class RepoWorkdir(ManagedWorkdir):
             f"Published {self.get_package_name()} as {self.get_publication_tag_name()}."
         )
         self.add_publication_tag()
-        self.merge_to_main()
-        self.push_to_deployment_remote(branch_name=GIT_BRANCH_MAIN)
+        self._post_publish()
 
     def publish_dependencies(self) -> dict[str, str]:
         return {self.get_package_name(): self.get_project_version()}
@@ -257,15 +257,15 @@ class RepoWorkdir(ManagedWorkdir):
         from wexample_prompt.enums.terminal_color import TerminalColor
 
         from wexample_wex_addon_app.commands.library.sync import app__library__sync
+        from wexample_wex_addon_app.commands.release.publish import (
+            app__release__publish,
+        )
         from wexample_wex_addon_app.commands.state.rectify import (
             app__state__rectify,
         )
         from wexample_wex_addon_app.commands.version.bump import app__version__bump
         from wexample_wex_addon_app.commands.version.propagate import (
             app__version__propagate,
-        )
-        from wexample_wex_addon_app.commands.version.publish import (
-            app__version__publish,
         )
         from wexample_wex_addon_app.commands.version.push import app__version__push
 
@@ -321,7 +321,7 @@ class RepoWorkdir(ManagedWorkdir):
             self.manager_run_command(command=app__version__propagate)
             sub_progress.advance(step=1, label=f"Publishing {self.get_project_name()}")
             self.manager_run_command(
-                command=app__version__publish,
+                command=app__release__publish,
                 arguments=(["--force"] if force else []),
             )
 
@@ -402,6 +402,9 @@ class RepoWorkdir(ManagedWorkdir):
                 kernel_workdir.set_local_data("env", data)
         except Exception:
             pass
+
+    def _post_publish(self) -> None:
+        pass
 
     def _publish(self, force: bool = False) -> None:
         pass
