@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from pathlib import Path
 from typing import TYPE_CHECKING
 
 from wexample_wex_core.const.globals import COMMAND_TYPE_ADDON
@@ -24,7 +23,6 @@ def app__webhook__status(
 ) -> None:
     from wexample_wex_core.addons.system.helpers import system_find_process_by_port
 
-    app_path = app_workdir.get_path()
     port = WEBHOOK_LISTEN_PORT_DEFAULT
 
     # ---- daemon status -------------------------------------------------------
@@ -37,7 +35,12 @@ def app__webhook__status(
         context.io.log(f"Daemon: @red{{stopped}} — no process on port {port}")
 
     # ---- webhook commands in this app ----------------------------------------
-    webhook_commands = _find_webhook_commands(app_path)
+    all_webhook = context.kernel.get_configuration_registry().get_webhook_commands()
+    webhook_commands = [
+        cmd["command"]
+        for cmd in all_webhook.values()
+        if cmd["command"].startswith(".")
+    ]
 
     if not webhook_commands:
         context.io.log("No @webhook commands found in this app.")
@@ -56,30 +59,3 @@ def app__webhook__status(
         data=rows,
         headers=["Command", "Token"],
     )
-
-
-def _find_webhook_commands(app_path: Path) -> list[str]:
-    commands_dir = app_path / ".wex" / "commands"
-    if not commands_dir.is_dir():
-        return []
-
-    results: list[str] = []
-    for yml_file in commands_dir.rglob("*.yml"):
-        try:
-            with open(yml_file) as f:
-                data = yaml.safe_load(f) or {}
-        except Exception:
-            continue
-
-        decorators = data.get("decorators") or []
-        has_webhook = any(
-            (d.get("name") if isinstance(d, dict) else d) == "webhook"
-            for d in decorators
-        )
-        if not has_webhook:
-            continue
-
-        rel = yml_file.relative_to(commands_dir).with_suffix("")
-        results.append(f".{rel.as_posix()}")
-
-    return results

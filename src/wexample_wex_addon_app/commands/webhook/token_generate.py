@@ -18,8 +18,17 @@ if TYPE_CHECKING:
 @option(
     "command_name",
     type=str,
-    required=True,
+    required=False,
+    default=None,
     description="App command to secure, e.g. '.ping/pong'",
+)
+@option(
+    "all",
+    type=bool,
+    is_flag=True,
+    required=False,
+    default=False,
+    description="Generate tokens for all @webhook commands in this app",
 )
 @option(
     "force",
@@ -34,18 +43,37 @@ if TYPE_CHECKING:
 def app__webhook__token_generate(
     context: ExecutionContext,
     app_workdir: ManagedWorkdir,
-    command_name: str,
+    command_name: str | None = None,
+    all: bool = False,
     force: bool = False,
 ) -> None:
+    if not command_name and not all:
+        context.io.error("Specify --command-name <cmd> or --all.")
+        return
+    if command_name and all:
+        context.io.error("--command-name and --all are mutually exclusive.")
+        return
+
+    if all:
+        webhook_cmds = context.kernel.get_configuration_registry().get_webhook_commands()
+        targets = [cmd["command"] for cmd in webhook_cmds.values() if cmd["command"].startswith(".")]
+        if not targets:
+            context.io.log("No @webhook app commands found.")
+            return
+    else:
+        targets = [command_name]
+
+    for cmd in targets:
+        _generate_one(context, app_workdir, cmd, force)
+
+
+def _generate_one(context, app_workdir, command_name: str, force: bool) -> None:
     existing = app_workdir.get_local_data_value("webhook_tokens", command_name)
     if existing:
         if not force:
-            context.io.warning(f"A token already exists for {command_name}. Use --force to regenerate.")
+            context.io.warning(f"Token already exists for {command_name} — skipping (use --force).")
             return
         app_workdir.delete_local_data_value("webhook_tokens", command_name)
 
     token = app_workdir.rotate_local_token("webhook_tokens", command_name)
-
-    context.io.log(f"Token generated for {command_name}:")
-    context.io.log(f"  @yellow{{{token}}}")
-    context.io.log("Store it now — it will not be shown again.")
+    context.io.log(f"Token generated for {command_name}:  @yellow{{{token}}}")
