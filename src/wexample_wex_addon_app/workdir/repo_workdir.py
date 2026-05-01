@@ -89,7 +89,9 @@ class RepoWorkdir(ManagedWorkdir):
         import pathlib
         import stat
 
-        sock = self.get_env_parameter("SSH_AUTH_SOCK") or ""
+        # OS-level variable — not stored in .wex/local/env.yml on every workdir,
+        # so get_env_parameter() would raise KeyNotFoundError. Use os.environ.get() here.
+        sock = os.environ.get("SSH_AUTH_SOCK", "")
 
         if sock:
             try:
@@ -255,15 +257,15 @@ class RepoWorkdir(ManagedWorkdir):
         from wexample_prompt.enums.terminal_color import TerminalColor
 
         from wexample_wex_addon_app.commands.library.sync import app__library__sync
+        from wexample_wex_addon_app.commands.release.publish import (
+            app__release__publish,
+        )
         from wexample_wex_addon_app.commands.state.rectify import (
             app__state__rectify,
         )
         from wexample_wex_addon_app.commands.version.bump import app__version__bump
         from wexample_wex_addon_app.commands.version.propagate import (
             app__version__propagate,
-        )
-        from wexample_wex_addon_app.commands.release.publish import (
-            app__release__publish,
         )
         from wexample_wex_addon_app.commands.version.push import app__version__push
 

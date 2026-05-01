@@ -16,7 +16,10 @@ if TYPE_CHECKING:
 
 
 @middleware(middleware=AppMiddleware)
-@command(type=COMMAND_TYPE_ADDON, description="Show webhook daemon status and registered commands for this app")
+@command(
+    type=COMMAND_TYPE_ADDON,
+    description="Show webhook daemon status and registered commands for this app",
+)
 def app__webhook__status(
     context: ExecutionContext,
     app_workdir: ManagedWorkdir,
@@ -29,17 +32,20 @@ def app__webhook__status(
     proc = system_find_process_by_port(port)
     if proc:
         from datetime import datetime
-        started = datetime.fromtimestamp(proc.create_time()).strftime("%Y-%m-%d %H:%M:%S")
-        context.io.log(f"Daemon: @green{{running}} — pid {proc.pid}, port {port}, started {started}")
+
+        started = datetime.fromtimestamp(proc.create_time()).strftime(
+            "%Y-%m-%d %H:%M:%S"
+        )
+        context.io.log(
+            f"Daemon: @green{{running}} — pid {proc.pid}, port {port}, started {started}"
+        )
     else:
         context.io.log(f"Daemon: @red{{stopped}} — no process on port {port}")
 
     # ---- webhook commands in this app ----------------------------------------
     all_webhook = context.kernel.get_configuration_registry().get_webhook_commands()
     webhook_commands = [
-        cmd["command"]
-        for cmd in all_webhook.values()
-        if cmd["command"].startswith(".")
+        cmd["command"] for cmd in all_webhook.values() if cmd["command"].startswith(".")
     ]
 
     if not webhook_commands:

@@ -248,18 +248,9 @@ class AppInfoResponse(AbstractResponse):
         except (AttributeError, ValueError):
             return "@color:yellow{N/A}"
 
-    def _has_repo_metrics(self) -> bool:
-        return all(
-            hasattr(self.app_workdir, method_name)
-            for method_name in [
-                "count_source_code_lines",
-                "count_test_code_lines",
-            ]
-        )
-
     def _get_webhook_properties(self) -> dict | None:
-        from wexample_wex_core.webhook.const import WEBHOOK_LISTEN_PORT_DEFAULT
         from wexample_wex_core.addons.system.helpers import system_find_process_by_port
+        from wexample_wex_core.webhook.const import WEBHOOK_LISTEN_PORT_DEFAULT
 
         all_webhook = self.kernel.get_configuration_registry().get_webhook_commands()
         app_cmds = [
@@ -276,13 +267,24 @@ class AppInfoResponse(AbstractResponse):
         tokens = self.app_workdir.get_local_data("webhook_tokens")
         with_token = sum(1 for cmd in app_cmds if cmd in tokens)
         total = len(app_cmds)
-        token_color = "green" if with_token == total else ("yellow" if with_token else "red")
+        token_color = (
+            "green" if with_token == total else ("yellow" if with_token else "red")
+        )
 
         return {
             "Daemon": daemon_status,
             "Commands": f"@color:magenta{{{total}}}",
             "Tokens": f"@color:{token_color}{{{with_token}/{total}}}",
         }
+
+    def _has_repo_metrics(self) -> bool:
+        return all(
+            hasattr(self.app_workdir, method_name)
+            for method_name in [
+                "count_source_code_lines",
+                "count_test_code_lines",
+            ]
+        )
 
     def _has_repo_status(self) -> bool:
         return all(

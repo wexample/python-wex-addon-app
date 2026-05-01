@@ -15,7 +15,10 @@ if TYPE_CHECKING:
 
 
 @middleware(middleware=AppMiddleware)
-@command(type=COMMAND_TYPE_ADDON, description="List all webhook tokens registered for this app")
+@command(
+    type=COMMAND_TYPE_ADDON,
+    description="List all webhook tokens registered for this app",
+)
 def app__webhook__token_list(
     context: ExecutionContext,
     app_workdir: ManagedWorkdir,
@@ -27,8 +30,7 @@ def app__webhook__token_list(
         return
 
     rows = [
-        [cmd, f"@yellow{{{token[:8]}}}..."]
-        for cmd, token in sorted(tokens.items())
+        [cmd, f"@yellow{{{token[:8]}}}..."] for cmd, token in sorted(tokens.items())
     ]
 
     context.io.table(data=rows, headers=["Command", "Token (prefix)"])

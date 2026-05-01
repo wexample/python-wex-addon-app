@@ -31,7 +31,9 @@ if TYPE_CHECKING:
     description="Revoke tokens for all @webhook commands in this app",
 )
 @middleware(middleware=AppMiddleware)
-@command(type=COMMAND_TYPE_ADDON, description="Revoke the webhook token for an app command")
+@command(
+    type=COMMAND_TYPE_ADDON, description="Revoke the webhook token for an app command"
+)
 def app__webhook__token_revoke(
     context: ExecutionContext,
     app_workdir: ManagedWorkdir,
@@ -46,8 +48,14 @@ def app__webhook__token_revoke(
         return
 
     if all:
-        webhook_cmds = context.kernel.get_configuration_registry().get_webhook_commands()
-        targets = [cmd["command"] for cmd in webhook_cmds.values() if cmd["command"].startswith(".")]
+        webhook_cmds = (
+            context.kernel.get_configuration_registry().get_webhook_commands()
+        )
+        targets = [
+            cmd["command"]
+            for cmd in webhook_cmds.values()
+            if cmd["command"].startswith(".")
+        ]
         if not targets:
             context.io.log("No @webhook app commands found.")
             return

@@ -22,7 +22,9 @@ if TYPE_CHECKING:
     description="App command whose token should be shown, e.g. '.ping/pong'",
 )
 @middleware(middleware=AppMiddleware)
-@command(type=COMMAND_TYPE_ADDON, description="Show the webhook token for an app command")
+@command(
+    type=COMMAND_TYPE_ADDON, description="Show the webhook token for an app command"
+)
 def app__webhook__token_show(
     context: ExecutionContext,
     app_workdir: ManagedWorkdir,
