@@ -107,6 +107,35 @@ def app__app__start(
                     reason="No environment configured, start aborted",
                 )
 
+        from wexample_helpers.helpers.file import file_env_append_as_real_user
+
+        from wexample_wex_addon_app.app_addon_manager import AppAddonManager
+
+        app_addon_manager = AppAddonManager.from_kernel(context.kernel)
+        existing_env = app_workdir.get_env_parameters().to_dict()
+
+        for service in app_addon_manager.get_app_services(app_workdir):
+            for key, meta in service.get_vars().items():
+                if not meta.get("required") or meta.get("generated"):
+                    continue
+                if key in existing_env:
+                    continue
+
+                description = meta.get("description", "")
+                question = key + (f" — {description}" if description else "")
+                suggested = str(meta["default"]) if "default" in meta else None
+
+                value = None
+                while not value:
+                    if value is not None:
+                        context.io.log(f"  '{key}' is required, please enter a value.")
+                    value = context.io.input(
+                        question=question, default_value=suggested
+                    ).get_value()
+
+                file_env_append_as_real_user(env_file, {key: value})
+                existing_env[key] = value
+
         if _check_started(app_workdir, APP_STARTED_CHECK_MODE_ANY_CONTAINER, context):
             return QueuedCollectionStopResponse(
                 kernel=context.kernel,
