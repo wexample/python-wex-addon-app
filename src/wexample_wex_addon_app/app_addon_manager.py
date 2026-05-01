@@ -271,6 +271,11 @@ class AppAddonManager(AbstractAddonManager):
 
         return yaml_read(file_path=str(service_dir / "service.yml"), default={}) or {}
 
+    def get_webhook_resolvers(self) -> dict:
+        from wexample_wex_addon_app.webhook.app_resolver import AppWebhookTypeResolver
+
+        return {"app": AppWebhookTypeResolver()}
+
     def get_step_guard_classes(self) -> list[type]:
         from wexample_wex_addon_app.yaml.app_should_run_step_guard import (
             AppShouldRunStepGuard,
