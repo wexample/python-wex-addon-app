@@ -3,7 +3,6 @@ from __future__ import annotations
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-import yaml
 from wexample_wex_core.const.globals import COMMAND_TYPE_ADDON
 from wexample_wex_core.decorator.command import command
 from wexample_wex_core.decorator.middleware import middleware
@@ -45,11 +44,7 @@ def app__webhook__status(
         return
 
     # ---- token status --------------------------------------------------------
-    token_file = app_path / ".wex" / "local" / "webhook_tokens.yml"
-    tokens: dict = {}
-    if token_file.exists():
-        with open(token_file) as f:
-            tokens = yaml.safe_load(f) or {}
+    tokens: dict = app_workdir.get_local_data("webhook_tokens")
 
     rows = []
     for cmd in sorted(webhook_commands):

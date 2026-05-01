@@ -28,28 +28,12 @@ def app__webhook__token_generate(
     app_workdir: ManagedWorkdir,
     command_name: str,
 ) -> None:
-    import secrets
-
-    import yaml
-
-    app_path = app_workdir.get_path()
-    token_file = app_path / ".wex" / "local" / "webhook_tokens.yml"
-    token_file.parent.mkdir(parents=True, exist_ok=True)
-
-    tokens: dict = {}
-    if token_file.exists():
-        with open(token_file) as f:
-            tokens = yaml.safe_load(f) or {}
-
-    if command_name in tokens:
+    existing = app_workdir.get_local_data_value("webhook_tokens", command_name)
+    if existing:
         context.io.warning(f"A token already exists for {command_name}. Use token-revoke first.")
         return
 
-    token = secrets.token_hex(32)
-    tokens[command_name] = token
-
-    with open(token_file, "w") as f:
-        yaml.dump(tokens, f, default_flow_style=False, sort_keys=True)
+    token = app_workdir.rotate_local_token("webhook_tokens", command_name)
 
     context.io.log(f"Token generated for {command_name}:")
     context.io.log(f"  @yellow{{{token}}}")
