@@ -18,20 +18,46 @@ if TYPE_CHECKING:
 @option(
     "command_name",
     type=str,
-    required=True,
+    required=False,
+    default=None,
     description="App command whose token should be revoked, e.g. '.ping/pong'",
+)
+@option(
+    "all",
+    type=bool,
+    is_flag=True,
+    required=False,
+    default=False,
+    description="Revoke tokens for all @webhook commands in this app",
 )
 @middleware(middleware=AppMiddleware)
 @command(type=COMMAND_TYPE_ADDON, description="Revoke the webhook token for an app command")
 def app__webhook__token_revoke(
     context: ExecutionContext,
     app_workdir: ManagedWorkdir,
-    command_name: str,
+    command_name: str | None = None,
+    all: bool = False,
 ) -> None:
-    existing = app_workdir.get_local_data_value("webhook_tokens", command_name)
-    if not existing:
-        context.io.warning(f"No token found for {command_name}.")
+    if not command_name and not all:
+        context.io.error("Specify --command-name <cmd> or --all.")
+        return
+    if command_name and all:
+        context.io.error("--command-name and --all are mutually exclusive.")
         return
 
-    app_workdir.delete_local_data_value("webhook_tokens", command_name)
-    context.io.log(f"Token revoked for {command_name}.")
+    if all:
+        webhook_cmds = context.kernel.get_configuration_registry().get_webhook_commands()
+        targets = [cmd["command"] for cmd in webhook_cmds.values() if cmd["command"].startswith(".")]
+        if not targets:
+            context.io.log("No @webhook app commands found.")
+            return
+    else:
+        targets = [command_name]
+
+    for cmd in targets:
+        existing = app_workdir.get_local_data_value("webhook_tokens", cmd)
+        if not existing:
+            context.io.warning(f"No token found for {cmd} — skipping.")
+            continue
+        app_workdir.delete_local_data_value("webhook_tokens", cmd)
+        context.io.log(f"Token revoked for {cmd}.")
