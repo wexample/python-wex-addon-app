@@ -164,7 +164,7 @@ class ManagedWorkdir(
         self,
         force: bool = False,
         scopes=None,
-        filter_path: str | None = None,
+        filter_paths: list[str] | None = None,
         filter_operation: str | None = None,
         max: int = None,
         **kwargs,
@@ -177,8 +177,9 @@ class ManagedWorkdir(
         if force:
             args.append("--force")
 
-        if filter_path:
-            args.extend(["--filter-path", filter_path])
+        if filter_paths:
+            for p in filter_paths:
+                args.extend(["--filter-path", p])
 
         if filter_operation:
             args.extend(["--filter-operation", filter_operation])

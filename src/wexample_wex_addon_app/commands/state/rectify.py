@@ -26,6 +26,7 @@ if TYPE_CHECKING:
 @option(name="filter_operation", type=str, default=None)
 @option(name="max", type=int, default=None)
 @option(name="force", type=bool, default=False, is_flag=True)
+@option(name="changed_only", type=bool, default=False, is_flag=True)
 @middleware(middleware=AppMiddleware)
 @middleware(middleware=EachSuitePackageMiddleware)
 @command(type=COMMAND_TYPE_ADDON)
@@ -41,6 +42,7 @@ def app__state__rectify(
     filter_path: str | None = None,
     filter_operation: str | None = None,
     max: int = None,
+    changed_only: bool = False,
 ) -> None:
     from wexample_filestate.enum.scopes import Scope
 
@@ -54,13 +56,21 @@ def app__state__rectify(
             # Remove remote.
             scopes = (set(Scope) - {Scope.REMOTE}) if no_remote else None
 
+            filter_paths: list[str] | None = None
+            if filter_path:
+                filter_paths = [filter_path]
+            if changed_only:
+                from wexample_helpers_git.helpers.git import git_get_changed_paths
+
+                filter_paths = list(git_get_changed_paths(cwd=workdir.get_path()))
+
             from wexample_filestate.item.abstract_item_target import AbstractItemTarget
 
             result = AbstractItemTarget.apply(
                 workdir,
                 interactive=(not yes),
                 scopes=scopes,
-                filter_path=filter_path,
+                filter_paths=filter_paths,
                 filter_operation=filter_operation,
                 max=max,
             )
