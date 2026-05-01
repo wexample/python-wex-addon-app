@@ -177,6 +177,52 @@ def app__service__install(
                 file_env_append_as_real_user(env_file, {key: value})
                 existing_env = env_file.read_text()
 
+            # Step 3: declarative install_config — write config.yml keys via Jinja2
+            install_config = manifest.get("install_config") or {}
+            if install_config:
+                import secrets
+
+                from jinja2 import Environment as JinjaEnv
+                from wexample_helpers.helpers.string import string_random_token
+
+                jinja = JinjaEnv()
+                jinja.globals.update(
+                    {
+                        "token": string_random_token,
+                        "hex": lambda n=32: secrets.token_hex(n),
+                        "urlsafe": lambda n=24: secrets.token_urlsafe(n),
+                    }
+                )
+                jinja_ctx = {
+                    "name": normalized_service_name,
+                    "app_name": app_workdir.get_config()
+                    .search("global.name")
+                    .get_str()
+                    or "",
+                    "env": app_workdir.get_app_env() or "prod",
+                }
+
+                config_file = app_workdir.get_config_file()
+                config = config_file.read_config()
+                changed = False
+
+                for raw_key, raw_value in install_config.items():
+                    rendered_key = jinja.from_string(str(raw_key)).render(jinja_ctx)
+                    if not config.search(rendered_key).is_none():
+                        continue
+                    if isinstance(raw_value, str):
+                        rendered_value: object = jinja.from_string(raw_value).render(
+                            jinja_ctx
+                        )
+                    else:
+                        rendered_value = raw_value
+                    config.set_by_path(rendered_key, rendered_value)
+                    changed = True
+
+                if changed:
+                    config_file.write_config(config)
+                    app_workdir.get_runtime_config(rebuild=True)
+
             app_addon_manager.run_service_hook(
                 hook="service/install",
                 app_workdir=app_workdir,
