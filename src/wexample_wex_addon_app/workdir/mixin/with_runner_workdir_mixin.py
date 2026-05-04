@@ -3,6 +3,8 @@ from __future__ import annotations
 from pathlib import Path
 from typing import TYPE_CHECKING
 
+from wexample_app.const.globals import WORKDIR_SETUP_DIR
+
 if TYPE_CHECKING:
     from wexample_runner.runner_config import RunnerConfig
     from wexample_runner.runner_result import RunnerResult
@@ -29,7 +31,7 @@ class WithRunnerWorkdirMixin:
             def get_runners(self):
                 return {
                     "roave": RunnerConfig(
-                        dockerfile=".wex/docker/Dockerfile.roave",
+                        dockerfile=str(WORKDIR_SETUP_DIR / "docker" / "Dockerfile.roave"),
                         mount_path=self.get_suite_path(),
                         container_workdir="/var/www/html",
                         ephemeral=False,

@@ -133,7 +133,7 @@ def app__service__install(
                 normalized_service_name, app_workdir
             )
             service_vars = app_service.get_vars()
-            env_file = app_workdir.get_path() / ".wex" / ".env"
+            env_file = app_workdir.get_path() / WORKDIR_SETUP_DIR / ".env"
             existing_env = env_file.read_text() if env_file.exists() else ""
 
             # Step 1: non-required defaults (write silently, no prompt)
