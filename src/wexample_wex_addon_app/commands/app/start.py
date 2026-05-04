@@ -70,32 +70,28 @@ def app__app__start(
     no_proxy: bool = False,
     fast: bool = False,
 ) -> AbstractResponse:
-    from wexample_app.const.globals import WORKDIR_SETUP_DIR
+    from wexample_app.const.globals import APP_PATH_TMP
     from wexample_app.response.queued_collection_response import (
         QueuedCollectionResponse,
     )
-    from wexample_wex_core.const.globals import CORE_DIR_NAME_TMP
 
     app_path = app_workdir.get_path()
-    tmp_dir = app_path / WORKDIR_SETUP_DIR / CORE_DIR_NAME_TMP
+    tmp_dir = app_path / APP_PATH_TMP
     compose_file = str(tmp_dir / "docker-compose.runtime.yml")
     docker_env_file = str(tmp_dir / "docker.env")
 
     def _checkup(previous_value=None):
-        from wexample_app.const.globals import WORKDIR_SETUP_DIR
+        from wexample_app.const.globals import APP_PATH_ENV
         from wexample_app.response.queue_collection.queued_collection_stop_response import (
             QueuedCollectionStopResponse,
         )
-        from wexample_filestate.item.file.env_file import EnvFile
 
         from wexample_wex_addon_app.commands.app.started import (
             APP_STARTED_CHECK_MODE_ANY_CONTAINER,
             _check_started,
         )
 
-        env_file = (
-            app_workdir.get_path() / WORKDIR_SETUP_DIR / EnvFile.EXTENSION_DOT_ENV
-        )
+        env_file = app_workdir.get_path() / APP_PATH_ENV
         if not env_file.exists():
             from wexample_wex_addon_app.commands.env.choose import app__env__choose
 

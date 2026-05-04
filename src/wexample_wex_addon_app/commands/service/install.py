@@ -112,7 +112,7 @@ def app__service__install(
                 if inherited_service_dir is None:
                     continue
 
-                from wexample_app.const.globals import WORKDIR_SETUP_DIR
+                from wexample_app.const.globals import APP_PATH_ENV, WORKDIR_SETUP_DIR
                 from wexample_helpers.helpers.file import file_copytree_merge_yaml
 
                 samples_dir = inherited_service_dir / "samples"
@@ -133,7 +133,7 @@ def app__service__install(
                 normalized_service_name, app_workdir
             )
             service_vars = app_service.get_vars()
-            env_file = app_workdir.get_path() / WORKDIR_SETUP_DIR / ".env"
+            env_file = app_workdir.get_path() / APP_PATH_ENV
             existing_env = env_file.read_text() if env_file.exists() else ""
 
             # Step 1: non-required defaults (write silently, no prompt)

@@ -68,7 +68,14 @@ def app__app__init(
         app__state__rectify,
     )
 
-    from wexample_app.const.globals import APP_FILE_APP_CONFIG, WORKDIR_SETUP_DIR
+    from wexample_app.const.globals import (
+        APP_DIR_DOCKER,
+        APP_FILE_APP_CONFIG,
+        APP_PATH_DOCKER_COMPOSE,
+        APP_PATH_ENV,
+        APP_PATH_TMP,
+        WORKDIR_SETUP_DIR,
+    )
 
     target_path = Path(app_path or context.kernel.call_workdir.get_path()).resolve()
     app_name = name or target_path.name
@@ -76,10 +83,10 @@ def app__app__init(
     normalized_services = [string_to_snake_case(s) for s in (services or [])]
     domain = f"{string_to_kebab_case(app_name)}.{CORE_COMMAND_NAME}"
 
-    for subdir in [WORKDIR_SETUP_DIR, WORKDIR_SETUP_DIR / "tmp", WORKDIR_SETUP_DIR / "docker"]:
+    for subdir in [WORKDIR_SETUP_DIR, APP_PATH_TMP, APP_DIR_DOCKER]:
         file_mkdir_as_real_user(target_path / subdir)
 
-    docker_compose_path = target_path / WORKDIR_SETUP_DIR / "docker" / "docker-compose.yml"
+    docker_compose_path = target_path / APP_PATH_DOCKER_COMPOSE
     if not docker_compose_path.exists():
         file_write_as_real_user(docker_compose_path, "services: {}\n")
 
@@ -91,7 +98,7 @@ def app__app__init(
         "  type: app\n"
         f"domain: {domain}\n",
     )
-    file_write_as_real_user(target_path / WORKDIR_SETUP_DIR / ".env", f"APP_ENV={env_name}\n")
+    file_write_as_real_user(target_path / APP_PATH_ENV, f"APP_ENV={env_name}\n")
 
     for service_name in normalized_services:
         context.kernel.run_function(
