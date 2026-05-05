@@ -46,31 +46,32 @@ def app__state__rectify(
 ) -> None:
     from wexample_filestate.enum.scopes import Scope
 
+    scopes = (set(Scope) - {Scope.REMOTE}) if no_remote else set(Scope)
+
+    def compute_filter_paths(cwd) -> list[str] | None:
+        paths: list[str] | None = None
+        if filter_path:
+            paths = [filter_path]
+        if changed_only:
+            from wexample_helpers_git.helpers.git import git_get_changed_paths
+
+            paths = list(git_get_changed_paths(cwd=cwd))
+        return paths
+
     if not dry_run:
+        from wexample_filestate.item.abstract_item_target import AbstractItemTarget
+
         # Apply changes once, or keep looping until no operations remain (when --loop is set).
         iterations = 0
         while True:
             iterations += 1
             workdir = context.request.get_addon_manager().create_app_workdir()
 
-            # Remove remote.
-            scopes = (set(Scope) - {Scope.REMOTE}) if no_remote else None
-
-            filter_paths: list[str] | None = None
-            if filter_path:
-                filter_paths = [filter_path]
-            if changed_only:
-                from wexample_helpers_git.helpers.git import git_get_changed_paths
-
-                filter_paths = list(git_get_changed_paths(cwd=workdir.get_path()))
-
-            from wexample_filestate.item.abstract_item_target import AbstractItemTarget
-
             result = AbstractItemTarget.apply(
                 workdir,
                 interactive=(not yes),
                 scopes=scopes,
-                filter_paths=filter_paths,
+                filter_paths=compute_filter_paths(workdir.get_path()),
                 filter_operation=filter_operation,
                 max=max,
             )
@@ -104,5 +105,10 @@ def app__state__rectify(
 
         workdir.stop_runners()
     else:
-        workdir = context.request.get_addon_manager().create_app_workdir(reload=True)
-        workdir.dry_run()
+        workdir = context.request.get_addon_manager().create_app_workdir()
+        workdir.dry_run(
+            scopes=scopes,
+            filter_paths=compute_filter_paths(workdir.get_path()),
+            filter_operation=filter_operation,
+            max=max,
+        )

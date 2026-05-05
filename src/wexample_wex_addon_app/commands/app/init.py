@@ -53,7 +53,15 @@ def app__app__init(
     env: str | None = None,
     app_path: str | None = None,
 ) -> None:
-    from wexample_app.const.globals import CORE_COMMAND_NAME
+    from wexample_app.const.globals import (
+        APP_DIR_DOCKER,
+        APP_FILE_APP_CONFIG,
+        APP_PATH_DOCKER_COMPOSE,
+        APP_PATH_ENV,
+        APP_PATH_TMP,
+        CORE_COMMAND_NAME,
+        WORKDIR_SETUP_DIR,
+    )
     from wexample_helpers.helpers.file import (
         file_mkdir_as_real_user,
         file_write_as_real_user,
@@ -74,22 +82,22 @@ def app__app__init(
     normalized_services = [string_to_snake_case(s) for s in (services or [])]
     domain = f"{string_to_kebab_case(app_name)}.{CORE_COMMAND_NAME}"
 
-    for subdir in [".wex", ".wex/tmp", ".wex/docker"]:
+    for subdir in [WORKDIR_SETUP_DIR, APP_PATH_TMP, APP_DIR_DOCKER]:
         file_mkdir_as_real_user(target_path / subdir)
 
-    docker_compose_path = target_path / ".wex" / "docker" / "docker-compose.yml"
+    docker_compose_path = target_path / APP_PATH_DOCKER_COMPOSE
     if not docker_compose_path.exists():
         file_write_as_real_user(docker_compose_path, "services: {}\n")
 
     file_write_as_real_user(
-        target_path / ".wex" / "config.yml",
+        target_path / WORKDIR_SETUP_DIR / APP_FILE_APP_CONFIG,
         "global:\n"
         f"  name: {app_name}\n"
         "  version: 1.0.0\n"
         "  type: app\n"
         f"domain: {domain}\n",
     )
-    file_write_as_real_user(target_path / ".wex" / ".env", f"APP_ENV={env_name}\n")
+    file_write_as_real_user(target_path / APP_PATH_ENV, f"APP_ENV={env_name}\n")
 
     for service_name in normalized_services:
         context.kernel.run_function(

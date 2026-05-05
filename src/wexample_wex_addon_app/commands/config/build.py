@@ -26,41 +26,53 @@ def app__config__build(
 ) -> AbstractResponse:
     import socket
 
-    from wexample_app.const.globals import WORKDIR_SETUP_DIR
+    from wexample_app.const.globals import (
+        APP_PATH_DOCKER_COMPOSE,
+        APP_PATH_TMP,
+        WORKDIR_SETUP_DIR,
+    )
     from wexample_app.response.queued_collection_response import (
         QueuedCollectionResponse,
     )
     from wexample_config.config_value.nested_config_value import NestedConfigValue
     from wexample_helpers.helpers.dict import dict_merge
-    from wexample_wex_core.const.globals import CORE_DIR_NAME_TMP
 
     app_path = app_workdir.get_path()
     env = app_workdir.get_app_env()
     name = app_workdir.get_project_name()
     project_name = f"{name}_{env}"
-    tmp_dir = app_path / WORKDIR_SETUP_DIR / CORE_DIR_NAME_TMP
+    tmp_dir = app_path / APP_PATH_TMP
 
     def _runtime(previous_value=None) -> None:
         tmp_dir.mkdir(parents=True, exist_ok=True)
 
-        app_config = app_workdir.get_runtime_app_config()
         domains_config = app_workdir.get_domains_config()
+        # base provides docker.*, global.*, etc. at the correct top level
+        # so that Python code (get_main_container_name, etc.) can find them
+        base = app_workdir.build_runtime_config_value()
+        # app_config carries the full merged config including env-specific flat keys
+        # (e.g. branch: master from env/local/config.yml) into app.* for docker.env
+        # vars like APP_BRANCH, APP_DOCKER_*, etc. expected by compose templates
+        app_config = app_workdir.get_runtime_app_config()
 
-        merged = {
-            "app": dict_merge(
-                app_config,
-                {
-                    "env": env,
-                    "name": name,
-                    "project_name": project_name,
-                    "host": {"ip": socket.gethostbyname(socket.gethostname())},
-                    "started": False,
-                    "path": str(app_path) + "/",
-                    "setup_path": str(app_path / WORKDIR_SETUP_DIR) + "/",
-                    **domains_config,
-                },
-            ),
-        }
+        merged = dict_merge(
+            base.to_dict(),
+            {
+                "app": dict_merge(
+                    app_config,
+                    {
+                        "env": env,
+                        "name": name,
+                        "project_name": project_name,
+                        "host": {"ip": socket.gethostbyname(socket.gethostname())},
+                        "started": False,
+                        "path": str(app_path) + "/",
+                        "setup_path": str(app_path / WORKDIR_SETUP_DIR) + "/",
+                        **domains_config,
+                    },
+                ),
+            },
+        )
 
         from wexample_wex_addon_app.app_addon_manager import AppAddonManager
 
@@ -156,7 +168,7 @@ def app__config__build(
         # the real fix is to add a samples/docker/docker-compose.yml to the service addon
         # with the appropriate extends entries — not to patch this function.
         # Base app compose
-        base_compose = app_path / WORKDIR_SETUP_DIR / "docker" / "docker-compose.yml"
+        base_compose = app_path / APP_PATH_DOCKER_COMPOSE
         if base_compose.exists():
             compose_files.append(str(base_compose))
 

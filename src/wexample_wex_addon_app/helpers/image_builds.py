@@ -3,17 +3,20 @@ from __future__ import annotations
 from pathlib import Path
 
 import yaml
+from wexample_app.const.globals import APP_FILE_APP_CONFIG, WORKDIR_SETUP_DIR
 
 
 def load_builds(app_path: Path) -> dict:
-    config_file = app_path / ".wex" / "config.yml"
+    config_file = app_path / WORKDIR_SETUP_DIR / APP_FILE_APP_CONFIG
     if not config_file.exists():
         raise FileNotFoundError(f"No config.yml found at {config_file}")
     with open(config_file) as f:
         data = yaml.safe_load(f) or {}
     images = data.get("docker", {}).get("images", {})
     if not images:
-        raise KeyError("No docker.images section found in .wex/config.yml")
+        raise KeyError(
+            f"No docker.images section found in {WORKDIR_SETUP_DIR}/config.yml"
+        )
     return images
 
 

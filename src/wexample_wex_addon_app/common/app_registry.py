@@ -6,6 +6,8 @@ from contextlib import contextmanager
 from pathlib import Path
 from typing import TYPE_CHECKING
 
+from wexample_app.const.globals import WORKDIR_SETUP_DIR
+from wexample_app.const.path import APP_DIR_NAME_TMP
 from wexample_wex_core.const.globals import (
     CORE_COMMAND_NAME,
     CORE_FILE_NAME_APPS_REGISTRY,
@@ -31,7 +33,7 @@ def registry_purge_stopped() -> None:
         active = {}
 
         for app_path, entry in data["apps"].items():
-            tmp_dir = Path(app_path) / ".wex" / "tmp"
+            tmp_dir = Path(app_path) / WORKDIR_SETUP_DIR / APP_DIR_NAME_TMP
             runtime_compose = tmp_dir / "docker-compose.runtime.yml"
             docker_env = tmp_dir / "docker.env"
             if not runtime_compose.exists():

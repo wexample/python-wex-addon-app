@@ -34,15 +34,14 @@ def app__app__stop(
 ) -> AbstractResponse:
     pass
 
-    from wexample_app.const.globals import WORKDIR_SETUP_DIR
+    from wexample_app.const.globals import APP_PATH_TMP
     from wexample_app.response.queued_collection_response import (
         QueuedCollectionResponse,
     )
     from wexample_app.response.shell_command_response import ShellCommandResponse
-    from wexample_wex_core.const.globals import CORE_DIR_NAME_TMP
 
     app_path = app_workdir.get_path()
-    tmp_dir = app_path / WORKDIR_SETUP_DIR / CORE_DIR_NAME_TMP
+    tmp_dir = app_path / APP_PATH_TMP
     compose_file = str(tmp_dir / "docker-compose.runtime.yml")
     docker_env_file = str(tmp_dir / "docker.env")
 

@@ -70,32 +70,28 @@ def app__app__start(
     no_proxy: bool = False,
     fast: bool = False,
 ) -> AbstractResponse:
-    from wexample_app.const.globals import WORKDIR_SETUP_DIR
+    from wexample_app.const.globals import APP_PATH_TMP
     from wexample_app.response.queued_collection_response import (
         QueuedCollectionResponse,
     )
-    from wexample_wex_core.const.globals import CORE_DIR_NAME_TMP
 
     app_path = app_workdir.get_path()
-    tmp_dir = app_path / WORKDIR_SETUP_DIR / CORE_DIR_NAME_TMP
+    tmp_dir = app_path / APP_PATH_TMP
     compose_file = str(tmp_dir / "docker-compose.runtime.yml")
     docker_env_file = str(tmp_dir / "docker.env")
 
     def _checkup(previous_value=None):
-        from wexample_app.const.globals import WORKDIR_SETUP_DIR
+        from wexample_app.const.globals import APP_PATH_ENV
         from wexample_app.response.queue_collection.queued_collection_stop_response import (
             QueuedCollectionStopResponse,
         )
-        from wexample_filestate.item.file.env_file import EnvFile
 
         from wexample_wex_addon_app.commands.app.started import (
             APP_STARTED_CHECK_MODE_ANY_CONTAINER,
             _check_started,
         )
 
-        env_file = (
-            app_workdir.get_path() / WORKDIR_SETUP_DIR / EnvFile.EXTENSION_DOT_ENV
-        )
+        env_file = app_workdir.get_path() / APP_PATH_ENV
         if not env_file.exists():
             from wexample_wex_addon_app.commands.env.choose import app__env__choose
 
@@ -106,6 +102,35 @@ def app__app__start(
                     kernel=context.kernel,
                     reason="No environment configured, start aborted",
                 )
+
+        from wexample_helpers.helpers.file import file_env_append_as_real_user
+
+        from wexample_wex_addon_app.app_addon_manager import AppAddonManager
+
+        app_addon_manager = AppAddonManager.from_kernel(context.kernel)
+        existing_env = app_workdir.get_env_parameters().to_dict()
+
+        for service in app_addon_manager.get_app_services(app_workdir):
+            for key, meta in service.get_vars().items():
+                if not meta.get("required") or meta.get("generated"):
+                    continue
+                if key in existing_env:
+                    continue
+
+                description = meta.get("description", "")
+                question = key + (f" — {description}" if description else "")
+                suggested = str(meta["default"]) if "default" in meta else None
+
+                value = None
+                while not value:
+                    if value is not None:
+                        context.io.log(f"  '{key}' is required, please enter a value.")
+                    value = context.io.input(
+                        question=question, default_value=suggested
+                    ).get_value()
+
+                file_env_append_as_real_user(env_file, {key: value})
+                existing_env[key] = value
 
         if _check_started(app_workdir, APP_STARTED_CHECK_MODE_ANY_CONTAINER, context):
             return QueuedCollectionStopResponse(
