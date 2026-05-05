@@ -245,15 +245,7 @@ class RepoWorkdir(ManagedWorkdir):
         interactive: bool = True,
         has_changes: bool | None = None,
     ) -> None:
-        import pwd
-
-        from wexample_helpers.helpers.file import file_chown_recursive
-        from wexample_helpers.helpers.user import user_get_real_username
         from wexample_prompt.enums.terminal_color import TerminalColor
-
-        username = user_get_real_username()
-        pw = pwd.getpwnam(username)
-        file_chown_recursive(self.get_path(), pw.pw_uid, pw.pw_gid)
 
         from wexample_wex_addon_app.commands.library.sync import app__library__sync
         from wexample_wex_addon_app.commands.state.rectify import (
