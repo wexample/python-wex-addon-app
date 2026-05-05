@@ -42,24 +42,33 @@ def app__config__build(
     def _runtime(previous_value=None) -> None:
         tmp_dir.mkdir(parents=True, exist_ok=True)
 
-        app_config = app_workdir.get_runtime_app_config()
         domains_config = app_workdir.get_domains_config()
+        # base provides docker.*, global.*, etc. at the correct top level
+        # so that Python code (get_main_container_name, etc.) can find them
+        base = app_workdir.build_runtime_config_value()
+        # app_config carries the full merged config including env-specific flat keys
+        # (e.g. branch: master from env/local/config.yml) into app.* for docker.env
+        # vars like APP_BRANCH, APP_DOCKER_*, etc. expected by compose templates
+        app_config = app_workdir.get_runtime_app_config()
 
-        merged = {
-            "app": dict_merge(
-                app_config,
-                {
-                    "env": env,
-                    "name": name,
-                    "project_name": project_name,
-                    "host": {"ip": socket.gethostbyname(socket.gethostname())},
-                    "started": False,
-                    "path": str(app_path) + "/",
-                    "setup_path": str(app_path / WORKDIR_SETUP_DIR) + "/",
-                    **domains_config,
-                },
-            ),
-        }
+        merged = dict_merge(
+            base.to_dict(),
+            {
+                "app": dict_merge(
+                    app_config,
+                    {
+                        "env": env,
+                        "name": name,
+                        "project_name": project_name,
+                        "host": {"ip": socket.gethostbyname(socket.gethostname())},
+                        "started": False,
+                        "path": str(app_path) + "/",
+                        "setup_path": str(app_path / WORKDIR_SETUP_DIR) + "/",
+                        **domains_config,
+                    },
+                ),
+            },
+        )
 
         from wexample_wex_addon_app.app_addon_manager import AppAddonManager
 
