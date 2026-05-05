@@ -222,7 +222,7 @@ class RepoWorkdir(ManagedWorkdir):
             return True
         return git_has_changes_since_tag(last_tag, ".", cwd=self.get_path())
 
-    def publish(self, force: bool = False) -> None:
+    def _do_publish(self, force: bool = False) -> None:
         import pwd
 
         from wexample_helpers.helpers.file import file_chown_recursive
@@ -257,9 +257,6 @@ class RepoWorkdir(ManagedWorkdir):
         from wexample_prompt.enums.terminal_color import TerminalColor
 
         from wexample_wex_addon_app.commands.library.sync import app__library__sync
-        from wexample_wex_addon_app.commands.release.publish import (
-            app__release__publish,
-        )
         from wexample_wex_addon_app.commands.state.rectify import (
             app__state__rectify,
         )
@@ -320,10 +317,7 @@ class RepoWorkdir(ManagedWorkdir):
             )
             self.manager_run_command(command=app__version__propagate)
             sub_progress.advance(step=1, label=f"Publishing {self.get_project_name()}")
-            self.manager_run_command(
-                command=app__release__publish,
-                arguments=(["--force"] if force else []),
-            )
+            self._do_publish(force=force)
 
     def should_be_published(self, force: bool = False) -> bool:
         current_tag = self.get_publication_tag_name()
