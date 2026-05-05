@@ -9,7 +9,7 @@ from wexample_wex_core.decorator.middleware import middleware
 from wexample_wex_core.decorator.option import option
 
 from wexample_wex_addon_app.middleware.app_middleware import AppMiddleware
-from wexample_wex_addon_app.workdir.repo_workdir import RepoWorkdir
+from wexample_wex_addon_app.workdir.managed_workdir import ManagedWorkdir
 
 if TYPE_CHECKING:
     from wexample_wex_core.context.execution_context import ExecutionContext
@@ -24,7 +24,10 @@ if TYPE_CHECKING:
 )
 def app__release__publish(
     context: ExecutionContext,
-    app_workdir: RepoWorkdir,
+    app_workdir: ManagedWorkdir,
     force: bool = False,
 ) -> None:
-    app_workdir.publish(force=force, interactive=False)
+    if hasattr(app_workdir, "release"):
+        app_workdir.release(force=force, interactive=False)
+    else:
+        app_workdir._run_build_if_present()
