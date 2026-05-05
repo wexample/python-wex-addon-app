@@ -195,9 +195,7 @@ def app__service__install(
                 )
                 jinja_ctx = {
                     "name": normalized_service_name,
-                    "app_name": app_workdir.get_config()
-                    .search("global.name")
-                    .get_str()
+                    "app_name": app_workdir.get_config().search("global.name").get_str()
                     or "",
                     "env": app_workdir.get_app_env() or "prod",
                 }

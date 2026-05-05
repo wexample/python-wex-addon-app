@@ -26,7 +26,11 @@ def app__config__build(
 ) -> AbstractResponse:
     import socket
 
-    from wexample_app.const.globals import APP_PATH_DOCKER_COMPOSE, APP_PATH_TMP, WORKDIR_SETUP_DIR
+    from wexample_app.const.globals import (
+        APP_PATH_DOCKER_COMPOSE,
+        APP_PATH_TMP,
+        WORKDIR_SETUP_DIR,
+    )
     from wexample_app.response.queued_collection_response import (
         QueuedCollectionResponse,
     )

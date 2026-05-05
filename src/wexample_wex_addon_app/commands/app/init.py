@@ -53,7 +53,15 @@ def app__app__init(
     env: str | None = None,
     app_path: str | None = None,
 ) -> None:
-    from wexample_app.const.globals import CORE_COMMAND_NAME
+    from wexample_app.const.globals import (
+        APP_DIR_DOCKER,
+        APP_FILE_APP_CONFIG,
+        APP_PATH_DOCKER_COMPOSE,
+        APP_PATH_ENV,
+        APP_PATH_TMP,
+        CORE_COMMAND_NAME,
+        WORKDIR_SETUP_DIR,
+    )
     from wexample_helpers.helpers.file import (
         file_mkdir_as_real_user,
         file_write_as_real_user,
@@ -66,15 +74,6 @@ def app__app__init(
     from wexample_wex_addon_app.commands.service.install import app__service__install
     from wexample_wex_addon_app.commands.state.rectify import (
         app__state__rectify,
-    )
-
-    from wexample_app.const.globals import (
-        APP_DIR_DOCKER,
-        APP_FILE_APP_CONFIG,
-        APP_PATH_DOCKER_COMPOSE,
-        APP_PATH_ENV,
-        APP_PATH_TMP,
-        WORKDIR_SETUP_DIR,
     )
 
     target_path = Path(app_path or context.kernel.call_workdir.get_path()).resolve()

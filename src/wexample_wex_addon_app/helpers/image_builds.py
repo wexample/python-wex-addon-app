@@ -3,7 +3,6 @@ from __future__ import annotations
 from pathlib import Path
 
 import yaml
-
 from wexample_app.const.globals import APP_FILE_APP_CONFIG, WORKDIR_SETUP_DIR
 
 
@@ -15,7 +14,9 @@ def load_builds(app_path: Path) -> dict:
         data = yaml.safe_load(f) or {}
     images = data.get("docker", {}).get("images", {})
     if not images:
-        raise KeyError(f"No docker.images section found in {WORKDIR_SETUP_DIR}/config.yml")
+        raise KeyError(
+            f"No docker.images section found in {WORKDIR_SETUP_DIR}/config.yml"
+        )
     return images
 
 
