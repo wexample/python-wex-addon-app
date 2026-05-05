@@ -27,4 +27,4 @@ def app__release__publish(
     app_workdir: RepoWorkdir,
     force: bool = False,
 ) -> None:
-    app_workdir.release(force=force, interactive=False)
+    app_workdir.publish(force=force, interactive=False)

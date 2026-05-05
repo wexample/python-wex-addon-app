@@ -405,7 +405,7 @@ class RepoWorkdir(ManagedWorkdir):
         from wexample_wex_addon_app.app_addon_manager import AppAddonManager
 
         AppAddonManager.from_kernel(self.parent_io_handler).run_app_command(
-            ".release/build", self
+            ".release/build", self, silent=True
         )
 
     def _publish(self, force: bool = False) -> None:

@@ -288,9 +288,13 @@ class AppAddonManager(AbstractAddonManager):
         command: str,
         app_workdir: ManagedWorkdir,
         arguments: dict | None = None,
+        silent: bool = False,
     ) -> Any:
         import os
 
+        from wexample_app.exception.command_type_not_found_exception import (
+            CommandTypeNotFoundException,
+        )
         from wexample_wex_core.common.command_request import CommandRequest
 
         prev_cwd = os.getcwd()
@@ -306,6 +310,10 @@ class AppAddonManager(AbstractAddonManager):
             )
             response = self.kernel.execute_kernel_command(request)
             return response.content if hasattr(response, "content") else None
+        except CommandTypeNotFoundException:
+            if not silent:
+                raise
+            return None
         finally:
             os.chdir(prev_cwd)
 
