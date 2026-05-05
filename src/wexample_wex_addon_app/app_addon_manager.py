@@ -283,6 +283,32 @@ class AppAddonManager(AbstractAddonManager):
 
         return {"app": AppWebhookTypeResolver()}
 
+    def run_app_command(
+        self,
+        command: str,
+        app_workdir: ManagedWorkdir,
+        arguments: dict | None = None,
+    ) -> Any:
+        import os
+
+        from wexample_wex_core.common.command_request import CommandRequest
+
+        prev_cwd = os.getcwd()
+        try:
+            os.chdir(app_workdir.get_path())
+            request = CommandRequest(
+                kernel=self.kernel,
+                name=command,
+                arguments={
+                    "app_path": str(app_workdir.get_path()),
+                    **(arguments or {}),
+                },
+            )
+            response = self.kernel.execute_kernel_command(request)
+            return response.content if hasattr(response, "content") else None
+        finally:
+            os.chdir(prev_cwd)
+
     def run_service_hook(
         self,
         hook: str,

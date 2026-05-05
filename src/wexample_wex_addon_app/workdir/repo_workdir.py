@@ -223,15 +223,6 @@ class RepoWorkdir(ManagedWorkdir):
         return git_has_changes_since_tag(last_tag, ".", cwd=self.get_path())
 
     def _do_publish(self, force: bool = False) -> None:
-        import pwd
-
-        from wexample_helpers.helpers.file import file_chown_recursive
-        from wexample_helpers.helpers.user import user_get_real_username
-
-        username = user_get_real_username()
-        pw = pwd.getpwnam(username)
-        file_chown_recursive(self.get_path(), pw.pw_uid, pw.pw_gid)
-
         if not self.should_be_published(force=force):
             return
 
@@ -254,7 +245,15 @@ class RepoWorkdir(ManagedWorkdir):
         interactive: bool = True,
         has_changes: bool | None = None,
     ) -> None:
+        import pwd
+
+        from wexample_helpers.helpers.file import file_chown_recursive
+        from wexample_helpers.helpers.user import user_get_real_username
         from wexample_prompt.enums.terminal_color import TerminalColor
+
+        username = user_get_real_username()
+        pw = pwd.getpwnam(username)
+        file_chown_recursive(self.get_path(), pw.pw_uid, pw.pw_gid)
 
         from wexample_wex_addon_app.commands.library.sync import app__library__sync
         from wexample_wex_addon_app.commands.state.rectify import (
@@ -282,7 +281,7 @@ class RepoWorkdir(ManagedWorkdir):
         # Use --force to publish even without detected changes (e.g. to force a rectify pass).
         if force or _has_changes:
             sub_progress = self.progress(
-                total=6, color=TerminalColor.YELLOW, indentation=1, print_response=False
+                total=7, color=TerminalColor.YELLOW, indentation=1, print_response=False
             ).get_handle()
             sub_progress.advance(
                 step=1, label=f"Syncing libraries for {self.get_project_name()}"
@@ -316,6 +315,8 @@ class RepoWorkdir(ManagedWorkdir):
                 step=1, label=f"Propagating version for {self.get_project_name()}"
             )
             self.manager_run_command(command=app__version__propagate)
+            sub_progress.advance(step=1, label=f"Building {self.get_project_name()}")
+            self._run_build_if_present()
             sub_progress.advance(step=1, label=f"Publishing {self.get_project_name()}")
             self._do_publish(force=force)
 
@@ -399,6 +400,13 @@ class RepoWorkdir(ManagedWorkdir):
 
     def _post_publish(self) -> None:
         pass
+
+    def _run_build_if_present(self) -> None:
+        from wexample_wex_addon_app.app_addon_manager import AppAddonManager
+
+        AppAddonManager.from_kernel(self.parent_io_handler).run_app_command(
+            ".release/build", self
+        )
 
     def _publish(self, force: bool = False) -> None:
         pass
