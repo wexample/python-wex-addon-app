@@ -292,6 +292,9 @@ class AppAddonManager(AbstractAddonManager):
     ) -> Any:
         import os
 
+        from wexample_app.exception.command_runner_not_found_exception import (
+            CommandRunnerNotFoundException,
+        )
         from wexample_app.exception.command_type_not_found_exception import (
             CommandTypeNotFoundException,
         )
@@ -310,7 +313,7 @@ class AppAddonManager(AbstractAddonManager):
             )
             response = self.kernel.execute_kernel_command(request)
             return response.content if hasattr(response, "content") else None
-        except CommandTypeNotFoundException:
+        except (CommandTypeNotFoundException, CommandRunnerNotFoundException):
             if not silent:
                 raise
             return None
