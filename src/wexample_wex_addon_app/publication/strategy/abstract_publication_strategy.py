@@ -1,0 +1,39 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from wexample_wex_addon_app.workdir.repo_workdir import RepoWorkdir
+
+STRATEGY_MAIN_PUSH = "main_push"
+STRATEGY_BRANCH_MERGE = "branch_merge"
+
+
+class AbstractPublicationStrategy:
+    def __init__(self, workdir: RepoWorkdir) -> None:
+        self.workdir = workdir
+
+    def ensure_tag_triggers_ci(self) -> None:
+        """Called after _publish() to guarantee the CI pipeline will run for the pushed tag."""
+        pass
+
+    @staticmethod
+    def from_workdir(workdir: RepoWorkdir) -> AbstractPublicationStrategy:
+        strategy_name = (
+            workdir.get_config()
+            .search("git.publication_strategy")
+            .get_str_or_default(STRATEGY_MAIN_PUSH)
+        )
+
+        if strategy_name == STRATEGY_BRANCH_MERGE:
+            from wexample_wex_addon_app.publication.strategy.branch_merge_publication_strategy import (
+                BranchMergePublicationStrategy,
+            )
+
+            return BranchMergePublicationStrategy(workdir=workdir)
+
+        from wexample_wex_addon_app.publication.strategy.main_push_publication_strategy import (
+            MainPushPublicationStrategy,
+        )
+
+        return MainPushPublicationStrategy(workdir=workdir)

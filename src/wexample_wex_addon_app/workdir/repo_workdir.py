@@ -223,12 +223,17 @@ class RepoWorkdir(ManagedWorkdir):
         return git_has_changes_since_tag(last_tag, ".", cwd=self.get_path())
 
     def _do_publish(self, force: bool = False) -> None:
+        from wexample_wex_addon_app.publication.strategy.abstract_publication_strategy import (
+            AbstractPublicationStrategy,
+        )
+
         if not self.should_be_published(force=force):
             return
 
         self.check_publish_prerequisites()
         self.clear_runtime_config_cache()
         self._publish(force=force)
+        AbstractPublicationStrategy.from_workdir(self).ensure_tag_triggers_ci()
         self._wait_for_registry()
         self.success(
             f"Published {self.get_package_name()} as {self.get_publication_tag_name()}."
