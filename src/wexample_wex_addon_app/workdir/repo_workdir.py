@@ -233,7 +233,7 @@ class RepoWorkdir(ManagedWorkdir):
         self.check_publish_prerequisites()
         self.clear_runtime_config_cache()
         self._publish(force=force)
-        AbstractPublicationStrategy.from_workdir(self).ensure_tag_triggers_ci()
+        AbstractPublicationStrategy.from_workdir(self).run_post_publish_pipeline()
         self._wait_for_registry()
         self.success(
             f"Published {self.get_package_name()} as {self.get_publication_tag_name()}."

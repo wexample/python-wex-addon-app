@@ -13,8 +13,22 @@ class AbstractPublicationStrategy:
     def __init__(self, workdir: RepoWorkdir) -> None:
         self.workdir = workdir
 
-    def ensure_tag_triggers_ci(self) -> None:
-        """Called after _publish() to guarantee the CI pipeline will run for the pushed tag."""
+    def run_post_publish_pipeline(self) -> None:
+        """Full post-publish pipeline: MR creation, CI polling, deployment check."""
+        self.post_push()
+        self.wait_for_ci()
+        self.wait_for_deployment()
+
+    def post_push(self) -> None:
+        """Called after branch push — e.g. create a merge request."""
+        pass
+
+    def wait_for_ci(self) -> None:
+        """Poll CI pipeline until success or failure."""
+        pass
+
+    def wait_for_deployment(self) -> None:
+        """Poll production deployment until the new version is live."""
         pass
 
     @staticmethod

@@ -6,13 +6,15 @@ from wexample_wex_addon_app.publication.strategy.abstract_publication_strategy i
 
 
 class BranchMergePublicationStrategy(AbstractPublicationStrategy):
-    """Branch-then-merge workflow — tag is on a branch commit, CI does not trigger
-    automatically on push. Delete and re-push the tag after the branch is merged
-    to force GitLab to start a new pipeline."""
+    """Branch-then-merge workflow.
 
-    def ensure_tag_triggers_ci(self) -> None:
-        from wexample_helpers_git.helpers.git import git_push_tag
+    Temporary: delete+repush tag to force GitLab CI trigger on the branch commit.
+    Will be replaced in Phase 3 by full MR creation + CI polling.
+    """
+
+    def wait_for_ci(self) -> None:
         from wexample_helpers.helpers.shell import shell_run
+        from wexample_helpers_git.helpers.git import git_push_tag
 
         tag = f"v{self.workdir.get_project_version()}"
         cwd = self.workdir.get_path()
