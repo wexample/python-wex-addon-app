@@ -147,6 +147,8 @@ class AppCommandResolver(AbstractCommandResolver):
     def supports(self, request: CommandRequest) -> object:
         import sys
 
+        from wexample_helpers.helpers.string import string_to_snake_case
+
         match = self.build_match(request.name)
         if not match:
             return None
@@ -155,8 +157,13 @@ class AppCommandResolver(AbstractCommandResolver):
         if not base:
             return None
 
-        # Add app commands dir to sys.path so imports work in app scripts
+        group = string_to_snake_case(match.group(1))
+        name = string_to_snake_case(match.group(2))
         commands_path = base / _COMMANDS_SUBDIR
+        if not any((commands_path / group).glob(f"{name}.*")):
+            return None
+
+        # Add app commands dir to sys.path so imports work in app scripts
         if commands_path.is_dir() and str(commands_path) not in sys.path:
             sys.path.append(str(commands_path))
 
