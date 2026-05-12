@@ -327,43 +327,39 @@ class CodeBaseWorkdir(RepoWorkdir):
         )
 
     def update_dependencies(self, dependencies_map: dict[str, str]) -> None:
-        """Update dependencies versions based on the provided map.
-
-        Args:
-            dependencies_map: Dictionary mapping package names to their new versions.
-                             Example: {"wexample-helpers": "0.2.3", "attrs": "23.1.0"}
-        """
-        from packaging.utils import canonicalize_name
+        import re
 
         config_file = self.get_app_config_file()
 
-        # Canonicalize the keys in dependencies_map for consistent matching
         canonical_map = {
-            canonicalize_name(name): version
+            self._canonicalize_dep_name(name): version
             for name, version in dependencies_map.items()
         }
 
         current_deps = config_file.get_dependencies_versions()
 
-        # Update each dependency if it's in the map.
-        # Preserve the existing operator (>= stays >=, == stays ==) so callers
-        # that deliberately use exact pins for external packages are not silently
-        # converted. Internal-package pins are caught by suite validation.
         for dep_name, dep_specifier in current_deps.items():
-            canonical_name = canonicalize_name(dep_name)
+            if self._canonicalize_dep_name(dep_name) not in canonical_map:
+                continue
+            new_version = canonical_map[self._canonicalize_dep_name(dep_name)]
+            match = re.match(r"^([><=!~^]+)", dep_specifier)
+            operator = match.group(1) if match else self._default_dependency_operator()
+            config_file.add_dependency_from_string(
+                package_name=dep_name, version=new_version, operator=operator
+            )
 
-            if canonical_name in canonical_map:
-                new_version = canonical_map[canonical_name]
-                # Extract operator from current specifier (e.g. ">=0.1.0" → ">=")
-                import re
+        config_file.write_parsed()
 
-                match = re.match(r"^([><=!~^]+)", dep_specifier)
-                operator = match.group(1) if match else ">="
-                config_file.add_dependency_from_string(
-                    package_name=dep_name, version=new_version, operator=operator
-                )
+    def _canonicalize_dep_name(self, name: str) -> str:
+        from packaging.utils import canonicalize_name
 
-        # Save the updated config
+        return canonicalize_name(name)
+
+    def _default_dependency_operator(self) -> str:
+        return ">="
+
+    def _post_bump_write_version(self, new_version: str) -> None:
+        config_file = self.get_app_config_file()
         config_file.write_parsed()
 
     def _build_dependency_string(self, package_name: str, version: str) -> str:
