@@ -78,15 +78,17 @@ class BranchMergePublicationStrategy(AbstractPublicationStrategy):
         )
 
         if status != "success":
+            from wexample_app.exception.app_runtime_exception import AppRuntimeException
+
             pipelines = gitlab.get_merge_proposal_pipelines(namespace, name, self._mr_iid)
             web_url = next(
                 (p.get("web_url", "") for p in pipelines if p.get("id") == pipeline_id),
                 "",
             )
-            raise RuntimeError(
-                f"Pipeline {pipeline_id} ended with status '{status}'."
-                + (f" See: {web_url}" if web_url else "")
-            )
+            message = f"Pipeline {pipeline_id} ended with status '{status}'."
+            if web_url:
+                message += f" See: {web_url}"
+            raise AppRuntimeException(message=message)
 
         self.workdir.log(f"Pipeline succeeded. Merging MR !{self._mr_iid}…")
         gitlab.merge_merge_proposal(namespace, name, self._mr_iid)
@@ -110,8 +112,10 @@ class BranchMergePublicationStrategy(AbstractPublicationStrategy):
         )
         token = self.workdir.get_env_parameter(token_env_var, default=None)
         if not token:
-            raise RuntimeError(
-                f"GitLab token not found — set env var {token_env_var!r} or add it to .wex/.env"
+            from wexample_app.exception.app_runtime_exception import AppRuntimeException
+
+            raise AppRuntimeException(
+                message=f"GitLab token not found — set env var {token_env_var!r} or add it to .wex/.env"
             )
         gitlab_url = config.search("git.gitlab_url").get_str_or_default(
             "https://gitlab.com"
@@ -153,7 +157,9 @@ class BranchMergePublicationStrategy(AbstractPublicationStrategy):
                 f"No pipeline yet for MR !{self._mr_iid}, retrying in {_PIPELINE_RETRY_DELAY}s…"
             )
             time.sleep(_PIPELINE_RETRY_DELAY)
-        raise RuntimeError(
-            f"No pipeline found for MR !{self._mr_iid} after "
+        from wexample_app.exception.app_runtime_exception import AppRuntimeException
+
+        raise AppRuntimeException(
+            message=f"No pipeline found for MR !{self._mr_iid} after "
             f"{_PIPELINE_RETRY_ATTEMPTS * _PIPELINE_RETRY_DELAY}s"
         )

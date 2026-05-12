@@ -298,7 +298,7 @@ class RepoWorkdir(ManagedWorkdir):
             sub_progress.advance(
                 step=1, label=f"Rectifying file state for {self.get_project_name()}"
             )
-            rectify_args = ["--loop"]
+            rectify_args = ["--loop", "--changed-only"]
             if not interactive:
                 rectify_args.append("--yes")
             self.manager_run_command(
