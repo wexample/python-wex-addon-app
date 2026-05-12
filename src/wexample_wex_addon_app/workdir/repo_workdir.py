@@ -242,6 +242,7 @@ class RepoWorkdir(ManagedWorkdir):
         self._post_publish()
 
     def publish_dependencies(self) -> dict[str, str]:
+        self.release(interactive=False)
         return {self.get_package_name(): self.get_project_version()}
 
     def release(
