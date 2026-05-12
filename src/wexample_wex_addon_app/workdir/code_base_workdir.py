@@ -15,6 +15,27 @@ if TYPE_CHECKING:
 
 
 class CodeBaseWorkdir(RepoWorkdir):
+    def prepare_value(self, raw_value=None):
+        from wexample_filestate.const.disk import DiskItemType
+        from wexample_filestate.item.file.yaml_file import YamlFile
+
+        raw_value = super().prepare_value(raw_value)
+
+        raw_value["children"].append(
+            {
+                "name": ".gitlab-ci.yml",
+                "class": YamlFile,
+                "type": DiskItemType.FILE,
+                "structured_keys": {
+                    "variables.MAIN_BRANCH_NAME": lambda _target, _self=self: _self.search_app_or_suite_runtime_config(
+                        "git.main_branch", default="main"
+                    ).get_str(),
+                },
+            }
+        )
+
+        return raw_value
+
     def add_publication_tag(self) -> None:
         from wexample_helpers_git.helpers.git import (
             git_push_tag,
