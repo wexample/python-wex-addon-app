@@ -342,7 +342,7 @@ class CodeBaseWorkdir(RepoWorkdir):
             if self._canonicalize_dep_name(dep_name) not in canonical_map:
                 continue
             new_version = canonical_map[self._canonicalize_dep_name(dep_name)]
-            match = re.match(r"^([><=!~^]+)", dep_specifier)
+            match = re.match(r"^([><=!~^]+)", dep_specifier.get_str())
             operator = match.group(1) if match else self._default_dependency_operator()
             config_file.add_dependency_from_string(
                 package_name=dep_name, version=new_version, operator=operator

@@ -74,9 +74,7 @@ class BranchMergePublicationStrategy(AbstractPublicationStrategy):
             .get_str_or_default(str(_DEFAULT_CI_POLL_TIMEOUT))
         )
 
-        def on_tick(status: str, elapsed: int) -> None:
-            self.workdir.log(f"Pipeline {pipeline_id} — {status} ({elapsed}s)")
-
+        on_tick = self._make_pipeline_tick_handler(pipeline_id, "Pipeline")
         status = gitlab.poll_pipeline(
             namespace, name, pipeline_id, timeout=timeout, on_tick=on_tick
         )
@@ -113,9 +111,7 @@ class BranchMergePublicationStrategy(AbstractPublicationStrategy):
             .get_str_or_default(str(_DEFAULT_CI_POLL_TIMEOUT))
         )
 
-        def on_tick(status: str, elapsed: int) -> None:
-            self.workdir.log(f"Post-merge pipeline {pipeline_id} — {status} ({elapsed}s)")
-
+        on_tick = self._make_pipeline_tick_handler(pipeline_id, "Post-merge pipeline")
         status = gitlab.poll_pipeline(
             namespace, name, pipeline_id, timeout=timeout, on_tick=on_tick
         )
@@ -132,6 +128,27 @@ class BranchMergePublicationStrategy(AbstractPublicationStrategy):
     # ------------------------------------------------------------------
     # Internal helpers
     # ------------------------------------------------------------------
+
+    def _make_pipeline_tick_handler(self, pipeline_id: int, label: str):
+        """Return an on_tick callback that overwrites its line in place with a colored status dot."""
+        _SYMBOL = "⬤"
+        _COLOR = {
+            "success": "green",
+            "failed": "red",
+            "canceled": "red",
+        }
+
+        state: dict = {"last": None}
+
+        def on_tick(status: str, elapsed: int) -> None:
+            color = _COLOR.get(status, "blue")
+            if state["last"] is not None:
+                self.workdir.io.erase_response(state["last"])
+            state["last"] = self.workdir.log(
+                f"@color:{color}{{{_SYMBOL}}}  {label} {pipeline_id} — {status} ({elapsed}s)"
+            )
+
+        return on_tick
 
     def _get_gitlab(self) -> GitlabRemote:
         if self._gitlab is None:

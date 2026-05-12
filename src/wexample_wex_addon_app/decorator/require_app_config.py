@@ -24,8 +24,6 @@ def require_app_config(
     - on_missing="error" (default): raises ValueError with a clear message
     - on_missing="ask": prompts the user (choice if values provided, else free input) and persists
     - default=X: uses X silently and persists it to config.yml
-
-    The `values` callable receives the same kwargs as the command function (filtered by name).
     """
     def decorator(command_wrapper: CommandMethodWrapper) -> CommandMethodWrapper:
         from wexample_wex_core.common.command_method_wrapper import CommandMethodWrapper
@@ -36,58 +34,79 @@ def require_app_config(
                 "(apply @command before @require_app_config)."
             )
 
-        original_function = command_wrapper.function
-
-        def wrapped(**kwargs):
-            app_workdir = kwargs.get("app_workdir")
-            context = kwargs.get("context")
-            io = context.io
-
-            config_value = app_workdir.get_runtime_config().search(path)
-
-            if not config_value.is_none():
-                value = _read_typed(config_value, type)
-                if values is not None:
-                    allowed = _resolve_values(values, kwargs)
-                    if value not in allowed:
-                        raise ValueError(
-                            f"Config {path!r} = {value!r} is not in allowed values: {allowed}"
-                        )
-                return original_function(**kwargs)
-
-            # Config is missing — apply resolution strategy
-            if default is not _SENTINEL:
-                app_workdir.write_config_value(path, default)
-                return original_function(**kwargs)
-
-            if on_missing == "ask":
-                question = ask_question or (
-                    f"Config @cyan{{{path}}} is not set"
-                    + (f" — {description}" if description else "")
-                    + ":"
-                )
-                allowed = _resolve_values(values, kwargs) if values is not None else None
-
-                if allowed:
-                    value = io.choice(question=question, choices=allowed).get_answer()
-                else:
-                    value = io.input(question=question).get_value()
-
-                if value is not None:
-                    app_workdir.write_config_value(path, value)
-                return original_function(**kwargs)
-
-            # on_missing="error"
-            raise ValueError(
-                f"Required config @cyan{{{path}}}"
-                + (f" ({description})" if description else "")
-                + " is missing from .wex/config.yml"
-            )
-
-        command_wrapper.function = wrapped
+        if "config_requirements" not in command_wrapper.extra:
+            command_wrapper.extra["config_requirements"] = []
+        command_wrapper.extra["config_requirements"].append({
+            "path": path,
+            "type": type,
+            "default": default,
+            "values": values,
+            "description": description,
+            "ask_question": ask_question,
+            "on_missing": on_missing,
+        })
         return command_wrapper
 
     return decorator
+
+
+def check_config_requirements(
+    requirements: list[dict],
+    app_workdir: Any,
+    io: Any,
+    function_kwargs: dict,
+) -> None:
+    for req in requirements:
+        _check_one(req, app_workdir, io, function_kwargs)
+
+
+def _check_one(req: dict, app_workdir: Any, io: Any, function_kwargs: dict) -> None:
+    path = req["path"]
+    type_ = req["type"]
+    default = req["default"]
+    values = req["values"]
+    description = req["description"]
+    ask_question = req["ask_question"]
+    on_missing = req["on_missing"]
+
+    config_value = app_workdir.get_runtime_config().search(path)
+
+    if not config_value.is_none():
+        value = _read_typed(config_value, type_)
+        if values is not None:
+            allowed = _resolve_values(values, function_kwargs)
+            if value not in allowed:
+                raise ValueError(
+                    f"Config {path!r} = {value!r} is not in allowed values: {allowed}"
+                )
+        return
+
+    if default is not _SENTINEL:
+        app_workdir.write_config_value(path, default)
+        return
+
+    if on_missing == "ask":
+        question = ask_question or (
+            f"Config @cyan{{{path}}} is not set"
+            + (f" — {description}" if description else "")
+            + ":"
+        )
+        allowed = _resolve_values(values, function_kwargs) if values is not None else None
+
+        if allowed:
+            value = io.choice(question=question, choices=allowed).get_answer()
+        else:
+            value = io.input(question=question).get_value()
+
+        if value is not None:
+            app_workdir.write_config_value(path, value)
+        return
+
+    raise ValueError(
+        f"Required config @cyan{{{path}}}"
+        + (f" ({description})" if description else "")
+        + " is missing from .wex/config.yml"
+    )
 
 
 def _resolve_values(values: list | Callable, kwargs: dict[str, Any]) -> list:

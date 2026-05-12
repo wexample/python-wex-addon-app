@@ -29,13 +29,6 @@ if TYPE_CHECKING:
     required=False,
     description="Build all images defined in builds.yml",
 )
-@option(
-    name="clear_cache",
-    type=bool,
-    is_flag=True,
-    required=False,
-    description="Build without Docker layer cache",
-)
 @middleware(middleware=AppMiddleware)
 @command(
     type=COMMAND_TYPE_ADDON,
@@ -46,7 +39,6 @@ def app__image__build(
     app_workdir: ManagedWorkdir,
     name: str | None = None,
     all: bool = False,
-    clear_cache: bool = False,
 ) -> AbstractResponse:
     from wexample_app.response.interactive_shell_command_response import (
         InteractiveShellCommandResponse,
@@ -82,9 +74,7 @@ def app__image__build(
             _build_name=build_name,
         ) -> InteractiveShellCommandResponse:
             context.io.log(f"Building image: {_build_name} → {_tag}")
-            cmd = ["docker", "build", "-f", _dockerfile, "-t", _tag]
-            if clear_cache:
-                cmd.append("--no-cache")
+            cmd = ["docker", "build", "--no-cache", "-f", _dockerfile, "-t", _tag]
             cmd.append(str(app_path))
             return InteractiveShellCommandResponse(kernel=context.kernel, content=cmd)
 
