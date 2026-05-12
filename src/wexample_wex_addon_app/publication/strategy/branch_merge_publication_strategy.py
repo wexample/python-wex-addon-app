@@ -15,6 +15,7 @@ _DEFAULT_TARGET_BRANCH = "main"
 _DEFAULT_CI_POLL_TIMEOUT = 600
 _PIPELINE_RETRY_DELAY = 5
 _PIPELINE_RETRY_ATTEMPTS = 6
+_POST_MERGE_RETRY_ATTEMPTS = 12
 
 
 class BranchMergePublicationStrategy(AbstractPublicationStrategy):
@@ -30,16 +31,19 @@ class BranchMergePublicationStrategy(AbstractPublicationStrategy):
         self._namespace: str | None = None
         self._repo_name: str | None = None
         self._mr_iid: int | None = None
+        self._target_branch: str = _DEFAULT_TARGET_BRANCH
+        self._pre_merge_pipeline_id: int | None = None
 
     def post_push(self) -> None:
         namespace, name = self._get_repo_info()
         version = self.workdir.get_project_version()
         source_branch = f"version-{version}"
-        target_branch = (
+        self._target_branch = (
             self.workdir.get_config()
             .search("git.main_branch")
             .get_str_or_default(_DEFAULT_TARGET_BRANCH)
         )
+        target_branch = self._target_branch
 
         self.workdir.log(f"Creating merge request {source_branch} → {target_branch}…")
 
@@ -91,8 +95,39 @@ class BranchMergePublicationStrategy(AbstractPublicationStrategy):
             raise AppRuntimeException(message=message)
 
         self.workdir.log(f"Pipeline succeeded. Merging MR !{self._mr_iid}…")
+        branch_pipelines = gitlab.get_branch_pipelines(namespace, name, self._target_branch)
+        self._pre_merge_pipeline_id = branch_pipelines[0]["id"] if branch_pipelines else None
         gitlab.merge_merge_proposal(namespace, name, self._mr_iid)
-        self.workdir.success(f"MR !{self._mr_iid} merged.")
+        self.workdir.log(f"MR !{self._mr_iid} merged.")
+
+    def wait_for_deployment(self) -> None:
+        namespace, name = self._get_repo_info()
+        gitlab = self._get_gitlab()
+
+        self.workdir.log(f"Waiting for post-merge pipeline on '{self._target_branch}'…")
+        pipeline_id = self._wait_for_branch_pipeline(gitlab, namespace, name)
+
+        timeout = int(
+            self.workdir.get_config()
+            .search("git.ci_poll_timeout")
+            .get_str_or_default(str(_DEFAULT_CI_POLL_TIMEOUT))
+        )
+
+        def on_tick(status: str, elapsed: int) -> None:
+            self.workdir.log(f"Post-merge pipeline {pipeline_id} — {status} ({elapsed}s)")
+
+        status = gitlab.poll_pipeline(
+            namespace, name, pipeline_id, timeout=timeout, on_tick=on_tick
+        )
+
+        if status != "success":
+            from wexample_app.exception.app_runtime_exception import AppRuntimeException
+
+            raise AppRuntimeException(
+                message=f"Post-merge pipeline {pipeline_id} ended with status '{status}'."
+            )
+
+        self.workdir.success(f"Post-merge pipeline succeeded on '{self._target_branch}'.")
 
     # ------------------------------------------------------------------
     # Internal helpers
@@ -144,6 +179,28 @@ class BranchMergePublicationStrategy(AbstractPublicationStrategy):
         self._namespace = repo_info["namespace"]
         self._repo_name = repo_info["name"]
         return self._namespace, self._repo_name
+
+    def _wait_for_branch_pipeline(
+        self, gitlab, namespace: str, name: str
+    ) -> int:
+        """Wait until a new pipeline appears on the target branch after the merge."""
+        baseline = self._pre_merge_pipeline_id
+        for _ in range(_POST_MERGE_RETRY_ATTEMPTS):
+            pipelines = gitlab.get_branch_pipelines(namespace, name, self._target_branch)
+            if pipelines:
+                latest_id = pipelines[0]["id"]
+                if baseline is None or latest_id > baseline:
+                    return latest_id
+            self.workdir.log(
+                f"No new pipeline on '{self._target_branch}' yet, retrying in {_PIPELINE_RETRY_DELAY}s…"
+            )
+            time.sleep(_PIPELINE_RETRY_DELAY)
+        from wexample_app.exception.app_runtime_exception import AppRuntimeException
+
+        raise AppRuntimeException(
+            message=f"No post-merge pipeline appeared on '{self._target_branch}' after "
+            f"{_POST_MERGE_RETRY_ATTEMPTS * _PIPELINE_RETRY_DELAY}s"
+        )
 
     def _wait_for_mr_pipeline(
         self, gitlab: GitlabRemote, namespace: str, name: str
