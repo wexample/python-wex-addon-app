@@ -57,7 +57,7 @@ def require_app_config(
 
             # Config is missing — apply resolution strategy
             if default is not _SENTINEL:
-                app_workdir.get_config_file().write_config_value(path, default)
+                app_workdir.write_config_value(path, default)
                 return original_function(**kwargs)
 
             if on_missing == "ask":
@@ -74,7 +74,7 @@ def require_app_config(
                     value = io.input(question=question).get_value()
 
                 if value is not None:
-                    app_workdir.get_config_file().write_config_value(path, value)
+                    app_workdir.write_config_value(path, value)
                 return original_function(**kwargs)
 
             # on_missing="error"
