@@ -596,11 +596,6 @@ class ManagedWorkdir(
             },
         )
 
-        app_config = self.get_config()
-        extra = app_config.search("workdir.children")
-        if not extra.is_none():
-            raw_value.setdefault("children", []).extend(extra.to_list())
-
         return raw_value
 
     def runtime_cleanup(self) -> tuple[int, int]:

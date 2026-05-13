@@ -104,6 +104,12 @@ class AppAddonManager(AbstractAddonManager):
             if contribution:
                 children.extend(contribution.get("children", []))
 
+        config = app_workdir_class.get_config_from_path(app_path)
+        if config:
+            extra = config.read_config().search("workdir.children")
+            if not extra.is_none():
+                children.extend(extra.to_list())
+
         workdir.configure(config={"children": children})
         return workdir
 
