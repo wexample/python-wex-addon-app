@@ -596,8 +596,6 @@ class ManagedWorkdir(
             },
         )
 
-        self._collect_workdir_contributions(raw_value)
-
         return raw_value
 
     def runtime_cleanup(self) -> tuple[int, int]:
@@ -679,33 +677,6 @@ class ManagedWorkdir(
             for provider in self.get_options_providers()
             if (name := provider.get_docker_image_name()) is not None
         }
-
-    def _collect_workdir_contributions(self, raw_value: DictConfig) -> None:
-        """Merge filestate children from active services and app-level config."""
-        # 1. Service contributions
-        if self.parent_io_handler is not None:
-            try:
-                from wexample_wex_addon_app.app_addon_manager import AppAddonManager
-
-                manager = AppAddonManager.from_kernel(self.parent_io_handler)
-                for service in manager.get_app_services(self):
-                    contribution = service.get_workdir_contribution()
-                    if contribution:
-                        raw_value.setdefault("children", []).extend(
-                            contribution.get("children", [])
-                        )
-            except RuntimeError:
-                # AppAddonManager not in kernel (e.g. standalone test context)
-                pass
-
-        # 2. App-level config.yml: workdir.children
-        try:
-            app_config = self.get_config()
-            extra = app_config.search("workdir.children")
-            if not extra.is_none():
-                raw_value.setdefault("children", []).extend(extra.to_list())
-        except Exception:
-            pass
 
     def _get_iml_file_class(self) -> type[ImlFile]:
         return ImlFile

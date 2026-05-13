@@ -30,6 +30,19 @@ class AppMiddleware(AbstractMiddleware):
             request=request, app_path=app_path
         )
 
+        config_requirements = command_wrapper.extra.get("config_requirements", [])
+        if config_requirements:
+            from wexample_wex_addon_app.decorator.require_app_config import (
+                check_config_requirements,
+            )
+
+            check_config_requirements(
+                requirements=config_requirements,
+                app_workdir=function_kwargs["app_workdir"],
+                io=request.kernel.io,
+                function_kwargs=function_kwargs,
+            )
+
         return super().build_execution_contexts(
             command_wrapper=command_wrapper,
             request=request,

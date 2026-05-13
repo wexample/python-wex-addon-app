@@ -21,7 +21,7 @@ if TYPE_CHECKING:
 @option(name="dry_run", type=bool, default=False, is_flag=True)
 @option(name="loop", type=bool, default=False, is_flag=True)
 @option(name="loop_limit", type=int, default=10)
-@option(name="no_remote", type=bool, default=False, is_flag=True)
+@option(name="filter_scope", type=str, default=None)
 @option(name="filter_path", type=str, default=None)
 @option(name="filter_operation", type=str, default=None)
 @option(name="max", type=int, default=None)
@@ -38,15 +38,15 @@ def app__state__rectify(
     dry_run: bool = False,
     loop: bool = False,
     loop_limit: int = 10,
-    no_remote: bool = False,
+    filter_scope: str | None = None,
     filter_path: str | None = None,
     filter_operation: str | None = None,
     max: int = None,
     changed_only: bool = False,
 ) -> None:
-    from wexample_filestate.enum.scopes import Scope
+    from wexample_wex_addon_app.helpers.scope import build_scopes
 
-    scopes = (set(Scope) - {Scope.REMOTE}) if no_remote else set(Scope)
+    scopes = build_scopes(filter_scope=filter_scope)
 
     def compute_filter_paths(cwd) -> list[str] | None:
         paths: list[str] | None = None

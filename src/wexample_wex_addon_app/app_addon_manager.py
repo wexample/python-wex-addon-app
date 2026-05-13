@@ -77,10 +77,26 @@ class AppAddonManager(AbstractAddonManager):
         else:
             app_workdir_class = ManagedWorkdir
 
-        return app_workdir_class.create_from_path(
+        workdir = app_workdir_class.create_from_path(
             path=app_path.resolve(),
             parent_io_handler=self.kernel,
+            configure=False,
         )
+
+        children = []
+        for service in self.get_app_services(workdir):
+            contribution = service.get_workdir_contribution(workdir)
+            if contribution:
+                children.extend(contribution.get("children", []))
+
+        config = app_workdir_class.get_config_from_path(app_path)
+        if config:
+            extra = config.read_config().search("workdir.children")
+            if not extra.is_none():
+                children.extend(extra.to_list())
+
+        workdir.configure(config={"children": children})
+        return workdir
 
     def docker_cp(
         self, service: str, local_src: Path | str, container_dest: str
@@ -190,6 +206,21 @@ class AppAddonManager(AbstractAddonManager):
 
         return [AppCommandResolver, ServiceCommandResolver]
 
+    def get_local_configurable_keys(self) -> list[dict]:
+        from wexample_wex_addon_app.helpers.app import detect_ssh_socket
+
+        return [
+            {
+                "key": "SSH_AUTH_SOCK",
+                "description": "SSH agent socket — required for git push/pull over SSH",
+                "detect": detect_ssh_socket,
+                "default_candidates": [
+                    "/run/user/1000/keyring/ssh",
+                    "/run/user/1000/gnupg/S.gpg-agent.ssh",
+                ],
+            }
+        ]
+
     def get_middlewares_classes(self) -> list[type[AbstractMiddleware]]:
         from wexample_wex_addon_app.middleware.app_middleware import AppMiddleware
         from wexample_wex_addon_app.middleware.code_base_middleware import (
@@ -282,6 +313,40 @@ class AppAddonManager(AbstractAddonManager):
         from wexample_wex_addon_app.webhook.app_resolver import AppWebhookTypeResolver
 
         return {"app": AppWebhookTypeResolver()}
+
+    def run_app_command(
+        self,
+        command: str,
+        app_workdir: ManagedWorkdir,
+        arguments: dict | None = None,
+        silent: bool = False,
+    ) -> Any:
+        import os
+
+        from wexample_app.exception.command_type_not_found_exception import (
+            CommandTypeNotFoundException,
+        )
+        from wexample_wex_core.common.command_request import CommandRequest
+
+        prev_cwd = os.getcwd()
+        try:
+            os.chdir(app_workdir.get_path())
+            request = CommandRequest(
+                kernel=self.kernel,
+                name=command,
+                arguments={
+                    "app_path": str(app_workdir.get_path()),
+                    **(arguments or {}),
+                },
+            )
+            response = self.kernel.execute_kernel_command(request)
+            return response.content if hasattr(response, "content") else None
+        except CommandTypeNotFoundException:
+            if not silent:
+                raise
+            return None
+        finally:
+            os.chdir(prev_cwd)
 
     def run_service_hook(
         self,

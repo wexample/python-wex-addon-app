@@ -22,9 +22,7 @@ def app__version__push(
     context: ExecutionContext,
     app_workdir: CodeBaseWorkdir,
 ) -> None:
-    from wexample_helpers_git.const.common import GIT_BRANCH_MAIN
-
     package_name = app_workdir.get_package_name()
     app_workdir.commit_changes()
-    app_workdir.push_to_deployment_remote(branch_name=GIT_BRANCH_MAIN)
+    app_workdir.push_to_deployment_remote()
     context.io.success(f"Pushed {package_name}.")

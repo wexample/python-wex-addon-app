@@ -233,6 +233,27 @@ class CodeBaseWorkdir(RepoWorkdir):
             self.info(f"Returning to {current_branch}...")
             git_switch_branch(current_branch, cwd=cwd, inherit_stdio=True)
 
+    def prepare_value(self, raw_value=None):
+        from wexample_filestate.const.disk import DiskItemType
+        from wexample_filestate.item.file.yaml_file import YamlFile
+
+        raw_value = super().prepare_value(raw_value)
+
+        raw_value["children"].append(
+            {
+                "name": ".gitlab-ci.yml",
+                "class": YamlFile,
+                "type": DiskItemType.FILE,
+                "structured_keys": {
+                    "variables.MAIN_BRANCH_NAME": lambda _target, _self=self: _self.search_app_or_suite_runtime_config(
+                        "git.main_branch", default="main"
+                    ).get_str(),
+                },
+            }
+        )
+
+        return raw_value
+
     def push_changes(
         self,
         remote_name: str | None = None,
@@ -306,47 +327,39 @@ class CodeBaseWorkdir(RepoWorkdir):
         )
 
     def update_dependencies(self, dependencies_map: dict[str, str]) -> None:
-        """Update dependencies versions based on the provided map.
-
-        Args:
-            dependencies_map: Dictionary mapping package names to their new versions.
-                             Example: {"wexample-helpers": "0.2.3", "attrs": "23.1.0"}
-        """
-        from packaging.utils import canonicalize_name
+        import re
 
         config_file = self.get_app_config_file()
 
-        # Canonicalize the keys in dependencies_map for consistent matching
         canonical_map = {
-            canonicalize_name(name): version
+            self._canonicalize_dep_name(name): version
             for name, version in dependencies_map.items()
         }
 
         current_deps = config_file.get_dependencies_versions()
 
-        # Update each dependency if it's in the map.
-        # Preserve the existing operator (>= stays >=, == stays ==) so callers
-        # that deliberately use exact pins for external packages are not silently
-        # converted. Internal-package pins are caught by suite validation.
         for dep_name, dep_specifier in current_deps.items():
-            canonical_name = canonicalize_name(dep_name)
+            if self._canonicalize_dep_name(dep_name) not in canonical_map:
+                continue
+            new_version = canonical_map[self._canonicalize_dep_name(dep_name)]
+            match = re.match(r"^([><=!~^]+)", dep_specifier.get_str())
+            operator = match.group(1) if match else self._default_dependency_operator()
+            config_file.add_dependency_from_string(
+                package_name=dep_name, version=new_version, operator=operator
+            )
 
-            if canonical_name in canonical_map:
-                new_version = canonical_map[canonical_name]
-                # Extract operator from current specifier (e.g. ">=0.1.0" → ">=")
-                import re
-
-                match = re.match(r"^([><=!~^]+)", dep_specifier)
-                operator = match.group(1) if match else ">="
-                config_file.add_dependency_from_string(
-                    package_name=dep_name, version=new_version, operator=operator
-                )
-
-        # Save the updated config
         config_file.write_parsed()
 
     def _build_dependency_string(self, package_name: str, version: str) -> str:
         return f"{package_name}=={version}"
+
+    def _canonicalize_dep_name(self, name: str) -> str:
+        from packaging.utils import canonicalize_name
+
+        return canonicalize_name(name)
+
+    def _default_dependency_operator(self) -> str:
+        return ">="
 
     def _get_critical_directories(self) -> list[str]:
         return []
@@ -357,3 +370,7 @@ class CodeBaseWorkdir(RepoWorkdir):
         return self.search_app_or_suite_runtime_config(
             "git.main_deployment_remote_name", default=GIT_REMOTE_ORIGIN
         ).get_str_or_none()
+
+    def _post_bump_write_version(self, new_version: str) -> None:
+        config_file = self.get_app_config_file()
+        config_file.write_parsed()

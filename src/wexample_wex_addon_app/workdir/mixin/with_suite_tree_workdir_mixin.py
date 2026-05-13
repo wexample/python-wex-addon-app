@@ -151,7 +151,10 @@ class WithSuiteTreeWorkdirMixin(BaseClass):
         ).get_str_or_default(default="acme")
 
     def propagate_version(self) -> None:
-        self.get_suite_workdir().propagate_version_of(package=self)
+        suite = self.get_suite_workdir()
+        if not suite:
+            return
+        suite.propagate_version_of(package=self)
 
     def search_closest_in_suites_tree(self, callback) -> Any:
         workdir = self

@@ -86,50 +86,19 @@ class RepoWorkdir(ManagedWorkdir):
 
     def check_publish_prerequisites(self) -> None:
         import os
-        import pathlib
         import stat
 
-        # OS-level variable — not stored in .wex/local/env.yml on every workdir,
-        # so get_env_parameter() would raise KeyNotFoundError. Use os.environ.get() here.
         sock = os.environ.get("SSH_AUTH_SOCK", "")
-
         if sock:
             try:
                 if stat.S_ISSOCK(os.stat(sock).st_mode):
                     return
             except OSError:
                 pass
-            self.warning(
-                f"SSH_AUTH_SOCK points to missing socket {sock!r}, trying auto-detect..."
-            )
-
-        os.getuid()
-        candidates = (
-            [
-                p
-                for uid_dir in pathlib.Path("/run/user").iterdir()
-                if pathlib.Path("/run/user").exists()
-                for p in [
-                    str(uid_dir / "keyring" / "ssh"),
-                    str(uid_dir / "gnupg" / "S.gpg-agent.ssh"),
-                ]
-            ]
-            if pathlib.Path("/run/user").exists()
-            else []
-        )
-
-        for path in candidates:
-            if pathlib.Path(path).is_socket():
-                os.environ["SSH_AUTH_SOCK"] = path
-                self._persist_env_value("SSH_AUTH_SOCK", path)
-                self.info(
-                    f"Auto-detected SSH agent socket at {path!r} — saved to .wex/local/env.yml"
-                )
-                return
 
         raise RuntimeError(
-            "SSH_AUTH_SOCK is not set and no SSH agent socket could be auto-detected.\n"
-            "Fix: run `eval $(ssh-agent) && ssh-add`, then `wex configure/env`"
+            "SSH_AUTH_SOCK is not set or points to a missing socket.\n"
+            "Fix: run `eval $(ssh-agent) && ssh-add`, then `wex core::env/configure`"
         )
 
     def classify_version_bump(self) -> str:
@@ -222,30 +191,8 @@ class RepoWorkdir(ManagedWorkdir):
             return True
         return git_has_changes_since_tag(last_tag, ".", cwd=self.get_path())
 
-    def publish(self, force: bool = False) -> None:
-        import pwd
-
-        from wexample_helpers.helpers.file import file_chown_recursive
-        from wexample_helpers.helpers.user import user_get_real_username
-
-        username = user_get_real_username()
-        pw = pwd.getpwnam(username)
-        file_chown_recursive(self.get_path(), pw.pw_uid, pw.pw_gid)
-
-        if not self.should_be_published(force=force):
-            return
-
-        self.check_publish_prerequisites()
-        self.clear_runtime_config_cache()
-        self._publish(force=force)
-        self._wait_for_registry()
-        self.success(
-            f"Published {self.get_package_name()} as {self.get_publication_tag_name()}."
-        )
-        self.add_publication_tag()
-        self._post_publish()
-
     def publish_dependencies(self) -> dict[str, str]:
+        self.release(interactive=False)
         return {self.get_package_name(): self.get_project_version()}
 
     def release(
@@ -257,9 +204,6 @@ class RepoWorkdir(ManagedWorkdir):
         from wexample_prompt.enums.terminal_color import TerminalColor
 
         from wexample_wex_addon_app.commands.library.sync import app__library__sync
-        from wexample_wex_addon_app.commands.release.publish import (
-            app__release__publish,
-        )
         from wexample_wex_addon_app.commands.state.rectify import (
             app__state__rectify,
         )
@@ -285,7 +229,7 @@ class RepoWorkdir(ManagedWorkdir):
         # Use --force to publish even without detected changes (e.g. to force a rectify pass).
         if force or _has_changes:
             sub_progress = self.progress(
-                total=6, color=TerminalColor.YELLOW, indentation=1, print_response=False
+                total=7, color=TerminalColor.YELLOW, indentation=1, print_response=False
             ).get_handle()
             sub_progress.advance(
                 step=1, label=f"Syncing libraries for {self.get_project_name()}"
@@ -319,11 +263,10 @@ class RepoWorkdir(ManagedWorkdir):
                 step=1, label=f"Propagating version for {self.get_project_name()}"
             )
             self.manager_run_command(command=app__version__propagate)
+            sub_progress.advance(step=1, label=f"Building {self.get_project_name()}")
+            self.manager_run(cmd=[".release/build", "--ignore-missing-command"])
             sub_progress.advance(step=1, label=f"Publishing {self.get_project_name()}")
-            self.manager_run_command(
-                command=app__release__publish,
-                arguments=(["--force"] if force else []),
-            )
+            self._do_publish(force=force)
 
     def should_be_published(self, force: bool = False) -> bool:
         current_tag = self.get_publication_tag_name()
@@ -381,6 +324,25 @@ class RepoWorkdir(ManagedWorkdir):
                 count += len(list(path.rglob("*")))
         return count
 
+    def _do_publish(self, force: bool = False) -> None:
+        from wexample_wex_addon_app.publication.strategy.abstract_publication_strategy import (
+            AbstractPublicationStrategy,
+        )
+
+        if not self.should_be_published(force=force):
+            return
+
+        self.check_publish_prerequisites()
+        self.clear_runtime_config_cache()
+        self._publish(force=force)
+        AbstractPublicationStrategy.from_workdir(self).run_post_publish_pipeline()
+        self._wait_for_registry()
+        self.success(
+            f"Published {self.get_package_name()} as {self.get_publication_tag_name()}."
+        )
+        self.add_publication_tag()
+        self._post_publish()
+
     @abstract_method
     def _get_critical_directories(self) -> list[str]:
         pass
@@ -390,18 +352,6 @@ class RepoWorkdir(ManagedWorkdir):
 
     def _get_test_code_directories(self) -> list[TargetFileOrDirectoryType]:
         return []
-
-    def _persist_env_value(self, key: str, value: str) -> None:
-        try:
-            from wexample_wex_core.workdir.kernel_workdir import KernelWorkdir
-
-            kernel_workdir = self.parent_io_handler.workdir
-            if isinstance(kernel_workdir, KernelWorkdir):
-                data = kernel_workdir.get_local_data("env")
-                data[key] = value
-                kernel_workdir.set_local_data("env", data)
-        except Exception:
-            pass
 
     def _post_publish(self) -> None:
         pass
