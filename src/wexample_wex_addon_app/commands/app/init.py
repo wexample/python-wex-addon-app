@@ -81,6 +81,7 @@ def app__app__init(
     env_name = env or "local"
     normalized_services = [string_to_snake_case(s) for s in (services or [])]
     domain = f"{string_to_kebab_case(app_name)}.{CORE_COMMAND_NAME}"
+    wex_version = context.kernel.workdir.get_setup_version()
 
     for subdir in [WORKDIR_SETUP_DIR, APP_PATH_TMP, APP_DIR_DOCKER]:
         file_mkdir_as_real_user(target_path / subdir)
@@ -95,7 +96,9 @@ def app__app__init(
         f"  name: {app_name}\n"
         "  version: 1.0.0\n"
         "  type: app\n"
-        f"domain: {domain}\n",
+        f"domain: {domain}\n"
+        "wex:\n"
+        f"  version: {wex_version}\n",
     )
     file_write_as_real_user(target_path / APP_PATH_ENV, f"APP_ENV={env_name}\n")
 
