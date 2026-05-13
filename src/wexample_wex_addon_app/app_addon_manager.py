@@ -92,10 +92,20 @@ class AppAddonManager(AbstractAddonManager):
         else:
             app_workdir_class = ManagedWorkdir
 
-        return app_workdir_class.create_from_path(
+        workdir = app_workdir_class.create_from_path(
             path=app_path.resolve(),
             parent_io_handler=self.kernel,
+            configure=False,
         )
+
+        children = []
+        for service in self.get_app_services(workdir):
+            contribution = service.get_workdir_contribution(workdir)
+            if contribution:
+                children.extend(contribution.get("children", []))
+
+        workdir.configure(config={"children": children})
+        return workdir
 
     def docker_cp(
         self, service: str, local_src: Path | str, container_dest: str
