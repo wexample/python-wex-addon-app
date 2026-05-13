@@ -18,8 +18,42 @@ if TYPE_CHECKING:
     from wexample_wex_addon_app.workdir.managed_workdir import ManagedWorkdir
 
 
+def _detect_ssh_socket() -> str | None:
+    import os
+    import pathlib
+    import stat
+
+    run_user = pathlib.Path("/run/user")
+    if not run_user.exists():
+        return None
+    for uid_dir in run_user.iterdir():
+        for candidate in [
+            str(uid_dir / "keyring" / "ssh"),
+            str(uid_dir / "gnupg" / "S.gpg-agent.ssh"),
+        ]:
+            try:
+                if stat.S_ISSOCK(os.stat(candidate).st_mode):
+                    return candidate
+            except OSError:
+                pass
+    return None
+
+
 @base_class
 class AppAddonManager(AbstractAddonManager):
+    def get_local_configurable_keys(self) -> list[dict]:
+        return [
+            {
+                "key": "SSH_AUTH_SOCK",
+                "description": "SSH agent socket — required for git push/pull over SSH",
+                "detect": _detect_ssh_socket,
+                "default_candidates": [
+                    "/run/user/1000/keyring/ssh",
+                    "/run/user/1000/gnupg/S.gpg-agent.ssh",
+                ],
+            }
+        ]
+
     @classmethod
     def from_kernel(cls, kernel) -> AppAddonManager:
         for addon in kernel.get_addons().values():
