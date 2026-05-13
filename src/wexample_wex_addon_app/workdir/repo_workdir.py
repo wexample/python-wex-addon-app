@@ -88,6 +88,8 @@ class RepoWorkdir(ManagedWorkdir):
         import os
         import stat
 
+        # OS-level variable — not stored in .wex/local/env.yml on every workdir,
+        # so get_env_parameter() would raise KeyNotFoundError. Use os.environ.get() here.
         sock = os.environ.get("SSH_AUTH_SOCK", "")
         if sock:
             try:
