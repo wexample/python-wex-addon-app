@@ -23,7 +23,7 @@ class CodeBaseWorkdir(RepoWorkdir):
         )
 
         cwd = self.get_path()
-        tag = f"{self.get_package_name()}/v{self.get_project_version()}"
+        tag = f"{self.get_package_name()}/v{self.get_setup_version()}"
 
         # Create the annotated tag if it does not already exist locally.
         if not git_tag_exists(tag, cwd=cwd, inherit_stdio=False):
@@ -78,7 +78,7 @@ class CodeBaseWorkdir(RepoWorkdir):
 
         if has_working_changes or has_index_changes:
             git_commit_all_with_message(
-                f"Publishing version {self.get_project_version()}",
+                f"Publishing version {self.get_setup_version()}",
                 cwd=cwd,
                 inherit_stdio=True,
             )

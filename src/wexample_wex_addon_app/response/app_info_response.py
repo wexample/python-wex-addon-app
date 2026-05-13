@@ -244,7 +244,7 @@ class AppInfoResponse(AbstractResponse):
 
     def _get_project_version_display(self) -> str:
         try:
-            return self.app_workdir.get_project_version()
+            return self.app_workdir.get_setup_version()
         except (AttributeError, ValueError):
             return "@color:yellow{N/A}"
 

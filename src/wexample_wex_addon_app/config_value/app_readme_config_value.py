@@ -152,7 +152,7 @@ class AppReadmeConfigValue(ReadmeContentConfigValue):
             "license_info": self._get_project_license(),
             "package_name": self.workdir.get_project_name(),
             "project_name": self.workdir.get_project_name(),
-            "version": self.workdir.get_project_version(),
+            "version": self.workdir.get_setup_version(),
             "workdir": self.workdir,
         }
 

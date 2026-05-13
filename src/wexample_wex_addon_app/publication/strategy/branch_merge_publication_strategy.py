@@ -30,7 +30,7 @@ class BranchMergePublicationStrategy(AbstractPublicationStrategy):
 
     def post_push(self) -> None:
         namespace, name = self._get_repo_info()
-        version = self.workdir.get_project_version()
+        version = self.workdir.get_setup_version()
         source_branch = f"version-{version}"
         self._target_branch = (
             self.workdir.get_config()

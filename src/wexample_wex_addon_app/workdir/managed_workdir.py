@@ -321,7 +321,7 @@ class ManagedWorkdir(
             )
         return name
 
-    def get_project_version(self) -> str:
+    def get_setup_version(self) -> str:
         from wexample_app.const.globals import APP_FILE_APP_CONFIG
 
         version_config = self.get_config().search("global.version")

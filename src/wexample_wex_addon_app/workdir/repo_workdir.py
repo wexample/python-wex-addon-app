@@ -24,7 +24,7 @@ class RepoWorkdir(ManagedWorkdir):
             self.log(f"Package {self.get_package_name()} has no new content to bump.")
             return False
 
-        current_version = self.get_project_version()
+        current_version = self.get_setup_version()
         if "type" not in kwargs:
             kwargs["type"] = self.classify_version_bump()
         new_version = version_increment(version=current_version, **kwargs)
@@ -148,7 +148,7 @@ class RepoWorkdir(ManagedWorkdir):
 
         Format: "{package_name}/v{version}"
         """
-        return f"{self.get_package_name()}/v{self.get_project_version()}"
+        return f"{self.get_package_name()}/v{self.get_setup_version()}"
 
     def has_a_test(self) -> bool:
         from wexample_wex_addon_app.const.path import APP_PATH_TEST
@@ -195,7 +195,7 @@ class RepoWorkdir(ManagedWorkdir):
 
     def publish_dependencies(self) -> dict[str, str]:
         self.release(interactive=False)
-        return {self.get_package_name(): self.get_project_version()}
+        return {self.get_package_name(): self.get_setup_version()}
 
     def release(
         self,
