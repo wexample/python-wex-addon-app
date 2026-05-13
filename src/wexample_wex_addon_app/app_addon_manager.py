@@ -20,21 +20,6 @@ if TYPE_CHECKING:
 
 @base_class
 class AppAddonManager(AbstractAddonManager):
-    def get_local_configurable_keys(self) -> list[dict]:
-        from wexample_wex_addon_app.helpers.app import detect_ssh_socket
-
-        return [
-            {
-                "key": "SSH_AUTH_SOCK",
-                "description": "SSH agent socket — required for git push/pull over SSH",
-                "detect": detect_ssh_socket,
-                "default_candidates": [
-                    "/run/user/1000/keyring/ssh",
-                    "/run/user/1000/gnupg/S.gpg-agent.ssh",
-                ],
-            }
-        ]
-
     @classmethod
     def from_kernel(cls, kernel) -> AppAddonManager:
         for addon in kernel.get_addons().values():
@@ -220,6 +205,21 @@ class AppAddonManager(AbstractAddonManager):
         )
 
         return [AppCommandResolver, ServiceCommandResolver]
+
+    def get_local_configurable_keys(self) -> list[dict]:
+        from wexample_wex_addon_app.helpers.app import detect_ssh_socket
+
+        return [
+            {
+                "key": "SSH_AUTH_SOCK",
+                "description": "SSH agent socket — required for git push/pull over SSH",
+                "detect": detect_ssh_socket,
+                "default_candidates": [
+                    "/run/user/1000/keyring/ssh",
+                    "/run/user/1000/gnupg/S.gpg-agent.ssh",
+                ],
+            }
+        ]
 
     def get_middlewares_classes(self) -> list[type[AbstractMiddleware]]:
         from wexample_wex_addon_app.middleware.app_middleware import AppMiddleware

@@ -82,7 +82,9 @@ class BranchMergePublicationStrategy(AbstractPublicationStrategy):
         if status != "success":
             from wexample_app.exception.app_runtime_exception import AppRuntimeException
 
-            pipelines = gitlab.get_merge_proposal_pipelines(namespace, name, self._mr_iid)
+            pipelines = gitlab.get_merge_proposal_pipelines(
+                namespace, name, self._mr_iid
+            )
             web_url = next(
                 (p.get("web_url", "") for p in pipelines if p.get("id") == pipeline_id),
                 "",
@@ -93,8 +95,12 @@ class BranchMergePublicationStrategy(AbstractPublicationStrategy):
             raise AppRuntimeException(message=message)
 
         self.workdir.log(f"Pipeline succeeded. Merging MR !{self._mr_iid}…")
-        branch_pipelines = gitlab.get_branch_pipelines(namespace, name, self._target_branch)
-        self._pre_merge_pipeline_id = branch_pipelines[0]["id"] if branch_pipelines else None
+        branch_pipelines = gitlab.get_branch_pipelines(
+            namespace, name, self._target_branch
+        )
+        self._pre_merge_pipeline_id = (
+            branch_pipelines[0]["id"] if branch_pipelines else None
+        )
         gitlab.merge_merge_proposal(namespace, name, self._mr_iid)
         self.workdir.log(f"MR !{self._mr_iid} merged.")
 
@@ -123,37 +129,9 @@ class BranchMergePublicationStrategy(AbstractPublicationStrategy):
                 message=f"Post-merge pipeline {pipeline_id} ended with status '{status}'."
             )
 
-        self.workdir.success(f"Post-merge pipeline succeeded on '{self._target_branch}'.")
-
-    # ------------------------------------------------------------------
-    # Internal helpers
-    # ------------------------------------------------------------------
-
-    def _make_pipeline_tick_handler(self, pipeline_id: int, label: str):
-        """Return an on_tick callback that overwrites its line in place with a colored status dot."""
-        _SYMBOL = "⬤"
-        _COLOR = {
-            "success": "green",
-            "failed": "red",
-            "canceled": "red",
-        }
-
-        state: dict = {"last": None}
-
-        def on_tick(status: str, elapsed: int) -> None:
-            color = _COLOR.get(status, "blue")
-            if state["last"] is not None:
-                self.workdir.io.erase_response(state["last"])
-            state["last"] = self.workdir.log(
-                f"@color:{color}{{{_SYMBOL}}}  {label} {pipeline_id} — {status} ({elapsed}s)"
-            )
-
-        return on_tick
-
-    def _get_gitlab(self) -> GitlabRemote:
-        if self._gitlab is None:
-            self._gitlab = self._build_gitlab_remote()
-        return self._gitlab
+        self.workdir.success(
+            f"Post-merge pipeline succeeded on '{self._target_branch}'."
+        )
 
     def _build_gitlab_remote(self) -> GitlabRemote:
         from wexample_filestate_git.remote.gitlab_remote import GitlabRemote
@@ -180,6 +158,11 @@ class BranchMergePublicationStrategy(AbstractPublicationStrategy):
         remote.setup()
         return remote
 
+    def _get_gitlab(self) -> GitlabRemote:
+        if self._gitlab is None:
+            self._gitlab = self._build_gitlab_remote()
+        return self._gitlab
+
     def _get_repo_info(self) -> tuple[str, str]:
         if self._namespace and self._repo_name:
             return self._namespace, self._repo_name
@@ -192,18 +175,44 @@ class BranchMergePublicationStrategy(AbstractPublicationStrategy):
             cwd=self.workdir.get_path(),
             inherit_stdio=False,
         )
-        repo_info = self._get_gitlab().parse_repository_url((result.stdout or "").strip())
+        repo_info = self._get_gitlab().parse_repository_url(
+            (result.stdout or "").strip()
+        )
         self._namespace = repo_info["namespace"]
         self._repo_name = repo_info["name"]
         return self._namespace, self._repo_name
 
-    def _wait_for_branch_pipeline(
-        self, gitlab, namespace: str, name: str
-    ) -> int:
+    # ------------------------------------------------------------------
+    # Internal helpers
+    # ------------------------------------------------------------------
+    def _make_pipeline_tick_handler(self, pipeline_id: int, label: str):
+        """Return an on_tick callback that overwrites its line in place with a colored status dot."""
+        _SYMBOL = "⬤"
+        _COLOR = {
+            "success": "green",
+            "failed": "red",
+            "canceled": "red",
+        }
+
+        state: dict = {"last": None}
+
+        def on_tick(status: str, elapsed: int) -> None:
+            color = _COLOR.get(status, "blue")
+            if state["last"] is not None:
+                self.workdir.io.erase_response(state["last"])
+            state["last"] = self.workdir.log(
+                f"@color:{color}{{{_SYMBOL}}}  {label} {pipeline_id} — {status} ({elapsed}s)"
+            )
+
+        return on_tick
+
+    def _wait_for_branch_pipeline(self, gitlab, namespace: str, name: str) -> int:
         """Wait until a new pipeline appears on the target branch after the merge."""
         baseline = self._pre_merge_pipeline_id
         for _ in range(_POST_MERGE_RETRY_ATTEMPTS):
-            pipelines = gitlab.get_branch_pipelines(namespace, name, self._target_branch)
+            pipelines = gitlab.get_branch_pipelines(
+                namespace, name, self._target_branch
+            )
             if pipelines:
                 latest_id = pipelines[0]["id"]
                 if baseline is None or latest_id > baseline:
@@ -224,7 +233,9 @@ class BranchMergePublicationStrategy(AbstractPublicationStrategy):
     ) -> int:
         """Wait until the MR has at least one pipeline, then return its ID."""
         for _ in range(_PIPELINE_RETRY_ATTEMPTS):
-            pipelines = gitlab.get_merge_proposal_pipelines(namespace, name, self._mr_iid)
+            pipelines = gitlab.get_merge_proposal_pipelines(
+                namespace, name, self._mr_iid
+            )
             if pipelines:
                 return pipelines[0]["id"]
             self.workdir.log(

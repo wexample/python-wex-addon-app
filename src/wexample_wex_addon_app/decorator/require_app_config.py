@@ -1,13 +1,24 @@
 from __future__ import annotations
 
 import inspect
-from typing import TYPE_CHECKING, Any, Callable
+from collections.abc import Callable
+from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from wexample_helpers.const.types import AnyCallable
     from wexample_wex_core.common.command_method_wrapper import CommandMethodWrapper
 
 _SENTINEL = object()
+
+
+def check_config_requirements(
+    requirements: list[dict],
+    app_workdir: Any,
+    io: Any,
+    function_kwargs: dict,
+) -> None:
+    for req in requirements:
+        _check_one(req, app_workdir, io, function_kwargs)
 
 
 def require_app_config(
@@ -25,6 +36,7 @@ def require_app_config(
     - on_missing="ask": prompts the user (choice if values provided, else free input) and persists
     - default=X: uses X silently and persists it to config.yml
     """
+
     def decorator(command_wrapper: CommandMethodWrapper) -> CommandMethodWrapper:
         from wexample_wex_core.common.command_method_wrapper import CommandMethodWrapper
 
@@ -36,28 +48,20 @@ def require_app_config(
 
         if "config_requirements" not in command_wrapper.extra:
             command_wrapper.extra["config_requirements"] = []
-        command_wrapper.extra["config_requirements"].append({
-            "path": path,
-            "type": type,
-            "default": default,
-            "values": values,
-            "description": description,
-            "ask_question": ask_question,
-            "on_missing": on_missing,
-        })
+        command_wrapper.extra["config_requirements"].append(
+            {
+                "path": path,
+                "type": type,
+                "default": default,
+                "values": values,
+                "description": description,
+                "ask_question": ask_question,
+                "on_missing": on_missing,
+            }
+        )
         return command_wrapper
 
     return decorator
-
-
-def check_config_requirements(
-    requirements: list[dict],
-    app_workdir: Any,
-    io: Any,
-    function_kwargs: dict,
-) -> None:
-    for req in requirements:
-        _check_one(req, app_workdir, io, function_kwargs)
 
 
 def _check_one(req: dict, app_workdir: Any, io: Any, function_kwargs: dict) -> None:
@@ -91,7 +95,9 @@ def _check_one(req: dict, app_workdir: Any, io: Any, function_kwargs: dict) -> N
             + (f" — {description}" if description else "")
             + ":"
         )
-        allowed = _resolve_values(values, function_kwargs) if values is not None else None
+        allowed = (
+            _resolve_values(values, function_kwargs) if values is not None else None
+        )
 
         if allowed:
             value = io.choice(question=question, choices=allowed).get_answer()
@@ -109,17 +115,17 @@ def _check_one(req: dict, app_workdir: Any, io: Any, function_kwargs: dict) -> N
     )
 
 
-def _resolve_values(values: list | Callable, kwargs: dict[str, Any]) -> list:
-    if not callable(values):
-        return values
-    sig = inspect.signature(values)
-    filtered = {k: v for k, v in kwargs.items() if k in sig.parameters}
-    return values(**filtered)
-
-
 def _read_typed(config_value: Any, target_type: type | None) -> Any:
     if target_type is int:
         return config_value.get_int()
     if target_type is bool:
         return config_value.get_bool()
     return config_value.get_str()
+
+
+def _resolve_values(values: list | Callable, kwargs: dict[str, Any]) -> list:
+    if not callable(values):
+        return values
+    sig = inspect.signature(values)
+    filtered = {k: v for k, v in kwargs.items() if k in sig.parameters}
+    return values(**filtered)

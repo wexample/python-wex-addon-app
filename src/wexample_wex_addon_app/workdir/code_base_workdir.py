@@ -15,27 +15,6 @@ if TYPE_CHECKING:
 
 
 class CodeBaseWorkdir(RepoWorkdir):
-    def prepare_value(self, raw_value=None):
-        from wexample_filestate.const.disk import DiskItemType
-        from wexample_filestate.item.file.yaml_file import YamlFile
-
-        raw_value = super().prepare_value(raw_value)
-
-        raw_value["children"].append(
-            {
-                "name": ".gitlab-ci.yml",
-                "class": YamlFile,
-                "type": DiskItemType.FILE,
-                "structured_keys": {
-                    "variables.MAIN_BRANCH_NAME": lambda _target, _self=self: _self.search_app_or_suite_runtime_config(
-                        "git.main_branch", default="main"
-                    ).get_str(),
-                },
-            }
-        )
-
-        return raw_value
-
     def add_publication_tag(self) -> None:
         from wexample_helpers_git.helpers.git import (
             git_push_tag,
@@ -254,6 +233,27 @@ class CodeBaseWorkdir(RepoWorkdir):
             self.info(f"Returning to {current_branch}...")
             git_switch_branch(current_branch, cwd=cwd, inherit_stdio=True)
 
+    def prepare_value(self, raw_value=None):
+        from wexample_filestate.const.disk import DiskItemType
+        from wexample_filestate.item.file.yaml_file import YamlFile
+
+        raw_value = super().prepare_value(raw_value)
+
+        raw_value["children"].append(
+            {
+                "name": ".gitlab-ci.yml",
+                "class": YamlFile,
+                "type": DiskItemType.FILE,
+                "structured_keys": {
+                    "variables.MAIN_BRANCH_NAME": lambda _target, _self=self: _self.search_app_or_suite_runtime_config(
+                        "git.main_branch", default="main"
+                    ).get_str(),
+                },
+            }
+        )
+
+        return raw_value
+
     def push_changes(
         self,
         remote_name: str | None = None,
@@ -350,6 +350,9 @@ class CodeBaseWorkdir(RepoWorkdir):
 
         config_file.write_parsed()
 
+    def _build_dependency_string(self, package_name: str, version: str) -> str:
+        return f"{package_name}=={version}"
+
     def _canonicalize_dep_name(self, name: str) -> str:
         from packaging.utils import canonicalize_name
 
@@ -357,13 +360,6 @@ class CodeBaseWorkdir(RepoWorkdir):
 
     def _default_dependency_operator(self) -> str:
         return ">="
-
-    def _post_bump_write_version(self, new_version: str) -> None:
-        config_file = self.get_app_config_file()
-        config_file.write_parsed()
-
-    def _build_dependency_string(self, package_name: str, version: str) -> str:
-        return f"{package_name}=={version}"
 
     def _get_critical_directories(self) -> list[str]:
         return []
@@ -374,3 +370,7 @@ class CodeBaseWorkdir(RepoWorkdir):
         return self.search_app_or_suite_runtime_config(
             "git.main_deployment_remote_name", default=GIT_REMOTE_ORIGIN
         ).get_str_or_none()
+
+    def _post_bump_write_version(self, new_version: str) -> None:
+        config_file = self.get_app_config_file()
+        config_file.write_parsed()

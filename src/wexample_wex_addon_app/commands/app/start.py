@@ -306,6 +306,7 @@ def app__app__start(
 
     def _rebuild(previous_value=None):
         from wexample_wex_addon_app.commands.image.build import app__image__build
+
         return context.kernel.run_function(app__image__build, arguments={"all": True})
 
     if fast:

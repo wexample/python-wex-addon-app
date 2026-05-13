@@ -191,25 +191,6 @@ class RepoWorkdir(ManagedWorkdir):
             return True
         return git_has_changes_since_tag(last_tag, ".", cwd=self.get_path())
 
-    def _do_publish(self, force: bool = False) -> None:
-        from wexample_wex_addon_app.publication.strategy.abstract_publication_strategy import (
-            AbstractPublicationStrategy,
-        )
-
-        if not self.should_be_published(force=force):
-            return
-
-        self.check_publish_prerequisites()
-        self.clear_runtime_config_cache()
-        self._publish(force=force)
-        AbstractPublicationStrategy.from_workdir(self).run_post_publish_pipeline()
-        self._wait_for_registry()
-        self.success(
-            f"Published {self.get_package_name()} as {self.get_publication_tag_name()}."
-        )
-        self.add_publication_tag()
-        self._post_publish()
-
     def publish_dependencies(self) -> dict[str, str]:
         self.release(interactive=False)
         return {self.get_package_name(): self.get_project_version()}
@@ -283,7 +264,7 @@ class RepoWorkdir(ManagedWorkdir):
             )
             self.manager_run_command(command=app__version__propagate)
             sub_progress.advance(step=1, label=f"Building {self.get_project_name()}")
-            self.manager_run_from_path(cmd=[".release/build", "--ignore-missing-command"])
+            self.manager_run(cmd=[".release/build", "--ignore-missing-command"])
             sub_progress.advance(step=1, label=f"Publishing {self.get_project_name()}")
             self._do_publish(force=force)
 
@@ -342,6 +323,25 @@ class RepoWorkdir(ManagedWorkdir):
             if path.exists():
                 count += len(list(path.rglob("*")))
         return count
+
+    def _do_publish(self, force: bool = False) -> None:
+        from wexample_wex_addon_app.publication.strategy.abstract_publication_strategy import (
+            AbstractPublicationStrategy,
+        )
+
+        if not self.should_be_published(force=force):
+            return
+
+        self.check_publish_prerequisites()
+        self.clear_runtime_config_cache()
+        self._publish(force=force)
+        AbstractPublicationStrategy.from_workdir(self).run_post_publish_pipeline()
+        self._wait_for_registry()
+        self.success(
+            f"Published {self.get_package_name()} as {self.get_publication_tag_name()}."
+        )
+        self.add_publication_tag()
+        self._post_publish()
 
     @abstract_method
     def _get_critical_directories(self) -> list[str]:

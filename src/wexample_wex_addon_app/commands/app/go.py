@@ -17,18 +17,6 @@ if TYPE_CHECKING:
     from wexample_wex_addon_app.workdir.managed_workdir import ManagedWorkdir
 
 
-def _available_containers(app_workdir: ManagedWorkdir) -> list[str]:
-    import yaml
-    from wexample_app.const.globals import WORKDIR_SETUP_DIR
-
-    compose_path = app_workdir.get_path() / WORKDIR_SETUP_DIR / "tmp" / "docker-compose.runtime.yml"
-    if not compose_path.exists():
-        return []
-    with open(compose_path) as f:
-        compose = yaml.safe_load(f) or {}
-    return list((compose.get("services", {}) or {}).keys())
-
-
 @option(
     name="container_name",
     type=str,
@@ -63,7 +51,6 @@ def app__app__go(
     from wexample_app.response.interactive_shell_command_response import (
         InteractiveShellCommandResponse,
     )
-
     from wexample_helpers.helpers.docker import docker_container_is_running
 
     container = container_name or app_workdir.get_main_container_name()
@@ -71,13 +58,18 @@ def app__app__go(
     shell = app_workdir.get_service_shell()
 
     if not docker_container_is_running(long_name):
-        from wexample_wex_core.resolver.addon_command_resolver import AddonCommandResolver
+        from wexample_wex_core.resolver.addon_command_resolver import (
+            AddonCommandResolver,
+        )
+
         from wexample_wex_addon_app.commands.app.start import app__app__start
 
         context.io.error(f"Container @magenta{{{long_name}}} is not running.")
         context.io.suggestions(
             message=f"You may want to start the application.",
-            suggestions=[AddonCommandResolver.build_command_from_function(app__app__start)],
+            suggestions=[
+                AddonCommandResolver.build_command_from_function(app__app__start)
+            ],
         )
 
         return None
@@ -93,3 +85,20 @@ def app__app__go(
         kernel=context.kernel,
         content=docker_command,
     )
+
+
+def _available_containers(app_workdir: ManagedWorkdir) -> list[str]:
+    import yaml
+    from wexample_app.const.globals import WORKDIR_SETUP_DIR
+
+    compose_path = (
+        app_workdir.get_path()
+        / WORKDIR_SETUP_DIR
+        / "tmp"
+        / "docker-compose.runtime.yml"
+    )
+    if not compose_path.exists():
+        return []
+    with open(compose_path) as f:
+        compose = yaml.safe_load(f) or {}
+    return list((compose.get("services", {}) or {}).keys())
