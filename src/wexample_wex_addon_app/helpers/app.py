@@ -32,3 +32,23 @@ def get_docker_local_ip() -> str:
 
 def get_sidecar_path(name: str, env: str) -> Path:
     return Path(f"/var/www/{env}/wex-{name}")
+
+
+def detect_ssh_socket() -> str | None:
+    import os
+    import stat
+
+    run_user = Path("/run/user")
+    if not run_user.exists():
+        return None
+    for uid_dir in run_user.iterdir():
+        for candidate in [
+            str(uid_dir / "keyring" / "ssh"),
+            str(uid_dir / "gnupg" / "S.gpg-agent.ssh"),
+        ]:
+            try:
+                if stat.S_ISSOCK(os.stat(candidate).st_mode):
+                    return candidate
+            except OSError:
+                pass
+    return None
