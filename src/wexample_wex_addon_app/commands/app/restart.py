@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING
 from wexample_wex_core.const.globals import COMMAND_TYPE_ADDON
 from wexample_wex_core.decorator.command import command
 from wexample_wex_core.decorator.middleware import middleware
+from wexample_wex_core.decorator.option import option
 
 from wexample_wex_addon_app.middleware.app_middleware import AppMiddleware
 
@@ -15,11 +16,19 @@ if TYPE_CHECKING:
     from wexample_wex_addon_app.workdir.managed_workdir import ManagedWorkdir
 
 
+@option(
+    name="rebuild",
+    type=bool,
+    is_flag=True,
+    required=False,
+    description="Rebuild all Docker images (no cache) then force docker compose up --build",
+)
 @middleware(middleware=AppMiddleware)
 @command(type=COMMAND_TYPE_ADDON, description="Restart the app (stop then start)")
 def app__app__restart(
     context: ExecutionContext,
     app_workdir: ManagedWorkdir,
+    rebuild: bool = False,
 ) -> AbstractResponse:
     from wexample_app.response.queued_collection_response import (
         QueuedCollectionResponse,
@@ -33,6 +42,7 @@ def app__app__restart(
     def _start(previous_value=None) -> AbstractResponse:
         from wexample_wex_addon_app.commands.app.start import app__app__start
 
-        return context.kernel.run_function(app__app__start)
+        arguments = {"rebuild": True} if rebuild else {}
+        return context.kernel.run_function(app__app__start, arguments=arguments)
 
     return QueuedCollectionResponse(kernel=context.kernel, content=[_stop, _start])

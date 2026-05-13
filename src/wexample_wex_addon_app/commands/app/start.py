@@ -19,11 +19,11 @@ if TYPE_CHECKING:
 
 
 @option(
-    name="clear_cache",
+    name="rebuild",
     type=bool,
     is_flag=True,
     required=False,
-    description="Force rebuild of Docker images",
+    description="Rebuild all Docker images (no cache) then force docker compose up --build",
 )
 @option(
     name="user",
@@ -63,7 +63,7 @@ if TYPE_CHECKING:
 def app__app__start(
     context: ExecutionContext,
     app_workdir: ManagedWorkdir,
-    clear_cache: bool = False,
+    rebuild: bool = False,
     user: str | None = None,
     group: str | None = None,
     env: str | None = None,
@@ -206,7 +206,7 @@ def app__app__start(
         )
 
         compose_options = ["up", "-d"]
-        if clear_cache:
+        if rebuild:
             compose_options.append("--build")
 
         return InteractiveShellCommandResponse(
@@ -304,6 +304,10 @@ def app__app__start(
             suggestions=suggestions,
         )
 
+    def _rebuild(previous_value=None):
+        from wexample_wex_addon_app.commands.image.build import app__image__build
+        return context.kernel.run_function(app__image__build, arguments={"all": True})
+
     if fast:
         steps = [_starting]
     else:
@@ -318,5 +322,8 @@ def app__app__start(
             _pending,
             _complete,
         ]
+
+    if rebuild:
+        steps.insert(0, _rebuild)
 
     return QueuedCollectionResponse(kernel=context.kernel, content=steps)
