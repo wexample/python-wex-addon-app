@@ -167,8 +167,10 @@ class BranchMergePublicationStrategy(AbstractPublicationStrategy):
 
             from wexample_wex_addon_app.commands.env.var_set import app__env__var_set
 
+            from wexample_app.const.globals import APP_PATH_LOCAL_ENV
+
             self.workdir.io.suggestions(
-                message=f"Remote token {token_env_var!r} is not set in .wex/local/env.yml.",
+                message=f"Remote token {token_env_var!r} is not set in {APP_PATH_LOCAL_ENV}.",
                 suggestions=[
                     AddonCommandResolver.build_command_from_function(app__env__var_set, {'key': token_env_var, 'value': '<token>'}),
                 ],

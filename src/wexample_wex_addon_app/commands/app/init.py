@@ -59,9 +59,9 @@ def app__app__init(
         APP_DIR_DOCKER,
         APP_FILE_APP_CONFIG,
         APP_PATH_DOCKER_COMPOSE,
+        APP_PATH_LOCAL_ENV,
         APP_PATH_TMP,
         CORE_COMMAND_NAME,
-        WORKDIR_LOCAL_DIR_NAME,
         WORKDIR_SETUP_DIR,
     )
     from wexample_helpers.helpers.file import (
@@ -85,8 +85,12 @@ def app__app__init(
     domain = f"{string_to_kebab_case(app_name)}.{CORE_COMMAND_NAME}"
     wex_version = context.kernel.workdir.get_setup_version()
 
-    local_dir = Path(WORKDIR_SETUP_DIR) / WORKDIR_LOCAL_DIR_NAME
-    for subdir in [WORKDIR_SETUP_DIR, APP_PATH_TMP, APP_DIR_DOCKER, local_dir]:
+    for subdir in [
+        WORKDIR_SETUP_DIR,
+        APP_PATH_TMP,
+        APP_DIR_DOCKER,
+        APP_PATH_LOCAL_ENV.parent,
+    ]:
         file_mkdir_as_real_user(target_path / subdir)
 
     docker_compose_path = target_path / APP_PATH_DOCKER_COMPOSE
@@ -104,7 +108,7 @@ def app__app__init(
         f"  version: {wex_version}\n",
     )
     file_write_as_real_user(
-        target_path / local_dir / "env.yml",
+        target_path / APP_PATH_LOCAL_ENV,
         yaml.safe_dump({"APP_ENV": env_name}, sort_keys=False),
     )
 
