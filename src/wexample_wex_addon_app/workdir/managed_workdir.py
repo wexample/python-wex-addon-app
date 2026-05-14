@@ -425,14 +425,6 @@ class ManagedWorkdir(
                 "should_exist": True,
                 "children": [
                     {
-                        # .env
-                        "class": EnvFile,
-                        "name": EnvFile.EXTENSION_DOT_ENV,
-                        "type": DiskItemType.FILE,
-                        "should_exist": True,
-                        TextOption.get_name(): {"end_new_line": True},
-                    },
-                    {
                         # config.yml
                         "name": APP_FILE_APP_CONFIG,
                         "type": DiskItemType.FILE,
