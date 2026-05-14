@@ -81,7 +81,6 @@ def app__app__start(
     docker_env_file = str(tmp_dir / "docker.env")
 
     def _checkup(previous_value=None):
-        from wexample_app.const.globals import APP_PATH_ENV
         from wexample_app.response.queue_collection.queued_collection_stop_response import (
             QueuedCollectionStopResponse,
         )
@@ -91,19 +90,16 @@ def app__app__start(
             _check_started,
         )
 
-        env_file = app_workdir.get_path() / APP_PATH_ENV
-        if not env_file.exists():
+        if app_workdir.get_env_parameter("APP_ENV", default=None) is None:
             from wexample_wex_addon_app.commands.env.choose import app__env__choose
 
-            context.io.log("No .wex/.env file found, please choose an environment")
+            context.io.log("No APP_ENV configured, please choose an environment")
             chosen = context.kernel.run_function(app__env__choose)
             if isinstance(chosen, NullResponse):
                 return QueuedCollectionStopResponse(
                     kernel=context.kernel,
                     reason="No environment configured, start aborted",
                 )
-
-        from wexample_helpers.helpers.file import file_env_append_as_real_user
 
         from wexample_wex_addon_app.app_addon_manager import AppAddonManager
 
@@ -129,7 +125,7 @@ def app__app__start(
                         question=question, default_value=suggested
                     ).get_value()
 
-                file_env_append_as_real_user(env_file, {key: value})
+                app_workdir.set_env_parameters({key: value})
                 existing_env[key] = value
 
         if _check_started(app_workdir, APP_STARTED_CHECK_MODE_ANY_CONTAINER, context):

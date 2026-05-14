@@ -112,7 +112,7 @@ def app__service__install(
                 if inherited_service_dir is None:
                     continue
 
-                from wexample_app.const.globals import APP_PATH_ENV, WORKDIR_SETUP_DIR
+                from wexample_app.const.globals import WORKDIR_SETUP_DIR
                 from wexample_helpers.helpers.file import file_copytree_merge_yaml
 
                 samples_dir = inherited_service_dir / "samples"
@@ -128,13 +128,12 @@ def app__service__install(
                     ignore_filenames=[".wex.yml"],
                 )
 
-            # Write vars declared in service.yml into .env (skip if already present)
+            # Write vars declared in service.yml into env (skip if already present)
             app_service = app_addon_manager.get_app_service(
                 normalized_service_name, app_workdir
             )
             service_vars = app_service.get_vars()
-            env_file = app_workdir.get_path() / APP_PATH_ENV
-            existing_env = env_file.read_text() if env_file.exists() else ""
+            existing_env = app_workdir.get_env_parameters().to_dict()
 
             # Step 1: non-required defaults (write silently, no prompt)
             defaults_to_write = {
@@ -143,12 +142,11 @@ def app__service__install(
                 if "default" in meta
                 and not meta.get("generated")
                 and not meta.get("required")
+                and key not in existing_env
             }
             if defaults_to_write:
-                from wexample_helpers.helpers.file import file_env_append_as_real_user
-
-                file_env_append_as_real_user(env_file, defaults_to_write)
-                existing_env = env_file.read_text()
+                app_workdir.set_env_parameters(defaults_to_write)
+                existing_env = app_workdir.get_env_parameters().to_dict()
 
             # Step 2: required vars — prompt (with optional pre-fill from default)
             for key, meta in service_vars.items():
@@ -156,7 +154,7 @@ def app__service__install(
                     continue
                 if not meta.get("required"):
                     continue
-                if f"{key}=" in existing_env:
+                if key in existing_env:
                     continue
 
                 description = meta.get("description", "")
@@ -172,10 +170,8 @@ def app__service__install(
                     )
                     value = response.get_value()
 
-                from wexample_helpers.helpers.file import file_env_append_as_real_user
-
-                file_env_append_as_real_user(env_file, {key: value})
-                existing_env = env_file.read_text()
+                app_workdir.set_env_parameters({key: value})
+                existing_env = app_workdir.get_env_parameters().to_dict()
 
             # Step 3: declarative install_config — write config.yml keys via Jinja2
             install_config = manifest.get("install_config") or {}

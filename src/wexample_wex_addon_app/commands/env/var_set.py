@@ -32,7 +32,7 @@ if TYPE_CHECKING:
 @middleware(middleware=AppMiddleware)
 @command(
     type=COMMAND_TYPE_ADDON,
-    description="Set a variable in .wex/.env",
+    description="Set a variable in .wex/local/env.yml",
 )
 def app__env__var_set(
     context: ExecutionContext,

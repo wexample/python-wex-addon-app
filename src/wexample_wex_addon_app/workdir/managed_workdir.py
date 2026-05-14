@@ -236,7 +236,7 @@ class ManagedWorkdir(
 
         # Must NOT call get_runtime_config() here — it would create a circular dependency:
         # get_runtime_config() → build_runtime_config_value() → get_app_env() → get_runtime_config()
-        # APP_ENV is always set via .wex/.env — never in config.yml (which uses "env:" as a block).
+        # APP_ENV is always set via .wex/local/env.yml — never in config.yml (which uses "env:" as a block).
         return self.get_env_parameter("APP_ENV") or ENV_NAME_PROD
 
     def get_dependencies_versions(self) -> dict[str, str]:
