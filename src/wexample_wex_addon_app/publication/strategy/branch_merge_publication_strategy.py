@@ -161,9 +161,20 @@ class BranchMergePublicationStrategy(AbstractPublicationStrategy):
         token = self.workdir.get_env_parameter(token_env_var, default=None)
         if not token:
             from wexample_app.exception.app_runtime_exception import AppRuntimeException
+            from wexample_wex_core.resolver.addon_command_resolver import (
+                AddonCommandResolver,
+            )
 
+            from wexample_wex_addon_app.commands.env.var_set import app__env__var_set
+
+            self.workdir.io.suggestions(
+                message=f"Remote token {token_env_var!r} is not set in .wex/local/env.yml.",
+                suggestions=[
+                    AddonCommandResolver.build_command_from_function(app__env__var_set, {'key': token_env_var, 'value': '<token>'}),
+                ],
+            )
             raise AppRuntimeException(
-                message=f"Remote token not found — set env var {token_env_var!r} or add it to .wex/.env"
+                message=f"Missing required env var: {token_env_var}"
             )
 
         return remote_type(
