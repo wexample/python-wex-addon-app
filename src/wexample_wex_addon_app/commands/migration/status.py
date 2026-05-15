@@ -33,7 +33,9 @@ def app__migration__status(
         )
         return
 
-    status = app_workdir.migration_status()
+    status = app_workdir.migration_status(
+        extras={"workdir": app_workdir, "kernel": context.kernel}
+    )
     current = status["current_version"] or "none"
 
     context.io.log(f"Current version : {current}")

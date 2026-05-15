@@ -48,7 +48,10 @@ def app__migration__run(
     if dry_run:
         context.io.log("Dry run — no changes will be written.")
 
-    applied = app_workdir.migration_run(dry_run=dry_run)
+    applied = app_workdir.migration_run(
+        dry_run=dry_run,
+        extras={"workdir": app_workdir, "kernel": context.kernel},
+    )
 
     if applied:
         label = "Would apply" if dry_run else "Applied"
