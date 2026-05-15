@@ -202,9 +202,10 @@ class ManagedWorkdir(
     def build_runtime_config_value(self) -> NestedConfigValue:
         from wexample_config.config_value.nested_config_value import NestedConfigValue
         from wexample_helpers.helpers.dict import dict_merge
+        from wexample_helpers.helpers.string import string_to_snake_case
 
         base = super().build_runtime_config_value()
-        project_name = f"{self.get_project_name()}_{self.get_app_env()}"
+        project_name = f"{string_to_snake_case(self.get_project_name())}_{self.get_app_env()}"
         return NestedConfigValue(
             raw=dict_merge(base.to_dict(), {"app": {"project_name": project_name}})
         )
@@ -224,11 +225,13 @@ class ManagedWorkdir(
         self._init_env(env_dict=self.get_env_parameters().to_dict())
 
     def docker_build_long_container_name(self, container_name: str) -> str:
+        from wexample_helpers.helpers.string import string_to_snake_case
+
         project_name = (
             self.get_runtime_config().search("app.project_name").get_str_or_none()
         )
         if not project_name:
-            project_name = self.get_project_name()
+            project_name = string_to_snake_case(self.get_project_name())
         return f"{project_name}_{container_name}"
 
     def ensure_app_manager(self) -> None:
