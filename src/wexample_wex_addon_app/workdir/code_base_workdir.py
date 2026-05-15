@@ -130,21 +130,11 @@ class CodeBaseWorkdir(RepoWorkdir):
         return "‹› {prefix} | "
 
     def get_options_providers(self) -> list[type[AbstractOptionsProvider]]:
-        from wexample_filestate.options_provider.default_options_provider import (
-            DefaultOptionsProvider,
-        )
         from wexample_filestate_git.options_provider.git_options_provider import (
             GitOptionsProvider,
         )
-        from wexample_wex_addon_app.filestate.options_provider.setup_manager_options_provider import (
-            SetupManagerOptionsProvider,
-        )
 
-        return [
-            DefaultOptionsProvider,
-            GitOptionsProvider,
-            SetupManagerOptionsProvider,
-        ]
+        return [*super().get_options_providers(), GitOptionsProvider]
 
     def get_package_dependency_name(self) -> str:
         """Return the name used by other packages to mark it as a dependency"""

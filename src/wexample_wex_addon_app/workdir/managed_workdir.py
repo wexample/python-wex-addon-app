@@ -43,6 +43,9 @@ from wexample_wex_addon_app.workdir.mixin.with_suite_tree_workdir_mixin import (
 if TYPE_CHECKING:
     from wexample_config.config_value.config_value import ConfigValue
     from wexample_config.const.types import DictConfig
+    from wexample_config.options_provider.abstract_options_provider import (
+        AbstractOptionsProvider,
+    )
     from wexample_helpers.classes.shell_result import ShellResult
 
 
@@ -188,6 +191,13 @@ class ManagedWorkdir(
             command=app__state__rectify,
             arguments=args,
         ).get_output()
+
+    def get_options_providers(self) -> list[type[AbstractOptionsProvider]]:
+        from wexample_wex_addon_app.filestate.options_provider.setup_manager_options_provider import (
+            SetupManagerOptionsProvider,
+        )
+
+        return [*super().get_options_providers(), SetupManagerOptionsProvider]
 
     def build_runtime_config_value(self) -> NestedConfigValue:
         from wexample_config.config_value.nested_config_value import NestedConfigValue
