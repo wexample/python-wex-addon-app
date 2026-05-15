@@ -126,6 +126,18 @@ def _is_present(
     """Return True if the var is already set, optionally via suite fallback."""
     if key in existing_env:
         return True
+    # config.yml flatté produira cette var dans docker.env via app::config/build,
+    # donc une valeur déjà en dur dans config.yml suffit (ex: service.postgres.name → SERVICE_POSTGRES_NAME).
+    build_runtime = getattr(app_workdir, "build_runtime_config_value", None)
+    if build_runtime is not None:
+        from wexample_helpers.helpers.dict import dict_flatten
+
+        try:
+            flat_runtime = dict_flatten(build_runtime().to_dict())
+        except Exception:
+            flat_runtime = {}
+        if key in flat_runtime:
+            return True
     if meta.get("use_suite_fallback"):
         fallback = getattr(app_workdir, "get_env_parameter_or_suite_fallback", None)
         if fallback is not None and fallback(key, default=None):
