@@ -158,23 +158,14 @@ class BranchMergePublicationStrategy(AbstractPublicationStrategy):
         token_env_var = config.search("git.remote_token_env_var").get_str_or_default(
             default_token_env_var
         )
+
+        # Token presence is guaranteed by @require_local_env on the publish command,
+        # which runs before this method. Defensive assertion in case _build_remote
+        # is reached via a different entry point.
         token = self.workdir.get_env_parameter(token_env_var, default=None)
         if not token:
             from wexample_app.exception.app_runtime_exception import AppRuntimeException
-            from wexample_wex_core.resolver.addon_command_resolver import (
-                AddonCommandResolver,
-            )
 
-            from wexample_wex_addon_app.commands.env.var_set import app__env__var_set
-
-            from wexample_app.const.globals import APP_PATH_LOCAL_ENV
-
-            self.workdir.io.suggestions(
-                message=f"Remote token {token_env_var!r} is not set in {APP_PATH_LOCAL_ENV}.",
-                suggestions=[
-                    AddonCommandResolver.build_command_from_function(app__env__var_set, {'key': token_env_var, 'value': '<token>'}),
-                ],
-            )
             raise AppRuntimeException(
                 message=f"Missing required env var: {token_env_var}"
             )

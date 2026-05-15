@@ -43,6 +43,19 @@ class AppMiddleware(AbstractMiddleware):
                 function_kwargs=function_kwargs,
             )
 
+        env_requirements = command_wrapper.extra.get("env_requirements", [])
+        if env_requirements:
+            from wexample_wex_addon_app.decorator.require_local_env import (
+                check_env_requirements,
+            )
+
+            check_env_requirements(
+                requirements=env_requirements,
+                app_workdir=function_kwargs["app_workdir"],
+                io=request.kernel.io,
+                function_kwargs=function_kwargs,
+            )
+
         return super().build_execution_contexts(
             command_wrapper=command_wrapper,
             request=request,
