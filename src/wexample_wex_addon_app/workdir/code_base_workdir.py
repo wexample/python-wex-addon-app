@@ -136,10 +136,14 @@ class CodeBaseWorkdir(RepoWorkdir):
         from wexample_filestate_git.options_provider.git_options_provider import (
             GitOptionsProvider,
         )
+        from wexample_wex_addon_app.filestate.options_provider.setup_manager_options_provider import (
+            SetupManagerOptionsProvider,
+        )
 
         return [
             DefaultOptionsProvider,
             GitOptionsProvider,
+            SetupManagerOptionsProvider,
         ]
 
     def get_package_dependency_name(self) -> str:

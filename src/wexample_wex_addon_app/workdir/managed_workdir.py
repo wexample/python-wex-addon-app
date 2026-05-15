@@ -405,6 +405,10 @@ class ManagedWorkdir(
 
         raw_value.update({"mode": {"permissions": "777", "recursive": True}})
 
+        # Auto-apply pending setup-manager migrations during rectify. Override
+        # in user config.yml with `setup_manager: {auto_migrate: false}` to disable.
+        raw_value.setdefault("setup_manager", {"auto_migrate": True})
+
         self.append_readme(config=raw_value)
         self.append_agents(config=raw_value)
         self.append_version(config=raw_value)
