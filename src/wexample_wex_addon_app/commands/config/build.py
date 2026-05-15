@@ -91,21 +91,12 @@ def app__config__build(
 
     def _env(previous_value=None) -> None:
         from wexample_filestate.item.file.env_file import EnvFile
-
-        def _flatten(data: dict, prefix: str = "") -> dict:
-            result = {}
-            for k, v in data.items():
-                key = f"{prefix}_{k}".upper() if prefix else k.upper()
-                if isinstance(v, dict):
-                    result.update(_flatten(v, key))
-                else:
-                    result[key] = v
-            return result
+        from wexample_helpers.helpers.dict import dict_flatten
 
         # Load .env first (user-defined vars), runtime flattened on top (takes priority)
         dot_env = app_workdir.get_env_parameters().to_dict()
         runtime = app_workdir.get_runtime_config_file().read_config().to_dict()
-        env_vars = {**dot_env, **_flatten(runtime)}
+        env_vars = {**dot_env, **dict_flatten(runtime)}
 
         docker_env_path = tmp_dir / "docker.env"
         env_file = EnvFile.create_from_path(path=docker_env_path, io=context.io)
