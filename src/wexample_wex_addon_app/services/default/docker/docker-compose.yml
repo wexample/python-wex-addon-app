@@ -1,7 +1,7 @@
 services:
   default:
-    stdin_open: ${APP_DOCKER_COMPOSE_STDIN_OPEN:-true}
-    tty: ${APP_DOCKER_COMPOSE_TTY:-true}
+    stdin_open: ${DOCKER_COMPOSE_STDIN_OPEN:-true}
+    tty: ${DOCKER_COMPOSE_TTY:-true}
     restart: unless-stopped
     environment:
       - MANAGED_APP_ENV=${APP_ENV}
