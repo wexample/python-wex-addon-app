@@ -101,32 +101,25 @@ def app__app__start(
                     reason="No environment configured, start aborted",
                 )
 
+        # Check app-level vars declared in config.yml → vars:
+        from wexample_wex_addon_app.helpers.app_vars import check_app_vars_requirements
+        from wexample_wex_addon_app.helpers.vars_declaration import (
+            process_vars_declarations,
+        )
+
+        check_app_vars_requirements(app_workdir=app_workdir, io=context.io)
+
+        # Check vars declared by each installed service (in case the service
+        # was added to config.yml without re-running service/install)
         from wexample_wex_addon_app.app_addon_manager import AppAddonManager
 
         app_addon_manager = AppAddonManager.from_kernel(context.kernel)
-        existing_env = app_workdir.get_env_parameters().to_dict()
-
         for service in app_addon_manager.get_app_services(app_workdir):
-            for key, meta in service.get_vars().items():
-                if not meta.get("required") or meta.get("generated"):
-                    continue
-                if key in existing_env:
-                    continue
-
-                description = meta.get("description", "")
-                question = key + (f" — {description}" if description else "")
-                suggested = str(meta["default"]) if "default" in meta else None
-
-                value = None
-                while not value:
-                    if value is not None:
-                        context.io.log(f"  '{key}' is required, please enter a value.")
-                    value = context.io.input(
-                        question=question, default_value=suggested
-                    ).get_value()
-
-                app_workdir.set_env_parameters({key: value})
-                existing_env[key] = value
+            process_vars_declarations(
+                vars_decl=service.get_vars(),
+                app_workdir=app_workdir,
+                io=context.io,
+            )
 
         if _check_started(app_workdir, APP_STARTED_CHECK_MODE_ANY_CONTAINER, context):
             return QueuedCollectionStopResponse(

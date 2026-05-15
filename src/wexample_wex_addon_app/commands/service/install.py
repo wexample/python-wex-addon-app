@@ -129,49 +129,18 @@ def app__service__install(
                 )
 
             # Write vars declared in service.yml into env (skip if already present)
+            from wexample_wex_addon_app.helpers.vars_declaration import (
+                process_vars_declarations,
+            )
+
             app_service = app_addon_manager.get_app_service(
                 normalized_service_name, app_workdir
             )
-            service_vars = app_service.get_vars()
-            existing_env = app_workdir.get_env_parameters().to_dict()
-
-            # Step 1: non-required defaults (write silently, no prompt)
-            defaults_to_write = {
-                key: str(meta["default"])
-                for key, meta in service_vars.items()
-                if "default" in meta
-                and not meta.get("generated")
-                and not meta.get("required")
-                and key not in existing_env
-            }
-            if defaults_to_write:
-                app_workdir.set_env_parameters(defaults_to_write)
-                existing_env = app_workdir.get_env_parameters().to_dict()
-
-            # Step 2: required vars — prompt (with optional pre-fill from default)
-            for key, meta in service_vars.items():
-                if meta.get("generated"):
-                    continue
-                if not meta.get("required"):
-                    continue
-                if key in existing_env:
-                    continue
-
-                description = meta.get("description", "")
-                question = f"{key}" + (f" — {description}" if description else "")
-                suggested = str(meta["default"]) if "default" in meta else None
-
-                value = None
-                while not value:
-                    if value is not None:
-                        context.io.log(f"  '{key}' is required, please enter a value.")
-                    response = context.io.input(
-                        question=question, default_value=suggested
-                    )
-                    value = response.get_value()
-
-                app_workdir.set_env_parameters({key: value})
-                existing_env = app_workdir.get_env_parameters().to_dict()
+            process_vars_declarations(
+                vars_decl=app_service.get_vars(),
+                app_workdir=app_workdir,
+                io=context.io,
+            )
 
             # Step 3: declarative install_config — write config.yml keys via Jinja2
             install_config = manifest.get("install_config") or {}
