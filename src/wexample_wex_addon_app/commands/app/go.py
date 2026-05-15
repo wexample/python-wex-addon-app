@@ -17,6 +17,23 @@ if TYPE_CHECKING:
     from wexample_wex_addon_app.workdir.managed_workdir import ManagedWorkdir
 
 
+def _available_containers(app_workdir: ManagedWorkdir) -> list[str]:
+    import yaml
+    from wexample_app.const.globals import WORKDIR_SETUP_DIR
+
+    compose_path = (
+        app_workdir.get_path()
+        / WORKDIR_SETUP_DIR
+        / "tmp"
+        / "docker-compose.runtime.yml"
+    )
+    if not compose_path.exists():
+        return []
+    with open(compose_path) as f:
+        compose = yaml.safe_load(f) or {}
+    return list((compose.get("services", {}) or {}).keys())
+
+
 @option(
     name="container_name",
     type=str,
@@ -85,20 +102,3 @@ def app__app__go(
         kernel=context.kernel,
         content=docker_command,
     )
-
-
-def _available_containers(app_workdir: ManagedWorkdir) -> list[str]:
-    import yaml
-    from wexample_app.const.globals import WORKDIR_SETUP_DIR
-
-    compose_path = (
-        app_workdir.get_path()
-        / WORKDIR_SETUP_DIR
-        / "tmp"
-        / "docker-compose.runtime.yml"
-    )
-    if not compose_path.exists():
-        return []
-    with open(compose_path) as f:
-        compose = yaml.safe_load(f) or {}
-    return list((compose.get("services", {}) or {}).keys())
