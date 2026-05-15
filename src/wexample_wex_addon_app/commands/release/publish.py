@@ -111,7 +111,4 @@ def app__release__publish(
     app_workdir: ManagedWorkdir,
     force: bool = False,
 ) -> None:
-    if hasattr(app_workdir, "release"):
-        app_workdir.release(force=force, interactive=False)
-    else:
-        app_workdir._run_build_if_present()
+    app_workdir.release(force=force, interactive=False)
