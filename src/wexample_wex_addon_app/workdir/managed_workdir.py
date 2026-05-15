@@ -474,6 +474,14 @@ class ManagedWorkdir(
                         "name": CORE_DIR_NAME_TMP,
                         "type": DiskItemType.DIRECTORY,
                         "should_exist": True,
+                        "children": [
+                            {
+                                # output
+                                "name": CORE_DIR_NAME_TMP,
+                                "type": DiskItemType.DIRECTORY,
+                                "should_exist": True,
+                            },
+                        ],
                     },
                     {
                         "name": "knowledge",
