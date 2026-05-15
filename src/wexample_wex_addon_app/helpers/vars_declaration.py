@@ -20,37 +20,14 @@ Resolution order, for each var that is not already set:
   3. `default:` without `required` (write silently)
   4. Otherwise: skip
 """
+
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Callable
+from collections.abc import Callable
+from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from wexample_prompt.common.io_manager import IoManager
-
-
-def _gen_token() -> str:
-    from wexample_helpers.helpers.string import string_random_token
-
-    return string_random_token()
-
-
-def _gen_hex() -> str:
-    import secrets
-
-    return secrets.token_hex(32)
-
-
-def _gen_urlsafe() -> str:
-    import secrets
-
-    return secrets.token_urlsafe(24)
-
-
-_GENERATORS: dict[str, Callable[[], str]] = {
-    "token": _gen_token,
-    "hex": _gen_hex,
-    "urlsafe": _gen_urlsafe,
-}
 
 
 def process_vars_declarations(
@@ -120,9 +97,25 @@ def process_vars_declarations(
         existing_env = app_workdir.get_env_parameters().to_dict()
 
 
-def _is_present(
-    app_workdir: Any, key: str, meta: dict, existing_env: dict
-) -> bool:
+def _gen_hex() -> str:
+    import secrets
+
+    return secrets.token_hex(32)
+
+
+def _gen_token() -> str:
+    from wexample_helpers.helpers.string import string_random_token
+
+    return string_random_token()
+
+
+def _gen_urlsafe() -> str:
+    import secrets
+
+    return secrets.token_urlsafe(24)
+
+
+def _is_present(app_workdir: Any, key: str, meta: dict, existing_env: dict) -> bool:
     """Return True if the var is already set, optionally via suite fallback."""
     if key in existing_env:
         return True
@@ -143,3 +136,10 @@ def _is_present(
         if fallback is not None and fallback(key, default=None):
             return True
     return False
+
+
+_GENERATORS: dict[str, Callable[[], str]] = {
+    "token": _gen_token,
+    "hex": _gen_hex,
+    "urlsafe": _gen_urlsafe,
+}

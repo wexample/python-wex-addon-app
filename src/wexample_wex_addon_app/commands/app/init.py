@@ -54,7 +54,6 @@ def app__app__init(
     app_path: str | None = None,
 ) -> None:
     import yaml
-
     from wexample_app.const.globals import (
         APP_DIR_DOCKER,
         APP_FILE_APP_CONFIG,

@@ -1,4 +1,5 @@
 """Process `config.yml → vars:` declarations of an app workdir."""
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any

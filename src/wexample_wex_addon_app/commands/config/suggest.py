@@ -33,12 +33,6 @@ _WEX_BUILTINS = {
 _WEX_BUILTIN_PREFIXES = ("SERVICE_",)
 
 
-def _is_builtin(name: str) -> bool:
-    return name in _WEX_BUILTINS or any(
-        name.startswith(p) for p in _WEX_BUILTIN_PREFIXES
-    )
-
-
 @option(
     name="apply",
     type=bool,
@@ -129,6 +123,17 @@ def app__config__suggest(
     )
 
 
+def _is_builtin(name: str) -> bool:
+    return name in _WEX_BUILTINS or any(
+        name.startswith(p) for p in _WEX_BUILTIN_PREFIXES
+    )
+
+
+def _read_declared_vars(app_workdir) -> set[str]:
+    decl = app_workdir.get_config().search("vars").to_dict_or_none() or {}
+    return set(decl.keys())
+
+
 def _scan_compose(compose_path) -> dict[str, str | None]:
     text = compose_path.read_text(encoding="utf-8")
     found: dict[str, str | None] = {}
@@ -137,8 +142,3 @@ def _scan_compose(compose_path) -> dict[str, str | None]:
         if name not in found or default:
             found[name] = default
     return found
-
-
-def _read_declared_vars(app_workdir) -> set[str]:
-    decl = app_workdir.get_config().search("vars").to_dict_or_none() or {}
-    return set(decl.keys())

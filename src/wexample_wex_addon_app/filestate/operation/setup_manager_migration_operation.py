@@ -2,9 +2,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from wexample_helpers.decorator.base_class import base_class
-
 from wexample_filestate.operation.abstract_operation import AbstractOperation
+from wexample_helpers.decorator.base_class import base_class
 
 if TYPE_CHECKING:
     from wexample_filestate.enum.scopes import Scope

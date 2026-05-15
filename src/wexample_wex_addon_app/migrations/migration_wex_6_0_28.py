@@ -74,7 +74,7 @@ class MigrationWex6028(AbstractMigration):
                 f"in {total_files} file(s)."
             )
 
-    def _iter_yaml_files(self, wex_dir: Path):
+    def _iter_yaml_files(self, wex_dir: Path) -> None:
         """Yield all .yml/.yaml files under .wex/docker/ and .wex/env/."""
         for sub in ("docker", "env"):
             base = wex_dir / sub

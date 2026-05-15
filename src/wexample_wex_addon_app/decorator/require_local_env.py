@@ -89,8 +89,9 @@ def _check_one(req: dict, app_workdir: Any, io: Any, function_kwargs: dict) -> N
             app_workdir.set_env_parameters({key: new_value})
         return
 
-    from wexample_wex_addon_app.commands.env.var_set import app__env__var_set
     from wexample_wex_core.resolver.addon_command_resolver import AddonCommandResolver
+
+    from wexample_wex_addon_app.commands.env.var_set import app__env__var_set
 
     suggestion = AddonCommandResolver.build_command_from_function(
         app__env__var_set, {"key": key, "value": "<value>"}

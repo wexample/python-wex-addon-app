@@ -192,20 +192,15 @@ class ManagedWorkdir(
             arguments=args,
         ).get_output()
 
-    def get_options_providers(self) -> list[type[AbstractOptionsProvider]]:
-        from wexample_wex_addon_app.filestate.options_provider.setup_manager_options_provider import (
-            SetupManagerOptionsProvider,
-        )
-
-        return [*super().get_options_providers(), SetupManagerOptionsProvider]
-
     def build_runtime_config_value(self) -> NestedConfigValue:
         from wexample_config.config_value.nested_config_value import NestedConfigValue
         from wexample_helpers.helpers.dict import dict_merge
         from wexample_helpers.helpers.string import string_to_snake_case
 
         base = super().build_runtime_config_value()
-        project_name = f"{string_to_snake_case(self.get_project_name())}_{self.get_app_env()}"
+        project_name = (
+            f"{string_to_snake_case(self.get_project_name())}_{self.get_app_env()}"
+        )
         return NestedConfigValue(
             raw=dict_merge(base.to_dict(), {"app": {"project_name": project_name}})
         )
@@ -321,6 +316,13 @@ class ManagedWorkdir(
 
         return sorted(migrations, key=self._migration_version_key)
 
+    def get_options_providers(self) -> list[type[AbstractOptionsProvider]]:
+        from wexample_wex_addon_app.filestate.options_provider.setup_manager_options_provider import (
+            SetupManagerOptionsProvider,
+        )
+
+        return [*super().get_options_providers(), SetupManagerOptionsProvider]
+
     def get_project_name(self) -> str:
         from wexample_app.const.globals import APP_FILE_APP_CONFIG
 
@@ -333,17 +335,6 @@ class ManagedWorkdir(
                 f"Project at '{self.get_path()}' must define a non-empty 'global.name' in {APP_FILE_APP_CONFIG}."
             )
         return name
-
-    def get_setup_version(self) -> str:
-        from wexample_app.const.globals import APP_FILE_APP_CONFIG
-
-        version_config = self.get_config().search("global.version")
-        version = version_config.get_str_or_none()
-        if version is None or str(version).strip() == "":
-            raise ValueError(
-                f"Project at '{self.get_path()}' must define a non-empty 'version' number in {APP_FILE_APP_CONFIG}."
-            )
-        return str(version).strip()
 
     def get_public_remote_repository_url(self) -> str | None:
         return None
@@ -367,6 +358,17 @@ class ManagedWorkdir(
         if not config.is_none():
             return config.get_str()
         return "/bin/bash"
+
+    def get_setup_version(self) -> str:
+        from wexample_app.const.globals import APP_FILE_APP_CONFIG
+
+        version_config = self.get_config().search("global.version")
+        version = version_config.get_str_or_none()
+        if version is None or str(version).strip() == "":
+            raise ValueError(
+                f"Project at '{self.get_path()}' must define a non-empty 'version' number in {APP_FILE_APP_CONFIG}."
+            )
+        return str(version).strip()
 
     def libraries_sync(self) -> None:
         from wexample_wex_addon_app.commands.dependency.publish import (

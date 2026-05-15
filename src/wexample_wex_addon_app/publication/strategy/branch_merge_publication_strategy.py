@@ -127,16 +127,6 @@ class BranchMergePublicationStrategy(AbstractPublicationStrategy):
             f"Post-merge pipeline succeeded on '{self._target_branch}'."
         )
 
-    def _get_remote_url(self) -> str:
-        if self._remote_url is None:
-            from wexample_helpers_git.helpers.git import git_get_remote_url
-
-            remote_name = self.workdir._get_deployment_remote_name() or "origin"
-            self._remote_url = git_get_remote_url(
-                remote_name, cwd=self.workdir.get_path()
-            )
-        return self._remote_url
-
     def _build_remote(self) -> AbstractRemote:
         from wexample_filestate_git.remote.mixin.with_git_remote_mixin import (
             WithGitRemoteMixin,
@@ -180,6 +170,16 @@ class BranchMergePublicationStrategy(AbstractPublicationStrategy):
         if self._remote is None:
             self._remote = self._build_remote()
         return self._remote
+
+    def _get_remote_url(self) -> str:
+        if self._remote_url is None:
+            from wexample_helpers_git.helpers.git import git_get_remote_url
+
+            remote_name = self.workdir._get_deployment_remote_name() or "origin"
+            self._remote_url = git_get_remote_url(
+                remote_name, cwd=self.workdir.get_path()
+            )
+        return self._remote_url
 
     def _get_repo_info(self) -> tuple[str, str]:
         if self._namespace and self._repo_name:
