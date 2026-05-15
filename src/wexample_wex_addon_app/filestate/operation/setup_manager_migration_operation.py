@@ -18,10 +18,10 @@ class SetupManagerMigrationOperation(AbstractOperation):
         return [Scope.LOCATION]
 
     def apply_operation(self) -> None:
-        from wexample_wex_addon_app.commands.migration.run import app__migration__run
-
-        # Root is the workdir itself (ManagedWorkdir), which carries manager_run_command.
-        self.target.get_root().manager_run_command(command=app__migration__run)
+        # In-process: skip subprocess + binary dependency. Calls the same path
+        # as `app__migration__run` would, minus the command wrapper.
+        root = self.target.get_root()
+        root.migration_run(extras={"workdir": root})
 
     def undo(self) -> None:
         # Migrations are not reversed automatically: each migration's own
