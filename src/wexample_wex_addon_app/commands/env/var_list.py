@@ -17,7 +17,7 @@ if TYPE_CHECKING:
 @middleware(middleware=AppMiddleware)
 @command(
     type=COMMAND_TYPE_ADDON,
-    description="List all variables defined in .wex/.env",
+    description="List all variables defined in .wex/local/env.yml",
 )
 def app__env__var_list(
     context: ExecutionContext,
@@ -25,7 +25,7 @@ def app__env__var_list(
 ) -> None:
     env_vars = app_workdir.get_env_parameters().to_dict()
     if not env_vars:
-        context.io.log("No variables found in .wex/.env")
+        context.io.log("No variables found in .wex/local/env.yml")
         return
     for key, value in sorted(env_vars.items()):
         context.io.log(f"{key}={value}")

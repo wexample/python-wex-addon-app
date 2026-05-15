@@ -33,7 +33,9 @@ def app__migration__rollback(
         )
         return
 
-    rolled_back = app_workdir.migration_rollback()
+    rolled_back = app_workdir.migration_rollback(
+        extras={"workdir": app_workdir, "kernel": context.kernel}
+    )
 
     if rolled_back:
         context.io.success(f"Rolled back: {rolled_back}")

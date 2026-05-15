@@ -23,7 +23,7 @@ class CodeBaseWorkdir(RepoWorkdir):
         )
 
         cwd = self.get_path()
-        tag = f"{self.get_package_name()}/v{self.get_project_version()}"
+        tag = f"{self.get_package_name()}/v{self.get_setup_version()}"
 
         # Create the annotated tag if it does not already exist locally.
         if not git_tag_exists(tag, cwd=cwd, inherit_stdio=False):
@@ -78,7 +78,7 @@ class CodeBaseWorkdir(RepoWorkdir):
 
         if has_working_changes or has_index_changes:
             git_commit_all_with_message(
-                f"Publishing version {self.get_project_version()}",
+                f"Publishing version {self.get_setup_version()}",
                 cwd=cwd,
                 inherit_stdio=True,
             )
@@ -130,17 +130,11 @@ class CodeBaseWorkdir(RepoWorkdir):
         return "‹› {prefix} | "
 
     def get_options_providers(self) -> list[type[AbstractOptionsProvider]]:
-        from wexample_filestate.options_provider.default_options_provider import (
-            DefaultOptionsProvider,
-        )
         from wexample_filestate_git.options_provider.git_options_provider import (
             GitOptionsProvider,
         )
 
-        return [
-            DefaultOptionsProvider,
-            GitOptionsProvider,
-        ]
+        return [*super().get_options_providers(), GitOptionsProvider]
 
     def get_package_dependency_name(self) -> str:
         """Return the name used by other packages to mark it as a dependency"""

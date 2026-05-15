@@ -81,7 +81,6 @@ def app__app__start(
     docker_env_file = str(tmp_dir / "docker.env")
 
     def _checkup(previous_value=None):
-        from wexample_app.const.globals import APP_PATH_ENV
         from wexample_app.response.queue_collection.queued_collection_stop_response import (
             QueuedCollectionStopResponse,
         )
@@ -91,11 +90,10 @@ def app__app__start(
             _check_started,
         )
 
-        env_file = app_workdir.get_path() / APP_PATH_ENV
-        if not env_file.exists():
+        if app_workdir.get_env_parameter("APP_ENV", default=None) is None:
             from wexample_wex_addon_app.commands.env.choose import app__env__choose
 
-            context.io.log("No .wex/.env file found, please choose an environment")
+            context.io.log("No APP_ENV configured, please choose an environment")
             chosen = context.kernel.run_function(app__env__choose)
             if isinstance(chosen, NullResponse):
                 return QueuedCollectionStopResponse(
@@ -103,34 +101,25 @@ def app__app__start(
                     reason="No environment configured, start aborted",
                 )
 
-        from wexample_helpers.helpers.file import file_env_append_as_real_user
+        # Check app-level vars declared in config.yml → vars:
+        from wexample_wex_addon_app.helpers.app_vars import check_app_vars_requirements
+        from wexample_wex_addon_app.helpers.vars_declaration import (
+            process_vars_declarations,
+        )
 
+        check_app_vars_requirements(app_workdir=app_workdir, io=context.io)
+
+        # Check vars declared by each installed service (in case the service
+        # was added to config.yml without re-running service/install)
         from wexample_wex_addon_app.app_addon_manager import AppAddonManager
 
         app_addon_manager = AppAddonManager.from_kernel(context.kernel)
-        existing_env = app_workdir.get_env_parameters().to_dict()
-
         for service in app_addon_manager.get_app_services(app_workdir):
-            for key, meta in service.get_vars().items():
-                if not meta.get("required") or meta.get("generated"):
-                    continue
-                if key in existing_env:
-                    continue
-
-                description = meta.get("description", "")
-                question = key + (f" — {description}" if description else "")
-                suggested = str(meta["default"]) if "default" in meta else None
-
-                value = None
-                while not value:
-                    if value is not None:
-                        context.io.log(f"  '{key}' is required, please enter a value.")
-                    value = context.io.input(
-                        question=question, default_value=suggested
-                    ).get_value()
-
-                file_env_append_as_real_user(env_file, {key: value})
-                existing_env[key] = value
+            process_vars_declarations(
+                vars_decl=service.get_vars(),
+                app_workdir=app_workdir,
+                io=context.io,
+            )
 
         if _check_started(app_workdir, APP_STARTED_CHECK_MODE_ANY_CONTAINER, context):
             return QueuedCollectionStopResponse(

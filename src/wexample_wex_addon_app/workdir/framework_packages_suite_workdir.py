@@ -391,13 +391,13 @@ class FrameworkPackageSuiteWorkdir(RepoWorkdir):
             )
             return
 
-        package.log(f"Propagating version {package.get_project_version()}", prefix=True)
+        package.log(f"Propagating version {package.get_setup_version()}", prefix=True)
         package.io.indentation_up()
 
         for dependent in self.get_dependents(package):
             updated = dependent.save_dependency(
                 package=package,
-                version=package.get_project_version(),
+                version=package.get_setup_version(),
                 operator=">=",
             )
             if updated:
@@ -413,7 +413,7 @@ class FrameworkPackageSuiteWorkdir(RepoWorkdir):
         dependencies = {}
 
         for package in self.get_packages():
-            dependencies[package.get_package_name()] = package.get_project_version()
+            dependencies[package.get_package_name()] = package.get_setup_version()
 
         return dependencies
 

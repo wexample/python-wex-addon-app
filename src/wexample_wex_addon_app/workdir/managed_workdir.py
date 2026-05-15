@@ -43,6 +43,9 @@ from wexample_wex_addon_app.workdir.mixin.with_suite_tree_workdir_mixin import (
 if TYPE_CHECKING:
     from wexample_config.config_value.config_value import ConfigValue
     from wexample_config.const.types import DictConfig
+    from wexample_config.options_provider.abstract_options_provider import (
+        AbstractOptionsProvider,
+    )
     from wexample_helpers.classes.shell_result import ShellResult
 
 
@@ -192,9 +195,12 @@ class ManagedWorkdir(
     def build_runtime_config_value(self) -> NestedConfigValue:
         from wexample_config.config_value.nested_config_value import NestedConfigValue
         from wexample_helpers.helpers.dict import dict_merge
+        from wexample_helpers.helpers.string import string_to_snake_case
 
         base = super().build_runtime_config_value()
-        project_name = f"{self.get_project_name()}_{self.get_app_env()}"
+        project_name = (
+            f"{string_to_snake_case(self.get_project_name())}_{self.get_app_env()}"
+        )
         return NestedConfigValue(
             raw=dict_merge(base.to_dict(), {"app": {"project_name": project_name}})
         )
@@ -214,11 +220,13 @@ class ManagedWorkdir(
         self._init_env(env_dict=self.get_env_parameters().to_dict())
 
     def docker_build_long_container_name(self, container_name: str) -> str:
+        from wexample_helpers.helpers.string import string_to_snake_case
+
         project_name = (
             self.get_runtime_config().search("app.project_name").get_str_or_none()
         )
         if not project_name:
-            project_name = self.get_project_name()
+            project_name = string_to_snake_case(self.get_project_name())
         return f"{project_name}_{container_name}"
 
     def ensure_app_manager(self) -> None:
@@ -236,7 +244,7 @@ class ManagedWorkdir(
 
         # Must NOT call get_runtime_config() here — it would create a circular dependency:
         # get_runtime_config() → build_runtime_config_value() → get_app_env() → get_runtime_config()
-        # APP_ENV is always set via .wex/.env — never in config.yml (which uses "env:" as a block).
+        # APP_ENV is always set via .wex/local/env.yml — never in config.yml (which uses "env:" as a block).
         return self.get_env_parameter("APP_ENV") or ENV_NAME_PROD
 
     def get_dependencies_versions(self) -> dict[str, str]:
@@ -308,6 +316,13 @@ class ManagedWorkdir(
 
         return sorted(migrations, key=self._migration_version_key)
 
+    def get_options_providers(self) -> list[type[AbstractOptionsProvider]]:
+        from wexample_wex_addon_app.filestate.options_provider.setup_manager_options_provider import (
+            SetupManagerOptionsProvider,
+        )
+
+        return [*super().get_options_providers(), SetupManagerOptionsProvider]
+
     def get_project_name(self) -> str:
         from wexample_app.const.globals import APP_FILE_APP_CONFIG
 
@@ -320,17 +335,6 @@ class ManagedWorkdir(
                 f"Project at '{self.get_path()}' must define a non-empty 'global.name' in {APP_FILE_APP_CONFIG}."
             )
         return name
-
-    def get_project_version(self) -> str:
-        from wexample_app.const.globals import APP_FILE_APP_CONFIG
-
-        version_config = self.get_config().search("global.version")
-        version = version_config.get_str_or_none()
-        if version is None or str(version).strip() == "":
-            raise ValueError(
-                f"Project at '{self.get_path()}' must define a non-empty 'version' number in {APP_FILE_APP_CONFIG}."
-            )
-        return str(version).strip()
 
     def get_public_remote_repository_url(self) -> str | None:
         return None
@@ -354,6 +358,17 @@ class ManagedWorkdir(
         if not config.is_none():
             return config.get_str()
         return "/bin/bash"
+
+    def get_setup_version(self) -> str:
+        from wexample_app.const.globals import APP_FILE_APP_CONFIG
+
+        version_config = self.get_config().search("global.version")
+        version = version_config.get_str_or_none()
+        if version is None or str(version).strip() == "":
+            raise ValueError(
+                f"Project at '{self.get_path()}' must define a non-empty 'version' number in {APP_FILE_APP_CONFIG}."
+            )
+        return str(version).strip()
 
     def libraries_sync(self) -> None:
         from wexample_wex_addon_app.commands.dependency.publish import (
@@ -405,6 +420,10 @@ class ManagedWorkdir(
 
         raw_value.update({"mode": {"permissions": "777", "recursive": True}})
 
+        # Auto-apply pending setup-manager migrations during rectify. Override
+        # in user config.yml with `setup_manager: {auto_migrate: false}` to disable.
+        raw_value.setdefault("setup_manager", {"auto_migrate": True})
+
         self.append_readme(config=raw_value)
         self.append_agents(config=raw_value)
         self.append_version(config=raw_value)
@@ -424,14 +443,6 @@ class ManagedWorkdir(
                 "type": DiskItemType.DIRECTORY,
                 "should_exist": True,
                 "children": [
-                    {
-                        # .env
-                        "class": EnvFile,
-                        "name": EnvFile.EXTENSION_DOT_ENV,
-                        "type": DiskItemType.FILE,
-                        "should_exist": True,
-                        TextOption.get_name(): {"end_new_line": True},
-                    },
                     {
                         # config.yml
                         "name": APP_FILE_APP_CONFIG,

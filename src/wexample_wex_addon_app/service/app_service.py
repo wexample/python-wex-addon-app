@@ -39,21 +39,19 @@ class AppService:
     def get_runtime_contribution(self) -> dict:
         """Return this service's contribution to the runtime config.
 
-        Reads service config from config.yml (host, port, name, password, user, ...)
-        and compose file path, structured under service.{name}.
-        Also resolves declarative runtime.bind paths from service.yml.
+        Adds the resolved compose file paths (and env-specific overrides) under
+        service.{name}.compose / .compose_env_X, and resolves declarative
+        runtime.bind paths from service.yml.
+
+        Note: the service's own config (host, port, password, ...) is NOT
+        re-injected here — it's already in the runtime config built by
+        `build_runtime_config_value()` (which reads config.yml AND interpolates
+        ${VAR} from env). Re-injecting raw config.yml here would overwrite
+        interpolated values with literal ${VAR}.
         """
         from wexample_app.const.globals import WORKDIR_SETUP_DIR
 
-        app_config = self.app_workdir.get_config()
-        sconfig = app_config.search(f"service.{self.name}")
-        sconfig_dict = sconfig.to_dict() if not sconfig.is_none() else {}
-
         contribution: dict = {}
-
-        if sconfig_dict:
-            contribution["service"] = {self.name: sconfig_dict}
-
         env = self.app_workdir.get_app_env() or ""
 
         for inherited_service_name in self.addon_manager.get_service_inheritance_chain(

@@ -25,7 +25,7 @@ if TYPE_CHECKING:
 @middleware(middleware=AppMiddleware)
 @command(
     type=COMMAND_TYPE_ADDON,
-    description="Get a variable value from .wex/.env",
+    description="Get a variable value from .wex/local/env.yml",
 )
 def app__env__var_get(
     context: ExecutionContext,

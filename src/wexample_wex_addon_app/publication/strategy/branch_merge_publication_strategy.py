@@ -8,9 +8,8 @@ from wexample_wex_addon_app.publication.strategy.abstract_publication_strategy i
 )
 
 if TYPE_CHECKING:
-    from wexample_filestate_git.remote.gitlab_remote import GitlabRemote
+    from wexample_filestate_git.remote.abstract_remote import AbstractRemote
 
-_DEFAULT_TOKEN_ENV_VAR = "GITLAB_TOKEN"
 _DEFAULT_TARGET_BRANCH = "main"
 _DEFAULT_CI_POLL_TIMEOUT = 600
 _PIPELINE_RETRY_DELAY = 5
@@ -19,15 +18,10 @@ _POST_MERGE_RETRY_ATTEMPTS = 12
 
 
 class BranchMergePublicationStrategy(AbstractPublicationStrategy):
-    """Branch-then-merge workflow.
-
-    post_push  → create MR (idempotent)
-    wait_for_ci → poll the MR pipeline until success, then merge
-    """
-
     def __init__(self, workdir) -> None:
         super().__init__(workdir)
-        self._gitlab: GitlabRemote | None = None
+        self._remote: AbstractRemote | None = None
+        self._remote_url: str | None = None
         self._namespace: str | None = None
         self._repo_name: str | None = None
         self._mr_iid: int | None = None
@@ -36,7 +30,7 @@ class BranchMergePublicationStrategy(AbstractPublicationStrategy):
 
     def post_push(self) -> None:
         namespace, name = self._get_repo_info()
-        version = self.workdir.get_project_version()
+        version = self.workdir.get_setup_version()
         source_branch = f"version-{version}"
         self._target_branch = (
             self.workdir.get_config()
@@ -47,15 +41,15 @@ class BranchMergePublicationStrategy(AbstractPublicationStrategy):
 
         self.workdir.log(f"Creating merge request {source_branch} → {target_branch}…")
 
-        gitlab = self._get_gitlab()
-        proposal = gitlab.create_merge_proposal(
+        remote = self._get_remote()
+        proposal = remote.create_merge_proposal(
             namespace=namespace,
             name=name,
             source_branch=source_branch,
             target_branch=target_branch,
             title=f"Release {version}",
         )
-        self._mr_iid = gitlab.get_merge_proposal_id(proposal)
+        self._mr_iid = remote.get_merge_proposal_id(proposal)
         self.workdir.log(
             f"Merge request !{self._mr_iid} ready: {proposal.get('web_url', '')}"
         )
@@ -65,8 +59,8 @@ class BranchMergePublicationStrategy(AbstractPublicationStrategy):
             return
 
         namespace, name = self._get_repo_info()
-        gitlab = self._get_gitlab()
-        pipeline_id = self._wait_for_mr_pipeline(gitlab, namespace, name)
+        remote = self._get_remote()
+        pipeline_id = self._wait_for_mr_pipeline(remote, namespace, name)
 
         timeout = int(
             self.workdir.get_config()
@@ -75,14 +69,14 @@ class BranchMergePublicationStrategy(AbstractPublicationStrategy):
         )
 
         on_tick = self._make_pipeline_tick_handler(pipeline_id, "Pipeline")
-        status = gitlab.poll_pipeline(
+        status = remote.poll_pipeline(
             namespace, name, pipeline_id, timeout=timeout, on_tick=on_tick
         )
 
         if status != "success":
             from wexample_app.exception.app_runtime_exception import AppRuntimeException
 
-            pipelines = gitlab.get_merge_proposal_pipelines(
+            pipelines = remote.get_merge_proposal_pipelines(
                 namespace, name, self._mr_iid
             )
             web_url = next(
@@ -95,21 +89,21 @@ class BranchMergePublicationStrategy(AbstractPublicationStrategy):
             raise AppRuntimeException(message=message)
 
         self.workdir.log(f"Pipeline succeeded. Merging MR !{self._mr_iid}…")
-        branch_pipelines = gitlab.get_branch_pipelines(
+        branch_pipelines = remote.get_branch_pipelines(
             namespace, name, self._target_branch
         )
         self._pre_merge_pipeline_id = (
             branch_pipelines[0]["id"] if branch_pipelines else None
         )
-        gitlab.merge_merge_proposal(namespace, name, self._mr_iid)
+        remote.merge_merge_proposal(namespace, name, self._mr_iid)
         self.workdir.log(f"MR !{self._mr_iid} merged.")
 
     def wait_for_deployment(self) -> None:
         namespace, name = self._get_repo_info()
-        gitlab = self._get_gitlab()
+        remote = self._get_remote()
 
         self.workdir.log(f"Waiting for post-merge pipeline on '{self._target_branch}'…")
-        pipeline_id = self._wait_for_branch_pipeline(gitlab, namespace, name)
+        pipeline_id = self._wait_for_branch_pipeline(remote, namespace, name)
 
         timeout = int(
             self.workdir.get_config()
@@ -118,7 +112,7 @@ class BranchMergePublicationStrategy(AbstractPublicationStrategy):
         )
 
         on_tick = self._make_pipeline_tick_handler(pipeline_id, "Post-merge pipeline")
-        status = gitlab.poll_pipeline(
+        status = remote.poll_pipeline(
             namespace, name, pipeline_id, timeout=timeout, on_tick=on_tick
         )
 
@@ -133,51 +127,66 @@ class BranchMergePublicationStrategy(AbstractPublicationStrategy):
             f"Post-merge pipeline succeeded on '{self._target_branch}'."
         )
 
-    def _build_gitlab_remote(self) -> GitlabRemote:
-        from wexample_filestate_git.remote.gitlab_remote import GitlabRemote
+    def _build_remote(self) -> AbstractRemote:
+        from wexample_filestate_git.remote.mixin.with_git_remote_mixin import (
+            WithGitRemoteMixin,
+        )
+
+        remote_url = self._get_remote_url()
+        remote_type = WithGitRemoteMixin._detect_remote_type(remote_url)
+        if remote_type is None:
+            from wexample_app.exception.app_runtime_exception import AppRuntimeException
+
+            raise AppRuntimeException(
+                message=f"Cannot detect remote type from URL: {remote_url!r}"
+            )
 
         config = self.workdir.get_config()
-        token_env_var = config.search("git.gitlab_token_env_var").get_str_or_default(
-            _DEFAULT_TOKEN_ENV_VAR
+        default_token_env_var = (
+            f"{remote_type.get_snake_short_class_name().upper()}_API_TOKEN"
         )
+        token_env_var = config.search("git.remote_token_env_var").get_str_or_default(
+            default_token_env_var
+        )
+
+        # Token presence is guaranteed by @require_local_env on the publish command,
+        # which runs before this method. Defensive assertion in case _build_remote
+        # is reached via a different entry point.
         token = self.workdir.get_env_parameter(token_env_var, default=None)
         if not token:
             from wexample_app.exception.app_runtime_exception import AppRuntimeException
 
             raise AppRuntimeException(
-                message=f"GitLab token not found — set env var {token_env_var!r} or add it to .wex/.env"
+                message=f"Missing required env var: {token_env_var}"
             )
-        gitlab_url = config.search("git.gitlab_url").get_str_or_default(
-            "https://gitlab.com"
-        )
-        remote = GitlabRemote(
+
+        return remote_type(
             api_token=token,
-            base_url=f"{gitlab_url.rstrip('/')}/api/v4",
+            base_url=remote_type.build_remote_api_url_from_repo(remote_url),
             io=self.workdir.io,
         )
-        remote.setup()
-        return remote
 
-    def _get_gitlab(self) -> GitlabRemote:
-        if self._gitlab is None:
-            self._gitlab = self._build_gitlab_remote()
-        return self._gitlab
+    def _get_remote(self) -> AbstractRemote:
+        if self._remote is None:
+            self._remote = self._build_remote()
+        return self._remote
+
+    def _get_remote_url(self) -> str:
+        if self._remote_url is None:
+            from wexample_helpers_git.helpers.git import git_get_remote_url
+
+            remote_name = self.workdir._get_deployment_remote_name() or "origin"
+            self._remote_url = git_get_remote_url(
+                remote_name, cwd=self.workdir.get_path()
+            )
+        return self._remote_url
 
     def _get_repo_info(self) -> tuple[str, str]:
         if self._namespace and self._repo_name:
             return self._namespace, self._repo_name
 
-        from wexample_helpers.helpers.shell import shell_run
-
-        remote_name = self.workdir._get_deployment_remote_name() or "origin"
-        result = shell_run(
-            ["git", "remote", "get-url", remote_name],
-            cwd=self.workdir.get_path(),
-            inherit_stdio=False,
-        )
-        repo_info = self._get_gitlab().parse_repository_url(
-            (result.stdout or "").strip()
-        )
+        remote_url = self._get_remote_url()
+        repo_info = self._get_remote().parse_repository_url(remote_url)
         self._namespace = repo_info["namespace"]
         self._repo_name = repo_info["name"]
         return self._namespace, self._repo_name
@@ -186,7 +195,6 @@ class BranchMergePublicationStrategy(AbstractPublicationStrategy):
     # Internal helpers
     # ------------------------------------------------------------------
     def _make_pipeline_tick_handler(self, pipeline_id: int, label: str):
-        """Return an on_tick callback that overwrites its line in place with a colored status dot."""
         _SYMBOL = "⬤"
         _COLOR = {
             "success": "green",
@@ -206,11 +214,12 @@ class BranchMergePublicationStrategy(AbstractPublicationStrategy):
 
         return on_tick
 
-    def _wait_for_branch_pipeline(self, gitlab, namespace: str, name: str) -> int:
-        """Wait until a new pipeline appears on the target branch after the merge."""
+    def _wait_for_branch_pipeline(
+        self, remote: AbstractRemote, namespace: str, name: str
+    ) -> int:
         baseline = self._pre_merge_pipeline_id
         for _ in range(_POST_MERGE_RETRY_ATTEMPTS):
-            pipelines = gitlab.get_branch_pipelines(
+            pipelines = remote.get_branch_pipelines(
                 namespace, name, self._target_branch
             )
             if pipelines:
@@ -229,11 +238,10 @@ class BranchMergePublicationStrategy(AbstractPublicationStrategy):
         )
 
     def _wait_for_mr_pipeline(
-        self, gitlab: GitlabRemote, namespace: str, name: str
+        self, remote: AbstractRemote, namespace: str, name: str
     ) -> int:
-        """Wait until the MR has at least one pipeline, then return its ID."""
         for _ in range(_PIPELINE_RETRY_ATTEMPTS):
-            pipelines = gitlab.get_merge_proposal_pipelines(
+            pipelines = remote.get_merge_proposal_pipelines(
                 namespace, name, self._mr_iid
             )
             if pipelines:

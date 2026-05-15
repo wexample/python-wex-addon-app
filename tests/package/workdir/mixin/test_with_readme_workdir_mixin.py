@@ -72,7 +72,7 @@ class TestWithReadmeWorkdirMixin(AbstractWorkdirMixinTest):
             def get_package_name(self) -> str:
                 return "test-package"
 
-            def get_project_version(self) -> str:
+            def get_setup_version(self) -> str:
                 return "0.0.1"
 
             def get_dependencies_versions(self) -> dict[str, str]:

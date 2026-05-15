@@ -22,7 +22,7 @@ if TYPE_CHECKING:
     description="Environment name (local, dev, test, prod)",
 )
 @middleware(middleware=AppMiddleware)
-@command(type=COMMAND_TYPE_ADDON, description="Set APP_ENV value in .wex/.env")
+@command(type=COMMAND_TYPE_ADDON, description="Set APP_ENV value in .wex/local/env.yml")
 def app__env__set(
     context: ExecutionContext,
     app_workdir: ManagedWorkdir,
