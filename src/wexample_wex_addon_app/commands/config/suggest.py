@@ -1,0 +1,144 @@
+from __future__ import annotations
+
+import re
+from typing import TYPE_CHECKING
+
+from wexample_wex_core.const.globals import COMMAND_TYPE_ADDON
+from wexample_wex_core.decorator.command import command
+from wexample_wex_core.decorator.middleware import middleware
+from wexample_wex_core.decorator.option import option
+
+from wexample_wex_addon_app.middleware.app_middleware import AppMiddleware
+
+if TYPE_CHECKING:
+    from wexample_wex_core.context.execution_context import ExecutionContext
+
+    from wexample_wex_addon_app.workdir.managed_workdir import ManagedWorkdir
+
+
+_VAR_REF_PATTERN = re.compile(r"\$\{([A-Z_][A-Z0-9_]*)(?::-([^}]*))?\}")
+
+# Built-ins injected by wex at runtime — never declared by the user.
+_WEX_BUILTINS = {
+    "APP_BRANCH",
+    "APP_DOMAIN",
+    "APP_DOMAINS_STRING",
+    "APP_ENV",
+    "APP_PATH",
+    "APP_PROJECT_NAME",
+    "APP_SETUP_PATH",
+    "BIND_WEB_APACHE_CONF",
+    "RUNTIME_BIND_WEB_PHP_INI",
+}
+_WEX_BUILTIN_PREFIXES = ("SERVICE_",)
+
+
+def _is_builtin(name: str) -> bool:
+    return name in _WEX_BUILTINS or any(
+        name.startswith(p) for p in _WEX_BUILTIN_PREFIXES
+    )
+
+
+@option(
+    name="apply",
+    type=bool,
+    is_flag=True,
+    default=False,
+    description="Write the suggestions into .wex/config.yml (default: dry-run, only print)",
+)
+@middleware(middleware=AppMiddleware)
+@command(
+    type=COMMAND_TYPE_ADDON,
+    description=(
+        "Scan docker-compose for ${VAR} references and suggest declarations "
+        "for .wex/config.yml → vars: (built-ins and already-declared vars skipped)."
+    ),
+)
+def app__config__suggest(
+    context: ExecutionContext,
+    app_workdir: ManagedWorkdir,
+    apply: bool = False,
+) -> None:
+    from wexample_app.const.globals import APP_PATH_DOCKER_COMPOSE
+
+    compose_path = app_workdir.get_path() / APP_PATH_DOCKER_COMPOSE
+    if not compose_path.exists():
+        context.io.warning(f"No docker-compose at {compose_path}")
+        return
+
+    found = _scan_compose(compose_path)
+    if not found:
+        context.io.success("No ${VAR} references in docker-compose")
+        return
+
+    declared = _read_declared_vars(app_workdir)
+    existing_env = app_workdir.get_env_parameters().to_dict()
+
+    to_suggest = {
+        name: default
+        for name, default in found.items()
+        if not _is_builtin(name) and name not in declared
+    }
+
+    if not to_suggest:
+        context.io.success("All non-builtin vars are already declared in vars:")
+        return
+
+    suggestions = {}
+    for name in sorted(to_suggest):
+        default = to_suggest[name]
+        entry: dict = {"description": ""}
+        if default is not None:
+            entry["default"] = default
+        else:
+            entry["required"] = True
+        suggestions[name] = entry
+
+    if not apply:
+        import yaml
+
+        snippet = yaml.safe_dump({"vars": suggestions}, sort_keys=False)
+        context.io.log(
+            f"{len(suggestions)} suggested var(s) — dry-run, use --apply to write:\n\n"
+            + snippet
+            + "\n# Currently set values in .wex/local/env.yml (for reference):"
+        )
+        for name in sorted(to_suggest):
+            current = existing_env.get(name)
+            if current is not None:
+                context.io.log(f"#   {name} = {current!r}")
+        return
+
+    # Apply: merge into config.yml → vars: without touching anything else
+    config_file = app_workdir.get_config_file()
+    config = config_file.read_parsed() or {}
+    if not isinstance(config, dict):
+        context.io.error("config.yml is not a mapping — aborting")
+        return
+
+    existing_vars = config.get("vars") if isinstance(config.get("vars"), dict) else {}
+    merged_vars = {**existing_vars}
+    for name, entry in suggestions.items():
+        merged_vars.setdefault(name, entry)
+    config["vars"] = merged_vars
+
+    config_file.write_parsed(config)
+    context.io.success(
+        f"Added {len(suggestions)} var(s) to .wex/config.yml → vars:. "
+        "Fill in the `description:` fields before committing."
+    )
+
+
+def _scan_compose(compose_path) -> dict[str, str | None]:
+    text = compose_path.read_text(encoding="utf-8")
+    found: dict[str, str | None] = {}
+    for match in _VAR_REF_PATTERN.finditer(text):
+        name, default = match.group(1), match.group(2)
+        if name not in found or default:
+            found[name] = default
+    return found
+
+
+def _read_declared_vars(app_workdir) -> set[str]:
+    decl = app_workdir.get_config().search("vars").to_dict_or_none() or {}
+    return set(decl.keys())
