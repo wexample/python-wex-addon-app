@@ -45,7 +45,8 @@ _WEX_BUILTIN_PREFIXES = ("SERVICE_",)
     type=COMMAND_TYPE_ADDON,
     description=(
         "Scan docker-compose for ${VAR} references and suggest declarations "
-        "for .wex/config.yml → vars: (built-ins and already-declared vars skipped)."
+        "for .wex/config.yml → vars: (built-ins and already-declared vars skipped). "
+        "Also suggests a remotes: skeleton for each .wex/env/<env>/config.yml that lacks one."
     ),
 )
 def app__config__suggest(
@@ -54,6 +55,8 @@ def app__config__suggest(
     apply: bool = False,
 ) -> None:
     from wexample_app.const.globals import APP_PATH_DOCKER_COMPOSE
+
+    _suggest_remotes(context, app_workdir, apply=apply)
 
     compose_path = app_workdir.get_path() / APP_PATH_DOCKER_COMPOSE
     if not compose_path.exists():
@@ -142,3 +145,59 @@ def _scan_compose(compose_path) -> dict[str, str | None]:
         if name not in found or default:
             found[name] = default
     return found
+
+
+_REMOTES_SKELETON = [
+    {
+        "name": "main",
+        "host": "",
+        # user: optional (fallback $USER)
+        # webhook_port: optional (fallback 7654)
+    }
+]
+
+
+def _suggest_remotes(context, app_workdir, apply: bool) -> None:
+    import yaml
+
+    env_dir = app_workdir.get_path() / ".wex" / "env"
+    if not env_dir.is_dir():
+        return
+
+    missing: list = []
+    for env_config_path in sorted(env_dir.glob("*/config.yml")):
+        env_name = env_config_path.parent.name
+        try:
+            data = yaml.safe_load(env_config_path.read_text(encoding="utf-8")) or {}
+        except yaml.YAMLError as e:
+            context.io.warning(f"Skipping {env_config_path}: {e}")
+            continue
+        if not isinstance(data, dict):
+            continue
+        if "remotes" in data and data["remotes"]:
+            continue
+        missing.append((env_name, env_config_path))
+
+    if not missing:
+        return
+
+    if not apply:
+        snippet = yaml.safe_dump({"remotes": _REMOTES_SKELETON}, sort_keys=False)
+        envs_list = ", ".join(name for name, _ in missing)
+        context.io.log(
+            f"Missing 'remotes:' in env config(s): {envs_list} — dry-run, "
+            f"use --apply to write the skeleton below:\n\n{snippet}"
+        )
+        return
+
+    for env_name, path in missing:
+        data = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
+        if not isinstance(data, dict):
+            context.io.warning(f"{path} is not a mapping — skipped")
+            continue
+        data["remotes"] = _REMOTES_SKELETON
+        path.write_text(yaml.safe_dump(data, sort_keys=False), encoding="utf-8")
+        context.io.success(
+            f"Added 'remotes:' skeleton to .wex/env/{env_name}/config.yml — "
+            "fill in 'host:' before using remote commands."
+        )
