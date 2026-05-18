@@ -54,7 +54,12 @@ def app__remote__available(
 
     from wexample_wex_addon_app.helpers.remote import remote_resolve
 
-    remote = remote_resolve(app_workdir=app_workdir, env=env, name=name)
+    try:
+        remote = remote_resolve(app_workdir=app_workdir, env=env, name=name)
+    except ValueError as e:
+        context.io.warning(str(e))
+        return False
+
     address = f"{remote['host']}:{remote['webhook_port']}"
     context.io.log(f"Checking webhook on {remote['name']} ({address})")
 

@@ -25,7 +25,9 @@ def remote_resolve(
     name: str | None = None,
     user_override: str | None = None,
 ) -> ResolvedRemote:
-    remotes_raw = app_workdir.get_config(env_name=env).search("remotes").to_list()
+    remotes_raw = (
+        app_workdir.get_config(env_name=env).search("remotes").to_list_or_none()
+    )
 
     if not remotes_raw:
         raise ValueError(
