@@ -8,7 +8,6 @@ from wexample_helpers.decorator.base_class import base_class
 from wexample_helpers.service.disk_persisted_registry import DiskPersistedRegistry
 from wexample_helpers.service.shared_registry import SharedRegistry
 from wexample_helpers.service.with_file_lock_mixin import WithFileLockMixin
-from wexample_prompt.common.io_manager import IoManager
 
 from wexample_app.const.globals import WORKDIR_SETUP_DIR
 from wexample_app.const.path import APP_DIR_NAME_TMP
@@ -27,14 +26,10 @@ _REGISTRY_PATH = Path("/var/lib") / CORE_COMMAND_NAME / CORE_FILE_NAME_APPS_REGI
 def _build_default_file() -> JsonFile:
     """Build the JsonFile backing the apps registry.
 
-    The registry lives outside any workdir context (system path under /var/lib),
-    so we pass a default IoManager and skip option-tree configuration.
+    The registry lives outside any workdir context (system path under /var/lib).
+    No workdir / io needed; configure=False skips option-tree construction.
     """
-    return JsonFile.create_from_path(
-        path=_REGISTRY_PATH,
-        io=IoManager(),
-        configure=False,
-    )
+    return JsonFile.create_from_path(path=_REGISTRY_PATH, configure=False)
 
 
 @base_class
@@ -71,10 +66,12 @@ class AppsRegistry(
         self._file.write_parsed(payload)
 
     def load(self, item_class: type | None = None) -> None:
-        """Hydrate items from the `{"apps": ...}` envelope."""
+        """Hydrate items from the `{"apps": ...}` envelope. No-op on missing file."""
+        self._items.clear()
+        if not self.is_persisted():
+            return
         raw = self._file.read_parsed() or {}
         data = raw.get("apps", {})
-        self._items.clear()
         for key, entry in data.items():
             if item_class is not None and hasattr(item_class, "hydrate"):
                 self._items[key] = item_class.hydrate(entry)
