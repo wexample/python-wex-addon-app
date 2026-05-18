@@ -32,7 +32,10 @@ if TYPE_CHECKING:
 @require_app_config(
     path="docker.main_container",
     type=str,
-    values=_available_containers,
+    # Lambda defers resolution: the body is evaluated at call time, by which
+    # point `_available_containers` (defined below in this module by the
+    # codebase's "private helpers at end" convention) is in scope.
+    values=lambda app_workdir: _available_containers(app_workdir),
     description="Main Docker container to enter",
     ask_question="Which container do you want to enter?",
     on_missing="ask",
