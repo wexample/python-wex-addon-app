@@ -239,6 +239,38 @@ class ManagedWorkdir(
         if not self.is_app_workdir_path_setup(path=self.get_path()):
             self.setup_install()
 
+    def ensure_manager_bin(self) -> bool:
+        """Ensure `.wex/bin/app-manager` exists as a self-contained executable.
+
+        Replaces broken symlinks or stale content and sets the executable bit.
+        Returns True if a write happened, False if already OK.
+        """
+        import stat
+
+        from wexample_wex_addon_app.app_addon_manager import AppAddonManager
+
+        template_content = AppAddonManager.get_shell_manager_path().read_text()
+        bin_path = self.get_path() / ".wex" / "bin" / "app-manager"
+
+        needs_write = True
+        if bin_path.is_file() and not bin_path.is_symlink():
+            try:
+                if bin_path.read_text() == template_content:
+                    needs_write = False
+            except OSError:
+                pass
+
+        if needs_write:
+            bin_path.parent.mkdir(parents=True, exist_ok=True)
+            if bin_path.is_symlink() or bin_path.exists():
+                bin_path.unlink()
+            bin_path.write_text(template_content)
+
+        mode = bin_path.stat().st_mode
+        bin_path.chmod(mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
+
+        return needs_write
+
     def get_app_env(self) -> str | None:
         from wexample_app.const.env import ENV_NAME_PROD
 
