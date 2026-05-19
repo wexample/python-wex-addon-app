@@ -124,7 +124,10 @@ class ManagedWorkdir(
 
     @classmethod
     def manager_run_from_path(
-        cls, path: FileStringOrPath, cmd: list[str] | str
+        cls,
+        path: FileStringOrPath,
+        cmd: list[str] | str,
+        inherit_stdio: bool = True,
     ) -> ShellResult:
         from wexample_app.const.globals import APP_PATH_BIN_APP_MANAGER
         from wexample_helpers.helpers.shell import shell_run
@@ -138,7 +141,7 @@ class ManagedWorkdir(
         return shell_run(
             cmd=full_cmd,
             cwd=path,
-            inherit_stdio=True,
+            inherit_stdio=inherit_stdio,
         )
 
     @classmethod
