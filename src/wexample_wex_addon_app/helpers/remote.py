@@ -10,15 +10,6 @@ if TYPE_CHECKING:
 WEBHOOK_PORT_DEFAULT = 7654
 
 
-class ResolvedRemote(TypedDict):
-    name: str
-    host: str
-    user: str
-    webhook_port: int
-    path: str
-    env: str
-
-
 def remote_resolve(
     app_workdir: ManagedWorkdir,
     env: str,
@@ -54,10 +45,7 @@ def remote_resolve(
         )
 
     resolved_user = (
-        user_override
-        or selected.get("user")
-        or os.environ.get("USER")
-        or ""
+        user_override or selected.get("user") or os.environ.get("USER") or ""
     )
     if not resolved_user:
         raise ValueError(
@@ -72,3 +60,12 @@ def remote_resolve(
         "path": f"/var/www/{env}/{app_workdir.get_project_name()}",
         "env": env,
     }
+
+
+class ResolvedRemote(TypedDict):
+    env: str
+    host: str
+    name: str
+    path: str
+    user: str
+    webhook_port: int

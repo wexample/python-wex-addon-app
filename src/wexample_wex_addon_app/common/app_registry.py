@@ -3,14 +3,13 @@ from __future__ import annotations
 from pathlib import Path
 from typing import TYPE_CHECKING
 
+from wexample_app.const.globals import WORKDIR_SETUP_DIR
+from wexample_app.const.path import APP_DIR_NAME_TMP
 from wexample_filestate.item.file.json_file import JsonFile
 from wexample_helpers.decorator.base_class import base_class
 from wexample_helpers.service.disk_persisted_registry import DiskPersistedRegistry
 from wexample_helpers.service.shared_registry import SharedRegistry
 from wexample_helpers.service.with_file_lock_mixin import WithFileLockMixin
-
-from wexample_app.const.globals import WORKDIR_SETUP_DIR
-from wexample_app.const.path import APP_DIR_NAME_TMP
 from wexample_wex_core.const.globals import (
     CORE_COMMAND_NAME,
     CORE_FILE_NAME_APPS_REGISTRY,
@@ -21,6 +20,33 @@ if TYPE_CHECKING:
 
 
 _REGISTRY_PATH = Path("/var/lib") / CORE_COMMAND_NAME / CORE_FILE_NAME_APPS_REGISTRY
+
+
+# ----------------------------------------------------------------------
+# Public function API — thin wrappers around AppsRegistry.shared()
+# ----------------------------------------------------------------------
+
+
+def registry_get_path() -> Path:
+    return _REGISTRY_PATH
+
+
+def registry_purge_stopped() -> None:
+    AppsRegistry.shared().purge_stopped()
+
+
+def registry_read() -> dict:
+    registry = AppsRegistry.shared()
+    registry.load()
+    return {"apps": dict(registry.get_all())}
+
+
+def registry_register_app(app_workdir: ManagedWorkdir) -> None:
+    AppsRegistry.shared().add_app(app_workdir)
+
+
+def registry_unregister_app(app_workdir: ManagedWorkdir) -> None:
+    AppsRegistry.shared().remove_app(app_workdir)
 
 
 def _build_default_file() -> JsonFile:
@@ -49,39 +75,14 @@ class AppsRegistry(
     On-disk format wraps items under the "apps" key for stability across versions.
     """
 
-    def __init__(self, container: object | None = None, file: JsonFile | None = None) -> None:
+    def __init__(
+        self, container: object | None = None, file: JsonFile | None = None
+    ) -> None:
         super().__init__(container=container, file=file or _build_default_file())
-
-    def _get_locked_resource_path(self) -> Path:
-        return self._file.get_path()
-
-    def save(self) -> None:
-        """Persist items under the `{"apps": ...}` envelope (on-disk format)."""
-        payload = {
-            "apps": {
-                key: (item.serialize() if hasattr(item, "serialize") else item)
-                for key, item in self._items.items()
-            }
-        }
-        self._file.write_parsed(payload)
-
-    def load(self, item_class: type | None = None) -> None:
-        """Hydrate items from the `{"apps": ...}` envelope. No-op on missing file."""
-        self._items.clear()
-        if not self.is_persisted():
-            return
-        raw = self._file.read_parsed() or {}
-        data = raw.get("apps", {})
-        for key, entry in data.items():
-            if item_class is not None and hasattr(item_class, "hydrate"):
-                self._items[key] = item_class.hydrate(entry)
-            else:
-                self._items[key] = entry
 
     # ------------------------------------------------------------------
     # Atomic business operations (each one is lock-protected)
     # ------------------------------------------------------------------
-
     def add_app(self, app_workdir: ManagedWorkdir) -> None:
         runtime = app_workdir.get_runtime_config()
         domains_config = runtime.search("app.domains")
@@ -105,11 +106,18 @@ class AppsRegistry(
             )
             self.save()
 
-    def remove_app(self, app_workdir: ManagedWorkdir) -> None:
-        with self.file_lock():
-            self.load()
-            self._items.pop(str(app_workdir.get_path()), None)
-            self.save()
+    def load(self, item_class: type | None = None) -> None:
+        """Hydrate items from the `{"apps": ...}` envelope. No-op on missing file."""
+        self._items.clear()
+        if not self.is_persisted():
+            return
+        raw = self._file.read_parsed() or {}
+        data = raw.get("apps", {})
+        for key, entry in data.items():
+            if item_class is not None and hasattr(item_class, "hydrate"):
+                self._items[key] = item_class.hydrate(entry)
+            else:
+                self._items[key] = entry
 
     def purge_stopped(self) -> None:
         """Remove entries whose containers are no longer running."""
@@ -138,29 +146,21 @@ class AppsRegistry(
             self._items = active
             self.save()
 
+    def remove_app(self, app_workdir: ManagedWorkdir) -> None:
+        with self.file_lock():
+            self.load()
+            self._items.pop(str(app_workdir.get_path()), None)
+            self.save()
 
-# ----------------------------------------------------------------------
-# Public function API — thin wrappers around AppsRegistry.shared()
-# ----------------------------------------------------------------------
+    def save(self) -> None:
+        """Persist items under the `{"apps": ...}` envelope (on-disk format)."""
+        payload = {
+            "apps": {
+                key: (item.serialize() if hasattr(item, "serialize") else item)
+                for key, item in self._items.items()
+            }
+        }
+        self._file.write_parsed(payload)
 
-
-def registry_get_path() -> Path:
-    return _REGISTRY_PATH
-
-
-def registry_read() -> dict:
-    registry = AppsRegistry.shared()
-    registry.load()
-    return {"apps": dict(registry.get_all())}
-
-
-def registry_register_app(app_workdir: ManagedWorkdir) -> None:
-    AppsRegistry.shared().add_app(app_workdir)
-
-
-def registry_unregister_app(app_workdir: ManagedWorkdir) -> None:
-    AppsRegistry.shared().remove_app(app_workdir)
-
-
-def registry_purge_stopped() -> None:
-    AppsRegistry.shared().purge_stopped()
+    def _get_locked_resource_path(self) -> Path:
+        return self._file.get_path()

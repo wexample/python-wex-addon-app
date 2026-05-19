@@ -405,15 +405,6 @@ class ManagedWorkdir(
             )
         return str(version).strip()
 
-    def migration_read_version(self) -> str | None:
-        version = self.get_config().search("wex.version").get_str_or_none()
-        if version is None or str(version).strip() == "":
-            return None
-        return str(version).strip()
-
-    def migration_write_version(self, version: str) -> None:
-        self.get_config_file().write_config_value("wex.version", version)
-
     def libraries_sync(self) -> None:
         from wexample_wex_addon_app.commands.dependency.publish import (
             app__dependency__publish,
@@ -440,6 +431,15 @@ class ManagedWorkdir(
 
     def manager_run_command(self, **kwargs) -> AppManagerShellResult:
         return self.manager_run_command_from_path(path=self.get_path(), **kwargs)
+
+    def migration_read_version(self) -> str | None:
+        version = self.get_config().search("wex.version").get_str_or_none()
+        if version is None or str(version).strip() == "":
+            return None
+        return str(version).strip()
+
+    def migration_write_version(self, version: str) -> None:
+        self.get_config_file().write_config_value("wex.version", version)
 
     def prepare_value(self, raw_value: DictConfig | None = None) -> DictConfig:
         from wexample_app.const.globals import (

@@ -147,16 +147,6 @@ def _scan_compose(compose_path) -> dict[str, str | None]:
     return found
 
 
-_REMOTES_SKELETON = [
-    {
-        "name": "main",
-        "host": "",
-        # user: optional (fallback $USER)
-        # webhook_port: optional (fallback 7654)
-    }
-]
-
-
 def _suggest_remotes(context, app_workdir, apply: bool) -> None:
     import yaml
 
@@ -201,3 +191,13 @@ def _suggest_remotes(context, app_workdir, apply: bool) -> None:
             f"Added 'remotes:' skeleton to .wex/env/{env_name}/config.yml — "
             "fill in 'host:' before using remote commands."
         )
+
+
+_REMOTES_SKELETON = [
+    {
+        "name": "main",
+        "host": "",
+        # user: optional (fallback $USER)
+        # webhook_port: optional (fallback 7654)
+    }
+]
