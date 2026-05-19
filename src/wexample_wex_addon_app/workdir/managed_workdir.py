@@ -217,8 +217,8 @@ class ManagedWorkdir(
         if logs_dir.exists():
             shutil.rmtree(logs_dir)
 
-    def configure(self, config: DictConfig) -> None:
-        super().configure(config=config)
+    def configure(self, config: DictConfig, eager: bool = False) -> None:
+        super().configure(config=config, eager=eager)
 
         self._init_env(env_dict=self.get_env_parameters().to_dict())
 
@@ -404,6 +404,15 @@ class ManagedWorkdir(
                 f"Project at '{self.get_path()}' must define a non-empty 'version' number in {APP_FILE_APP_CONFIG}."
             )
         return str(version).strip()
+
+    def migration_read_version(self) -> str | None:
+        version = self.get_config().search("wex.version").get_str_or_none()
+        if version is None or str(version).strip() == "":
+            return None
+        return str(version).strip()
+
+    def migration_write_version(self, version: str) -> None:
+        self.get_config_file().write_config_value("wex.version", version)
 
     def libraries_sync(self) -> None:
         from wexample_wex_addon_app.commands.dependency.publish import (
