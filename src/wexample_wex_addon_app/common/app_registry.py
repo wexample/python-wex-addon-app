@@ -6,8 +6,8 @@ from typing import TYPE_CHECKING
 from wexample_app.const.globals import WORKDIR_SETUP_DIR
 from wexample_app.const.path import APP_DIR_NAME_TMP
 from wexample_filestate.item.file.json_file import JsonFile
+from wexample_filestate.service.disk_persisted_registry import DiskPersistedRegistry
 from wexample_helpers.decorator.base_class import base_class
-from wexample_helpers.service.disk_persisted_registry import DiskPersistedRegistry
 from wexample_helpers.service.shared_registry import SharedRegistry
 from wexample_helpers.service.with_file_lock_mixin import WithFileLockMixin
 from wexample_wex_core.const.globals import (
