@@ -124,7 +124,10 @@ class ManagedWorkdir(
 
     @classmethod
     def manager_run_from_path(
-        cls, path: FileStringOrPath, cmd: list[str] | str
+        cls,
+        path: FileStringOrPath,
+        cmd: list[str] | str,
+        inherit_stdio: bool = True,
     ) -> ShellResult:
         from wexample_app.const.globals import APP_PATH_BIN_APP_MANAGER
         from wexample_helpers.helpers.shell import shell_run
@@ -138,7 +141,7 @@ class ManagedWorkdir(
         return shell_run(
             cmd=full_cmd,
             cwd=path,
-            inherit_stdio=True,
+            inherit_stdio=inherit_stdio,
         )
 
     @classmethod
@@ -214,8 +217,8 @@ class ManagedWorkdir(
         if logs_dir.exists():
             shutil.rmtree(logs_dir)
 
-    def configure(self, config: DictConfig) -> None:
-        super().configure(config=config)
+    def configure(self, config: DictConfig, eager: bool = False) -> None:
+        super().configure(config=config, eager=eager)
 
         self._init_env(env_dict=self.get_env_parameters().to_dict())
 
@@ -238,6 +241,38 @@ class ManagedWorkdir(
     def ensure_app_manager_setup(self) -> None:
         if not self.is_app_workdir_path_setup(path=self.get_path()):
             self.setup_install()
+
+    def ensure_manager_bin(self) -> bool:
+        """Ensure `.wex/bin/app-manager` exists as a self-contained executable.
+
+        Replaces broken symlinks or stale content and sets the executable bit.
+        Returns True if a write happened, False if already OK.
+        """
+        import stat
+
+        from wexample_wex_addon_app.app_addon_manager import AppAddonManager
+
+        template_content = AppAddonManager.get_shell_manager_path().read_text()
+        bin_path = self.get_path() / ".wex" / "bin" / "app-manager"
+
+        needs_write = True
+        if bin_path.is_file() and not bin_path.is_symlink():
+            try:
+                if bin_path.read_text() == template_content:
+                    needs_write = False
+            except OSError:
+                pass
+
+        if needs_write:
+            bin_path.parent.mkdir(parents=True, exist_ok=True)
+            if bin_path.is_symlink() or bin_path.exists():
+                bin_path.unlink()
+            bin_path.write_text(template_content)
+
+        mode = bin_path.stat().st_mode
+        bin_path.chmod(mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
+
+        return needs_write
 
     def get_app_env(self) -> str | None:
         from wexample_app.const.env import ENV_NAME_PROD
@@ -396,6 +431,15 @@ class ManagedWorkdir(
 
     def manager_run_command(self, **kwargs) -> AppManagerShellResult:
         return self.manager_run_command_from_path(path=self.get_path(), **kwargs)
+
+    def migration_read_version(self) -> str | None:
+        version = self.get_config().search("wex.version").get_str_or_none()
+        if version is None or str(version).strip() == "":
+            return None
+        return str(version).strip()
+
+    def migration_write_version(self, version: str) -> None:
+        self.get_config_file().write_config_value("wex.version", version)
 
     def prepare_value(self, raw_value: DictConfig | None = None) -> DictConfig:
         from wexample_app.const.globals import (

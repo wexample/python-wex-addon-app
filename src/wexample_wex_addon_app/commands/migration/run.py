@@ -58,3 +58,10 @@ def app__migration__run(
         context.io.success(f"{label}: {', '.join(applied)}")
     else:
         context.io.log("No pending migrations.")
+
+    if not dry_run:
+        # Stamp the kernel's own version into the app config so the app's
+        # recorded wex version reflects the kernel it has caught up with,
+        # not the last migration that happened to apply.
+        kernel_version = context.kernel.workdir.get_setup_version()
+        app_workdir.migration_write_version(kernel_version)
