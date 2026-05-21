@@ -15,6 +15,11 @@ _DEFAULT_CI_POLL_TIMEOUT = 600
 _PIPELINE_RETRY_DELAY = 5
 _PIPELINE_RETRY_ATTEMPTS = 360
 _POST_MERGE_RETRY_ATTEMPTS = 360
+# Short window to detect whether the project runs pipelines on merge requests
+# at all. If nothing appears within this budget, we assume the CI is configured
+# to run only post-merge (typical for repos with `only: main`) and proceed to
+# merge immediately rather than timing out the full _PIPELINE_RETRY_ATTEMPTS.
+_MR_PIPELINE_DETECT_ATTEMPTS = 6
 
 
 class BranchMergePublicationStrategy(AbstractPublicationStrategy):
@@ -62,33 +67,46 @@ class BranchMergePublicationStrategy(AbstractPublicationStrategy):
         remote = self._get_remote()
         pipeline_id = self._wait_for_mr_pipeline(remote, namespace, name)
 
-        timeout = int(
-            self.workdir.get_config()
-            .search("git.ci_poll_timeout")
-            .get_str_or_default(str(_DEFAULT_CI_POLL_TIMEOUT))
-        )
-
-        on_tick = self._make_pipeline_tick_handler(pipeline_id, "Pipeline")
-        status = remote.poll_pipeline(
-            namespace, name, pipeline_id, timeout=timeout, on_tick=on_tick
-        )
-
-        if status != "success":
-            from wexample_app.exception.app_runtime_exception import AppRuntimeException
-
-            pipelines = remote.get_merge_proposal_pipelines(
-                namespace, name, self._mr_iid
+        if pipeline_id is not None:
+            timeout = int(
+                self.workdir.get_config()
+                .search("git.ci_poll_timeout")
+                .get_str_or_default(str(_DEFAULT_CI_POLL_TIMEOUT))
             )
-            web_url = next(
-                (p.get("web_url", "") for p in pipelines if p.get("id") == pipeline_id),
-                "",
-            )
-            message = f"Pipeline {pipeline_id} ended with status '{status}'."
-            if web_url:
-                message += f" See: {web_url}"
-            raise AppRuntimeException(message=message)
 
-        self.workdir.log(f"Pipeline succeeded. Merging MR !{self._mr_iid}…")
+            on_tick = self._make_pipeline_tick_handler(pipeline_id, "Pipeline")
+            status = remote.poll_pipeline(
+                namespace, name, pipeline_id, timeout=timeout, on_tick=on_tick
+            )
+
+            if status != "success":
+                from wexample_app.exception.app_runtime_exception import (
+                    AppRuntimeException,
+                )
+
+                pipelines = remote.get_merge_proposal_pipelines(
+                    namespace, name, self._mr_iid
+                )
+                web_url = next(
+                    (
+                        p.get("web_url", "")
+                        for p in pipelines
+                        if p.get("id") == pipeline_id
+                    ),
+                    "",
+                )
+                message = f"Pipeline {pipeline_id} ended with status '{status}'."
+                if web_url:
+                    message += f" See: {web_url}"
+                raise AppRuntimeException(message=message)
+
+            self.workdir.log(f"Pipeline succeeded. Merging MR !{self._mr_iid}…")
+        else:
+            self.workdir.log(
+                f"No MR pipeline detected for MR !{self._mr_iid} "
+                f"(CI likely runs post-merge only). Merging directly…"
+            )
+
         branch_pipelines = remote.get_branch_pipelines(
             namespace, name, self._target_branch
         )
@@ -239,8 +257,8 @@ class BranchMergePublicationStrategy(AbstractPublicationStrategy):
 
     def _wait_for_mr_pipeline(
         self, remote: AbstractRemote, namespace: str, name: str
-    ) -> int:
-        for _ in range(_PIPELINE_RETRY_ATTEMPTS):
+    ) -> int | None:
+        for _ in range(_MR_PIPELINE_DETECT_ATTEMPTS):
             pipelines = remote.get_merge_proposal_pipelines(
                 namespace, name, self._mr_iid
             )
@@ -250,9 +268,6 @@ class BranchMergePublicationStrategy(AbstractPublicationStrategy):
                 f"No pipeline yet for MR !{self._mr_iid}, retrying in {_PIPELINE_RETRY_DELAY}s…"
             )
             time.sleep(_PIPELINE_RETRY_DELAY)
-        from wexample_app.exception.app_runtime_exception import AppRuntimeException
-
-        raise AppRuntimeException(
-            message=f"No pipeline found for MR !{self._mr_iid} after "
-            f"{_PIPELINE_RETRY_ATTEMPTS * _PIPELINE_RETRY_DELAY}s"
-        )
+        # No MR pipeline appeared within the detection window — assume this
+        # repo's CI only runs post-merge and let the caller skip pipeline polling.
+        return None
