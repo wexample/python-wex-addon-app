@@ -1,6 +1,6 @@
 # wex_addon_app
 
-Version: 18.0.1
+Version: 18.0.2
 
 App management with wex
 
@@ -89,7 +89,7 @@ Visit the [Wexample Suite documentation](https://docs.wexample.com) for the comp
 - tomlkit: 
 - wexample-migration: >=8.0.0
 - wexample-runner: >=9.0.0
-- wexample-wex-core: >=22.1.0
+- wexample-wex-core: >=22.2.0
 
 ## Versioning & Compatibility Policy
 
