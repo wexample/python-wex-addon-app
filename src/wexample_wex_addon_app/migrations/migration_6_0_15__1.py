@@ -8,8 +8,9 @@ if TYPE_CHECKING:
     from wexample_migration.migration_context import MigrationContext
 
 
-class MigrationWex6015(AbstractMigration):
+class Migration_6_0_15__1(AbstractMigration):
     VERSION = "6.0.15"
+    SEQ = 1
     DESCRIPTION = "Replace legacy RUNTIME_DOMAINS_STRING and RUNTIME_EMAIL placeholders with APP_DOMAINS_STRING and APP_EMAIL in app docker-compose files"
 
     @staticmethod

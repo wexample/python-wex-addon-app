@@ -13,8 +13,9 @@ _STRATEGY_KEY = "publication_strategy"
 _DEFAULT_VALUE = "main_push"
 
 
-class MigrationWex6025(AbstractMigration):
+class Migration_6_0_25__1(AbstractMigration):
     VERSION = "6.0.25"
+    SEQ = 1
     DESCRIPTION = (
         "Add git.publication_strategy: main_push to .wex/config.yml if not already set."
     )

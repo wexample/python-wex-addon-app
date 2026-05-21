@@ -9,8 +9,9 @@ if TYPE_CHECKING:
     from wexample_migration.migration_context import MigrationContext
 
 
-class MigrationWex6026(AbstractMigration):
+class Migration_6_0_26__1(AbstractMigration):
     VERSION = "6.0.26"
+    SEQ = 1
     DESCRIPTION = (
         "Copy entries from .wex/.env into .wex/local/env.yml. "
         "The .env file is preserved as legacy and no longer consumed."

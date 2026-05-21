@@ -8,8 +8,9 @@ if TYPE_CHECKING:
     from wexample_migration.migration_context import MigrationContext
 
 
-class MigrationWex605(AbstractMigration):
+class Migration_6_0_5__1(AbstractMigration):
     VERSION = "6.0.5"
+    SEQ = 1
     DESCRIPTION = "Move root .wex/config.<env>.yml files to .wex/env/<env>/config.yml"
     ENVIRONMENTS = ("prod", "dev", "local", "test")
 

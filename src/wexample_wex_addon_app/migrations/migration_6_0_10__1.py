@@ -9,8 +9,9 @@ if TYPE_CHECKING:
     from wexample_migration.migration_context import MigrationContext
 
 
-class MigrationWex610(AbstractMigration):
+class Migration_6_0_10__1(AbstractMigration):
     VERSION = "6.0.10"
+    SEQ = 1
     DESCRIPTION = (
         "Ensure global.type=app and move docker.main_db_container "
         "to docker.db.main in .wex/config.yml"

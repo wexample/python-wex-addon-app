@@ -9,8 +9,9 @@ if TYPE_CHECKING:
     from wexample_migration.migration_context import MigrationContext
 
 
-class MigrationWex607(AbstractMigration):
+class Migration_6_0_7__1(AbstractMigration):
     VERSION = "6.0.7"
+    SEQ = 1
     DESCRIPTION = "Replace require_proxy: true with helper.proxy: {} in .wex/config.yml"
 
     def apply(self, context: MigrationContext) -> None:

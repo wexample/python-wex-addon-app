@@ -34,8 +34,9 @@ def _rewrite(content: str) -> tuple[str, int]:
     return new, count
 
 
-class MigrationWex6028(AbstractMigration):
+class Migration_6_0_28__1(AbstractMigration):
     VERSION = "6.0.28"
+    SEQ = 1
     DESCRIPTION = (
         "De-APP_-ify duplicated namespace prefixes in compose/env yaml files: "
         "${APP_DOCKER_X} → ${DOCKER_X}, ${APP_GLOBAL_X} → ${GLOBAL_X}, "

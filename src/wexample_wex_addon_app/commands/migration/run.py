@@ -34,6 +34,7 @@ def app__migration__run(
     app_workdir: ManagedWorkdir,
     dry_run: bool = False,
 ) -> None:
+    from wexample_migration.migration_stamp import MigrationStamp, stamp_sort_key
     from wexample_migration.workdir.mixin.with_migration_workdir_mixin import (
         WithMigrationWorkdirMixin,
     )
@@ -59,9 +60,24 @@ def app__migration__run(
     else:
         context.io.log("No pending migrations.")
 
-    if not dry_run:
-        # Stamp the kernel's own version into the app config so the app's
-        # recorded wex version reflects the kernel it has caught up with,
-        # not the last migration that happened to apply.
-        kernel_version = context.kernel.workdir.get_setup_version()
-        app_workdir.migration_write_version(kernel_version)
+    if dry_run:
+        return
+
+    # Final stamp = max(kernel.version, current applied state). The migration
+    # cursor (seq) is kept only when it belongs to the resulting version —
+    # otherwise it resets to 0 to leave room for future seq-1+ migrations
+    # tagged for that version.
+    kernel_version = context.kernel.workdir.get_setup_version()
+    current = app_workdir.migration_read_stamp()
+
+    kernel_key = stamp_sort_key(kernel_version, 0)
+    current_key = (
+        stamp_sort_key(current.version, current.seq) if current is not None else None
+    )
+
+    if current_key is None or kernel_key > current_key:
+        new_stamp = MigrationStamp(version=kernel_version, seq=0)
+    else:
+        new_stamp = current
+
+    app_workdir.migration_write_stamp(new_stamp)
