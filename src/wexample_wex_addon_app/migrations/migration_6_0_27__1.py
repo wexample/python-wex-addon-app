@@ -8,8 +8,9 @@ if TYPE_CHECKING:
     from wexample_migration.migration_context import MigrationContext
 
 
-class MigrationWex6027(AbstractMigration):
+class Migration_6_0_27__1(AbstractMigration):
     VERSION = "6.0.27"
+    SEQ = 1
     DESCRIPTION = (
         "Run `app::config/suggest --apply` on the project to declare in "
         "config.yml → vars: every ${VAR} referenced by docker-compose."

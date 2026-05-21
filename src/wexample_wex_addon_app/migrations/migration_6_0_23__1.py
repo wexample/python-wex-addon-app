@@ -8,8 +8,9 @@ if TYPE_CHECKING:
     from wexample_migration.migration_context import MigrationContext
 
 
-class MigrationWex6023(AbstractMigration):
+class Migration_6_0_23__1(AbstractMigration):
     VERSION = "6.0.23"
+    SEQ = 1
     DESCRIPTION = (
         "Remove empty script steps (entries with a 'runner' key but no 'script', "
         "'file', or 'command' key) from all .wex/commands/**/*.yml files."

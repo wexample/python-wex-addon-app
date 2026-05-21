@@ -9,8 +9,9 @@ if TYPE_CHECKING:
     from wexample_migration.migration_context import MigrationContext
 
 
-class MigrationWex6012(AbstractMigration):
+class Migration_6_0_12__1(AbstractMigration):
     VERSION = "6.0.12"
+    SEQ = 1
     DESCRIPTION = (
         "Move legacy domain_* entries into canonical domain/domains config "
         "and remove deprecated domain_main/domain_tld keys"

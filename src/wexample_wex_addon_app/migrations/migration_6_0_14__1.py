@@ -8,8 +8,9 @@ if TYPE_CHECKING:
     from wexample_migration.migration_context import MigrationContext
 
 
-class MigrationWex6014(AbstractMigration):
+class Migration_6_0_14__1(AbstractMigration):
     VERSION = "6.0.14"
+    SEQ = 1
     DESCRIPTION = "Replace legacy RUNTIME_BRANCH placeholders with APP_BRANCH in app docker-compose files"
 
     @staticmethod

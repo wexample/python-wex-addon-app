@@ -157,11 +157,10 @@ class ManagedWorkdir(
         )
 
     @staticmethod
-    def _migration_version_key(
-        migration_class: type[AbstractMigration],
-    ) -> tuple[int, ...]:
-        version = getattr(migration_class, "VERSION", "")
-        return tuple(int(part) for part in str(version).split("."))
+    def _migration_version_key(migration_class: type[AbstractMigration]):
+        from wexample_migration.migration_stamp import stamp_sort_key
+
+        return stamp_sort_key(migration_class.VERSION, migration_class.SEQ)
 
     def app_install(self, env: str | None = None, force: bool = False) -> bool:
         return True
@@ -432,14 +431,25 @@ class ManagedWorkdir(
     def manager_run_command(self, **kwargs) -> AppManagerShellResult:
         return self.manager_run_command_from_path(path=self.get_path(), **kwargs)
 
-    def migration_read_version(self) -> str | None:
-        version = self.get_config().search("wex.version").get_str_or_none()
+    def migration_read_stamp(self):
+        from wexample_migration.migration_stamp import MigrationStamp
+
+        config = self.get_config()
+        version = config.search("wex.version").get_str_or_none()
         if version is None or str(version).strip() == "":
             return None
-        return str(version).strip()
 
-    def migration_write_version(self, version: str) -> None:
-        self.get_config_file().write_config_value("wex.version", version)
+        seq = config.search("wex.migration").get_int_or_none()
+
+        return MigrationStamp(version=str(version).strip(), seq=seq)
+
+    def migration_write_stamp(self, stamp) -> None:
+        config_file = self.get_config_file()
+        cfg = config_file.read_config()
+        cfg.set_by_path("wex.version", stamp.version)
+        if stamp.seq is not None:
+            cfg.set_by_path("wex.migration", stamp.seq)
+        config_file.write_config(cfg)
 
     def prepare_value(self, raw_value: DictConfig | None = None) -> DictConfig:
         from wexample_app.const.globals import (

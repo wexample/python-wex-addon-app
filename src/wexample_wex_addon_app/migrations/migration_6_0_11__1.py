@@ -9,8 +9,9 @@ if TYPE_CHECKING:
     from wexample_migration.migration_context import MigrationContext
 
 
-class MigrationWex6011(AbstractMigration):
+class Migration_6_0_11__1(AbstractMigration):
     VERSION = "6.0.11"
+    SEQ = 1
     DESCRIPTION = "Normalize domain config: domain_main/domain_tld → domain, clean up domains list"
 
     def apply(self, context: MigrationContext) -> None:

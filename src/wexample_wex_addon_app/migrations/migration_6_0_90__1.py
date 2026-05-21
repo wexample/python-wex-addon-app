@@ -69,8 +69,9 @@ def _rollback_env_config(config: dict) -> bool:
     return True
 
 
-class MigrationWex6090(AbstractMigration):
+class Migration_6_0_90__1(AbstractMigration):
     VERSION = "6.0.90"
+    SEQ = 1
     DESCRIPTION = (
         "Convert legacy `server:` env config (scalar IP or {ip: ...}) into "
         "`remotes: [{name: main, host: <ip>}]`. Required by remote_resolve() "

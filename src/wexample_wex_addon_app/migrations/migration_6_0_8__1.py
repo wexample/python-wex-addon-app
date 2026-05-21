@@ -9,8 +9,9 @@ if TYPE_CHECKING:
     from wexample_migration.migration_context import MigrationContext
 
 
-class MigrationWex608(AbstractMigration):
+class Migration_6_0_8__1(AbstractMigration):
     VERSION = "6.0.8"
+    SEQ = 1
     DESCRIPTION = (
         "Add service.letsencrypt to .wex/config.yml when at least one "
         ".wex/env/*/config.yml defines a non-empty domains list"

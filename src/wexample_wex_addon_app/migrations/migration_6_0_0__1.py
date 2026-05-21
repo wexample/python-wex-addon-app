@@ -9,8 +9,9 @@ if TYPE_CHECKING:
     from wexample_migration.migration_context import MigrationContext
 
 
-class MigrationWex600(AbstractMigration):
+class Migration_6_0_0__1(AbstractMigration):
     VERSION = "6.0.0"
+    SEQ = 1
     DESCRIPTION = "Migrate wex-5 app structure to wex-6: write .wex/bin/app-manager from resources"
 
     def apply(self, context: MigrationContext) -> None:

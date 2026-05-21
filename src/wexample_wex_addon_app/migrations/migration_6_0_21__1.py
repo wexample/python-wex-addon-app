@@ -9,8 +9,9 @@ if TYPE_CHECKING:
     from wexample_migration.migration_context import MigrationContext
 
 
-class MigrationWex6021(AbstractMigration):
+class Migration_6_0_21__1(AbstractMigration):
     VERSION = "6.0.21"
+    SEQ = 1
     DESCRIPTION = (
         "Move Dockerfile.* files (and plain Dockerfile → Dockerfile.base) from "
         ".wex/docker/ into .wex/docker/images/, populate docker.images in "

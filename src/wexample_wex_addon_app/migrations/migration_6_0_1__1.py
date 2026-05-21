@@ -8,8 +8,9 @@ if TYPE_CHECKING:
     from wexample_migration.migration_context import MigrationContext
 
 
-class MigrationWex601(AbstractMigration):
+class Migration_6_0_1__1(AbstractMigration):
     VERSION = "6.0.1"
+    SEQ = 1
     DESCRIPTION = (
         "Migrate wex-5 knowledge structure: rename .wex/doc to .wex/knowledge, "
         "move README.md to .wex/knowledge/readme/introduction.md"

@@ -10,8 +10,9 @@ if TYPE_CHECKING:
 _REMOVABLE = ["__main__.py", "pyproject.toml", "requirements.txt"]
 
 
-class MigrationWex6016(AbstractMigration):
+class Migration_6_0_16__1(AbstractMigration):
     VERSION = "6.0.16"
+    SEQ = 1
     DESCRIPTION = (
         "Remove obsolete app_manager files (__main__.py, pyproject.toml, requirements.txt) "
         "from .wex/python/app_manager/ — applies to user apps and wex addon repos alike. "

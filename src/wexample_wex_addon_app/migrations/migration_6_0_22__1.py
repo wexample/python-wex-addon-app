@@ -9,8 +9,9 @@ if TYPE_CHECKING:
     from wexample_migration.migration_context import MigrationContext
 
 
-class MigrationWex6022(AbstractMigration):
+class Migration_6_0_22__1(AbstractMigration):
     VERSION = "6.0.22"
+    SEQ = 1
     DESCRIPTION = "Rename helper.proxy → sidecar.proxy in .wex/config.yml (helper concept renamed to sidecar)."
 
     def apply(self, context: MigrationContext) -> None:

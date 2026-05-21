@@ -132,8 +132,9 @@ def _rewrite_yaml_file(path: Path) -> None:
     )
 
 
-class MigrationWex6017(AbstractMigration):
+class Migration_6_0_17__1(AbstractMigration):
     VERSION = "6.0.17"
+    SEQ = 1
     DESCRIPTION = (
         "Rename .wex/command/ → .wex/commands/ and rewrite YAML files from v5 to v6 format: "
         "help→description, properties→decorators, bare-string steps and docker/python step "

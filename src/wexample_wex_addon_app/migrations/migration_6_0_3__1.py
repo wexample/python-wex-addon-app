@@ -9,8 +9,9 @@ if TYPE_CHECKING:
     from wexample_migration.migration_context import MigrationContext
 
 
-class MigrationWex603(AbstractMigration):
+class Migration_6_0_3__1(AbstractMigration):
     VERSION = "6.0.3"
+    SEQ = 1
     DESCRIPTION = (
         "Move env-specific config files from .wex/<service>/<name>.<env>.<ext> "
         "to .wex/env/<env>/<service>/<name>.<ext>"

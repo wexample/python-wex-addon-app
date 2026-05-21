@@ -36,8 +36,9 @@ def _transform_scripts(scripts: list, fn) -> tuple[list, bool]:
     return result, changed
 
 
-class MigrationWex6024(AbstractMigration):
+class Migration_6_0_24__1(AbstractMigration):
     VERSION = "6.0.24"
+    SEQ = 1
     DESCRIPTION = (
         "Wrap bare shell variables ($VAR) in braces (${VAR}) in all script and file "
         "fields of .wex/commands/**/*.yml files."

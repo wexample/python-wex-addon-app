@@ -12,8 +12,9 @@ if TYPE_CHECKING:
     from wexample_migration.migration_context import MigrationContext
 
 
-class MigrationWex604(AbstractMigration):
+class Migration_6_0_4__1(AbstractMigration):
     VERSION = "6.0.4"
+    SEQ = 1
     DESCRIPTION = (
         "Map v5 docker-compose environment variables to their v6 names in all "
         "docker-compose.yml files under .wex/, excluding tmp/"

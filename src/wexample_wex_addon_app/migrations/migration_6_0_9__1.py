@@ -10,8 +10,9 @@ if TYPE_CHECKING:
     from wexample_migration.migration_context import MigrationContext
 
 
-class MigrationWex609(AbstractMigration):
+class Migration_6_0_9__1(AbstractMigration):
     VERSION = "6.0.9"
+    SEQ = 1
     DESCRIPTION = (
         "Replace container_name prefixes from ${APP_NAME}_ to "
         "${APP_PROJECT_NAME}_ in docker-compose.yml files under .wex/"

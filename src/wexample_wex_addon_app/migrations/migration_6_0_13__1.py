@@ -9,8 +9,9 @@ if TYPE_CHECKING:
     from wexample_migration.migration_context import MigrationContext
 
 
-class MigrationWex6013(AbstractMigration):
+class Migration_6_0_13__1(AbstractMigration):
     VERSION = "6.0.13"
+    SEQ = 1
     DESCRIPTION = "Ensure .wex/env/<env>/cron/default.cron exists as a file for php-derived services"
     PHP_SERVICES = {"php", "symfony"}
     DEFAULT_ENVS = ("local", "dev", "prod", "test")

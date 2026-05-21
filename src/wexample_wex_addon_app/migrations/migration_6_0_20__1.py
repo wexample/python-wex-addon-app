@@ -9,8 +9,9 @@ if TYPE_CHECKING:
     from wexample_migration.migration_context import MigrationContext
 
 
-class MigrationWex6020(AbstractMigration):
+class Migration_6_0_20__1(AbstractMigration):
     VERSION = "6.0.20"
+    SEQ = 1
     DESCRIPTION = (
         "Rename apache.conf to web.conf inside .wex/apache/ and "
         ".wex/env/*/apache/ directories, and update references in docker-compose files."
