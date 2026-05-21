@@ -1,5 +1,5 @@
 global:
   name: wex_addon_app
-  version: 18.0.1
+  version: 18.0.2
 wex:
   version: 6.0.28
