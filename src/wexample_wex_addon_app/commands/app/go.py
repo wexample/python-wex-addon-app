@@ -2,17 +2,17 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from wexample_cli.decorator.command import command
+from wexample_cli.decorator.middleware import middleware
+from wexample_cli.decorator.option import option
 from wexample_wex_core.const.globals import COMMAND_TYPE_ADDON
-from wexample_wex_core.decorator.command import command
-from wexample_wex_core.decorator.middleware import middleware
-from wexample_wex_core.decorator.option import option
 
 from wexample_wex_addon_app.decorator.require_app_config import require_app_config
 from wexample_wex_addon_app.middleware.app_middleware import AppMiddleware
 
 if TYPE_CHECKING:
     from wexample_app.response.abstract_response import AbstractResponse
-    from wexample_wex_core.context.execution_context import ExecutionContext
+    from wexample_cli.context.execution_context import ExecutionContext
 
     from wexample_wex_addon_app.workdir.managed_workdir import ManagedWorkdir
 
