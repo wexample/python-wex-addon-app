@@ -3,15 +3,15 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from wexample_wex_core.const.globals import COMMAND_TYPE_ADDON
-from wexample_wex_core.decorator.as_sudo import as_sudo
-from wexample_wex_core.decorator.command import command
-from wexample_wex_core.decorator.middleware import middleware
+from wexample_cli.decorator.as_sudo import as_sudo
+from wexample_cli.decorator.command import command
+from wexample_cli.decorator.middleware import middleware
 
 from wexample_wex_addon_app.middleware.app_middleware import AppMiddleware
 
 if TYPE_CHECKING:
     from wexample_app.response.abstract_response import AbstractResponse
-    from wexample_wex_core.context.execution_context import ExecutionContext
+    from wexample_cli.context.execution_context import ExecutionContext
 
     from wexample_wex_addon_app.workdir.managed_workdir import ManagedWorkdir
 

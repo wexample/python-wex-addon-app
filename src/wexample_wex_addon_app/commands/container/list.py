@@ -7,13 +7,13 @@ from typing import TYPE_CHECKING, Any
 import yaml
 from wexample_prompt.enums.verbosity_level import VerbosityLevel
 from wexample_wex_core.const.globals import COMMAND_TYPE_ADDON
-from wexample_wex_core.decorator.command import command
-from wexample_wex_core.decorator.middleware import middleware
+from wexample_cli.decorator.command import command
+from wexample_cli.decorator.middleware import middleware
 
 from wexample_wex_addon_app.middleware.app_middleware import AppMiddleware
 
 if TYPE_CHECKING:
-    from wexample_wex_core.context.execution_context import ExecutionContext
+    from wexample_cli.context.execution_context import ExecutionContext
 
     from wexample_wex_addon_app.workdir.managed_workdir import ManagedWorkdir
 

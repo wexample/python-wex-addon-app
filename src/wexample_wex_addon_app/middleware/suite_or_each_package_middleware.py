@@ -12,9 +12,9 @@ from wexample_wex_addon_app.middleware.package_suite_middleware import (
 if TYPE_CHECKING:
     from wexample_app.command.option import Option
     from wexample_helpers.const.types import Kwargs
-    from wexample_wex_core.common.command_method_wrapper import CommandMethodWrapper
+    from wexample_cli.common.command_method_wrapper import CommandMethodWrapper
     from wexample_wex_core.common.command_request import CommandRequest
-    from wexample_wex_core.context.execution_context import ExecutionContext
+    from wexample_cli.context.execution_context import ExecutionContext
 
 
 @base_class
@@ -36,7 +36,7 @@ class SuiteOrEachPackageMiddleware(PackageSuiteMiddleware):
         request: CommandRequest,
         function_kwargs: Kwargs,
     ) -> list[ExecutionContext]:
-        from wexample_wex_core.context.execution_context import ExecutionContext
+        from wexample_cli.context.execution_context import ExecutionContext
 
         # Get flags
         all_packages = function_kwargs.get("all_packages", False)
