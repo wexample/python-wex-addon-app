@@ -3,8 +3,8 @@ from __future__ import annotations
 import shutil
 from typing import TYPE_CHECKING
 
-from wexample_wex_core.const.globals import COMMAND_TYPE_SERVICE
 from wexample_cli.decorator.command import command
+from wexample_wex_core.const.globals import COMMAND_TYPE_SERVICE
 
 if TYPE_CHECKING:
     from wexample_cli.context.execution_context import ExecutionContext

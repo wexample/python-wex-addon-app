@@ -11,8 +11,8 @@ if TYPE_CHECKING:
     from pathlib import Path
 
     from wexample_app.resolver.abstract_command_resolver import AbstractCommandResolver
-    from wexample_helpers.const.types import PathOrString
     from wexample_cli.middleware.abstract_middleware import AbstractMiddleware
+    from wexample_helpers.const.types import PathOrString
 
     from wexample_wex_addon_app.service.app_service import AppService
     from wexample_wex_addon_app.workdir.managed_workdir import ManagedWorkdir

@@ -5,10 +5,10 @@ import subprocess
 from typing import TYPE_CHECKING, Any
 
 import yaml
-from wexample_prompt.enums.verbosity_level import VerbosityLevel
-from wexample_wex_core.const.globals import COMMAND_TYPE_ADDON
 from wexample_cli.decorator.command import command
 from wexample_cli.decorator.middleware import middleware
+from wexample_prompt.enums.verbosity_level import VerbosityLevel
+from wexample_wex_core.const.globals import COMMAND_TYPE_ADDON
 
 from wexample_wex_addon_app.middleware.app_middleware import AppMiddleware
 

@@ -5,8 +5,8 @@ from collections.abc import Callable
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
-    from wexample_helpers.const.types import AnyCallable
     from wexample_cli.common.command_method_wrapper import CommandMethodWrapper
+    from wexample_helpers.const.types import AnyCallable
 
 _SENTINEL = object()
 

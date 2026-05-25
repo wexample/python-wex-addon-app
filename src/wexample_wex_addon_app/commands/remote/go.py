@@ -3,10 +3,10 @@ from __future__ import annotations
 import subprocess
 from typing import TYPE_CHECKING
 
-from wexample_wex_core.const.globals import COMMAND_TYPE_ADDON
 from wexample_cli.decorator.command import command
 from wexample_cli.decorator.middleware import middleware
 from wexample_cli.decorator.option import option
+from wexample_wex_core.const.globals import COMMAND_TYPE_ADDON
 
 from wexample_wex_addon_app.middleware.app_middleware import AppMiddleware
 

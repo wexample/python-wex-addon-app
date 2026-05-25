@@ -2,15 +2,15 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from wexample_helpers.decorator.base_class import base_class
 from wexample_cli.middleware.abstract_middleware import AbstractMiddleware
+from wexample_helpers.decorator.base_class import base_class
 
 if TYPE_CHECKING:
     from wexample_app.command.option import Option
-    from wexample_helpers.const.types import Kwargs
     from wexample_cli.common.command_method_wrapper import CommandMethodWrapper
-    from wexample_wex_core.common.command_request import CommandRequest
     from wexample_cli.context.execution_context import ExecutionContext
+    from wexample_helpers.const.types import Kwargs
+    from wexample_wex_core.common.command_request import CommandRequest
 
 
 @base_class
