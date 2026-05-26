@@ -23,12 +23,19 @@ if TYPE_CHECKING:
     required=False,
     description="Rebuild all Docker images (no cache) then force docker compose up --build",
 )
+@option(
+    name="env",
+    type=str,
+    required=False,
+    description="App environment",
+)
 @middleware(middleware=AppMiddleware)
 @command(type=COMMAND_TYPE_ADDON, description="Restart the app (stop then start)")
 def app__app__restart(
     context: ExecutionContext,
     app_workdir: ManagedWorkdir,
     rebuild: bool = False,
+    env: str | None = None,
 ) -> AbstractResponse:
     from wexample_app.response.queued_collection_response import (
         QueuedCollectionResponse,
@@ -50,7 +57,11 @@ def app__app__restart(
     def _start(previous_value=None) -> AbstractResponse:
         from wexample_wex_addon_app.commands.app.start import app__app__start
 
-        arguments = {"rebuild": True} if rebuild else {}
+        arguments: dict = {}
+        if rebuild:
+            arguments["rebuild"] = True
+        if env is not None:
+            arguments["env"] = env
         return context.kernel.run_function(app__app__start, arguments=arguments)
 
     return QueuedCollectionResponse(kernel=context.kernel, content=[_stop, _start])
