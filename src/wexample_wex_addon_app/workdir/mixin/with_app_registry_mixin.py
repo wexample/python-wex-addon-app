@@ -42,9 +42,14 @@ class WithAppRegistryMixin(BaseClass):
     def build_registry_value(self) -> NestedConfigValue:
         from wexample_config.config_value.nested_config_value import NestedConfigValue
 
+        # Unwrap the live NestedConfigValue to a raw dict before embedding —
+        # storing the live instance puts it through _wrap(NestedConfigValue) →
+        # ConfigValue(raw=NestedConfigValue) which then gets unwrapped to a
+        # raw dict on write, leaving the original cache's children unwrapped
+        # for subsequent search() calls.
         return NestedConfigValue(
             raw={
-                "config": self.get_config(),
+                "config": self.get_config().to_dict(),
                 "env": self.get_app_env(),
             }
         )

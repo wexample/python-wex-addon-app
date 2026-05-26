@@ -90,7 +90,11 @@ def app__app__start(
             _check_started,
         )
 
-        if app_workdir.get_env_parameter("APP_ENV", default=None) is None:
+        current_env = app_workdir.get_env_parameter("APP_ENV", default=None)
+        if env is not None:
+            if current_env != env:
+                app_workdir.set_app_env(env)
+        elif current_env is None:
             from wexample_wex_addon_app.commands.env.choose import app__env__choose
 
             context.io.log("No APP_ENV configured, please choose an environment")
