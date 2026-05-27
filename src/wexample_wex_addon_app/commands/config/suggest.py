@@ -24,6 +24,7 @@ _WEX_BUILTINS = {
     "APP_DOMAIN",
     "APP_DOMAINS_STRING",
     "APP_ENV",
+    "APP_NAME",
     "APP_PATH",
     "APP_PROJECT_NAME",
     "APP_SETUP_PATH",
