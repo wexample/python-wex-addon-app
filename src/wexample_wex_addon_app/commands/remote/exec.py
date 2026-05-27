@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import shlex
 import subprocess
 from typing import TYPE_CHECKING
 
@@ -20,8 +21,8 @@ if TYPE_CHECKING:
     name="command",
     short_name="c",
     type=str,
-    required=True,
-    description="Shell command to execute on the remote",
+    required=False,
+    description="Shell command to execute on the remote (legacy single-string form; prefer args after `--`)",
 )
 @option(
     name="env",
@@ -55,25 +56,37 @@ if TYPE_CHECKING:
 @middleware(middleware=AppMiddleware)
 @command(
     type=COMMAND_TYPE_ADDON,
-    description="Execute a command on the remote via SSH",
+    description="Execute a command on the remote via SSH. Use `-- <cmd> [args...]` to pass complex commands without shell-quoting headaches.",
 )
 def app__remote__exec(
     context: ExecutionContext,
     app_workdir: ManagedWorkdir,
-    command: str,
     env: str,
+    command: str | None = None,
     name: str | None = None,
     user: str | None = None,
     cd: bool = False,
+    extra_args: list[str] | None = None,
 ) -> int:
+    from wexample_cli.helpers.extra_args import resolve_shell_command
     from wexample_wex_addon_app.helpers.remote import remote_resolve
+
+    remote_cmd = resolve_shell_command(
+        context=context, command=command, extra_args=extra_args
+    )
+    if remote_cmd is None:
+        context.io.error(
+            "No command provided. Pass `--command \"...\"` or `-- <cmd> [args...]`."
+        )
+        return 2
 
     remote = remote_resolve(
         app_workdir=app_workdir, env=env, name=name, user_override=user
     )
 
     target = f"{remote['user']}@{remote['host']}"
-    remote_cmd = f"cd {remote['path']} && {command}" if cd else command
+    if cd:
+        remote_cmd = f"cd {shlex.quote(str(remote['path']))} && {remote_cmd}"
 
     context.io.log(f"SSH exec → {target}: {remote_cmd}")
 
