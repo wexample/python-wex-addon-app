@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import time
 from typing import TYPE_CHECKING
 
 from wexample_wex_addon_app.publication.strategy.abstract_publication_strategy import (
@@ -12,7 +11,6 @@ if TYPE_CHECKING:
 
 _DEFAULT_TARGET_BRANCH = "main"
 _DEFAULT_CI_POLL_TIMEOUT = 600
-_PIPELINE_RETRY_DELAY = 5
 _PIPELINE_RETRY_ATTEMPTS = 360
 _POST_MERGE_RETRY_ATTEMPTS = 360
 # Short window to detect whether the project runs pipelines on merge requests
@@ -235,39 +233,68 @@ class BranchMergePublicationStrategy(AbstractPublicationStrategy):
     def _wait_for_branch_pipeline(
         self, remote: AbstractRemote, namespace: str, name: str
     ) -> int:
+        from wexample_helpers.helpers.polling_callback_manager import (
+            PollingCallbackManager,
+        )
+
         baseline = self._pre_merge_pipeline_id
-        for _ in range(_POST_MERGE_RETRY_ATTEMPTS):
+
+        def check() -> int | None:
             pipelines = remote.get_branch_pipelines(
                 namespace, name, self._target_branch
             )
-            if pipelines:
-                latest_id = pipelines[0]["id"]
-                if baseline is None or latest_id > baseline:
-                    return latest_id
-            self.workdir.log(
-                f"No new pipeline on '{self._target_branch}' yet, retrying in {_PIPELINE_RETRY_DELAY}s…"
-            )
-            time.sleep(_PIPELINE_RETRY_DELAY)
-        from wexample_app.exception.app_runtime_exception import AppRuntimeException
+            if not pipelines:
+                return None
+            latest_id = pipelines[0]["id"]
+            if baseline is None or latest_id > baseline:
+                return latest_id
+            return None
 
-        raise AppRuntimeException(
-            message=f"No post-merge pipeline appeared on '{self._target_branch}' after "
-            f"{_POST_MERGE_RETRY_ATTEMPTS * _PIPELINE_RETRY_DELAY}s"
-        )
+        def on_retry(_attempt, _max, delay, _error, _message) -> None:
+            self.workdir.log(
+                f"No new pipeline on '{self._target_branch}' yet, retrying in {delay}s…"
+            )
+
+        try:
+            return PollingCallbackManager(
+                callback=check,
+                max_attempts=_POST_MERGE_RETRY_ATTEMPTS,
+                on_retry_callback=on_retry,
+            ).run()
+        except TimeoutError as exc:
+            from wexample_app.exception.app_runtime_exception import (
+                AppRuntimeException,
+            )
+
+            raise AppRuntimeException(
+                message=f"No post-merge pipeline appeared on '{self._target_branch}'."
+            ) from exc
 
     def _wait_for_mr_pipeline(
         self, remote: AbstractRemote, namespace: str, name: str
     ) -> int | None:
-        for _ in range(_MR_PIPELINE_DETECT_ATTEMPTS):
+        from wexample_helpers.helpers.polling_callback_manager import (
+            PollingCallbackManager,
+        )
+
+        def check() -> int | None:
             pipelines = remote.get_merge_proposal_pipelines(
                 namespace, name, self._mr_iid
             )
-            if pipelines:
-                return pipelines[0]["id"]
+            return pipelines[0]["id"] if pipelines else None
+
+        def on_retry(_attempt, _max, delay, _error, _message) -> None:
             self.workdir.log(
-                f"No pipeline yet for MR !{self._mr_iid}, retrying in {_PIPELINE_RETRY_DELAY}s…"
+                f"No pipeline yet for MR !{self._mr_iid}, retrying in {delay}s…"
             )
-            time.sleep(_PIPELINE_RETRY_DELAY)
-        # No MR pipeline appeared within the detection window — assume this
-        # repo's CI only runs post-merge and let the caller skip pipeline polling.
-        return None
+
+        try:
+            return PollingCallbackManager(
+                callback=check,
+                max_attempts=_MR_PIPELINE_DETECT_ATTEMPTS,
+                on_retry_callback=on_retry,
+            ).run()
+        except TimeoutError:
+            # No MR pipeline appeared within the detection window — assume this
+            # repo's CI only runs post-merge and let the caller skip pipeline polling.
+            return None
