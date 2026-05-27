@@ -1,6 +1,6 @@
 global:
   name: wex_addon_app
-  version: 19.4.1
+  version: 20.0.0
 wex:
   migration: 1
   version: 6.0.90

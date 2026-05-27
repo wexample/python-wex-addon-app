@@ -69,6 +69,7 @@ def app__remote__exec(
     extra_args: list[str] | None = None,
 ) -> int:
     from wexample_cli.helpers.extra_args import resolve_shell_command
+
     from wexample_wex_addon_app.helpers.remote import remote_resolve
 
     remote_cmd = resolve_shell_command(
@@ -76,7 +77,7 @@ def app__remote__exec(
     )
     if remote_cmd is None:
         context.io.error(
-            "No command provided. Pass `--command \"...\"` or `-- <cmd> [args...]`."
+            'No command provided. Pass `--command "..."` or `-- <cmd> [args...]`.'
         )
         return 2
 
