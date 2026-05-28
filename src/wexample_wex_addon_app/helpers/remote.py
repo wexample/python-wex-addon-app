@@ -22,7 +22,9 @@ def remote_resolve(
 
     if not remotes_raw:
         raise ValueError(
-            f"No remotes defined for env '{env}' in .wex/env/{env}/config.yml"
+            f"No remotes defined for env '{env}' in .wex/env/{env}/config.yml "
+            f"(if this env isn't deployed anywhere, that's expected — "
+            f"otherwise add a `remotes:` block with `host:` filled)"
         )
 
     remotes = [r if isinstance(r, dict) else {} for r in remotes_raw]
@@ -39,10 +41,13 @@ def remote_resolve(
         selected = remotes[0]
 
     host = selected.get("host")
-    if not host:
+    if not isinstance(host, str) or not host.strip():
         raise ValueError(
-            f"Remote '{selected.get('name', '?')}' (env {env}) has no 'host' field"
+            f"Remote '{selected.get('name', '?')}' (env {env}) has no 'host' field — "
+            f"fill it in .wex/env/{env}/config.yml under `remotes[].host`, or "
+            f"drop the `remotes:` block entirely if this env isn't deployed"
         )
+    host = host.strip()
 
     resolved_user = (
         user_override or selected.get("user") or os.environ.get("USER") or ""
