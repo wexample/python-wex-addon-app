@@ -47,7 +47,8 @@ _WEX_BUILTIN_PREFIXES = ("SERVICE_",)
     description=(
         "Scan docker-compose for ${VAR} references and suggest declarations "
         "for .wex/config.yml → vars: (built-ins and already-declared vars skipped). "
-        "Also suggests a remotes: skeleton for each .wex/env/<env>/config.yml that lacks one."
+        "Also best-effort DNS-resolves the first domain of each env's config.yml "
+        "and proposes filling `remotes[].host` when missing."
     ),
 )
 def app__config__suggest(
@@ -127,6 +128,16 @@ def app__config__suggest(
     )
 
 
+def _has_filled_host(remotes) -> bool:
+    if not isinstance(remotes, list) or not remotes:
+        return False
+    first = remotes[0]
+    if not isinstance(first, dict):
+        return False
+    host = first.get("host")
+    return isinstance(host, str) and bool(host.strip())
+
+
 def _is_builtin(name: str) -> bool:
     return name in _WEX_BUILTINS or any(
         name.startswith(p) for p in _WEX_BUILTIN_PREFIXES
@@ -136,6 +147,27 @@ def _is_builtin(name: str) -> bool:
 def _read_declared_vars(app_workdir) -> set[str]:
     decl = app_workdir.get_config().search("vars").to_dict_or_none() or {}
     return set(decl.keys())
+
+
+def _resolve_domain_best_effort(domain: str, timeout_s: float = 2.0) -> str | None:
+    """DNS-resolve `domain` to an IPv4 in <= timeout_s. Returns None on
+    failure (NXDOMAIN, timeout, local-only TLD, anything). No retries, no
+    fancy resolvers — this is "if available" comfort, not a hard contract."""
+    import socket
+    from concurrent.futures import ThreadPoolExecutor
+    from concurrent.futures import TimeoutError as FutTimeoutError
+
+    def _lookup() -> str | None:
+        try:
+            return socket.gethostbyname(domain)
+        except (socket.gaierror, OSError):
+            return None
+
+    with ThreadPoolExecutor(max_workers=1) as ex:
+        try:
+            return ex.submit(_lookup).result(timeout=timeout_s)
+        except FutTimeoutError:
+            return None
 
 
 def _scan_compose(compose_path) -> dict[str, str | None]:
@@ -149,13 +181,16 @@ def _scan_compose(compose_path) -> dict[str, str | None]:
 
 
 def _suggest_remotes(context, app_workdir, apply: bool) -> None:
+    """Best-effort: when an env config has a `domains:` (or `domain:`) entry
+    but no usable `remotes[].host`, try resolving the first domain in DNS and
+    fill it in. Silent skip on any DNS failure — we don't try hard."""
     import yaml
 
     env_dir = app_workdir.get_path() / ".wex" / "env"
     if not env_dir.is_dir():
         return
 
-    missing: list = []
+    candidates: list[tuple[str, Path, str, str]] = []  # (env_name, path, domain, ip)
     for env_config_path in sorted(env_dir.glob("*/config.yml")):
         env_name = env_config_path.parent.name
         try:
@@ -165,40 +200,43 @@ def _suggest_remotes(context, app_workdir, apply: bool) -> None:
             continue
         if not isinstance(data, dict):
             continue
-        if "remotes" in data and data["remotes"]:
+        if _has_filled_host(data.get("remotes")):
             continue
-        missing.append((env_name, env_config_path))
 
-    if not missing:
+        domains = data.get("domains") or (
+            [data["domain"]] if isinstance(data.get("domain"), str) else []
+        )
+        first = next(
+            (d.strip() for d in domains if isinstance(d, str) and d.strip()), None
+        )
+        if not first:
+            continue
+
+        ip = _resolve_domain_best_effort(first)
+        if not ip:
+            continue
+
+        candidates.append((env_name, env_config_path, first, ip))
+
+    if not candidates:
         return
 
     if not apply:
-        snippet = yaml.safe_dump({"remotes": _REMOTES_SKELETON}, sort_keys=False)
-        envs_list = ", ".join(name for name, _ in missing)
         context.io.log(
-            f"Missing 'remotes:' in env config(s): {envs_list} — dry-run, "
-            f"use --apply to write the skeleton below:\n\n{snippet}"
+            f"Found {len(candidates)} DNS-resolvable env(s) without `remotes[].host`. "
+            "Dry-run, use --apply to fill:"
         )
+        for env_name, _, domain, ip in candidates:
+            context.io.log(f"  - {env_name}: {domain} → {ip}", indentation=1)
         return
 
-    for env_name, path in missing:
+    for env_name, path, domain, ip in candidates:
         data = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
         if not isinstance(data, dict):
-            context.io.warning(f"{path} is not a mapping — skipped")
             continue
-        data["remotes"] = _REMOTES_SKELETON
+        data["remotes"] = [{"name": "main", "host": ip}]
         path.write_text(yaml.safe_dump(data, sort_keys=False), encoding="utf-8")
         context.io.success(
-            f"Added 'remotes:' skeleton to .wex/env/{env_name}/config.yml — "
-            "fill in 'host:' before using remote commands."
+            f"Set remotes[main].host = {ip} (resolved from {domain}) "
+            f"in .wex/env/{env_name}/config.yml"
         )
-
-
-_REMOTES_SKELETON = [
-    {
-        "name": "main",
-        "host": "",
-        # user: optional (fallback $USER)
-        # webhook_port: optional (fallback 7654)
-    }
-]

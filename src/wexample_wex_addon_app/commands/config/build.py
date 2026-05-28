@@ -183,6 +183,8 @@ def app__config__build(
             "config",
         ]
 
+        context.io.command(command=cmd)
+
         result = subprocess.run(cmd, capture_output=True, text=True)
         if result.returncode != 0:
             raise RuntimeError(f"docker compose config failed:\n{result.stderr}")

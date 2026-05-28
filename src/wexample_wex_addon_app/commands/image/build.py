@@ -29,6 +29,13 @@ if TYPE_CHECKING:
     required=False,
     description="Build all images defined in builds.yml",
 )
+@option(
+    name="no-deps",
+    type=bool,
+    is_flag=True,
+    required=False,
+    description="Skip transitive dependencies; build only the named image",
+)
 @middleware(middleware=AppMiddleware)
 @command(
     type=COMMAND_TYPE_ADDON,
@@ -39,6 +46,7 @@ def app__image__build(
     app_workdir: ManagedWorkdir,
     name: str | None = None,
     all: bool = False,
+    no_deps: bool = False,
 ) -> AbstractResponse:
     from wexample_app.response.interactive_shell_command_response import (
         InteractiveShellCommandResponse,
@@ -56,10 +64,17 @@ def app__image__build(
         raise ValueError("Specify --name <image> or --all")
     if name and all:
         raise ValueError("--name and --all are mutually exclusive")
+    if no_deps and all:
+        raise ValueError("--no-deps cannot be combined with --all")
 
     app_path = app_workdir.get_path()
     builds = load_builds(app_path)
-    ordered = resolve_build_order(builds, name if not all else None)
+    if no_deps:
+        if name not in builds:
+            raise KeyError(f"Build '{name}' not found in docker.images config")
+        ordered = [name]
+    else:
+        ordered = resolve_build_order(builds, name if not all else None)
 
     steps = []
     for build_name in ordered:
