@@ -11,6 +11,17 @@ if TYPE_CHECKING:
     from wexample_migration.migration_context import MigrationContext
 
 
+def _drop_empty_skeleton(config: dict) -> bool:
+    if not isinstance(config, dict):
+        return False
+    if "remotes" not in config:
+        return False
+    if not _is_empty_skeleton(config["remotes"]):
+        return False
+    del config["remotes"]
+    return True
+
+
 def _is_empty_skeleton(remotes) -> bool:
     """True if `remotes` is the placeholder skeleton (single entry, empty host)
     historically produced by `config/suggest --apply`. The new canonical syntax
@@ -28,17 +39,6 @@ def _is_empty_skeleton(remotes) -> bool:
     # wasn't — but if they are, we leave the entry alone (probably intentional).
     extras = {k: v for k, v in entry.items() if k not in ("name", "host") and v}
     return not extras
-
-
-def _drop_empty_skeleton(config: dict) -> bool:
-    if not isinstance(config, dict):
-        return False
-    if "remotes" not in config:
-        return False
-    if not _is_empty_skeleton(config["remotes"]):
-        return False
-    del config["remotes"]
-    return True
 
 
 class Migration_6_0_104__1(AbstractMigration):

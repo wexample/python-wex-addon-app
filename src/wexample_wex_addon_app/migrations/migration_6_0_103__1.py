@@ -11,15 +11,6 @@ if TYPE_CHECKING:
     from wexample_migration.migration_context import MigrationContext
 
 
-def _extract_server_ip(server) -> str | None:
-    if isinstance(server, str):
-        return server.strip() or None
-    if isinstance(server, dict):
-        value = server.get("ip") or server.get("host")
-        return value.strip() if isinstance(value, str) and value.strip() else None
-    return None
-
-
 def _dedup_server_into_remotes(config: dict) -> bool:
     """Move `server.ip` into `remotes[0].host` and drop `server:`. Handles the
     case where an empty `remotes:` skeleton was created by `config/suggest`
@@ -58,6 +49,15 @@ def _dedup_server_into_remotes(config: dict) -> bool:
     config["remotes"] = [{"name": "main", "host": server_ip}]
     del config["server"]
     return True
+
+
+def _extract_server_ip(server) -> str | None:
+    if isinstance(server, str):
+        return server.strip() or None
+    if isinstance(server, dict):
+        value = server.get("ip") or server.get("host")
+        return value.strip() if isinstance(value, str) and value.strip() else None
+    return None
 
 
 class Migration_6_0_103__1(AbstractMigration):

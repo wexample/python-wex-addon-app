@@ -128,6 +128,16 @@ def app__config__suggest(
     )
 
 
+def _has_filled_host(remotes) -> bool:
+    if not isinstance(remotes, list) or not remotes:
+        return False
+    first = remotes[0]
+    if not isinstance(first, dict):
+        return False
+    host = first.get("host")
+    return isinstance(host, str) and bool(host.strip())
+
+
 def _is_builtin(name: str) -> bool:
     return name in _WEX_BUILTINS or any(
         name.startswith(p) for p in _WEX_BUILTIN_PREFIXES
@@ -139,22 +149,13 @@ def _read_declared_vars(app_workdir) -> set[str]:
     return set(decl.keys())
 
 
-def _scan_compose(compose_path) -> dict[str, str | None]:
-    text = compose_path.read_text(encoding="utf-8")
-    found: dict[str, str | None] = {}
-    for match in _VAR_REF_PATTERN.finditer(text):
-        name, default = match.group(1), match.group(2)
-        if name not in found or default:
-            found[name] = default
-    return found
-
-
 def _resolve_domain_best_effort(domain: str, timeout_s: float = 2.0) -> str | None:
     """DNS-resolve `domain` to an IPv4 in <= timeout_s. Returns None on
     failure (NXDOMAIN, timeout, local-only TLD, anything). No retries, no
     fancy resolvers — this is "if available" comfort, not a hard contract."""
     import socket
-    from concurrent.futures import ThreadPoolExecutor, TimeoutError as FutTimeoutError
+    from concurrent.futures import ThreadPoolExecutor
+    from concurrent.futures import TimeoutError as FutTimeoutError
 
     def _lookup() -> str | None:
         try:
@@ -169,14 +170,14 @@ def _resolve_domain_best_effort(domain: str, timeout_s: float = 2.0) -> str | No
             return None
 
 
-def _has_filled_host(remotes) -> bool:
-    if not isinstance(remotes, list) or not remotes:
-        return False
-    first = remotes[0]
-    if not isinstance(first, dict):
-        return False
-    host = first.get("host")
-    return isinstance(host, str) and bool(host.strip())
+def _scan_compose(compose_path) -> dict[str, str | None]:
+    text = compose_path.read_text(encoding="utf-8")
+    found: dict[str, str | None] = {}
+    for match in _VAR_REF_PATTERN.finditer(text):
+        name, default = match.group(1), match.group(2)
+        if name not in found or default:
+            found[name] = default
+    return found
 
 
 def _suggest_remotes(context, app_workdir, apply: bool) -> None:
@@ -189,7 +190,7 @@ def _suggest_remotes(context, app_workdir, apply: bool) -> None:
     if not env_dir.is_dir():
         return
 
-    candidates: list[tuple[str, "Path", str, str]] = []  # (env_name, path, domain, ip)
+    candidates: list[tuple[str, Path, str, str]] = []  # (env_name, path, domain, ip)
     for env_config_path in sorted(env_dir.glob("*/config.yml")):
         env_name = env_config_path.parent.name
         try:
@@ -239,5 +240,3 @@ def _suggest_remotes(context, app_workdir, apply: bool) -> None:
             f"Set remotes[main].host = {ip} (resolved from {domain}) "
             f"in .wex/env/{env_name}/config.yml"
         )
-
-
