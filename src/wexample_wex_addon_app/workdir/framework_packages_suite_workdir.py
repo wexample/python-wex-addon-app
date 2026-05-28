@@ -521,8 +521,6 @@ class FrameworkPackageSuiteWorkdir(RepoWorkdir):
             force: If True, run even if directory is not recognized as an app workdir
             fail_fast: If True (default), stop on first error. If False, continue and report all failures at end.
         """
-        import shlex
-
         from wexample_prompt.enums.terminal_color import TerminalColor
 
         failed_packages = []
@@ -532,7 +530,7 @@ class FrameworkPackageSuiteWorkdir(RepoWorkdir):
                 continue
 
             self._package_title(path=package_path, message=message)
-            self.log(f"Command: {shlex.join(cmd)}", indentation=1)
+            self.command(command=cmd, indentation=1)
             self.separator(color=TerminalColor.BLACK)
 
             try:
