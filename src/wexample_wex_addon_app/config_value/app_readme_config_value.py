@@ -33,9 +33,15 @@ class AppReadmeConfigValue(ReadmeContentConfigValue):
         from wexample_helpers.helpers.module import module_get_path
 
         """Consider the template directory and the module files are placed at the same relative location into the module directory"""
-        template_path = (
-            module_get_path(module).parent / "resources" / "readme_templates"
-        )
+        try:
+            template_path = (
+                module_get_path(module).parent / "resources" / "readme_templates"
+            )
+        except TypeError:
+            # module_get_path() raises TypeError when the module isn't a package
+            # (single-file modules like config_value submodules) — those have no
+            # template dir to contribute, just skip them.
+            return
         if template_path.exists():
             search_paths.append(template_path)
 

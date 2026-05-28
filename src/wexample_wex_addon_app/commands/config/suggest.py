@@ -46,7 +46,9 @@ _WEX_BUILTIN_PREFIXES = ("SERVICE_",)
     type=COMMAND_TYPE_ADDON,
     description=(
         "Scan docker-compose for ${VAR} references and suggest declarations "
-        "for .wex/config.yml → vars: (built-ins and already-declared vars skipped)."
+        "for .wex/config.yml → vars: (built-ins and already-declared vars skipped). "
+        "Also best-effort DNS-resolves the first domain of each env's config.yml "
+        "and proposes filling `remotes[].host` when missing."
     ),
 )
 def app__config__suggest(
@@ -55,6 +57,8 @@ def app__config__suggest(
     apply: bool = False,
 ) -> None:
     from wexample_app.const.globals import APP_PATH_DOCKER_COMPOSE
+
+    _suggest_remotes(context, app_workdir, apply=apply)
 
     compose_path = app_workdir.get_path() / APP_PATH_DOCKER_COMPOSE
     if not compose_path.exists():
@@ -143,5 +147,97 @@ def _scan_compose(compose_path) -> dict[str, str | None]:
         if name not in found or default:
             found[name] = default
     return found
+
+
+def _resolve_domain_best_effort(domain: str, timeout_s: float = 2.0) -> str | None:
+    """DNS-resolve `domain` to an IPv4 in <= timeout_s. Returns None on
+    failure (NXDOMAIN, timeout, local-only TLD, anything). No retries, no
+    fancy resolvers — this is "if available" comfort, not a hard contract."""
+    import socket
+    from concurrent.futures import ThreadPoolExecutor, TimeoutError as FutTimeoutError
+
+    def _lookup() -> str | None:
+        try:
+            return socket.gethostbyname(domain)
+        except (socket.gaierror, OSError):
+            return None
+
+    with ThreadPoolExecutor(max_workers=1) as ex:
+        try:
+            return ex.submit(_lookup).result(timeout=timeout_s)
+        except FutTimeoutError:
+            return None
+
+
+def _has_filled_host(remotes) -> bool:
+    if not isinstance(remotes, list) or not remotes:
+        return False
+    first = remotes[0]
+    if not isinstance(first, dict):
+        return False
+    host = first.get("host")
+    return isinstance(host, str) and bool(host.strip())
+
+
+def _suggest_remotes(context, app_workdir, apply: bool) -> None:
+    """Best-effort: when an env config has a `domains:` (or `domain:`) entry
+    but no usable `remotes[].host`, try resolving the first domain in DNS and
+    fill it in. Silent skip on any DNS failure — we don't try hard."""
+    import yaml
+
+    env_dir = app_workdir.get_path() / ".wex" / "env"
+    if not env_dir.is_dir():
+        return
+
+    candidates: list[tuple[str, "Path", str, str]] = []  # (env_name, path, domain, ip)
+    for env_config_path in sorted(env_dir.glob("*/config.yml")):
+        env_name = env_config_path.parent.name
+        try:
+            data = yaml.safe_load(env_config_path.read_text(encoding="utf-8")) or {}
+        except yaml.YAMLError as e:
+            context.io.warning(f"Skipping {env_config_path}: {e}")
+            continue
+        if not isinstance(data, dict):
+            continue
+        if _has_filled_host(data.get("remotes")):
+            continue
+
+        domains = data.get("domains") or (
+            [data["domain"]] if isinstance(data.get("domain"), str) else []
+        )
+        first = next(
+            (d.strip() for d in domains if isinstance(d, str) and d.strip()), None
+        )
+        if not first:
+            continue
+
+        ip = _resolve_domain_best_effort(first)
+        if not ip:
+            continue
+
+        candidates.append((env_name, env_config_path, first, ip))
+
+    if not candidates:
+        return
+
+    if not apply:
+        context.io.log(
+            f"Found {len(candidates)} DNS-resolvable env(s) without `remotes[].host`. "
+            "Dry-run, use --apply to fill:"
+        )
+        for env_name, _, domain, ip in candidates:
+            context.io.log(f"  - {env_name}: {domain} → {ip}", indentation=1)
+        return
+
+    for env_name, path, domain, ip in candidates:
+        data = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
+        if not isinstance(data, dict):
+            continue
+        data["remotes"] = [{"name": "main", "host": ip}]
+        path.write_text(yaml.safe_dump(data, sort_keys=False), encoding="utf-8")
+        context.io.success(
+            f"Set remotes[main].host = {ip} (resolved from {domain}) "
+            f"in .wex/env/{env_name}/config.yml"
+        )
 
 
