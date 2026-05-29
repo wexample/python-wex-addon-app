@@ -229,46 +229,59 @@ class RepoWorkdir(ManagedWorkdir):
         # This is intentional: rectify itself may generate files (version.txt, README...),
         # but we consider those a consequence of real changes, not a trigger.
         # Use --force to publish even without detected changes (e.g. to force a rectify pass).
-        if force or _has_changes:
-            sub_progress = self.progress(
-                total=7, color=TerminalColor.YELLOW, indentation=1, print_response=False
-            ).get_handle()
-            sub_progress.advance(
-                step=1, label=f"Syncing libraries for {self.get_project_name()}"
+        try:
+            if force or _has_changes:
+                sub_progress = self.progress(
+                    total=7, color=TerminalColor.YELLOW, indentation=1, print_response=False
+                ).get_handle()
+                sub_progress.advance(
+                    step=1, label=f"Syncing libraries for {self.get_project_name()}"
+                )
+                self.manager_run_command(command=app__library__sync)
+                sub_progress.advance(step=1, label=f"Bumping {self.get_project_name()}")
+                bump_args = []
+                if force:
+                    bump_args.append("--force")
+                if not interactive:
+                    bump_args.append("--yes")
+                bump_response = self.manager_run_command(
+                    command=app__version__bump, arguments=bump_args
+                ).get_output_value()
+                if not bump_response.is_true():
+                    return
+                sub_progress.advance(
+                    step=1, label=f"Rectifying file state for {self.get_project_name()}"
+                )
+                rectify_args = ["--loop"]
+                if not interactive:
+                    rectify_args.append("--yes")
+                self.manager_run_command(
+                    command=app__state__rectify, arguments=rectify_args
+                )
+                sub_progress.advance(
+                    step=1, label=f"Committing and pushing {self.get_project_name()}"
+                )
+                self.manager_run_command(command=app__version__push)
+                sub_progress.advance(
+                    step=1, label=f"Propagating version for {self.get_project_name()}"
+                )
+                self.manager_run_command(command=app__version__propagate)
+                sub_progress.advance(step=1, label=f"Building {self.get_project_name()}")
+                self.manager_run(cmd=[".release/build", "--ignore-missing-command"])
+                sub_progress.advance(step=1, label=f"Publishing {self.get_project_name()}")
+                self._do_publish(force=force)
+        finally:
+            # Restore ownership to the real user — @as_sudo on publish can leave
+            # files root-owned (rectify writes, build artifacts, dep caches…).
+            # In finally so a failed/canceled publish still hands ownership back.
+            from wexample_wex_core.addons.system.commands.own.this import (
+                system__own__this,
             )
-            self.manager_run_command(command=app__library__sync)
-            sub_progress.advance(step=1, label=f"Bumping {self.get_project_name()}")
-            bump_args = []
-            if force:
-                bump_args.append("--force")
-            if not interactive:
-                bump_args.append("--yes")
-            bump_response = self.manager_run_command(
-                command=app__version__bump, arguments=bump_args
-            ).get_output_value()
-            if not bump_response.is_true():
-                return
-            sub_progress.advance(
-                step=1, label=f"Rectifying file state for {self.get_project_name()}"
-            )
-            rectify_args = ["--loop"]
-            if not interactive:
-                rectify_args.append("--yes")
+
             self.manager_run_command(
-                command=app__state__rectify, arguments=rectify_args
+                command=system__own__this,
+                arguments=["--path", str(self.get_path())],
             )
-            sub_progress.advance(
-                step=1, label=f"Committing and pushing {self.get_project_name()}"
-            )
-            self.manager_run_command(command=app__version__push)
-            sub_progress.advance(
-                step=1, label=f"Propagating version for {self.get_project_name()}"
-            )
-            self.manager_run_command(command=app__version__propagate)
-            sub_progress.advance(step=1, label=f"Building {self.get_project_name()}")
-            self.manager_run(cmd=[".release/build", "--ignore-missing-command"])
-            sub_progress.advance(step=1, label=f"Publishing {self.get_project_name()}")
-            self._do_publish(force=force)
 
     def should_be_published(self, force: bool = False) -> bool:
         current_tag = self.get_publication_tag_name()

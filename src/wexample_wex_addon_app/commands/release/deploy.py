@@ -40,6 +40,8 @@ def app__release__deploy(
     )
 
     from wexample_wex_addon_app.commands.app.restart import app__app__restart
+    from wexample_wex_addon_app.commands.cache.clear import app__cache__clear
+    from wexample_wex_addon_app.commands.config.build import app__config__build
     from wexample_wex_addon_app.commands.maintenance.disable import (
         app__maintenance__disable,
     )
@@ -96,6 +98,12 @@ def app__release__deploy(
     def _maintenance_enable(previous_value=None) -> AbstractResponse:
         return context.kernel.run_function(app__maintenance__enable, arguments={})
 
+    def _cache_clear(previous_value=None) -> AbstractResponse:
+        return context.kernel.run_function(app__cache__clear, arguments={})
+
+    def _config_build(previous_value=None) -> AbstractResponse:
+        return context.kernel.run_function(app__config__build, arguments={})
+
     def _restart(previous_value=None) -> AbstractResponse:
         return context.kernel.run_function(app__app__restart, arguments={"fast": True})
 
@@ -118,6 +126,8 @@ def app__release__deploy(
             _git_fetch,
             _git_reset,
             _maintenance_enable,
+            _cache_clear,
+            _config_build,
             _restart,
             _maintenance_disable,
             _prune,
