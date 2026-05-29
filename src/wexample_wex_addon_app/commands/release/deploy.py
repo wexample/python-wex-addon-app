@@ -66,17 +66,30 @@ def app__release__deploy(
             ],
         )
 
+    # Repos on dev/prod are owned by www-data by convention; running `git` as root
+    # would trip "dubious ownership" and leave new files root-owned. Run as
+    # www-data so files written by git stay www-data-owned. We're already inside
+    # an @as_sudo() deploy so `sudo -u www-data` works without a password prompt.
     def _git_fetch(previous_value=None) -> InteractiveShellCommandResponse:
         return InteractiveShellCommandResponse(
             kernel=context.kernel,
-            content=["git", "fetch", "origin", "--prune"],
+            content=[
+                "sudo",
+                "-n",
+                "-u",
+                "www-data",
+                "git",
+                "fetch",
+                "origin",
+                "--prune",
+            ],
             workdir=str(app_path),
         )
 
     def _git_reset(previous_value=None) -> InteractiveShellCommandResponse:
         return InteractiveShellCommandResponse(
             kernel=context.kernel,
-            content=["git", "reset", "--hard", "@{u}"],
+            content=["sudo", "-n", "-u", "www-data", "git", "reset", "--hard", "@{u}"],
             workdir=str(app_path),
         )
 
