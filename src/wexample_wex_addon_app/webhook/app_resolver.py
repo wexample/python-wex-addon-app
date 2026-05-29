@@ -22,7 +22,11 @@ class AppWebhookTypeResolver:
         _, _, local_command = parsed
         return f".{local_command}"
 
-    def resolve_cwd(self, command_path: str) -> str | None:
+    def resolve_cwd(
+        self,
+        command_path: str,
+        query_params: dict[str, list[str]] | None = None,
+    ) -> str | None:
         parsed = self._parse(command_path)
         if parsed is None:
             return None
