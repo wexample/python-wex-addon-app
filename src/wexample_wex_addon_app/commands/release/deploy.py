@@ -60,9 +60,7 @@ def app__release__deploy(
         )
 
     def _hook_pre(previous_value=None) -> None:
-        app_workdir.manager_run(
-            cmd=[".release/deploy-pre", "--ignore-missing-command"]
-        )
+        app_workdir.manager_run(cmd=[".release/deploy-pre", "--ignore-missing-command"])
 
     def _git_fetch(previous_value=None) -> InteractiveShellCommandResponse:
         return InteractiveShellCommandResponse(
@@ -79,9 +77,7 @@ def app__release__deploy(
         )
 
     def _restart(previous_value=None) -> AbstractResponse:
-        return context.kernel.run_function(
-            app__app__restart, arguments={"fast": True}
-        )
+        return context.kernel.run_function(app__app__restart, arguments={"fast": True})
 
     def _hook_post(previous_value=None) -> None:
         app_workdir.manager_run(
