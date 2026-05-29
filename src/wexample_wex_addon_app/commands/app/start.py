@@ -303,7 +303,9 @@ def app__app__start(
         return context.kernel.run_function(app__image__build, arguments={"all": True})
 
     if fast:
-        steps = [_starting]
+        # Keep _pending: fast is about skipping config/perms/proxy work, not about
+        # racing past services that aren't ready yet (rapidité ≠ précipitation).
+        steps = [_starting, _pending]
     else:
         steps = [
             _checkup,
