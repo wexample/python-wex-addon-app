@@ -22,7 +22,8 @@ if TYPE_CHECKING:
     type=COMMAND_TYPE_ADDON,
     description=(
         "Deploy a published version of the app on the current host: "
-        "pull images, run pre-hook, git pull, restart, run post-hook, prune."
+        "pull images, sync repo, enable maintenance, restart, disable maintenance, prune. "
+        "Apps and services plug in via service hooks and @attach."
     ),
 )
 def app__release__deploy(
@@ -39,6 +40,12 @@ def app__release__deploy(
     )
 
     from wexample_wex_addon_app.commands.app.restart import app__app__restart
+    from wexample_wex_addon_app.commands.maintenance.disable import (
+        app__maintenance__disable,
+    )
+    from wexample_wex_addon_app.commands.maintenance.enable import (
+        app__maintenance__enable,
+    )
 
     app_path = app_workdir.get_path()
     tmp_dir = app_path / APP_PATH_TMP
@@ -59,9 +66,6 @@ def app__release__deploy(
             ],
         )
 
-    def _hook_pre(previous_value=None) -> None:
-        app_workdir.manager_run(cmd=[".release/deploy-pre", "--ignore-missing-command"])
-
     def _git_fetch(previous_value=None) -> InteractiveShellCommandResponse:
         return InteractiveShellCommandResponse(
             kernel=context.kernel,
@@ -76,13 +80,14 @@ def app__release__deploy(
             workdir=str(app_path),
         )
 
+    def _maintenance_enable(previous_value=None) -> AbstractResponse:
+        return context.kernel.run_function(app__maintenance__enable, arguments={})
+
     def _restart(previous_value=None) -> AbstractResponse:
         return context.kernel.run_function(app__app__restart, arguments={"fast": True})
 
-    def _hook_post(previous_value=None) -> None:
-        app_workdir.manager_run(
-            cmd=[".release/deploy-post", "--ignore-missing-command"]
-        )
+    def _maintenance_disable(previous_value=None) -> AbstractResponse:
+        return context.kernel.run_function(app__maintenance__disable, arguments={})
 
     def _prune(previous_value=None) -> InteractiveShellCommandResponse | None:
         if app_workdir.get_app_env() == ENV_NAME_LOCAL:
@@ -97,11 +102,11 @@ def app__release__deploy(
         kernel=context.kernel,
         content=[
             _pull,
-            _hook_pre,
             _git_fetch,
             _git_reset,
+            _maintenance_enable,
             _restart,
-            _hook_post,
+            _maintenance_disable,
             _prune,
         ],
     )
