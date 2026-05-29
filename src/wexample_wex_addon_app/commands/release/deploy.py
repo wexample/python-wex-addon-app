@@ -64,10 +64,17 @@ def app__release__deploy(
             cmd=[".release/deploy-pre", "--ignore-missing-command"]
         )
 
-    def _git_pull(previous_value=None) -> InteractiveShellCommandResponse:
+    def _git_fetch(previous_value=None) -> InteractiveShellCommandResponse:
         return InteractiveShellCommandResponse(
             kernel=context.kernel,
-            content=["git", "pull", "--ff-only"],
+            content=["git", "fetch", "origin", "--prune"],
+            workdir=str(app_path),
+        )
+
+    def _git_reset(previous_value=None) -> InteractiveShellCommandResponse:
+        return InteractiveShellCommandResponse(
+            kernel=context.kernel,
+            content=["git", "reset", "--hard", "@{u}"],
             workdir=str(app_path),
         )
 
@@ -95,7 +102,8 @@ def app__release__deploy(
         content=[
             _pull,
             _hook_pre,
-            _git_pull,
+            _git_fetch,
+            _git_reset,
             _restart,
             _hook_post,
             _prune,
