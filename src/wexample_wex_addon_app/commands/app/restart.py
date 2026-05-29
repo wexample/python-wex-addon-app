@@ -29,6 +29,13 @@ if TYPE_CHECKING:
     required=False,
     description="App environment",
 )
+@option(
+    name="fast",
+    type=bool,
+    is_flag=True,
+    required=False,
+    description="Skip config rewrite, just stop then docker compose up (pass-through to app/start --fast)",
+)
 @middleware(middleware=AppMiddleware)
 @command(type=COMMAND_TYPE_ADDON, description="Restart the app (stop then start)")
 def app__app__restart(
@@ -36,6 +43,7 @@ def app__app__restart(
     app_workdir: ManagedWorkdir,
     rebuild: bool = False,
     env: str | None = None,
+    fast: bool = False,
 ) -> AbstractResponse:
     from wexample_app.response.queued_collection_response import (
         QueuedCollectionResponse,
@@ -62,6 +70,8 @@ def app__app__restart(
             arguments["rebuild"] = True
         if env is not None:
             arguments["env"] = env
+        if fast:
+            arguments["fast"] = True
         return context.kernel.run_function(app__app__start, arguments=arguments)
 
     return QueuedCollectionResponse(kernel=context.kernel, content=[_stop, _start])
