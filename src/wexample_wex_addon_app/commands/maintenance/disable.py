@@ -18,20 +18,12 @@ if TYPE_CHECKING:
 @command(
     type=COMMAND_TYPE_ADDON,
     description=(
-        "Deactivate maintenance mode on the app. Triggers the `maintenance/disable` "
-        "service hook on every installed service that declares it (e.g. laravel → "
-        "`php artisan up`). Apps add custom behavior via @attach."
+        "Anchor command: deactivate maintenance mode on the app. Services and apps "
+        "plug their own behavior via @attach (e.g. laravel → `php artisan up`)."
     ),
 )
 def app__maintenance__disable(
     context: ExecutionContext,
     app_workdir: ManagedWorkdir,
 ) -> None:
-    from wexample_wex_addon_app.app_addon_manager import AppAddonManager
-
-    app_manager = AppAddonManager.from_kernel(context.kernel)
-    results = app_manager.run_service_hook(
-        hook="maintenance/disable",
-        app_workdir=app_workdir,
-    )
-    context.io.log(f"Maintenance disabled ({len(results)} service(s) hooked)")
+    context.io.log("Maintenance disabled")
