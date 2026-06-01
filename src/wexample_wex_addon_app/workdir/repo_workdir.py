@@ -232,7 +232,10 @@ class RepoWorkdir(ManagedWorkdir):
         try:
             if force or _has_changes:
                 sub_progress = self.progress(
-                    total=7, color=TerminalColor.YELLOW, indentation=1, print_response=False
+                    total=7,
+                    color=TerminalColor.YELLOW,
+                    indentation=1,
+                    print_response=False,
                 ).get_handle()
                 sub_progress.advance(
                     step=1, label=f"Syncing libraries for {self.get_project_name()}"
@@ -266,9 +269,13 @@ class RepoWorkdir(ManagedWorkdir):
                     step=1, label=f"Propagating version for {self.get_project_name()}"
                 )
                 self.manager_run_command(command=app__version__propagate)
-                sub_progress.advance(step=1, label=f"Building {self.get_project_name()}")
+                sub_progress.advance(
+                    step=1, label=f"Building {self.get_project_name()}"
+                )
                 self.manager_run(cmd=[".release/build", "--ignore-missing-command"])
-                sub_progress.advance(step=1, label=f"Publishing {self.get_project_name()}")
+                sub_progress.advance(
+                    step=1, label=f"Publishing {self.get_project_name()}"
+                )
                 self._do_publish(force=force)
         finally:
             # Restore ownership to the real user — @as_sudo on publish can leave
