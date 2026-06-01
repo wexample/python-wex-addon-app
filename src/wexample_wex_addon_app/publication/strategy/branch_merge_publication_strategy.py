@@ -35,11 +35,13 @@ class BranchMergePublicationStrategy(AbstractPublicationStrategy):
         namespace, name = self._get_repo_info()
         version = self.workdir.get_setup_version()
         source_branch = f"version-{version}"
-        self._target_branch = (
-            self.workdir.get_config()
-            .search("git.main_branch")
-            .get_str_or_default(_DEFAULT_TARGET_BRANCH)
-        )
+        config = self.workdir.get_config()
+        # Prefer the explicit publication target; fall back to git.main_branch
+        # for projects that haven't split the two concepts yet.
+        target = config.search("git.release_target_branch")
+        if target.is_none():
+            target = config.search("git.main_branch")
+        self._target_branch = target.get_str_or_default(_DEFAULT_TARGET_BRANCH)
         target_branch = self._target_branch
 
         self.workdir.log(f"Creating merge request {source_branch} → {target_branch}…")
