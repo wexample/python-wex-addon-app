@@ -81,30 +81,21 @@ def app__webhook__token_generate(
         targets = [command_name]
 
     for cmd in targets:
-        target_workdir, namespace = _resolve_target(context, app_workdir, cmd)
+        target = _resolve_target(context, app_workdir, cmd)
+        if target is None:
+            context.io.error(
+                f"Unknown command shape: {cmd!r}. "
+                "Expected '.group/name' (app), '<addon>::group/name' (addon) "
+                "or '@svc::group/name' (service)."
+            )
+            continue
+        target_workdir, namespace = target
         _generate_one(context, target_workdir, namespace, cmd, force)
 
 
-def _resolve_target(context, app_workdir, command_name: str):
-    """Route the command to the right (workdir, namespace) pair.
-
-    - '.foo/bar'         → app_workdir   / webhook_tokens
-    - 'app::foo/bar' (or any '<addon>::foo/bar') → kernel.workdir / webhook_tokens_addon
-    - '@svc::foo/bar'    → kernel.workdir / webhook_tokens_service
-    """
-    if command_name.startswith("."):
-        return app_workdir, "webhook_tokens"
-    if command_name.startswith("@"):
-        return context.kernel.workdir, "webhook_tokens_service"
-    if "::" in command_name:
-        return context.kernel.workdir, "webhook_tokens_addon"
-    raise ValueError(
-        f"Unknown command shape: {command_name!r}. "
-        "Expected '.group/name', 'addon::group/name' or '@svc::group/name'."
-    )
-
-
-def _generate_one(context, workdir, namespace: str, command_name: str, force: bool) -> None:
+def _generate_one(
+    context, workdir, namespace: str, command_name: str, force: bool
+) -> None:
     existing = workdir.get_local_data_value(namespace, command_name)
     if existing:
         if not force:
@@ -116,3 +107,20 @@ def _generate_one(context, workdir, namespace: str, command_name: str, force: bo
 
     token = workdir.rotate_local_token(namespace, command_name)
     context.io.log(f"Token generated for {command_name}:  @yellow{{{token}}}")
+
+
+def _resolve_target(context, app_workdir, command_name: str):
+    """Route the command to the right (workdir, namespace) pair.
+
+    - '.foo/bar'         → app_workdir   / webhook_tokens
+    - '<addon>::foo/bar' → kernel.workdir / webhook_tokens_addon
+    - '@svc::foo/bar'    → kernel.workdir / webhook_tokens_service
+    Returns None on unrecognised shapes (caller logs a user-facing error).
+    """
+    if command_name.startswith("."):
+        return app_workdir, "webhook_tokens"
+    if command_name.startswith("@"):
+        return context.kernel.workdir, "webhook_tokens_service"
+    if "::" in command_name:
+        return context.kernel.workdir, "webhook_tokens_addon"
+    return None
