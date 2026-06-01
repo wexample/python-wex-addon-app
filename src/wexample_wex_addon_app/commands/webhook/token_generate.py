@@ -20,7 +20,11 @@ if TYPE_CHECKING:
     type=str,
     required=False,
     default=None,
-    description="App command to secure, e.g. '.ping/pong'",
+    description=(
+        "Command to secure. Accepts any of the three webhook command shapes: "
+        "'.ping/pong' (app-local), 'app::release/deploy' (addon), "
+        "or '@nginx::status' (service)."
+    ),
 )
 @option(
     "all",
@@ -28,7 +32,11 @@ if TYPE_CHECKING:
     is_flag=True,
     required=False,
     default=False,
-    description="Generate tokens for all @webhook commands in this app",
+    description=(
+        "Generate tokens for all @webhook app-local commands in this app. "
+        "Use 'wex core::webhook/token-generate --all --type-name addon|service' "
+        "for the other types."
+    ),
 )
 @option(
     "force",
@@ -41,7 +49,7 @@ if TYPE_CHECKING:
 @middleware(middleware=AppMiddleware)
 @command(
     type=COMMAND_TYPE_ADDON,
-    description="Generate and store a webhook token for an app command",
+    description="Generate and store a webhook token (app, addon or service command)",
 )
 def app__webhook__token_generate(
     context: ExecutionContext,
@@ -73,18 +81,38 @@ def app__webhook__token_generate(
         targets = [command_name]
 
     for cmd in targets:
-        _generate_one(context, app_workdir, cmd, force)
+        target_workdir, namespace = _resolve_target(context, app_workdir, cmd)
+        _generate_one(context, target_workdir, namespace, cmd, force)
 
 
-def _generate_one(context, app_workdir, command_name: str, force: bool) -> None:
-    existing = app_workdir.get_local_data_value("webhook_tokens", command_name)
+def _resolve_target(context, app_workdir, command_name: str):
+    """Route the command to the right (workdir, namespace) pair.
+
+    - '.foo/bar'         → app_workdir   / webhook_tokens
+    - 'app::foo/bar' (or any '<addon>::foo/bar') → kernel.workdir / webhook_tokens_addon
+    - '@svc::foo/bar'    → kernel.workdir / webhook_tokens_service
+    """
+    if command_name.startswith("."):
+        return app_workdir, "webhook_tokens"
+    if command_name.startswith("@"):
+        return context.kernel.workdir, "webhook_tokens_service"
+    if "::" in command_name:
+        return context.kernel.workdir, "webhook_tokens_addon"
+    raise ValueError(
+        f"Unknown command shape: {command_name!r}. "
+        "Expected '.group/name', 'addon::group/name' or '@svc::group/name'."
+    )
+
+
+def _generate_one(context, workdir, namespace: str, command_name: str, force: bool) -> None:
+    existing = workdir.get_local_data_value(namespace, command_name)
     if existing:
         if not force:
             context.io.warning(
                 f"Token already exists for {command_name} — skipping (use --force)."
             )
             return
-        app_workdir.delete_local_data_value("webhook_tokens", command_name)
+        workdir.delete_local_data_value(namespace, command_name)
 
-    token = app_workdir.rotate_local_token("webhook_tokens", command_name)
+    token = workdir.rotate_local_token(namespace, command_name)
     context.io.log(f"Token generated for {command_name}:  @yellow{{{token}}}")
