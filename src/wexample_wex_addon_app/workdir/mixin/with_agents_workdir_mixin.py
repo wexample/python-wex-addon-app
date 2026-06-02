@@ -10,6 +10,7 @@ if TYPE_CHECKING:
 
 
 AGENTS_CONTENT = "This project is managed by the wex script.\n"
+CLAUDE_POINTER_CONTENT = "See AGENTS.md — no Claude-specific instructions.\n"
 
 
 @base_class
@@ -33,7 +34,7 @@ class WithAgentsWorkdirMixin(BaseClass):
                 "name": "CLAUDE.md",
                 "type": DiskItemType.FILE,
                 "should_exist": True,
-                "content": AGENTS_CONTENT,
+                "content": CLAUDE_POINTER_CONTENT,
                 TextOption.get_name(): {"end_new_line": True},
             }
         )
