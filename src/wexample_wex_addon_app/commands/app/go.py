@@ -51,6 +51,7 @@ def app__app__go(
     container_name: str | None = None,
     user: str | None = None,
 ) -> AbstractResponse:
+    from wexample_app.response.failure_response import FailureResponse
     from wexample_app.response.interactive_shell_command_response import (
         InteractiveShellCommandResponse,
     )
@@ -67,15 +68,16 @@ def app__app__go(
 
         from wexample_wex_addon_app.commands.app.start import app__app__start
 
-        context.io.error(f"Container @magenta{{{long_name}}} is not running.")
-        context.io.suggestions(
-            message=f"You may want to start the application.",
-            suggestions=[
-                AddonCommandResolver.build_command_from_function(app__app__start)
-            ],
+        start_command = AddonCommandResolver.build_command_from_function(
+            app__app__start
         )
-
-        return None
+        return FailureResponse(
+            kernel=context.kernel,
+            message=(
+                f"Container @magenta{{{long_name}}} is not running. "
+                f"You may want to run: @cyan{{{start_command}}}"
+            ),
+        )
 
     context.io.info(f"Entering container @magenta{{{long_name}}}...")
 
