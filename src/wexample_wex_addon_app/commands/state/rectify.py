@@ -47,7 +47,10 @@ def app__state__rectify(
     filter_operation: str | None = None,
     max: int = None,
     changed_only: bool = False,
-) -> None:
+):
+    from wexample_app.response.success_response import SuccessResponse
+    from wexample_app.response.warning_response import WarningResponse
+
     from wexample_wex_addon_app.helpers.scope import build_scopes
 
     scopes = build_scopes(filter_scope=filter_scope)
@@ -62,53 +65,7 @@ def app__state__rectify(
             paths = list(git_get_changed_paths(cwd=cwd))
         return paths
 
-    if not dry_run:
-        from wexample_filestate.item.abstract_item_target import AbstractItemTarget
-
-        # Apply changes once, or keep looping until no operations remain (when --loop is set).
-        iterations = 0
-        while True:
-            iterations += 1
-            workdir = context.request.get_addon_manager().create_app_workdir()
-
-            result = AbstractItemTarget.apply(
-                workdir,
-                interactive=(not yes),
-                scopes=scopes,
-                filter_paths=compute_filter_paths(workdir.get_path()),
-                filter_operation=filter_operation,
-                max=max,
-            )
-
-            if len(result.operations) == 0:
-                pass_text = "pass" if iterations == 1 else "passes"
-                context.io.success(
-                    f"Rectification completed successfully after {iterations} {pass_text}."
-                )
-                break
-
-            # Stop immediately after the first pass if looping is disabled.
-            if not loop:
-                operation_text = (
-                    "operation" if len(result.operations) == 1 else "operations"
-                )
-                context.io.log(
-                    f"Rectification pass completed; applied {len(result.operations)} {operation_text}."
-                )
-                break
-
-            if iterations >= loop_limit:
-                context.io.warning(
-                    f"Loop limit reached ({iterations}/{loop_limit}); stopping further passes."
-                )
-                break
-
-            context.io.log(
-                f"Pass {iterations} completed with {len(result.operations)} operation(s); starting pass {iterations + 1} of {loop_limit}."
-            )
-
-        workdir.stop_runners()
-    else:
+    if dry_run:
         workdir = context.request.get_addon_manager().create_app_workdir()
         workdir.dry_run(
             scopes=scopes,
@@ -116,3 +73,55 @@ def app__state__rectify(
             filter_operation=filter_operation,
             max=max,
         )
+        return None
+
+    from wexample_filestate.item.abstract_item_target import AbstractItemTarget
+
+    result_response = None
+    # Apply changes once, or keep looping until no operations remain (when --loop is set).
+    iterations = 0
+    while True:
+        iterations += 1
+        workdir = context.request.get_addon_manager().create_app_workdir()
+
+        result = AbstractItemTarget.apply(
+            workdir,
+            interactive=(not yes),
+            scopes=scopes,
+            filter_paths=compute_filter_paths(workdir.get_path()),
+            filter_operation=filter_operation,
+            max=max,
+        )
+
+        if len(result.operations) == 0:
+            pass_text = "pass" if iterations == 1 else "passes"
+            result_response = SuccessResponse(
+                kernel=context.kernel,
+                message=f"Rectification completed successfully after {iterations} {pass_text}.",
+            )
+            break
+
+        # Stop immediately after the first pass if looping is disabled.
+        if not loop:
+            operation_text = (
+                "operation" if len(result.operations) == 1 else "operations"
+            )
+            result_response = (
+                f"Rectification pass completed; applied "
+                f"{len(result.operations)} {operation_text}."
+            )
+            break
+
+        if iterations >= loop_limit:
+            result_response = WarningResponse(
+                kernel=context.kernel,
+                message=f"Loop limit reached ({iterations}/{loop_limit}); stopping further passes.",
+            )
+            break
+
+        context.io.log(
+            f"Pass {iterations} completed with {len(result.operations)} operation(s); starting pass {iterations + 1} of {loop_limit}."
+        )
+
+    workdir.stop_runners()
+    return result_response

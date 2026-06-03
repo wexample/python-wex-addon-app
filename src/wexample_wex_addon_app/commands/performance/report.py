@@ -19,30 +19,38 @@ if TYPE_CHECKING:
 )
 def app__performance__report(
     context: ExecutionContext, app_workdir: AppMiddleware
-) -> None:
+):
+    from wexample_app.response.failure_response import FailureResponse
+    from wexample_app.response.properties_response import PropertiesResponse
+    from wexample_app.response.warning_response import WarningResponse
+
     from wexample_wex_addon_app.workdir.mixin.abstract_profiling_workdir_mixin import (
         AbstractProfilingWorkdirMixin,
     )
 
     if not isinstance(app_workdir, AbstractProfilingWorkdirMixin):
-        context.io.warning(
-            f"Performance profiling is not supported for workdir type: {type(app_workdir).__name__}"
+        return WarningResponse(
+            kernel=context.kernel,
+            message=(
+                f"Performance profiling is not supported for workdir type: "
+                f"{type(app_workdir).__name__}"
+            ),
         )
-        return
 
     result = app_workdir.run_profiling()
 
     if "error" in result:
-        context.io.error(result["error"])
-        return
+        return FailureResponse(kernel=context.kernel, message=result["error"])
 
     entries = result.get("entries", [])
 
     if not entries:
-        context.io.warning("No benchmark results found.")
-        return
+        return WarningResponse(
+            kernel=context.kernel, message="No benchmark results found."
+        )
 
-    context.io.properties(
+    return PropertiesResponse(
+        kernel=context.kernel,
         title=f"Performance Report ({result['language']} / {result['tool']})",
         properties={
             entry["name"]: (

@@ -57,13 +57,19 @@ def app__webhook__token_generate(
     command_name: str | None = None,
     all: bool = False,
     force: bool = False,
-) -> None:
+):
+    from wexample_app.response.failure_response import FailureResponse
+
     if not command_name and not all:
-        context.io.error("Specify --command-name <cmd> or --all.")
-        return
+        return FailureResponse(
+            kernel=context.kernel,
+            message="Specify --command-name <cmd> or --all.",
+        )
     if command_name and all:
-        context.io.error("--command-name and --all are mutually exclusive.")
-        return
+        return FailureResponse(
+            kernel=context.kernel,
+            message="--command-name and --all are mutually exclusive.",
+        )
 
     if all:
         webhook_cmds = (
@@ -75,8 +81,7 @@ def app__webhook__token_generate(
             if cmd["command"].startswith(".")
         ]
         if not targets:
-            context.io.log("No @webhook app commands found.")
-            return
+            return "No @webhook app commands found."
     else:
         targets = [command_name]
 

@@ -9,7 +9,10 @@ from wexample_prompt.common.io_manager import IoManager
 
 if TYPE_CHECKING:
     from wexample_config.config_value.nested_config_value import NestedConfigValue
-    from wexample_filestate.item.file.yaml_file import YamlFile
+
+    from wexample_wex_addon_app.item.file.app_registry_yaml_file import (
+        AppRegistryYamlFile,
+    )
 
 
 @base_class
@@ -17,12 +20,14 @@ class WithAppRegistryMixin(BaseClass):
     @classmethod
     def get_registry_from_path(
         cls, path: FileStringOrPath, io: IoManager
-    ) -> YamlFile | None:
-        from wexample_filestate.item.file.yaml_file import YamlFile
+    ) -> AppRegistryYamlFile | None:
+        from wexample_wex_addon_app.item.file.app_registry_yaml_file import (
+            AppRegistryYamlFile,
+        )
 
         registry_path = cls.get_registry_path_from_path(path=path)
         if registry_path.exists():
-            return YamlFile.create_from_path(path=registry_path, io=io)
+            return AppRegistryYamlFile.create_from_path(path=registry_path, io=io)
         return None
 
     @classmethod
@@ -58,11 +63,15 @@ class WithAppRegistryMixin(BaseClass):
         registry = self.get_registry_file(rebuild=rebuild)
         return registry.read_config()
 
-    def get_registry_file(self, rebuild: bool = False) -> YamlFile:
-        from wexample_filestate.item.file.yaml_file import YamlFile
+    def get_registry_file(self, rebuild: bool = False) -> AppRegistryYamlFile:
+        from wexample_wex_addon_app.item.file.app_registry_yaml_file import (
+            AppRegistryYamlFile,
+        )
 
         registry_path = self.get_registry_path_from_path(path=self.get_path())
-        registry = YamlFile.create_from_path(path=registry_path, io=self.io)
+        registry = AppRegistryYamlFile.create_from_path(
+            path=registry_path, io=self.io
+        )
 
         if rebuild or not registry.get_path().exists():
             registry.write_config(self.build_registry_value())

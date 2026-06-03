@@ -18,11 +18,13 @@ if TYPE_CHECKING:
 def app__registry__build(
     context: ExecutionContext,
     app_workdir: ManagedWorkdir,
-) -> None:
+):
+    from wexample_app.response.success_response import SuccessResponse
     from wexample_helpers.helpers.cli import cli_make_clickable_path
 
     registry = app_workdir.get_registry_file(rebuild=True)
 
-    context.io.success(
-        message=f"Registry updated at: {cli_make_clickable_path(registry.get_path())}"
+    return SuccessResponse(
+        kernel=context.kernel,
+        message=f"Registry updated at: {cli_make_clickable_path(registry.get_path())}",
     )

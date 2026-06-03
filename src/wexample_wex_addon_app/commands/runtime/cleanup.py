@@ -10,12 +10,16 @@ if TYPE_CHECKING:
 
 
 @command(type=COMMAND_TYPE_ADDON)
-def app__runtime__cleanup(context: ExecutionContext) -> None:
+def app__runtime__cleanup(context: ExecutionContext):
+    from wexample_app.response.success_response import SuccessResponse
+
     removed_containers, removed_images = context.workdir.runtime_cleanup()
 
     if removed_containers == 0 and removed_images == 0:
-        context.io.success("Nothing to clean up.")
-    else:
-        context.io.success(
-            f"Cleaned up {removed_containers} container(s) and {removed_images} image(s)."
+        return SuccessResponse(
+            kernel=context.kernel, message="Nothing to clean up."
         )
+    return SuccessResponse(
+        kernel=context.kernel,
+        message=f"Cleaned up {removed_containers} container(s) and {removed_images} image(s).",
+    )

@@ -21,8 +21,10 @@ if TYPE_CHECKING:
 def app__version__push(
     context: ExecutionContext,
     app_workdir: CodeBaseWorkdir,
-) -> None:
+):
+    from wexample_app.response.success_response import SuccessResponse
+
     package_name = app_workdir.get_package_name()
     app_workdir.commit_changes()
     app_workdir.push_to_deployment_remote()
-    context.io.success(f"Pushed {package_name}.")
+    return SuccessResponse(kernel=context.kernel, message=f"Pushed {package_name}.")

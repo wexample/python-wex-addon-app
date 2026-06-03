@@ -65,11 +65,15 @@ def app__db__dump(
 
     runtime = app_workdir.get_runtime_config()
     env = runtime.search("app.env").get_str_or_default("local")
-    name = runtime.search("app.name").get_str()
+    db_name = (
+        runtime.search(f"service.{service_name}.name").get_str_or_none()
+        or runtime.search("db.main").get_str_or_none()
+        or runtime.search("app.name").get_str()
+    )
 
     if not file_name:
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        file_name = f"{env}-{name}-{timestamp}"
+        file_name = f"{env}-{db_name}-{timestamp}"
         if tag:
             file_name += f"-{tag}"
 

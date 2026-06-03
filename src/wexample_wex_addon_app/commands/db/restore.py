@@ -75,13 +75,15 @@ def app__db__restore(
         if not resolved.is_absolute():
             resolved = dump_map.get(file_path) or dumps_dir / file_path
     else:
-        choice = context.io.prompt_choice(
-            "Please select a dump to restore",
-            list(dump_map.keys()),
+        response = context.io.choice(
+            question="Please select a dump to restore",
+            choices=list(dump_map.keys()),
+            abort="Abort",
         )
-        if not choice:
+        chosen = response.get_answer()
+        if not chosen:
             return None
-        resolved = dump_map[choice]
+        resolved = dump_map[chosen]
 
     resolved = Path(resolved)
     if not resolved.exists():

@@ -29,10 +29,13 @@ def app__webhook__token_show(
     context: ExecutionContext,
     app_workdir: ManagedWorkdir,
     command_name: str,
-) -> None:
+):
+    from wexample_app.response.warning_response import WarningResponse
+
     token = app_workdir.get_local_data_value("webhook_tokens", command_name)
     if not token:
-        context.io.warning(f"No token found for {command_name}.")
-        return
+        return WarningResponse(
+            kernel=context.kernel, message=f"No token found for {command_name}."
+        )
 
-    context.io.log(f"{command_name}:  @yellow{{{token}}}")
+    return f"{command_name}:  @yellow{{{token}}}"

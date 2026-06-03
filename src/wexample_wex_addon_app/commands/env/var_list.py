@@ -22,10 +22,14 @@ if TYPE_CHECKING:
 def app__env__var_list(
     context: ExecutionContext,
     app_workdir: ManagedWorkdir,
-) -> None:
+):
+    from wexample_app.response.properties_response import PropertiesResponse
+
     env_vars = app_workdir.get_env_parameters().to_dict()
     if not env_vars:
-        context.io.log("No variables found in .wex/local/env.yml")
-        return
-    for key, value in sorted(env_vars.items()):
-        context.io.log(f"{key}={value}")
+        return "No variables found in .wex/local/env.yml"
+    return PropertiesResponse(
+        kernel=context.kernel,
+        properties=dict(sorted(env_vars.items())),
+        title=".wex/local/env.yml",
+    )

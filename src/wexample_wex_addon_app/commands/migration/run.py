@@ -33,18 +33,23 @@ def app__migration__run(
     context: ExecutionContext,
     app_workdir: ManagedWorkdir,
     dry_run: bool = False,
-) -> None:
+):
+    from wexample_app.response.failure_response import FailureResponse
+    from wexample_app.response.success_response import SuccessResponse
     from wexample_migration.migration_stamp import MigrationStamp, stamp_sort_key
     from wexample_migration.workdir.mixin.with_migration_workdir_mixin import (
         WithMigrationWorkdirMixin,
     )
 
     if not isinstance(app_workdir, WithMigrationWorkdirMixin):
-        context.io.error(
-            "Current workdir does not support migrations. "
-            "Mix WithMigrationWorkdirMixin into your workdir class and override get_migrations()."
+        return FailureResponse(
+            kernel=context.kernel,
+            message=(
+                "Current workdir does not support migrations. "
+                "Mix WithMigrationWorkdirMixin into your workdir class and "
+                "override get_migrations()."
+            ),
         )
-        return
 
     if dry_run:
         context.io.log("Dry run — no changes will be written.")
@@ -56,12 +61,15 @@ def app__migration__run(
 
     if applied:
         label = "Would apply" if dry_run else "Applied"
-        context.io.success(f"{label}: {', '.join(applied)}")
+        result = SuccessResponse(
+            kernel=context.kernel,
+            message=f"{label}: {', '.join(applied)}",
+        )
     else:
-        context.io.log("No pending migrations.")
+        result = "No pending migrations."
 
     if dry_run:
-        return
+        return result
 
     # Final stamp = max(kernel.version, current applied state). The migration
     # cursor (seq) is kept only when it belongs to the resulting version —
@@ -81,3 +89,5 @@ def app__migration__run(
         new_stamp = current
 
     app_workdir.migration_write_stamp(new_stamp)
+
+    return result

@@ -200,7 +200,9 @@ def _suggest_remotes(context, app_workdir, apply: bool) -> None:
     """Best-effort: when an env config has a `domains:` (or `domain:`) entry
     but no usable `remotes[].host`, try resolving the first domain in DNS and
     fill it in. Silent skip on any DNS failure — we don't try hard."""
-    import yaml
+    from wexample_wex_addon_app.item.file.app_config_yaml_file import (
+        AppConfigYamlFile,
+    )
 
     env_dir = app_workdir.get_path() / ".wex" / "env"
     if not env_dir.is_dir():
@@ -210,8 +212,13 @@ def _suggest_remotes(context, app_workdir, apply: bool) -> None:
     for env_config_path in sorted(env_dir.glob("*/config.yml")):
         env_name = env_config_path.parent.name
         try:
-            data = yaml.safe_load(env_config_path.read_text(encoding="utf-8")) or {}
-        except yaml.YAMLError as e:
+            data = (
+                AppConfigYamlFile.create_from_path(path=env_config_path).read_parsed(
+                    strict=True
+                )
+                or {}
+            )
+        except Exception as e:
             context.io.warning(f"Skipping {env_config_path}: {e}")
             continue
         if not isinstance(data, dict):
@@ -247,11 +254,12 @@ def _suggest_remotes(context, app_workdir, apply: bool) -> None:
         return
 
     for env_name, path, domain, ip in candidates:
-        data = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
+        cfg_file = AppConfigYamlFile.create_from_path(path=path)
+        data = cfg_file.read_parsed() or {}
         if not isinstance(data, dict):
             continue
         data["remotes"] = [{"name": "main", "host": ip}]
-        path.write_text(yaml.safe_dump(data, sort_keys=False), encoding="utf-8")
+        cfg_file.write_parsed(content=data)
         context.io.success(
             f"Set remotes[main].host = {ip} (resolved from {domain}) "
             f"in .wex/env/{env_name}/config.yml"
