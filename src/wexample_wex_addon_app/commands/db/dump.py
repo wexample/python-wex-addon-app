@@ -50,12 +50,10 @@ def app__db__dump(
     tag: str | None = None,
     zip: bool = True,
     service: str | None = None,
-) -> AbstractResponse:
+) -> AbstractResponse | str | None:
     import zipfile as _zipfile
     from datetime import datetime
 
-    from wexample_app.response.null_response import NullResponse
-    from wexample_app.response.str_response import StrResponse
     from wexample_app.response.warning_response import WarningResponse
 
     service_name = service or app_workdir.get_main_db_service()
@@ -89,7 +87,7 @@ def app__db__dump(
     dump_path_str = response.content if hasattr(response, "content") else None
 
     if not dump_path_str:
-        return NullResponse(kernel=context.kernel)
+        return None
 
     from pathlib import Path
 
@@ -118,4 +116,4 @@ def app__db__dump(
         symlink.unlink()
     symlink.symlink_to(output_path.name)
 
-    return StrResponse(kernel=context.kernel, content=str(output_path))
+    return str(output_path)
