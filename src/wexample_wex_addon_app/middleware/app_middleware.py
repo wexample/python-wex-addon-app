@@ -64,7 +64,11 @@ class AppMiddleware(AbstractMiddleware):
 
     def _create_app_workdir(self, request: CommandRequest, app_path: str):
         """Create and return the app workdir. Can be overridden by subclasses to add validation."""
-        return request.get_addon_manager().create_app_workdir(path=app_path)
+        from wexample_wex_addon_app.app_addon_manager import AppAddonManager
+
+        return AppAddonManager.from_kernel(request.kernel).create_app_workdir(
+            path=app_path
+        )
 
     def _get_middleware_options(self) -> list[Option]:
         from wexample_app.command.option import Option
