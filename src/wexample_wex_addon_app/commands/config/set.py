@@ -10,6 +10,7 @@ from wexample_wex_core.const.globals import COMMAND_TYPE_ADDON
 from wexample_wex_addon_app.middleware.app_middleware import AppMiddleware
 
 if TYPE_CHECKING:
+    from wexample_app.response.abstract_response import AbstractResponse
     from wexample_cli.context.execution_context import ExecutionContext
 
     from wexample_wex_addon_app.workdir.managed_workdir import ManagedWorkdir
@@ -34,6 +35,12 @@ def app__config__set(
     app_workdir: ManagedWorkdir,
     key: str,
     value: str,
-) -> None:
+) -> AbstractResponse:
+    from wexample_app.response.success_response import SuccessResponse
+
     app_workdir.get_config_file().write_config_value(key, value)
-    context.io.log(f"Set {key} = {value}")
+
+    return SuccessResponse(
+        kernel=context.kernel,
+        message=f"Set @cyan{{{key}}} = {value}",
+    )
