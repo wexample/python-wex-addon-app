@@ -156,11 +156,8 @@ def app__app__start(
             return
 
         if no_proxy:
-            from wexample_app.response.log_response import LogResponse
-
-            return LogResponse(
-                kernel=context.kernel, message="Proxy explicitly disabled"
-            )
+            context.io.log("Proxy explicitly disabled")
+            return
 
         if not proxy_path.exists():
             from wexample_wex_addon_app.commands.sidecar.start import (
