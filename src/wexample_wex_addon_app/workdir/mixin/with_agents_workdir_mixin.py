@@ -22,10 +22,17 @@ def build_agents_content(target) -> str:
     return (
         "This project is managed by the **wex** script.\n"
         "\n"
-        "- **With wex installed:** run `TODO` to discover available commands.\n"
-        "- **Without wex:** read `.wex/knowledge/__summary.md` for static documentation.\n"
-        "- **Unsure?** Run `wex hi` — prints `hi!` if available, "
-        "otherwise see https://github.com/wexample/wex/blob/master/README.md.\n"
+        "**With wex installed:**\n"
+        "- Outside `wex talk`: launch `wex ai::agent/talk` from this directory — "
+        "best experience (commands via MCP, project preprompt loaded).\n"
+        "- Inside `wex talk` on this app's cwd: standard flow, no extra setup needed.\n"
+        "- Inside `wex talk` on another cwd: invoke wex commands with "
+        "`--app-path <path>` to target this app.\n"
+        "\n"
+        "**Without wex:** read `.wex/knowledge/__summary.md` for static documentation.\n"
+        "\n"
+        "**Unsure?** Run `wex hi` — prints `hi!` if installed; "
+        "otherwise see https://github.com/wexample/wex.\n"
     )
 
 
