@@ -46,8 +46,11 @@ def _check_started(app_workdir: ManagedWorkdir, mode: str, context) -> bool:
     import json
     import subprocess
 
-    import yaml
     from wexample_app.const.globals import WORKDIR_SETUP_DIR
+
+    from wexample_wex_addon_app.item.file.docker_compose_yaml_file import (
+        DockerComposeYamlFile,
+    )
 
     runtime_path = app_workdir.get_runtime_config_file().get_path()
     if not runtime_path.exists():
@@ -71,13 +74,9 @@ def _check_started(app_workdir: ManagedWorkdir, mode: str, context) -> bool:
         context.io.log("Runtime docker-compose file is missing")
         return False
 
-    with open(compose_path) as f:
-        compose = yaml.safe_load(f) or {}
-
-    container_names = [
-        attrs.get("container_name", service)
-        for service, attrs in compose.get("services", {}).items()
-    ]
+    container_names = DockerComposeYamlFile.create_from_path(
+        path=compose_path
+    ).read_container_names()
 
     # Check running containers
     result = subprocess.run(

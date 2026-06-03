@@ -102,8 +102,11 @@ def app__app__go(
 
 
 def _available_containers(app_workdir: ManagedWorkdir) -> list[str]:
-    import yaml
     from wexample_app.const.globals import WORKDIR_SETUP_DIR
+
+    from wexample_wex_addon_app.item.file.docker_compose_yaml_file import (
+        DockerComposeYamlFile,
+    )
 
     compose_path = (
         app_workdir.get_path()
@@ -113,6 +116,6 @@ def _available_containers(app_workdir: ManagedWorkdir) -> list[str]:
     )
     if not compose_path.exists():
         return []
-    with open(compose_path) as f:
-        compose = yaml.safe_load(f) or {}
-    return list((compose.get("services", {}) or {}).keys())
+    return list(
+        DockerComposeYamlFile.create_from_path(path=compose_path).read_services().keys()
+    )
