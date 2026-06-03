@@ -113,7 +113,6 @@ def app__config__build(
         # rely on the proxy being up first. Pre-creating it manually here would
         # produce a label-less network that conflicts when the proxy itself
         # tries to (re)create it.
-
         app_manager = AppAddonManager.from_kernel(context.kernel)
         app_workdir.get_runtime_config_file().read_config().to_dict()
         docker_env_path = tmp_dir / "docker.env"
