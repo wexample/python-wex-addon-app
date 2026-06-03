@@ -13,6 +13,7 @@ from wexample_wex_core.const.globals import COMMAND_TYPE_ADDON
 from wexample_wex_addon_app.middleware.app_middleware import AppMiddleware
 
 if TYPE_CHECKING:
+    from wexample_app.response.abstract_response import AbstractResponse
     from wexample_cli.context.execution_context import ExecutionContext
 
     from wexample_wex_addon_app.workdir.managed_workdir import ManagedWorkdir
@@ -23,8 +24,10 @@ if TYPE_CHECKING:
 def app__container__list(
     context: ExecutionContext,
     app_workdir: ManagedWorkdir,
-) -> None:
+) -> AbstractResponse:
     from wexample_app.const.globals import WORKDIR_SETUP_DIR
+    from wexample_app.response.default_response import DefaultResponse
+    from wexample_app.response.table_response import TableResponse
 
     compose_path = (
         app_workdir.get_path()
@@ -33,16 +36,20 @@ def app__container__list(
         / "docker-compose.runtime.yml"
     )
     if not compose_path.exists():
-        context.io.log("Runtime docker-compose file is missing")
-        return
+        return DefaultResponse(
+            kernel=context.kernel,
+            content="Runtime docker-compose file is missing",
+        )
 
     with open(compose_path) as file:
         compose = yaml.safe_load(file) or {}
 
     services = compose.get("services", {}) or {}
     if not services:
-        context.io.log("No app containers declared in runtime docker-compose")
-        return
+        return DefaultResponse(
+            kernel=context.kernel,
+            content="No app containers declared in runtime docker-compose",
+        )
 
     container_names = [
         attrs.get("container_name", service_name)
@@ -87,8 +94,9 @@ def app__container__list(
             ]
         rows.append(row)
 
-    context.io.table(
-        data=rows,
+    return TableResponse(
+        kernel=context.kernel,
+        content=rows,
         headers=headers,
     )
 
