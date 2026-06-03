@@ -42,12 +42,11 @@ def app__db__restore(
     file_path: str | None = None,
     database: str | None = None,
     service: str | None = None,
-) -> AbstractResponse:
+) -> AbstractResponse | None:
     import zipfile
     from pathlib import Path
 
     from wexample_app.const.globals import WORKDIR_SETUP_DIR
-    from wexample_app.response.null_response import NullResponse
     from wexample_app.response.success_response import SuccessResponse
 
     service_name = service or app_workdir.get_main_db_service()
@@ -81,7 +80,7 @@ def app__db__restore(
             list(dump_map.keys()),
         )
         if not choice:
-            return NullResponse(kernel=context.kernel)
+            return None
         resolved = dump_map[choice]
 
     resolved = Path(resolved)
