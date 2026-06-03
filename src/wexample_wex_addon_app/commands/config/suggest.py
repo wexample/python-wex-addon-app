@@ -11,6 +11,7 @@ from wexample_wex_core.const.globals import COMMAND_TYPE_ADDON
 from wexample_wex_addon_app.middleware.app_middleware import AppMiddleware
 
 if TYPE_CHECKING:
+    from wexample_app.response.abstract_response import AbstractResponse
     from wexample_cli.context.execution_context import ExecutionContext
 
     from wexample_wex_addon_app.workdir.managed_workdir import ManagedWorkdir
@@ -55,20 +56,28 @@ def app__config__suggest(
     context: ExecutionContext,
     app_workdir: ManagedWorkdir,
     apply: bool = False,
-) -> None:
+) -> AbstractResponse:
     from wexample_app.const.globals import APP_PATH_DOCKER_COMPOSE
+    from wexample_app.response.failure_response import FailureResponse
+    from wexample_app.response.null_response import NullResponse
+    from wexample_app.response.success_response import SuccessResponse
+    from wexample_app.response.warning_response import WarningResponse
 
     _suggest_remotes(context, app_workdir, apply=apply)
 
     compose_path = app_workdir.get_path() / APP_PATH_DOCKER_COMPOSE
     if not compose_path.exists():
-        context.io.warning(f"No docker-compose at {compose_path}")
-        return
+        return WarningResponse(
+            kernel=context.kernel,
+            message=f"No docker-compose at {compose_path}",
+        )
 
     found = _scan_compose(compose_path)
     if not found:
-        context.io.success("No ${VAR} references in docker-compose")
-        return
+        return SuccessResponse(
+            kernel=context.kernel,
+            message="No ${VAR} references in docker-compose",
+        )
 
     declared = _read_declared_vars(app_workdir)
     existing_env = app_workdir.get_env_parameters().to_dict()
@@ -80,8 +89,10 @@ def app__config__suggest(
     }
 
     if not to_suggest:
-        context.io.success("All non-builtin vars are already declared in vars:")
-        return
+        return SuccessResponse(
+            kernel=context.kernel,
+            message="All non-builtin vars are already declared in vars:",
+        )
 
     suggestions = {}
     for name in sorted(to_suggest):
@@ -106,14 +117,16 @@ def app__config__suggest(
             current = existing_env.get(name)
             if current is not None:
                 context.io.log(f"#   {name} = {current!r}")
-        return
+        return NullResponse(kernel=context.kernel)
 
     # Apply: merge into config.yml → vars: without touching anything else
     config_file = app_workdir.get_config_file()
     config = config_file.read_parsed() or {}
     if not isinstance(config, dict):
-        context.io.error("config.yml is not a mapping — aborting")
-        return
+        return FailureResponse(
+            kernel=context.kernel,
+            message="config.yml is not a mapping — aborting",
+        )
 
     existing_vars = config.get("vars") if isinstance(config.get("vars"), dict) else {}
     merged_vars = {**existing_vars}
@@ -122,9 +135,12 @@ def app__config__suggest(
     config["vars"] = merged_vars
 
     config_file.write_parsed(config)
-    context.io.success(
-        f"Added {len(suggestions)} var(s) to .wex/config.yml → vars:. "
-        "Fill in the `description:` fields before committing."
+    return SuccessResponse(
+        kernel=context.kernel,
+        message=(
+            f"Added {len(suggestions)} var(s) to .wex/config.yml → vars:. "
+            "Fill in the `description:` fields before committing."
+        ),
     )
 
 
