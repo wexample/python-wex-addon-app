@@ -52,14 +52,18 @@ def app__app__restart(
     from wexample_wex_addon_app.commands.app.stop import app__app__stop
 
     def _stop(previous_value=None) -> AbstractResponse | None:
+        from wexample_app.response.log_response import LogResponse
+
         # Skip stop entirely when the app has never started — otherwise
         # `docker compose stop` runs against a runtime compose file that may
         # reference unmaterialized services and fails. Restart on a fresh app
         # then behaves like a plain start.
         runtime = app_workdir.get_runtime_config()
         if not runtime.search("app.started").get_bool_or_default(False):
-            context.io.log("App not started — skipping stop, proceeding to start.")
-            return None
+            return LogResponse(
+                kernel=context.kernel,
+                message="App not started — skipping stop, proceeding to start.",
+            )
         return context.kernel.run_function(app__app__stop, arguments={"force": True})
 
     def _start(previous_value=None) -> AbstractResponse:
