@@ -59,7 +59,10 @@ if TYPE_CHECKING:
 )
 @as_sudo()
 @middleware(middleware=AppMiddleware)
-@command(type=COMMAND_TYPE_ADDON, description="Start the app")
+@command(
+    type=COMMAND_TYPE_ADDON,
+    description="Start the app",
+)
 def app__app__start(
     context: ExecutionContext,
     app_workdir: ManagedWorkdir,
@@ -261,7 +264,8 @@ def app__app__start(
             interval=2.0,
         )
 
-    def _complete(previous_value=None) -> None:
+    def _complete(previous_value=None) -> AbstractResponse:
+        from wexample_app.response.suggestions_response import SuggestionsResponse
         from wexample_wex_core.resolver.addon_command_resolver import (
             AddonCommandResolver,
         )
@@ -292,7 +296,8 @@ def app__app__start(
         if app_workdir.get_main_db_service():
             suggestions.insert(0, _cmd(app__db__go))
 
-        context.io.suggestions(
+        return SuggestionsResponse(
+            kernel=context.kernel,
             message=summary,
             suggestions=suggestions,
         )

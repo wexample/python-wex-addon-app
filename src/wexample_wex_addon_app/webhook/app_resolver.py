@@ -34,8 +34,11 @@ class AppWebhookTypeResolver:
         return str(self._base / env / app_name)
 
     def resolve_token(self, command_path: str, command_str: str) -> str | None:
-        import yaml
         from wexample_app.const.globals import WORKDIR_LOCAL_DIR_NAME, WORKDIR_SETUP_DIR
+
+        from wexample_wex_addon_app.item.file.webhook_tokens_yaml_file import (
+            WebhookTokensYamlFile,
+        )
 
         cwd = self.resolve_cwd(command_path)
         if not cwd:
@@ -48,12 +51,9 @@ class AppWebhookTypeResolver:
         )
         if not token_file.exists():
             return None
-        try:
-            with open(token_file) as f:
-                data = yaml.safe_load(f) or {}
-        except Exception:
-            return None
-        return data.get(command_str)
+        return WebhookTokensYamlFile.create_from_path(path=token_file).get_token(
+            command_str
+        )
 
     def _parse(self, command_path: str) -> tuple[str, str, str] | None:
         parts = command_path.split("/", 2)

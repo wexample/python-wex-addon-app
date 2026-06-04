@@ -11,7 +11,6 @@ from wexample_wex_addon_app.middleware.app_middleware import AppMiddleware
 from wexample_wex_addon_app.workdir.repo_workdir import RepoWorkdir
 
 if TYPE_CHECKING:
-    from wexample_app.response.boolean_response import BooleanResponse
     from wexample_cli.context.execution_context import ExecutionContext
 
 
@@ -33,9 +32,7 @@ def app__version__bump(
     app_workdir: RepoWorkdir,
     yes: bool = False,
     force: bool = False,
-) -> BooleanResponse:
-    from wexample_app.response.boolean_response import BooleanResponse
-
+) -> bool:
     package_name = app_workdir.get_package_name()
     bumped = app_workdir.bump(interactive=not yes, force=force)
 
@@ -44,4 +41,4 @@ def app__version__bump(
     else:
         context.io.log(f"Bump aborted for {package_name}.")
 
-    return BooleanResponse(kernel=context.kernel, content=bumped)
+    return bumped

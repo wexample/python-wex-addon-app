@@ -19,25 +19,29 @@ if TYPE_CHECKING:
     type=COMMAND_TYPE_ADDON,
     description="Rollback the last applied migration on the current app",
 )
-def app__migration__rollback(
-    context: ExecutionContext, app_workdir: ManagedWorkdir
-) -> None:
+def app__migration__rollback(context: ExecutionContext, app_workdir: ManagedWorkdir):
+    from wexample_app.response.failure_response import FailureResponse
+    from wexample_app.response.success_response import SuccessResponse
     from wexample_migration.workdir.mixin.with_migration_workdir_mixin import (
         WithMigrationWorkdirMixin,
     )
 
     if not isinstance(app_workdir, WithMigrationWorkdirMixin):
-        context.io.error(
-            "Current workdir does not support migrations. "
-            "Mix WithMigrationWorkdirMixin into your workdir class and override get_migrations()."
+        return FailureResponse(
+            kernel=context.kernel,
+            message=(
+                "Current workdir does not support migrations. "
+                "Mix WithMigrationWorkdirMixin into your workdir class and "
+                "override get_migrations()."
+            ),
         )
-        return
 
     rolled_back = app_workdir.migration_rollback(
         extras={"workdir": app_workdir, "kernel": context.kernel}
     )
 
     if rolled_back:
-        context.io.success(f"Rolled back: {rolled_back}")
-    else:
-        context.io.log("Nothing to rollback.")
+        return SuccessResponse(
+            kernel=context.kernel, message=f"Rolled back: {rolled_back}"
+        )
+    return "Nothing to rollback."

@@ -9,7 +9,6 @@ from wexample_wex_core.const.globals import COMMAND_TYPE_ADDON
 from wexample_wex_addon_app.middleware.app_middleware import AppMiddleware
 
 if TYPE_CHECKING:
-    from wexample_app.response.abstract_response import AbstractResponse
     from wexample_cli.context.execution_context import ExecutionContext
 
     from wexample_wex_addon_app.workdir.managed_workdir import ManagedWorkdir
@@ -23,10 +22,10 @@ if TYPE_CHECKING:
 def app__image__list(
     context: ExecutionContext,
     app_workdir: ManagedWorkdir,
-) -> AbstractResponse:
+):
     import subprocess
 
-    from wexample_app.response.null_response import NullResponse
+    from wexample_app.response.table_response import TableResponse
 
     from wexample_wex_addon_app.helpers.image_builds import load_builds
 
@@ -53,22 +52,13 @@ def app__image__list(
         else:
             image_id, size, created = "—", "—", "not built"
 
-        rows.append((build_name, tag, image_id, size, created))
+        rows.append([build_name, tag, image_id, size, created])
 
     if not rows:
-        context.io.log("No builds defined in builds.yml")
-        return NullResponse(kernel=context.kernel)
+        return "No builds defined in builds.yml"
 
-    col_name = max(len(r[0]) for r in rows)
-    col_tag = max(len(r[1]) for r in rows)
-
-    header = f"{'NAME':<{col_name}}  {'TAG':<{col_tag}}  {'IMAGE ID':<12}  {'SIZE':<10}  CREATED"
-    separator = "-" * len(header)
-    context.io.log(header)
-    context.io.log(separator)
-    for build_name, tag, image_id, size, created in rows:
-        context.io.log(
-            f"{build_name:<{col_name}}  {tag:<{col_tag}}  {image_id:<12}  {size:<10}  {created}"
-        )
-
-    return NullResponse(kernel=context.kernel)
+    return TableResponse(
+        kernel=context.kernel,
+        content=rows,
+        headers=["NAME", "TAG", "IMAGE ID", "SIZE", "CREATED"],
+    )

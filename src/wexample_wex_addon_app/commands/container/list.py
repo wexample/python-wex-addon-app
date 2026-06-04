@@ -4,7 +4,6 @@ import json
 import subprocess
 from typing import TYPE_CHECKING, Any
 
-import yaml
 from wexample_cli.decorator.command import command
 from wexample_cli.decorator.middleware import middleware
 from wexample_prompt.enums.verbosity_level import VerbosityLevel
@@ -29,6 +28,10 @@ def app__container__list(
     from wexample_app.response.default_response import DefaultResponse
     from wexample_app.response.table_response import TableResponse
 
+    from wexample_wex_addon_app.item.file.docker_compose_yaml_file import (
+        DockerComposeYamlFile,
+    )
+
     compose_path = (
         app_workdir.get_path()
         / WORKDIR_SETUP_DIR
@@ -41,10 +44,7 @@ def app__container__list(
             content="Runtime docker-compose file is missing",
         )
 
-    with open(compose_path) as file:
-        compose = yaml.safe_load(file) or {}
-
-    services = compose.get("services", {}) or {}
+    services = DockerComposeYamlFile.create_from_path(path=compose_path).read_services()
     if not services:
         return DefaultResponse(
             kernel=context.kernel,

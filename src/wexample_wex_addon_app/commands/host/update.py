@@ -31,7 +31,7 @@ def app__host__update(
     context: ExecutionContext,
     app_workdir: ManagedWorkdir,
 ) -> AbstractResponse:
-    from wexample_app.response.null_response import NullResponse
+    from wexample_app.response.success_response import SuccessResponse
 
     from wexample_wex_addon_app.common.app_registry import (
         registry_purge_stopped,
@@ -60,11 +60,13 @@ def app__host__update(
     with open(_HOSTS_PATH, "w") as f:
         f.write(content)
 
-    context.io.log(
-        f"Hosts updated: {total_domains} domain(s) from {len(data['apps'])} app(s)"
+    return SuccessResponse(
+        kernel=context.kernel,
+        message=(
+            f"Hosts updated: {total_domains} domain(s) "
+            f"from {len(data['apps'])} app(s)"
+        ),
     )
-
-    return NullResponse(kernel=context.kernel)
 
 
 def _add_block(content: str, block_lines: list[str]) -> str:

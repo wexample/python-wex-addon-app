@@ -9,6 +9,7 @@ from wexample_cli.decorator.option import option
 from wexample_wex_core.const.globals import COMMAND_TYPE_ADDON
 
 if TYPE_CHECKING:
+    from wexample_app.response.abstract_response import AbstractResponse
     from wexample_cli.context.execution_context import ExecutionContext
 
 
@@ -52,7 +53,7 @@ def app__app__init(
     services: list[str] | None = None,
     env: str | None = None,
     app_path: str | None = None,
-) -> None:
+) -> AbstractResponse:
     import yaml
     from wexample_app.const.globals import (
         APP_DIR_DOCKER,
@@ -122,4 +123,9 @@ def app__app__init(
         {"app_path": str(target_path), "yes": True, "loop": True},
     )
 
-    context.io.log(f"Initialized app '{app_name}' at {target_path}")
+    from wexample_app.response.log_response import LogResponse
+
+    return LogResponse(
+        kernel=context.kernel,
+        message=f"Initialized app '@cyan{{{app_name}}}' at @magenta{{{target_path}}}",
+    )

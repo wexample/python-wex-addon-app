@@ -10,6 +10,7 @@ from wexample_wex_core.const.globals import COMMAND_TYPE_ADDON
 from wexample_wex_addon_app.middleware.app_middleware import AppMiddleware
 
 if TYPE_CHECKING:
+    from wexample_app.response.abstract_response import AbstractResponse
     from wexample_cli.context.execution_context import ExecutionContext
 
     from wexample_wex_addon_app.workdir.managed_workdir import ManagedWorkdir
@@ -41,11 +42,12 @@ def app__db__restore(
     file_path: str | None = None,
     database: str | None = None,
     service: str | None = None,
-) -> None:
+) -> AbstractResponse | None:
     import zipfile
     from pathlib import Path
 
     from wexample_app.const.globals import WORKDIR_SETUP_DIR
+    from wexample_app.response.success_response import SuccessResponse
 
     service_name = service or app_workdir.get_main_db_service()
     if not service_name:
@@ -73,15 +75,15 @@ def app__db__restore(
         if not resolved.is_absolute():
             resolved = dump_map.get(file_path) or dumps_dir / file_path
     else:
-        pass
-
-        choice = context.io.prompt_choice(
-            "Please select a dump to restore",
-            list(dump_map.keys()),
+        response = context.io.choice(
+            question="Please select a dump to restore",
+            choices=list(dump_map.keys()),
+            abort="Abort",
         )
-        if not choice:
-            return
-        resolved = dump_map[choice]
+        chosen = response.get_answer()
+        if not chosen:
+            return None
+        resolved = dump_map[chosen]
 
     resolved = Path(resolved)
     if not resolved.exists():
@@ -127,4 +129,7 @@ def app__db__restore(
     if is_zip and sql_path.exists():
         sql_path.unlink()
 
-    context.io.log("Restoration complete")
+    return SuccessResponse(
+        kernel=context.kernel,
+        message="Restoration complete",
+    )

@@ -623,6 +623,12 @@ class ManagedWorkdir(
                         "should_exist": True,
                         "children": [
                             {
+                                "name": "agents",
+                                "type": DiskItemType.DIRECTORY,
+                                "should_exist": True,
+                                "children": gitkeep_child,
+                            },
+                            {
                                 "name": "prompts",
                                 "type": DiskItemType.DIRECTORY,
                                 "should_exist": True,

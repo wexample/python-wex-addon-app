@@ -182,16 +182,18 @@ class AppReadmeConfigValue(ReadmeContentConfigValue):
 
     def _read_suite_section_order(self) -> list[str]:
         """Read readme.sections from suite configs, closest suite wins."""
-        import yaml
         from wexample_app.const.globals import WORKDIR_SETUP_DIR
+
+        from wexample_wex_addon_app.item.file.app_config_yaml_file import (
+            AppConfigYamlFile,
+        )
 
         order: list[str] = []
         for suite_path in reversed(self._collect_suite_paths()):
             config_file = suite_path / WORKDIR_SETUP_DIR / "config.yml"
             if not config_file.exists():
                 continue
-            with open(config_file, encoding="utf-8") as f:
-                config = yaml.safe_load(f)
+            config = AppConfigYamlFile.create_from_path(path=config_file).read_parsed()
             if not config:
                 continue
             suite_order = config.get("readme", {}).get("sections", [])

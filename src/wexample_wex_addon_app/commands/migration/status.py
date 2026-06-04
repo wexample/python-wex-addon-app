@@ -19,33 +19,35 @@ if TYPE_CHECKING:
     type=COMMAND_TYPE_ADDON,
     description="Show the migration status of the current app",
 )
-def app__migration__status(
-    context: ExecutionContext, app_workdir: ManagedWorkdir
-) -> None:
+def app__migration__status(context: ExecutionContext, app_workdir: ManagedWorkdir):
+    from wexample_app.response.failure_response import FailureResponse
+    from wexample_app.response.properties_response import PropertiesResponse
     from wexample_migration.workdir.mixin.with_migration_workdir_mixin import (
         WithMigrationWorkdirMixin,
     )
 
     if not isinstance(app_workdir, WithMigrationWorkdirMixin):
-        context.io.error(
-            "Current workdir does not support migrations. "
-            "Mix WithMigrationWorkdirMixin into your workdir class and override get_migrations()."
+        return FailureResponse(
+            kernel=context.kernel,
+            message=(
+                "Current workdir does not support migrations. "
+                "Mix WithMigrationWorkdirMixin into your workdir class and "
+                "override get_migrations()."
+            ),
         )
-        return
 
     status = app_workdir.migration_status(
         extras={"workdir": app_workdir, "kernel": context.kernel}
     )
-    current = status["current_version"] or "none"
 
-    context.io.log(f"Current version : {current}")
-
-    if status["applied"]:
-        context.io.log(f"Applied         : {', '.join(status['applied'])}")
-    else:
-        context.io.log("Applied         : (none)")
-
-    if status["pending"]:
-        context.io.log(f"Pending         : {', '.join(status['pending'])}")
-    else:
-        context.io.log("Pending         : (up to date)")
+    return PropertiesResponse(
+        kernel=context.kernel,
+        title="Migration status",
+        properties={
+            "Current version": status["current_version"] or "none",
+            "Applied": ", ".join(status["applied"]) if status["applied"] else "(none)",
+            "Pending": (
+                ", ".join(status["pending"]) if status["pending"] else "(up to date)"
+            ),
+        },
+    )

@@ -39,6 +39,8 @@ def app__env__var_set(
     app_workdir: ManagedWorkdir,
     key: str,
     value: str,
-) -> None:
+) -> SuccessResponse:
+    from wexample_app.response.success_response import SuccessResponse
+
     app_workdir.set_env_parameters({key: value})
-    context.io.log(f"{key} set")
+    return SuccessResponse(kernel=context.kernel, message=f"{key} set")

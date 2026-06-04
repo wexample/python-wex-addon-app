@@ -25,5 +25,7 @@ if TYPE_CHECKING:
 def app__maintenance__disable(
     context: ExecutionContext,
     app_workdir: ManagedWorkdir,
-) -> None:
-    context.io.log("Maintenance disabled")
+) -> SuccessResponse:
+    from wexample_app.response.success_response import SuccessResponse
+
+    return SuccessResponse(kernel=context.kernel, message="Maintenance disabled")

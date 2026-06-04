@@ -10,6 +10,7 @@ from wexample_wex_core.const.globals import COMMAND_TYPE_ADDON
 from wexample_wex_addon_app.middleware.app_middleware import AppMiddleware
 
 if TYPE_CHECKING:
+    from wexample_app.response.abstract_response import AbstractResponse
     from wexample_cli.context.execution_context import ExecutionContext
 
     from wexample_wex_addon_app.workdir.managed_workdir import ManagedWorkdir
@@ -49,22 +50,30 @@ def app__db__dump(
     tag: str | None = None,
     zip: bool = True,
     service: str | None = None,
-) -> str | None:
+) -> AbstractResponse | str | None:
     import zipfile as _zipfile
     from datetime import datetime
 
+    from wexample_app.response.warning_response import WarningResponse
+
     service_name = service or app_workdir.get_main_db_service()
     if not service_name:
-        context.io.log("No DB service configured (docker.db.main), skipping dump")
-        return None
+        return WarningResponse(
+            kernel=context.kernel,
+            message="No DB service configured (docker.db.main), skipping dump",
+        )
 
     runtime = app_workdir.get_runtime_config()
     env = runtime.search("app.env").get_str_or_default("local")
-    name = runtime.search("app.name").get_str()
+    db_name = (
+        runtime.search(f"service.{service_name}.name").get_str_or_none()
+        or runtime.search("db.main").get_str_or_none()
+        or runtime.search("app.name").get_str()
+    )
 
     if not file_name:
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        file_name = f"{env}-{name}-{timestamp}"
+        file_name = f"{env}-{db_name}-{timestamp}"
         if tag:
             file_name += f"-{tag}"
 
@@ -111,5 +120,4 @@ def app__db__dump(
         symlink.unlink()
     symlink.symlink_to(output_path.name)
 
-    context.io.log(f"Dump created at {output_path}")
     return str(output_path)

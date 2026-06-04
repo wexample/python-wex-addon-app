@@ -76,10 +76,12 @@ def app__remote__exec(
         context=context, command=command, extra_args=extra_args
     )
     if remote_cmd is None:
-        context.io.error(
-            'No command provided. Pass `--command "..."` or `-- <cmd> [args...]`.'
+        from wexample_app.response.failure_response import FailureResponse
+
+        return FailureResponse(
+            kernel=context.kernel,
+            message='No command provided. Pass `--command "..."` or `-- <cmd> [args...]`.',
         )
-        return 2
 
     remote = remote_resolve(
         app_workdir=app_workdir, env=env, name=name, user_override=user

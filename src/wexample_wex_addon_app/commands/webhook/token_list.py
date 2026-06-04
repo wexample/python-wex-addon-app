@@ -22,15 +22,20 @@ if TYPE_CHECKING:
 def app__webhook__token_list(
     context: ExecutionContext,
     app_workdir: ManagedWorkdir,
-) -> None:
+):
+    from wexample_app.response.table_response import TableResponse
+
     tokens: dict = app_workdir.get_local_data("webhook_tokens")
 
     if not tokens:
-        context.io.log("No webhook tokens registered for this app.")
-        return
+        return "No webhook tokens registered for this app."
 
     rows = [
         [cmd, f"@yellow{{{token[:8]}}}..."] for cmd, token in sorted(tokens.items())
     ]
 
-    context.io.table(data=rows, headers=["Command", "Token (prefix)"])
+    return TableResponse(
+        kernel=context.kernel,
+        content=rows,
+        headers=["Command", "Token (prefix)"],
+    )

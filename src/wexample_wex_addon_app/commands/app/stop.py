@@ -52,7 +52,6 @@ def app__app__stop(
 
         runtime = app_workdir.get_runtime_config()
         if not runtime.search("app.started").get_bool_or_default(False):
-            context.io.log("App already stopped")
             return QueuedCollectionStop(
                 kernel=context.kernel, reason="App already stopped"
             )

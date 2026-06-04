@@ -23,7 +23,8 @@ if TYPE_CHECKING:
 def app__webhook__status(
     context: ExecutionContext,
     app_workdir: ManagedWorkdir,
-) -> None:
+):
+    from wexample_app.response.table_response import TableResponse
     from wexample_wex_core.addons.system.helpers import system_find_process_by_port
 
     port = WEBHOOK_LISTEN_PORT_DEFAULT
@@ -49,8 +50,7 @@ def app__webhook__status(
     ]
 
     if not webhook_commands:
-        context.io.log("No @webhook commands found in this app.")
-        return
+        return "No @webhook commands found in this app."
 
     # ---- token status --------------------------------------------------------
     tokens: dict = app_workdir.get_local_data("webhook_tokens")
@@ -61,7 +61,8 @@ def app__webhook__status(
         token_status = "@green{yes}" if has_token else "@red{no}"
         rows.append([cmd, token_status])
 
-    context.io.table(
-        data=rows,
+    return TableResponse(
+        kernel=context.kernel,
+        content=rows,
         headers=["Command", "Token"],
     )

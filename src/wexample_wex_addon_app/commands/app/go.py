@@ -55,6 +55,8 @@ def app__app__go(
     from wexample_app.response.interactive_shell_command_response import (
         InteractiveShellCommandResponse,
     )
+    from wexample_app.response.multiple_response import MultipleResponse
+    from wexample_app.response.suggestions_response import SuggestionsResponse
     from wexample_helpers.helpers.docker import docker_container_is_running
 
     container = container_name or app_workdir.get_main_container_name()
@@ -71,12 +73,19 @@ def app__app__go(
         start_command = AddonCommandResolver.build_command_from_function(
             app__app__start
         )
-        return FailureResponse(
+        return MultipleResponse(
             kernel=context.kernel,
-            message=(
-                f"Container @magenta{{{long_name}}} is not running. "
-                f"You may want to run: @cyan{{{start_command}}}"
-            ),
+            responses=[
+                FailureResponse(
+                    kernel=context.kernel,
+                    message=f"Container @magenta{{{long_name}}} is not running.",
+                ),
+                SuggestionsResponse(
+                    kernel=context.kernel,
+                    message="You may want to start the application.",
+                    suggestions=[start_command],
+                ),
+            ],
         )
 
     context.io.info(f"Entering container @magenta{{{long_name}}}...")
@@ -93,8 +102,11 @@ def app__app__go(
 
 
 def _available_containers(app_workdir: ManagedWorkdir) -> list[str]:
-    import yaml
     from wexample_app.const.globals import WORKDIR_SETUP_DIR
+
+    from wexample_wex_addon_app.item.file.docker_compose_yaml_file import (
+        DockerComposeYamlFile,
+    )
 
     compose_path = (
         app_workdir.get_path()
@@ -104,6 +116,6 @@ def _available_containers(app_workdir: ManagedWorkdir) -> list[str]:
     )
     if not compose_path.exists():
         return []
-    with open(compose_path) as f:
-        compose = yaml.safe_load(f) or {}
-    return list((compose.get("services", {}) or {}).keys())
+    return list(
+        DockerComposeYamlFile.create_from_path(path=compose_path).read_services().keys()
+    )

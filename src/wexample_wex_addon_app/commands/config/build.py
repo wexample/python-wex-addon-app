@@ -191,10 +191,13 @@ def app__config__build(
             f"docker-compose.runtime.yml written ({len(compose_files)} file(s))"
         )
 
-        import yaml
+        from wexample_wex_addon_app.item.file.docker_compose_yaml_file import (
+            DockerComposeYamlFile,
+        )
 
-        compose_data = yaml.safe_load(result.stdout)
-        services = compose_data.get("services", {})
+        services = DockerComposeYamlFile.create_from_path(
+            path=compose_runtime_path
+        ).read_services()
         host_paths_map = {}
         if services:
             first_service = next(iter(services.values()))
