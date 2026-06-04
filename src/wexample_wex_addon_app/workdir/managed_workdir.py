@@ -24,9 +24,6 @@ from wexample_wex_core.workdir.mixin.with_app_version_workdir_mixin import (
 )
 from wexample_wex_core.workdir.workdir import Workdir
 
-from wexample_wex_addon_app.workdir.mixin.with_agents_workdir_mixin import (
-    WithAgentsWorkdirMixin,
-)
 from wexample_wex_addon_app.workdir.mixin.with_app_config_workdir_mixin import (
     WithAppConfigWorkdirMixin,
 )
@@ -56,7 +53,6 @@ class ManagedWorkdir(
     WithAppConfigWorkdirMixin,
     WithSuiteTreeWorkdirMixin,
     WithReadmeWorkdirMixin,
-    WithAgentsWorkdirMixin,
     WithAppVersionWorkdirMixin,
     WithRuntimeConfigMixin,
     WithAppRegistryMixin,
@@ -479,7 +475,6 @@ class ManagedWorkdir(
         raw_value.setdefault("setup_manager", {"auto_migrate": True})
 
         self.append_readme(config=raw_value)
-        self.append_agents(config=raw_value)
         self.append_version(config=raw_value)
 
         gitkeep_child = [
