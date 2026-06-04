@@ -612,32 +612,6 @@ class ManagedWorkdir(
                         ],
                     },
                     {
-                        # ai — context, prompts and config consumed by AI agents
-                        "name": "ai",
-                        "type": DiskItemType.DIRECTORY,
-                        "should_exist": True,
-                        "children": [
-                            {
-                                "name": "agents",
-                                "type": DiskItemType.DIRECTORY,
-                                "should_exist": True,
-                                "children": gitkeep_child,
-                            },
-                            {
-                                "name": "prompts",
-                                "type": DiskItemType.DIRECTORY,
-                                "should_exist": True,
-                                "children": [
-                                    {
-                                        "name": "about.md",
-                                        "type": DiskItemType.FILE,
-                                        "should_exist": True,
-                                    },
-                                ],
-                            },
-                        ],
-                    },
-                    {
                         # local — machine-specific state, never committed
                         "name": WORKDIR_LOCAL_DIR_NAME,
                         "type": DiskItemType.DIRECTORY,
