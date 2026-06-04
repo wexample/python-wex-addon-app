@@ -19,6 +19,36 @@ def check_env_requirements(
         _check_one(req, app_workdir, io, function_kwargs)
 
 
+def ensure_local_env(
+    *,
+    app_workdir: Any,
+    io: Any,
+    key: str | Callable,
+    description: str | None = None,
+    ask_question: str | None = None,
+    on_missing: str = "ask",
+    use_suite_fallback: bool = False,
+    function_kwargs: dict | None = None,
+) -> str | None:
+    """In-flight equivalent of @require_local_env: check (and optionally
+    prompt for) an env var at a precise point during command execution,
+    instead of upfront. Same semantics as the decorator; returns the
+    resolved value, or None if the key callable signalled "not required".
+    """
+    return _check_one(
+        {
+            "key": key,
+            "description": description,
+            "ask_question": ask_question,
+            "on_missing": on_missing,
+            "use_suite_fallback": use_suite_fallback,
+        },
+        app_workdir,
+        io,
+        function_kwargs or {},
+    )
+
+
 def require_local_env(
     key: str | Callable,
     description: str | None = None,
@@ -63,10 +93,12 @@ def require_local_env(
     return decorator
 
 
-def _check_one(req: dict, app_workdir: Any, io: Any, function_kwargs: dict) -> None:
+def _check_one(
+    req: dict, app_workdir: Any, io: Any, function_kwargs: dict
+) -> str | None:
     key = _resolve_key(req["key"], app_workdir, function_kwargs)
     if key is None:
-        return  # callable signalled "not required in this context"
+        return None  # callable signalled "not required in this context"
 
     description = req["description"]
     ask_question = req["ask_question"]
@@ -75,7 +107,7 @@ def _check_one(req: dict, app_workdir: Any, io: Any, function_kwargs: dict) -> N
 
     value = _lookup(app_workdir, key, use_suite_fallback)
     if value:
-        return
+        return value
 
     if on_missing == "ask":
         question = ask_question or (
@@ -87,7 +119,8 @@ def _check_one(req: dict, app_workdir: Any, io: Any, function_kwargs: dict) -> N
         new_value = response.get_value()
         if new_value:
             app_workdir.set_env_parameters({key: new_value})
-        return
+            return new_value
+        return None
 
     from wexample_wex_core.resolver.addon_command_resolver import AddonCommandResolver
 
