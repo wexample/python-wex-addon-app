@@ -21,7 +21,7 @@ if TYPE_CHECKING:
 def app__version__push(
     context: ExecutionContext,
     app_workdir: CodeBaseWorkdir,
-):
+) -> SuccessResponse:
     from wexample_app.response.success_response import SuccessResponse
 
     package_name = app_workdir.get_package_name()

@@ -19,9 +19,7 @@ if TYPE_CHECKING:
     type=COMMAND_TYPE_ADDON,
     description="Rollback the last applied migration on the current app",
 )
-def app__migration__rollback(
-    context: ExecutionContext, app_workdir: ManagedWorkdir
-):
+def app__migration__rollback(context: ExecutionContext, app_workdir: ManagedWorkdir):
     from wexample_app.response.failure_response import FailureResponse
     from wexample_app.response.success_response import SuccessResponse
     from wexample_migration.workdir.mixin.with_migration_workdir_mixin import (

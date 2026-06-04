@@ -19,9 +19,7 @@ if TYPE_CHECKING:
     type=COMMAND_TYPE_ADDON,
     description="Show the migration status of the current app",
 )
-def app__migration__status(
-    context: ExecutionContext, app_workdir: ManagedWorkdir
-):
+def app__migration__status(context: ExecutionContext, app_workdir: ManagedWorkdir):
     from wexample_app.response.failure_response import FailureResponse
     from wexample_app.response.properties_response import PropertiesResponse
     from wexample_migration.workdir.mixin.with_migration_workdir_mixin import (
@@ -49,9 +47,7 @@ def app__migration__status(
             "Current version": status["current_version"] or "none",
             "Applied": ", ".join(status["applied"]) if status["applied"] else "(none)",
             "Pending": (
-                ", ".join(status["pending"])
-                if status["pending"]
-                else "(up to date)"
+                ", ".join(status["pending"]) if status["pending"] else "(up to date)"
             ),
         },
     )

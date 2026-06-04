@@ -36,7 +36,5 @@ def app__env__var_get(
 
     value = app_workdir.get_env_parameter(key)
     if value is None:
-        return WarningResponse(
-            kernel=context.kernel, message=f"{key} is not set"
-        )
+        return WarningResponse(kernel=context.kernel, message=f"{key} is not set")
     return value

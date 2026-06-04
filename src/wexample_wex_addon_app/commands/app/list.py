@@ -43,23 +43,15 @@ def app__app__list(
         )
 
         domains = entry.get("domains") or []
-        domains_str = (
-            ", ".join(f"@magenta{{{d}}}" for d in domains) if domains else "-"
-        )
+        domains_str = ", ".join(f"@magenta{{{d}}}" for d in domains) if domains else "-"
         responses.append(
-            LogResponse(
-                kernel=context.kernel, message=f"  Domains: {domains_str}"
-            )
+            LogResponse(kernel=context.kernel, message=f"  Domains: {domains_str}")
         )
 
-        responses.append(
-            LogResponse(kernel=context.kernel, message="  Containers:")
-        )
+        responses.append(LogResponse(kernel=context.kernel, message="  Containers:"))
 
         responses.append(
-            context.kernel.run_function(
-                app__container__list, {"app_path": app_path}
-            )
+            context.kernel.run_function(app__container__list, {"app_path": app_path})
         )
 
     return MultipleResponse(kernel=context.kernel, responses=responses)

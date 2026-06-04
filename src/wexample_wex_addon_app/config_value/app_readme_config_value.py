@@ -193,9 +193,7 @@ class AppReadmeConfigValue(ReadmeContentConfigValue):
             config_file = suite_path / WORKDIR_SETUP_DIR / "config.yml"
             if not config_file.exists():
                 continue
-            config = AppConfigYamlFile.create_from_path(
-                path=config_file
-            ).read_parsed()
+            config = AppConfigYamlFile.create_from_path(path=config_file).read_parsed()
             if not config:
                 continue
             suite_order = config.get("readme", {}).get("sections", [])

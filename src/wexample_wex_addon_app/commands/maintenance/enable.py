@@ -25,7 +25,7 @@ if TYPE_CHECKING:
 def app__maintenance__enable(
     context: ExecutionContext,
     app_workdir: ManagedWorkdir,
-):
+) -> SuccessResponse:
     from wexample_app.response.success_response import SuccessResponse
 
     return SuccessResponse(kernel=context.kernel, message="Maintenance enabled")

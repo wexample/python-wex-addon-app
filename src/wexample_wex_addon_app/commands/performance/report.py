@@ -17,9 +17,7 @@ if TYPE_CHECKING:
     type=COMMAND_TYPE_ADDON,
     description="Run performance benchmarks and display a report. Python only (requires pytest-benchmark tests).",
 )
-def app__performance__report(
-    context: ExecutionContext, app_workdir: AppMiddleware
-):
+def app__performance__report(context: ExecutionContext, app_workdir: AppMiddleware):
     from wexample_app.response.failure_response import FailureResponse
     from wexample_app.response.properties_response import PropertiesResponse
     from wexample_app.response.warning_response import WarningResponse

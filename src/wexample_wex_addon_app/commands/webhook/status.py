@@ -25,7 +25,6 @@ def app__webhook__status(
     app_workdir: ManagedWorkdir,
 ):
     from wexample_app.response.table_response import TableResponse
-
     from wexample_wex_core.addons.system.helpers import system_find_process_by_port
 
     port = WEBHOOK_LISTEN_PORT_DEFAULT

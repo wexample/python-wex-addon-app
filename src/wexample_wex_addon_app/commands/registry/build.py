@@ -18,7 +18,7 @@ if TYPE_CHECKING:
 def app__registry__build(
     context: ExecutionContext,
     app_workdir: ManagedWorkdir,
-):
+) -> SuccessResponse:
     from wexample_app.response.success_response import SuccessResponse
     from wexample_helpers.helpers.cli import cli_make_clickable_path
 

@@ -69,9 +69,7 @@ class WithAppRegistryMixin(BaseClass):
         )
 
         registry_path = self.get_registry_path_from_path(path=self.get_path())
-        registry = AppRegistryYamlFile.create_from_path(
-            path=registry_path, io=self.io
-        )
+        registry = AppRegistryYamlFile.create_from_path(path=registry_path, io=self.io)
 
         if rebuild or not registry.get_path().exists():
             registry.write_config(self.build_registry_value())
