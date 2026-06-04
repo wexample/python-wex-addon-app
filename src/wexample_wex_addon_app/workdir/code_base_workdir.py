@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from wexample_helpers.decorator.base_class import base_class
 from wexample_helpers_git.const.common import GIT_BRANCH_MAIN, GIT_REMOTE_ORIGIN
 from wexample_helpers_git.helpers.git import git_run
 
@@ -14,6 +15,7 @@ if TYPE_CHECKING:
     from wexample_prompt.common.progress.progress_handle import ProgressHandle
 
 
+@base_class
 class CodeBaseWorkdir(RepoWorkdir):
     def add_publication_tag(self) -> None:
         from wexample_helpers_git.helpers.git import (
