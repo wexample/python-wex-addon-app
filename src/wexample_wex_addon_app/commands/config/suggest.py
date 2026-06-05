@@ -6,6 +6,8 @@ from typing import TYPE_CHECKING
 from wexample_cli.decorator.command import command
 from wexample_cli.decorator.middleware import middleware
 from wexample_cli.decorator.option import option
+from wexample_cli.const.tags import AudienceTag, EffectTag, ScopeTag
+from wexample_wex_addon_app.const.tags import DomainTag
 from wexample_wex_core.const.globals import COMMAND_TYPE_ADDON
 
 from wexample_wex_addon_app.middleware.app_middleware import AppMiddleware
@@ -51,6 +53,15 @@ _WEX_BUILTIN_PREFIXES = ("SERVICE_",)
         "Also best-effort DNS-resolves the first domain of each env's config.yml "
         "and proposes filling `remotes[].host` when missing."
     ),
+    tags=[
+        DomainTag.APP_LIFECYCLE,
+        DomainTag.CONFIG,
+        EffectTag.READ_ONLY,
+        AudienceTag.AGENT_SAFE,
+        ScopeTag.APP,
+        ScopeTag.LOCAL,
+        ScopeTag.REMOTE,
+    ],
 )
 def app__config__suggest(
     context: ExecutionContext,

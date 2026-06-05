@@ -6,6 +6,8 @@ from typing import TYPE_CHECKING
 from wexample_cli.decorator.as_sudo import as_sudo
 from wexample_cli.decorator.command import command
 from wexample_cli.decorator.option import option
+from wexample_cli.const.tags import AudienceTag, EffectTag, ScopeTag
+from wexample_wex_addon_app.const.tags import DomainTag
 from wexample_wex_core.const.globals import COMMAND_TYPE_ADDON
 
 if TYPE_CHECKING:
@@ -46,7 +48,15 @@ if TYPE_CHECKING:
 # as_sudo is required upfront: service installs triggered by --services may run rectify
 # operations that need elevated permissions (e.g. chown on data directories).
 @as_sudo()
-@command(type=COMMAND_TYPE_ADDON, description="Initialize an app")
+@command(type=COMMAND_TYPE_ADDON, description="Initialize an app",
+    tags=[
+        DomainTag.APP_LIFECYCLE,
+        EffectTag.WRITE,
+        AudienceTag.AGENT_SAFE,
+        ScopeTag.APP,
+        ScopeTag.LOCAL,
+    ],
+)
 def app__app__init(
     context: ExecutionContext,
     name: str | None = None,

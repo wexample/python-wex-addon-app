@@ -6,6 +6,8 @@ from typing import TYPE_CHECKING, Any
 
 from wexample_cli.decorator.command import command
 from wexample_cli.decorator.middleware import middleware
+from wexample_cli.const.tags import AudienceTag, EffectTag, ScopeTag
+from wexample_wex_addon_app.const.tags import DomainTag
 from wexample_prompt.enums.verbosity_level import VerbosityLevel
 from wexample_wex_core.const.globals import COMMAND_TYPE_ADDON
 
@@ -19,7 +21,19 @@ if TYPE_CHECKING:
 
 
 @middleware(middleware=AppMiddleware)
-@command(type=COMMAND_TYPE_ADDON, description="List app containers in a compact table")
+@command(type=COMMAND_TYPE_ADDON, description="List app containers in a compact table",
+    tags=[
+        DomainTag.APP_LIFECYCLE,
+        DomainTag.CONTAINER,
+        DomainTag.DOCKER,
+        EffectTag.READ_ONLY,
+        EffectTag.SUBPROCESS_SPAWN,
+        AudienceTag.AGENT_SAFE,
+        ScopeTag.APP,
+        ScopeTag.CONTAINER,
+        ScopeTag.LOCAL,
+    ],
+)
 def app__container__list(
     context: ExecutionContext,
     app_workdir: ManagedWorkdir,

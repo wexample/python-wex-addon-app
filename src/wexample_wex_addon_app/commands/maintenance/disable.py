@@ -4,6 +4,8 @@ from typing import TYPE_CHECKING
 
 from wexample_cli.decorator.command import command
 from wexample_cli.decorator.middleware import middleware
+from wexample_cli.const.tags import AudienceTag, EffectTag, ScopeTag
+from wexample_wex_addon_app.const.tags import DomainTag
 from wexample_wex_core.const.globals import COMMAND_TYPE_ADDON
 
 from wexample_wex_addon_app.middleware.app_middleware import AppMiddleware
@@ -21,6 +23,13 @@ if TYPE_CHECKING:
         "Anchor command: deactivate maintenance mode on the app. Services and apps "
         "plug their own behavior via @attach (e.g. laravel → `php artisan up`)."
     ),
+    tags=[
+        DomainTag.APP_LIFECYCLE,
+        EffectTag.WRITE,
+        AudienceTag.AGENT_SAFE,
+        ScopeTag.APP,
+        ScopeTag.LOCAL,
+    ],
 )
 def app__maintenance__disable(
     context: ExecutionContext,

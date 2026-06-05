@@ -5,6 +5,8 @@ from typing import TYPE_CHECKING
 from wexample_cli.decorator.command import command
 from wexample_cli.decorator.middleware import middleware
 from wexample_cli.decorator.option import option
+from wexample_cli.const.tags import AudienceTag, EffectTag, ScopeTag
+from wexample_wex_addon_app.const.tags import DomainTag
 from wexample_wex_core.const.globals import COMMAND_TYPE_ADDON
 
 from wexample_wex_addon_app.middleware.app_middleware import AppMiddleware
@@ -35,7 +37,18 @@ if TYPE_CHECKING:
     description="DB service name (defaults to docker.db.main)",
 )
 @middleware(middleware=AppMiddleware)
-@command(type=COMMAND_TYPE_ADDON, description="Restore a database from a dump")
+@command(type=COMMAND_TYPE_ADDON, description="Restore a database from a dump",
+    tags=[
+        DomainTag.APP_LIFECYCLE,
+        DomainTag.DB,
+        EffectTag.DESTRUCTIVE,
+        EffectTag.WRITE,
+        AudienceTag.DANGEROUS,
+        AudienceTag.REQUIRES_CONFIRMATION,
+        ScopeTag.APP,
+        ScopeTag.LOCAL,
+    ],
+)
 def app__db__restore(
     context: ExecutionContext,
     app_workdir: ManagedWorkdir,

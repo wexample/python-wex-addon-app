@@ -5,6 +5,8 @@ from typing import TYPE_CHECKING
 from wexample_cli.decorator.as_sudo import as_sudo
 from wexample_cli.decorator.command import command
 from wexample_cli.decorator.option import option
+from wexample_cli.const.tags import AudienceTag, EffectTag, ScopeTag
+from wexample_wex_addon_app.const.tags import DomainTag
 from wexample_wex_core.const.globals import COMMAND_TYPE_ADDON
 
 from wexample_wex_addon_app.const.app import SIDECAR_LIST
@@ -29,7 +31,16 @@ if TYPE_CHECKING:
     description="Environment (defaults to local)",
 )
 @as_sudo()
-@command(type=COMMAND_TYPE_ADDON, description="Start a sidecar app")
+@command(type=COMMAND_TYPE_ADDON, description="Start a sidecar app",
+    tags=[
+        DomainTag.APP_LIFECYCLE,
+        DomainTag.CONTAINER,
+        EffectTag.WRITE,
+        AudienceTag.AGENT_SAFE,
+        ScopeTag.APP,
+        ScopeTag.LOCAL,
+    ],
+)
 def app__sidecar__start(
     context: ExecutionContext,
     name: str,

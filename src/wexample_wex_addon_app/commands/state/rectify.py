@@ -6,6 +6,8 @@ from wexample_cli.decorator.as_sudo import as_sudo
 from wexample_cli.decorator.command import command
 from wexample_cli.decorator.middleware import middleware
 from wexample_cli.decorator.option import option
+from wexample_cli.const.tags import AudienceTag, EffectTag, ScopeTag
+from wexample_wex_addon_app.const.tags import DomainTag
 from wexample_wex_core.const.globals import COMMAND_TYPE_ADDON
 
 from wexample_wex_addon_app.middleware.app_middleware import AppMiddleware
@@ -33,7 +35,17 @@ if TYPE_CHECKING:
 @as_sudo()
 @middleware(middleware=AppMiddleware)
 @middleware(middleware=EachSuitePackageMiddleware)
-@command(type=COMMAND_TYPE_ADDON)
+@command(type=COMMAND_TYPE_ADDON,
+    tags=[
+        DomainTag.APP_LIFECYCLE,
+        DomainTag.CONFIG,
+        DomainTag.GIT,
+        EffectTag.WRITE,
+        AudienceTag.AGENT_SAFE,
+        ScopeTag.APP,
+        ScopeTag.LOCAL,
+    ],
+)
 def app__state__rectify(
     context: ExecutionContext,
     app_workdir: ManagedWorkdir,
