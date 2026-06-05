@@ -6,6 +6,8 @@ from wexample_cli.decorator.as_sudo import as_sudo
 from wexample_cli.decorator.command import command
 from wexample_cli.decorator.middleware import middleware
 from wexample_cli.decorator.option import option
+from wexample_cli.const.tags import AudienceTag, EffectTag, ScopeTag
+from wexample_wex_addon_app.const.tags import DomainTag
 from wexample_wex_core.const.globals import COMMAND_TYPE_ADDON
 
 from wexample_wex_addon_app.decorator.require_app_config import require_app_config
@@ -30,6 +32,17 @@ if TYPE_CHECKING:
 @command(
     type=COMMAND_TYPE_ADDON,
     description="Publish a new version of the app.",
+    tags=[
+        DomainTag.APP_LIFECYCLE,
+        DomainTag.DEPLOY,
+        DomainTag.GIT,
+        DomainTag.PACKAGE,
+        DomainTag.RELEASE,
+        EffectTag.WRITE,
+        AudienceTag.AGENT_SAFE,
+        ScopeTag.APP,
+        ScopeTag.LOCAL,
+    ],
 )
 def app__release__publish(
     context: ExecutionContext,

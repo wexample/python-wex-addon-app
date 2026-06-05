@@ -6,6 +6,8 @@ from typing import TYPE_CHECKING
 from wexample_cli.decorator.command import command
 from wexample_cli.decorator.middleware import middleware
 from wexample_cli.decorator.option import option
+from wexample_cli.const.tags import AudienceTag, EffectTag, ScopeTag
+from wexample_wex_addon_app.const.tags import DomainTag
 from wexample_wex_core.const.globals import COMMAND_TYPE_ADDON
 
 from wexample_wex_addon_app.middleware.app_middleware import AppMiddleware
@@ -41,6 +43,17 @@ if TYPE_CHECKING:
 @command(
     type=COMMAND_TYPE_ADDON,
     description="Open an interactive SSH shell on the remote, cd'd into the app path",
+    tags=[
+        DomainTag.APP_LIFECYCLE,
+        DomainTag.NETWORK,
+        DomainTag.SSH,
+        EffectTag.NETWORK_CALL,
+        EffectTag.SUBPROCESS_SPAWN,
+        AudienceTag.HUMAN_ONLY,
+        ScopeTag.APP,
+        ScopeTag.LOCAL,
+        ScopeTag.REMOTE,
+    ],
 )
 def app__remote__go(
     context: ExecutionContext,

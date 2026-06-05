@@ -5,6 +5,8 @@ from typing import TYPE_CHECKING
 from wexample_cli.decorator.command import command
 from wexample_cli.decorator.middleware import middleware
 from wexample_cli.decorator.option import option
+from wexample_cli.const.tags import AudienceTag, EffectTag, ScopeTag
+from wexample_wex_addon_app.const.tags import DomainTag
 from wexample_wex_core.const.globals import COMMAND_TYPE_ADDON
 
 from wexample_wex_addon_app.middleware.app_middleware import AppMiddleware
@@ -50,7 +52,16 @@ if TYPE_CHECKING:
 )
 @middleware(middleware=AppMiddleware)
 @command(
-    type=COMMAND_TYPE_ADDON, description="Execute a command inside an app container"
+    type=COMMAND_TYPE_ADDON, description="Execute a command inside an app container",
+    tags=[
+        DomainTag.APP_LIFECYCLE,
+        EffectTag.SUBPROCESS_SPAWN,
+        EffectTag.WRITE,
+        AudienceTag.AGENT_SAFE,
+        ScopeTag.APP,
+        ScopeTag.CONTAINER,
+        ScopeTag.LOCAL,
+    ],
 )
 def app__app__exec(
     context: ExecutionContext,

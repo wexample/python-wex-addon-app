@@ -5,6 +5,8 @@ from typing import TYPE_CHECKING
 from wexample_cli.decorator.command import command
 from wexample_cli.decorator.middleware import middleware
 from wexample_cli.decorator.option import option
+from wexample_cli.const.tags import AudienceTag, EffectTag, ScopeTag
+from wexample_wex_addon_app.const.tags import DomainTag
 from wexample_wex_core.const.globals import COMMAND_TYPE_ADDON
 
 from wexample_wex_addon_app.middleware.app_middleware import AppMiddleware
@@ -32,7 +34,17 @@ if TYPE_CHECKING:
 )
 @middleware(middleware=AppMiddleware)
 @command(
-    type=COMMAND_TYPE_ADDON, description="Revoke the webhook token for an app command"
+    type=COMMAND_TYPE_ADDON, description="Revoke the webhook token for an app command",
+    tags=[
+        DomainTag.APP_LIFECYCLE,
+        DomainTag.HTTP,
+        DomainTag.WEBHOOK,
+        EffectTag.DESTRUCTIVE,
+        EffectTag.WRITE,
+        AudienceTag.DANGEROUS,
+        ScopeTag.APP,
+        ScopeTag.LOCAL,
+    ],
 )
 def app__webhook__token_revoke(
     context: ExecutionContext,

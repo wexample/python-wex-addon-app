@@ -4,6 +4,8 @@ import shutil
 from typing import TYPE_CHECKING
 
 from wexample_cli.decorator.command import command
+from wexample_cli.const.tags import AudienceTag, EffectTag, ScopeTag
+from wexample_wex_addon_app.const.tags import DomainTag
 from wexample_wex_core.const.globals import COMMAND_TYPE_SERVICE
 
 if TYPE_CHECKING:
@@ -15,6 +17,16 @@ if TYPE_CHECKING:
 @command(
     type=COMMAND_TYPE_SERVICE,
     description="Install proxy service files into the target app",
+    tags=[
+        DomainTag.APP_LIFECYCLE,
+        DomainTag.NETWORK,
+        DomainTag.PROXY,
+        DomainTag.SERVICE,
+        EffectTag.WRITE,
+        AudienceTag.AGENT_SAFE,
+        ScopeTag.APP,
+        ScopeTag.LOCAL,
+    ],
 )
 def proxy__service__install(
     context: ExecutionContext,

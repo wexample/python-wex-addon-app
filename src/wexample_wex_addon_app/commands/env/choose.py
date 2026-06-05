@@ -5,6 +5,8 @@ from typing import TYPE_CHECKING
 from wexample_cli.decorator.command import command
 from wexample_cli.decorator.middleware import middleware
 from wexample_cli.decorator.option import option
+from wexample_cli.const.tags import AudienceTag, EffectTag, ScopeTag
+from wexample_wex_addon_app.const.tags import DomainTag
 from wexample_wex_core.const.globals import COMMAND_TYPE_ADDON
 
 from wexample_wex_addon_app.middleware.app_middleware import AppMiddleware
@@ -25,6 +27,14 @@ if TYPE_CHECKING:
 @command(
     type=COMMAND_TYPE_ADDON,
     description="Prompt user to choose an environment, then persist it via env/set",
+    tags=[
+        DomainTag.APP_LIFECYCLE,
+        DomainTag.ENV,
+        EffectTag.WRITE,
+        AudienceTag.REQUIRES_CONFIRMATION,
+        ScopeTag.APP,
+        ScopeTag.LOCAL,
+    ],
 )
 def app__env__choose(
     context: ExecutionContext,
