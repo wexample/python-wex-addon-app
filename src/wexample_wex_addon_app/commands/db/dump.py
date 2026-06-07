@@ -67,6 +67,7 @@ def app__db__dump(
     from datetime import datetime
 
     from wexample_app.response.warning_response import WarningResponse
+    from wexample_helpers.helpers.string import string_to_kebab_case
 
     service_name = service or app_workdir.get_main_db_service()
     if not service_name:
@@ -93,7 +94,7 @@ def app__db__dump(
 
     request = context.kernel._get_command_request_class()(
         kernel=context.kernel,
-        name=f"@{service_name}::db/dump",
+        name=f"@{string_to_kebab_case(service_name)}::db/dump",
         arguments={
             "app_path": str(app_workdir.get_path()),
             "file_name": file_name,

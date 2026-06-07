@@ -61,6 +61,7 @@ def app__db__restore(
 
     from wexample_app.const.globals import WORKDIR_SETUP_DIR
     from wexample_app.response.success_response import SuccessResponse
+    from wexample_helpers.helpers.string import string_to_kebab_case
 
     service_name = service or app_workdir.get_main_db_service()
     if not service_name:
@@ -124,7 +125,7 @@ def app__db__restore(
     context.kernel.execute_kernel_command(
         context.kernel._get_command_request_class()(
             kernel=context.kernel,
-            name=f"@{service_name}::db/destroy",
+            name=f"@{string_to_kebab_case(service_name)}::db/destroy",
             arguments={"app_path": app_path, **extra},
         )
     )
@@ -133,7 +134,7 @@ def app__db__restore(
     context.kernel.execute_kernel_command(
         context.kernel._get_command_request_class()(
             kernel=context.kernel,
-            name=f"@{service_name}::db/restore",
+            name=f"@{string_to_kebab_case(service_name)}::db/restore",
             arguments={"app_path": app_path, "file_name": sql_path.name, **extra},
         )
     )

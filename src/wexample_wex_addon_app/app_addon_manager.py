@@ -383,7 +383,7 @@ class AppAddonManager(AbstractAddonManager):
 
             request = CommandRequest(
                 kernel=self.kernel,
-                name=f"@{service.name}::{hook}",
+                name=f"@{service.address_name}::{hook}",
                 arguments={
                     "app_path": str(app_workdir.get_path()),
                     **(arguments or {}),

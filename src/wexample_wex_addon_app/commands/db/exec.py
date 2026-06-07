@@ -50,11 +50,13 @@ def app__db__exec(
     sql: str,
     service: str | None = None,
 ) -> AbstractResponse:
+    from wexample_helpers.helpers.string import string_to_kebab_case
+
     service_name = service or app_workdir.get_main_db_service()
     if not service_name:
         raise RuntimeError("No DB service configured (docker.db.main)")
 
-    cmd_name = f"@{service_name}::db/exec"
+    cmd_name = f"@{string_to_kebab_case(service_name)}::db/exec"
     request = context.kernel._get_command_request_class()(
         kernel=context.kernel,
         name=cmd_name,

@@ -40,13 +40,15 @@ def app__db__go(
     app_workdir: ManagedWorkdir,
     service: str | None = None,
 ) -> AbstractResponse:
+    from wexample_helpers.helpers.string import string_to_kebab_case
+
     service_name = service or app_workdir.get_main_db_service()
     if not service_name:
         raise RuntimeError("No DB service configured (docker.db.main)")
 
     request = context.kernel._get_command_request_class()(
         kernel=context.kernel,
-        name=f"@{service_name}::db/go",
+        name=f"@{string_to_kebab_case(service_name)}::db/go",
         arguments={"app_path": str(app_workdir.get_path())},
     )
     return context.kernel.execute_kernel_command(request)

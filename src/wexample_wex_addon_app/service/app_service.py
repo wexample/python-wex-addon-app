@@ -27,6 +27,18 @@ class AppService:
         default=None, description="Path to the service directory in the addon package"
     )
 
+    @property
+    def address_name(self) -> str:
+        """Kebab-case form used in command addresses (`@<service>::...`).
+
+        The CLI command pattern only accepts hyphens, so multi-word service
+        names like `gitlab_runner` must be normalized before being interpolated
+        into a command string.
+        """
+        from wexample_helpers.helpers.string import string_to_kebab_case
+
+        return string_to_kebab_case(self.name)
+
     def get_compose_file(self) -> Path | None:
         if not self.service_dir:
             return None
