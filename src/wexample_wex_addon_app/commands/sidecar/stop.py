@@ -2,14 +2,14 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from wexample_cli.const.tags import AudienceTag, EffectTag, ScopeTag
 from wexample_cli.decorator.as_sudo import as_sudo
 from wexample_cli.decorator.command import command
 from wexample_cli.decorator.option import option
-from wexample_cli.const.tags import AudienceTag, EffectTag, ScopeTag
-from wexample_wex_addon_app.const.tags import DomainTag
 from wexample_wex_core.const.globals import COMMAND_TYPE_ADDON
 
 from wexample_wex_addon_app.const.app import SIDECAR_LIST
+from wexample_wex_addon_app.const.tags import DomainTag
 
 if TYPE_CHECKING:
     from wexample_app.response.abstract_response import AbstractResponse
@@ -31,7 +31,9 @@ if TYPE_CHECKING:
     description="Environment (defaults to local)",
 )
 @as_sudo()
-@command(type=COMMAND_TYPE_ADDON, description="Stop a sidecar app",
+@command(
+    type=COMMAND_TYPE_ADDON,
+    description="Stop a sidecar app",
     tags=[
         DomainTag.APP_LIFECYCLE,
         DomainTag.CONTAINER,

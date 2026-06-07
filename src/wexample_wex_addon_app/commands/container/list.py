@@ -4,13 +4,13 @@ import json
 import subprocess
 from typing import TYPE_CHECKING, Any
 
+from wexample_cli.const.tags import AudienceTag, EffectTag, ScopeTag
 from wexample_cli.decorator.command import command
 from wexample_cli.decorator.middleware import middleware
-from wexample_cli.const.tags import AudienceTag, EffectTag, ScopeTag
-from wexample_wex_addon_app.const.tags import DomainTag
 from wexample_prompt.enums.verbosity_level import VerbosityLevel
 from wexample_wex_core.const.globals import COMMAND_TYPE_ADDON
 
+from wexample_wex_addon_app.const.tags import DomainTag
 from wexample_wex_addon_app.middleware.app_middleware import AppMiddleware
 
 if TYPE_CHECKING:
@@ -21,7 +21,9 @@ if TYPE_CHECKING:
 
 
 @middleware(middleware=AppMiddleware)
-@command(type=COMMAND_TYPE_ADDON, description="List app containers in a compact table",
+@command(
+    type=COMMAND_TYPE_ADDON,
+    description="List app containers in a compact table",
     tags=[
         DomainTag.APP_LIFECYCLE,
         DomainTag.CONTAINER,

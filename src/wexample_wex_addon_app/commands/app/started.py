@@ -2,13 +2,13 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from wexample_cli.const.tags import AudienceTag, EffectTag, ScopeTag
 from wexample_cli.decorator.command import command
 from wexample_cli.decorator.middleware import middleware
 from wexample_cli.decorator.option import option
-from wexample_cli.const.tags import AudienceTag, EffectTag, ScopeTag
-from wexample_wex_addon_app.const.tags import DomainTag
 from wexample_wex_core.const.globals import COMMAND_TYPE_ADDON
 
+from wexample_wex_addon_app.const.tags import DomainTag
 from wexample_wex_addon_app.middleware.app_middleware import AppMiddleware
 
 if TYPE_CHECKING:
@@ -30,7 +30,9 @@ APP_STARTED_CHECK_MODE_ANY_CONTAINER = "any-container"
     description="How to determine if app is started: config | any-container | full",
 )
 @middleware(middleware=AppMiddleware)
-@command(type=COMMAND_TYPE_ADDON, description="Return true if app is started",
+@command(
+    type=COMMAND_TYPE_ADDON,
+    description="Return true if app is started",
     tags=[
         DomainTag.APP_LIFECYCLE,
         EffectTag.IDEMPOTENT,

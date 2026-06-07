@@ -2,12 +2,12 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from wexample_cli.const.tags import AudienceTag, EffectTag, ScopeTag
 from wexample_cli.decorator.command import command
 from wexample_cli.decorator.middleware import middleware
-from wexample_cli.const.tags import AudienceTag, EffectTag, ScopeTag
-from wexample_wex_addon_app.const.tags import DomainTag
 from wexample_wex_core.const.globals import COMMAND_TYPE_ADDON
 
+from wexample_wex_addon_app.const.tags import DomainTag
 from wexample_wex_addon_app.middleware.app_middleware import AppMiddleware
 from wexample_wex_addon_app.workdir.managed_workdir import ManagedWorkdir
 
@@ -16,7 +16,8 @@ if TYPE_CHECKING:
 
 
 @middleware(middleware=AppMiddleware)
-@command(type=COMMAND_TYPE_ADDON,
+@command(
+    type=COMMAND_TYPE_ADDON,
     tags=[
         DomainTag.APP_LIFECYCLE,
         DomainTag.REGISTRY,

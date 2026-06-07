@@ -1,4 +1,5 @@
 """Domain tags exposed by this addon — one entry per `domain:*` value its commands use."""
+
 from __future__ import annotations
 
 
