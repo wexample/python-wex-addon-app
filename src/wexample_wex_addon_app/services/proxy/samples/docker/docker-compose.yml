@@ -1,5 +1,6 @@
 services:
   proxy:
+    restart: unless-stopped
     image: nginxproxy/nginx-proxy:1.11
     container_name: ${APP_PROJECT_NAME}_proxy
     ports:
