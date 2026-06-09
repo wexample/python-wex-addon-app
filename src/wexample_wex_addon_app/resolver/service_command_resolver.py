@@ -188,6 +188,7 @@ class ServiceCommandResolver(AbstractCommandResolver):
                 service_name = service_dir.name
                 commands_base = service_dir / _COMMANDS_SUBDIR
                 addon_data = self._scan_commands_dir(commands_base, service_name)
+                self._inject_service_tag(addon_data, service_name)
 
                 if service_name not in registry:
                     registry[service_name] = addon_data
@@ -195,6 +196,21 @@ class ServiceCommandResolver(AbstractCommandResolver):
                     registry[service_name].update(addon_data)
 
         return registry
+
+    @staticmethod
+    def _inject_service_tag(addon_data: dict, service_name: str) -> None:
+        """Stamp `service:<name>` on every command resolved under `services/<name>/commands/`.
+
+        Lets a service-contributed agent declare `tools.tags: [service:vite]` and get a
+        surgical match (only that service's commands), without making each command author
+        remember to add the tag manually.
+        """
+        tag = f"service:{service_name}"
+        for cmd_data in addon_data.values():
+            tags = list(cmd_data.get("tags") or [])
+            if tag not in tags:
+                tags.append(tag)
+                cmd_data["tags"] = tags
 
     def _find_service_dir(self, service_name: str) -> Path | None:
         return self._get_app_addon_manager().find_service_dir(service_name)
