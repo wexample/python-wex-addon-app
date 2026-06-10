@@ -94,14 +94,19 @@ def app__image__build(
         dockerfile = str(app_path / build["dockerfile"])
         tag = build["tag"]
 
+        build_args = build.get("build_args") or {}
+
         def _step(
             previous_value=None,
             _dockerfile=dockerfile,
             _tag=tag,
             _build_name=build_name,
+            _build_args=build_args,
         ) -> InteractiveShellCommandResponse:
             context.io.log(f"Building image: {_build_name} → {_tag}")
             cmd = ["docker", "build", "--no-cache", "-f", _dockerfile, "-t", _tag]
+            for key, value in _build_args.items():
+                cmd.extend(["--build-arg", f"{key}={value}"])
             cmd.append(str(app_path))
             return InteractiveShellCommandResponse(kernel=context.kernel, content=cmd)
 

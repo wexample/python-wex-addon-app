@@ -111,20 +111,13 @@ class AppAddonManager(AbstractAddonManager):
             check=True,
         )
 
-    def docker_exec(
-        self, service: str, args: list[str], capture: bool = True
-    ) -> subprocess.CompletedProcess[str]:
-        import subprocess
+    def docker_exec(self, service: str, args: list[str]) -> str:
+        from wexample_helpers.helpers.docker import docker_exec as _docker_exec
 
         container = self.get_service_docker_container_name(service)
         if not container:
             raise RuntimeError(f"No Docker container found for service '{service}'")
-        return subprocess.run(
-            ["docker", "exec", container] + args,
-            check=True,
-            capture_output=capture,
-            text=True,
-        )
+        return _docker_exec(container_name=container, command=args)
 
     def find_service_dir(self, service_name: str) -> Path | None:
         from wexample_wex_addon_app.resolver.service_command_resolver import (
