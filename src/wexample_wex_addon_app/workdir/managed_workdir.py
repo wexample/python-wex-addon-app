@@ -193,12 +193,9 @@ class ManagedWorkdir(
     def build_runtime_config_value(self) -> NestedConfigValue:
         from wexample_config.config_value.nested_config_value import NestedConfigValue
         from wexample_helpers.helpers.dict import dict_merge
-        from wexample_helpers.helpers.string import string_to_snake_case
 
         base = super().build_runtime_config_value()
-        project_name = (
-            f"{string_to_snake_case(self.get_project_name())}_{self.get_app_env()}"
-        )
+        project_name = self.get_docker_project_name(self.get_app_env())
         return NestedConfigValue(
             raw=dict_merge(base.to_dict(), {"app": {"project_name": project_name}})
         )
@@ -218,14 +215,28 @@ class ManagedWorkdir(
         self._init_env(env_dict=self.get_env_parameters().to_dict())
 
     def docker_build_long_container_name(self, container_name: str) -> str:
-        from wexample_helpers.helpers.string import string_to_snake_case
-
         project_name = (
             self.get_runtime_config().search("app.project_name").get_str_or_none()
         )
         if not project_name:
-            project_name = string_to_snake_case(self.get_project_name())
+            project_name = self.get_docker_project_name()
         return f"{project_name}_{container_name}"
+
+    def get_docker_project_name(self, env: str | None = None) -> str:
+        """Single source of truth for the Docker Compose project name.
+
+        Docker container names follow `<project_name>_<service>`. Anything
+        that constructs a container name (`docker exec`, runtime config,
+        `docker compose --project-name`) MUST go through this method, or
+        the two sides will diverge (e.g. `bdo-letters_local_vite` from
+        compose vs `bdo_letters_local_vite` from exec).
+        """
+        from wexample_helpers.helpers.string import string_to_snake_case
+
+        name = string_to_snake_case(self.get_project_name())
+        if env is None:
+            return name
+        return f"{name}_{env}"
 
     def ensure_app_manager(self) -> None:
         from wexample_app.const.globals import APP_PATH_APP_MANAGER

@@ -51,7 +51,7 @@ def app__config__build(
     app_path = app_workdir.get_path()
     env = app_workdir.get_app_env()
     name = app_workdir.get_project_name()
-    project_name = f"{name}_{env}"
+    project_name = app_workdir.get_docker_project_name(env)
     tmp_dir = app_path / APP_PATH_TMP
 
     def _runtime(previous_value=None) -> None:
