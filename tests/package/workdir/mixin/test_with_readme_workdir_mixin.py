@@ -66,7 +66,7 @@ class TestWithReadmeWorkdirMixin(AbstractWorkdirMixinTest):
         class ReadmeWorkdir(WithReadmeWorkdirMixin, BaseClass):
             """Test class that inherits from WithReadmeWorkdirMixin."""
 
-            def get_path(self):
+            def get_path(self) -> Path:
                 from pathlib import Path
 
                 # No on-disk workdir for this test class; section discovery
