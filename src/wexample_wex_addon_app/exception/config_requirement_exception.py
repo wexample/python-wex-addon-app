@@ -1,23 +1,25 @@
 from __future__ import annotations
 
+from typing import ClassVar
+
+from wexample_helpers.classes.field import public_field
+from wexample_helpers.decorator.base_class import base_class
+
 from wexample_app.exception.app_runtime_exception import AppRuntimeException
 
 
+@base_class
 class ConfigRequirementException(AppRuntimeException):
     """Raised when an app config requirement (declared via @require_app_config) is not met."""
 
-    error_code: str = "CONFIG_REQUIREMENT"
+    error_code: ClassVar[str] = "CONFIG_REQUIREMENT"
 
-    def __init__(
-        self,
-        message: str,
-        path: str,
-        value: str | None = None,
-        allowed: list | None = None,
-    ) -> None:
-        data: dict = {"path": path}
-        if value is not None:
-            data["value"] = value
-        if allowed is not None:
-            data["allowed"] = allowed
-        super().__init__(message=message, data=data)
+    path: str = public_field(description="Config path of the unmet requirement")
+    value: str | None = public_field(
+        default=None,
+        description="Actual config value, if any",
+    )
+    allowed: list | None = public_field(
+        default=None,
+        description="Allowed config values, if any",
+    )
