@@ -222,22 +222,6 @@ class ManagedWorkdir(
             project_name = self.get_docker_project_name()
         return f"{project_name}_{container_name}"
 
-    def get_docker_project_name(self, env: str | None = None) -> str:
-        """Single source of truth for the Docker Compose project name.
-
-        Docker container names follow `<project_name>_<service>`. Anything
-        that constructs a container name (`docker exec`, runtime config,
-        `docker compose --project-name`) MUST go through this method, or
-        the two sides will diverge (e.g. `bdo-letters_local_vite` from
-        compose vs `bdo_letters_local_vite` from exec).
-        """
-        from wexample_helpers.helpers.string import string_to_snake_case
-
-        name = string_to_snake_case(self.get_project_name())
-        if env is None:
-            return name
-        return f"{name}_{env}"
-
     def ensure_app_manager(self) -> None:
         from wexample_app.const.globals import APP_PATH_APP_MANAGER
 
@@ -290,6 +274,22 @@ class ManagedWorkdir(
 
     def get_dependencies_versions(self) -> dict[str, str]:
         return {}
+
+    def get_docker_project_name(self, env: str | None = None) -> str:
+        """Single source of truth for the Docker Compose project name.
+
+        Docker container names follow `<project_name>_<service>`. Anything
+        that constructs a container name (`docker exec`, runtime config,
+        `docker compose --project-name`) MUST go through this method, or
+        the two sides will diverge (e.g. `bdo-letters_local_vite` from
+        compose vs `bdo_letters_local_vite` from exec).
+        """
+        from wexample_helpers.helpers.string import string_to_snake_case
+
+        name = string_to_snake_case(self.get_project_name())
+        if env is None:
+            return name
+        return f"{name}_{env}"
 
     def get_domains_config(self) -> dict[str, str | list[str]]:
         app_config = self.get_runtime_app_config()

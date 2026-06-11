@@ -17,6 +17,13 @@ class MainPushPublicationStrategy(AbstractPublicationStrategy):
     dance.
     """
 
+    def prepare_commit(self) -> None:
+        # No-op: the version branch is a local-only staging area, so we
+        # don't want `ensure_upstream` to publish it as a side effect, and
+        # the rebase-against-upstream has nothing to do (we just branched
+        # off main).
+        pass
+
     def push(self) -> None:
         from wexample_helpers_git.helpers.git import (
             git_current_branch,
@@ -59,10 +66,3 @@ class MainPushPublicationStrategy(AbstractPublicationStrategy):
             cwd=cwd,
             inherit_stdio=False,
         )
-
-    def prepare_commit(self) -> None:
-        # No-op: the version branch is a local-only staging area, so we
-        # don't want `ensure_upstream` to publish it as a side effect, and
-        # the rebase-against-upstream has nothing to do (we just branched
-        # off main).
-        pass

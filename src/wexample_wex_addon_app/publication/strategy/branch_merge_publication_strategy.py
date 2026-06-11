@@ -304,8 +304,7 @@ class BranchMergePublicationStrategy(AbstractPublicationStrategy):
         return self._poll_for_pipeline(
             check=check,
             retry_log=lambda delay: (
-                f"No pipeline yet for MR !{self._mr_iid}, "
-                f"retrying in {delay}s…"
+                f"No pipeline yet for MR !{self._mr_iid}, " f"retrying in {delay}s…"
             ),
             max_attempts=_MR_PIPELINE_DETECT_ATTEMPTS,
         )

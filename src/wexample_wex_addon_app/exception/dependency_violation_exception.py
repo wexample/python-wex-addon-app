@@ -2,10 +2,9 @@ from __future__ import annotations
 
 from typing import ClassVar
 
+from wexample_app.exception.app_runtime_exception import AppRuntimeException
 from wexample_helpers.classes.field import public_field
 from wexample_helpers.decorator.base_class import base_class
-
-from wexample_app.exception.app_runtime_exception import AppRuntimeException
 
 
 @base_class
@@ -13,12 +12,11 @@ class DependencyViolationException(AppRuntimeException):
     """Exception raised when a package imports code from another package without a declared dependency."""
 
     error_code: ClassVar[str] = "DEPENDENCY_VIOLATION"
-
-    package_name: str = public_field(description="Package performing the import")
-    imported_package: str = public_field(description="Package being imported")
     import_locations: list[str] = public_field(
         description="Locations where the undeclared import occurs"
     )
+    imported_package: str = public_field(description="Package being imported")
+    package_name: str = public_field(description="Package performing the import")
 
     def _build_message(self) -> str:
         from wexample_helpers.helpers.cli import cli_make_clickable_path
