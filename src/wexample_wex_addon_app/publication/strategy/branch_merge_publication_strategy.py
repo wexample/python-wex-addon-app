@@ -12,12 +12,12 @@ if TYPE_CHECKING:
 _DEFAULT_TARGET_BRANCH = "main"
 _DEFAULT_CI_POLL_TIMEOUT = 600
 _PIPELINE_RETRY_ATTEMPTS = 360
-_POST_MERGE_RETRY_ATTEMPTS = 360
-# Short window to detect whether the project runs pipelines on merge requests
-# at all. If nothing appears within this budget, we assume the CI is configured
-# to run only post-merge (typical for repos with `only: main`) and proceed to
-# merge immediately rather than timing out the full _PIPELINE_RETRY_ATTEMPTS.
+# Short detection windows for "does this project's CI even run pipelines at
+# this stage?". When nothing appears within the budget, we assume the CI is
+# configured for the *other* trigger (MR-only or main-push-only) and skip
+# the wait rather than burning hours of exponential backoff.
 _MR_PIPELINE_DETECT_ATTEMPTS = 6
+_POST_MERGE_DETECT_ATTEMPTS = 6
 
 
 class BranchMergePublicationStrategy(AbstractPublicationStrategy):
@@ -122,6 +122,13 @@ class BranchMergePublicationStrategy(AbstractPublicationStrategy):
 
         self.workdir.log(f"Waiting for post-merge pipeline on '{self._target_branch}'…")
         pipeline_id = self._wait_for_branch_pipeline(remote, namespace, name)
+
+        if pipeline_id is None:
+            self.workdir.log(
+                f"No post-merge pipeline detected on '{self._target_branch}' "
+                f"(CI likely runs MR-only). Skipping post-merge wait."
+            )
+            return
 
         timeout = int(
             self.workdir.get_config()
@@ -232,13 +239,37 @@ class BranchMergePublicationStrategy(AbstractPublicationStrategy):
 
         return on_tick
 
-    def _wait_for_branch_pipeline(
-        self, remote: AbstractRemote, namespace: str, name: str
-    ) -> int:
+    def _poll_for_pipeline(
+        self,
+        check,
+        retry_log,
+        max_attempts: int,
+    ) -> int | None:
+        """Poll until `check` returns a pipeline id, or give up at exhaustion.
+
+        Returns the pipeline id on success, or None if no pipeline appeared
+        within `max_attempts` — the caller decides what "no pipeline" means
+        in its context (MR-only CI vs post-merge-only CI).
+        """
         from wexample_helpers.helpers.polling_callback_manager import (
             PollingCallbackManager,
         )
 
+        def on_retry(_attempt, _max, delay, _error, _message) -> None:
+            self.workdir.log(retry_log(delay))
+
+        try:
+            return PollingCallbackManager(
+                callback=check,
+                max_attempts=max_attempts,
+                on_retry_callback=on_retry,
+            ).run()
+        except TimeoutError:
+            return None
+
+    def _wait_for_branch_pipeline(
+        self, remote: AbstractRemote, namespace: str, name: str
+    ) -> int | None:
         baseline = self._pre_merge_pipeline_id
 
         def check() -> int | None:
@@ -252,51 +283,29 @@ class BranchMergePublicationStrategy(AbstractPublicationStrategy):
                 return latest_id
             return None
 
-        def on_retry(_attempt, _max, delay, _error, _message) -> None:
-            self.workdir.log(
-                f"No new pipeline on '{self._target_branch}' yet, retrying in {delay}s…"
-            )
-
-        try:
-            return PollingCallbackManager(
-                callback=check,
-                max_attempts=_POST_MERGE_RETRY_ATTEMPTS,
-                on_retry_callback=on_retry,
-            ).run()
-        except TimeoutError as exc:
-            from wexample_app.exception.app_runtime_exception import (
-                AppRuntimeException,
-            )
-
-            raise AppRuntimeException(
-                message=f"No post-merge pipeline appeared on '{self._target_branch}'."
-            ) from exc
+        return self._poll_for_pipeline(
+            check=check,
+            retry_log=lambda delay: (
+                f"No new pipeline on '{self._target_branch}' yet, "
+                f"retrying in {delay}s…"
+            ),
+            max_attempts=_POST_MERGE_DETECT_ATTEMPTS,
+        )
 
     def _wait_for_mr_pipeline(
         self, remote: AbstractRemote, namespace: str, name: str
     ) -> int | None:
-        from wexample_helpers.helpers.polling_callback_manager import (
-            PollingCallbackManager,
-        )
-
         def check() -> int | None:
             pipelines = remote.get_merge_proposal_pipelines(
                 namespace, name, self._mr_iid
             )
             return pipelines[0]["id"] if pipelines else None
 
-        def on_retry(_attempt, _max, delay, _error, _message) -> None:
-            self.workdir.log(
-                f"No pipeline yet for MR !{self._mr_iid}, retrying in {delay}s…"
-            )
-
-        try:
-            return PollingCallbackManager(
-                callback=check,
-                max_attempts=_MR_PIPELINE_DETECT_ATTEMPTS,
-                on_retry_callback=on_retry,
-            ).run()
-        except TimeoutError:
-            # No MR pipeline appeared within the detection window — assume this
-            # repo's CI only runs post-merge and let the caller skip pipeline polling.
-            return None
+        return self._poll_for_pipeline(
+            check=check,
+            retry_log=lambda delay: (
+                f"No pipeline yet for MR !{self._mr_iid}, "
+                f"retrying in {delay}s…"
+            ),
+            max_attempts=_MR_PIPELINE_DETECT_ATTEMPTS,
+        )

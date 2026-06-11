@@ -51,10 +51,18 @@ class MainPushPublicationStrategy(AbstractPublicationStrategy):
         self.workdir.push_to_deployment_remote(branch_name=main_branch)
 
         # Drop the local staging branch — it served its purpose and the
-        # commits now live on main. Remote never saw it, so no cleanup
-        # needed there.
+        # commits now live on main. Remote never saw it (see prepare_commit
+        # which skips ensure_upstream for this strategy), so no remote
+        # cleanup is needed.
         git_run(
             ["branch", "-D", version_branch],
             cwd=cwd,
             inherit_stdio=False,
         )
+
+    def prepare_commit(self) -> None:
+        # No-op: the version branch is a local-only staging area, so we
+        # don't want `ensure_upstream` to publish it as a side effect, and
+        # the rebase-against-upstream has nothing to do (we just branched
+        # off main).
+        pass

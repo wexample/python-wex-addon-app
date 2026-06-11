@@ -53,10 +53,12 @@ class CodeBaseWorkdir(RepoWorkdir):
         """Commit local changes (if any), without pushing."""
         from wexample_helpers_git.helpers.git import (
             git_commit_all_with_message,
-            git_ensure_upstream,
             git_has_index_changes,
             git_has_working_changes,
-            git_pull_rebase_autostash,
+        )
+
+        from wexample_wex_addon_app.publication.strategy.abstract_publication_strategy import (
+            AbstractPublicationStrategy,
         )
 
         cwd = self.get_path()
@@ -65,15 +67,12 @@ class CodeBaseWorkdir(RepoWorkdir):
             or self.progress(label="Committing changes...", total=3).get_handle()
         )
 
-        git_ensure_upstream(
-            cwd=cwd,
-            default_remote=self._get_deployment_remote_name(),
-            inherit_stdio=True,
-        )
-        progress.advance(step=1, label="Ensured upstream")
-
-        git_pull_rebase_autostash(cwd=cwd, inherit_stdio=True)
-        progress.advance(step=1, label="Pulled latest (rebase)")
+        # Strategy decides whether the current (version) branch should be
+        # synced with a remote upstream before the bump commit. Default does
+        # ensure_upstream + rebase pull; main_push skips both since the
+        # version branch is local-only.
+        AbstractPublicationStrategy.from_workdir(self).prepare_commit()
+        progress.advance(step=2, label="Prepared branch for commit")
 
         has_working_changes = git_has_working_changes(cwd=cwd)
         has_index_changes = git_has_index_changes(cwd=cwd)

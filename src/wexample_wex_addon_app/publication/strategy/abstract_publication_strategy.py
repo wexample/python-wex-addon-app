@@ -37,6 +37,31 @@ class AbstractPublicationStrategy:
     def post_push(self) -> None:
         """Called after branch push — e.g. create a merge request."""
 
+    def prepare_commit(self) -> None:
+        """Prepare the current branch for the upcoming bump commit.
+
+        Default behaviour ensures an upstream is set for the current branch
+        (the version branch) and pulls latest changes with rebase — the
+        version branch is meant to be pushed and possibly resumed across
+        runs, so syncing it with the remote is the right move.
+
+        Strategies that keep the version branch local-only (e.g.
+        ``main_push``) override this to a no-op so ``git_ensure_upstream``
+        doesn't push the branch as a side effect.
+        """
+        from wexample_helpers_git.helpers.git import (
+            git_ensure_upstream,
+            git_pull_rebase_autostash,
+        )
+
+        cwd = self.workdir.get_path()
+        git_ensure_upstream(
+            cwd=cwd,
+            default_remote=self.workdir._get_deployment_remote_name(),
+            inherit_stdio=True,
+        )
+        git_pull_rebase_autostash(cwd=cwd, inherit_stdio=True)
+
     def push(self) -> None:
         """Push the bumped version to the deployment remote.
 
