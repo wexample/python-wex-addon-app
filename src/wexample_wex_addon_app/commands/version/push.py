@@ -36,7 +36,11 @@ def app__version__push(
 ) -> SuccessResponse:
     from wexample_app.response.success_response import SuccessResponse
 
+    from wexample_wex_addon_app.publication.strategy.abstract_publication_strategy import (
+        AbstractPublicationStrategy,
+    )
+
     package_name = app_workdir.get_package_name()
     app_workdir.commit_changes()
-    app_workdir.push_to_deployment_remote()
+    AbstractPublicationStrategy.from_workdir(app_workdir).push()
     return SuccessResponse(kernel=context.kernel, message=f"Pushed {package_name}.")

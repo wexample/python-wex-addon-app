@@ -37,6 +37,19 @@ class AbstractPublicationStrategy:
     def post_push(self) -> None:
         """Called after branch push — e.g. create a merge request."""
 
+    def push(self) -> None:
+        """Push the bumped version to the deployment remote.
+
+        Default behaviour pushes the **current branch** (the freshly-created
+        ``version-X.Y.Z``) — appropriate for the ``branch_merge`` strategy
+        where that branch will later host a merge request.
+
+        Override in strategies that want a different shape (e.g. ``main_push``
+        fast-forwards the main branch locally and pushes main only — the
+        version branch stays a local-only staging area).
+        """
+        self.workdir.push_to_deployment_remote()
+
     def run_post_publish_pipeline(self) -> None:
         """Full post-publish pipeline: MR creation, CI polling, deployment check."""
         self.post_push()
