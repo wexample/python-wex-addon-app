@@ -66,6 +66,14 @@ class TestWithReadmeWorkdirMixin(AbstractWorkdirMixinTest):
         class ReadmeWorkdir(WithReadmeWorkdirMixin, BaseClass):
             """Test class that inherits from WithReadmeWorkdirMixin."""
 
+            def get_path(self):
+                from pathlib import Path
+
+                # No on-disk workdir for this test class; section discovery
+                # skips non-existing search paths and falls back to the
+                # templates packaged with the addon module.
+                return Path("/nonexistent-test-workdir")
+
             def get_project_name(self) -> str:
                 return "test-package"
 
