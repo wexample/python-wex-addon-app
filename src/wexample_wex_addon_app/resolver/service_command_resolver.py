@@ -187,6 +187,31 @@ class ServiceCommandResolver(AbstractCommandResolver):
             function_kwargs=function_kwargs,
         )
 
+    def build_registry_data(self) -> RegistryResolverData:
+        registry: RegistryResolverData = {}
+
+        self._get_app_addon_manager()
+        for addon in self.kernel.get_addons().values():
+            services_base = addon.workdir.get_path() / _SERVICES_SUBDIR
+            if not services_base.is_dir():
+                continue
+
+            for service_dir in sorted(services_base.iterdir()):
+                if not service_dir.is_dir() or service_dir.name.startswith("_"):
+                    continue
+
+                service_name = service_dir.name
+                commands_base = service_dir / _COMMANDS_SUBDIR
+                addon_data = self._scan_commands_dir(commands_base, service_name)
+                self._inject_service_tag(addon_data, service_name)
+
+                if service_name not in registry:
+                    registry[service_name] = addon_data
+                else:
+                    registry[service_name].update(addon_data)
+
+        return registry
+
     def is_attachment_active(self, request: CommandRequest) -> bool:
         """A service command attached to another command only fires when its
         owning service is declared by the app in the current call workdir.
@@ -219,31 +244,6 @@ class ServiceCommandResolver(AbstractCommandResolver):
             set() if services.is_none() else set(services.get_dict_or_default().keys())
         )
         return service_name in declared
-
-    def build_registry_data(self) -> RegistryResolverData:
-        registry: RegistryResolverData = {}
-
-        self._get_app_addon_manager()
-        for addon in self.kernel.get_addons().values():
-            services_base = addon.workdir.get_path() / _SERVICES_SUBDIR
-            if not services_base.is_dir():
-                continue
-
-            for service_dir in sorted(services_base.iterdir()):
-                if not service_dir.is_dir() or service_dir.name.startswith("_"):
-                    continue
-
-                service_name = service_dir.name
-                commands_base = service_dir / _COMMANDS_SUBDIR
-                addon_data = self._scan_commands_dir(commands_base, service_name)
-                self._inject_service_tag(addon_data, service_name)
-
-                if service_name not in registry:
-                    registry[service_name] = addon_data
-                else:
-                    registry[service_name].update(addon_data)
-
-        return registry
 
     def _find_service_dir(self, service_name: str) -> Path | None:
         return self._get_app_addon_manager().find_service_dir(service_name)
