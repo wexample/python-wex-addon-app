@@ -36,5 +36,7 @@ if TYPE_CHECKING:
 )
 def app__test__run(
     context: ExecutionContext, app_workdir: AppMiddleware, format: str | None = None
-) -> None:
+) -> str | None:
+    if not app_workdir.has_tests():
+        return "No tests found."
     app_workdir.test_run(format=format)
