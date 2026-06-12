@@ -187,6 +187,39 @@ class ServiceCommandResolver(AbstractCommandResolver):
             function_kwargs=function_kwargs,
         )
 
+    def is_attachment_active(self, request: CommandRequest) -> bool:
+        """A service command attached to another command only fires when its
+        owning service is declared by the app in the current call workdir.
+
+        Outside an app workdir there is no service context to check, so the
+        attachment stays active (kernel-level behavior unchanged).
+        """
+        from wexample_helpers.helpers.string import string_to_snake_case
+
+        from wexample_wex_addon_app.workdir.managed_workdir import ManagedWorkdir
+
+        match = self.build_match(request.name)
+        if match is None:
+            return True
+        # Command names are kebab-case (@gitlab-runner::…) while config keys
+        # are snake_case (service.gitlab_runner) — same normalization as the
+        # other resolver methods.
+        service_name = string_to_snake_case(match.group(1))
+
+        call_path = self.kernel.call_workdir.get_path()
+        if not ManagedWorkdir.is_app_workdir_path(path=call_path):
+            return True
+
+        app_workdir = self._get_app_addon_manager().create_app_workdir(path=call_path)
+        if app_workdir is None:
+            return True
+
+        services = app_workdir.get_config().search("service")
+        declared = (
+            set() if services.is_none() else set(services.get_dict_or_default().keys())
+        )
+        return service_name in declared
+
     def build_registry_data(self) -> RegistryResolverData:
         registry: RegistryResolverData = {}
 

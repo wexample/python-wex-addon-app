@@ -276,7 +276,6 @@ class CodeBaseWorkdir(RepoWorkdir):
                     remote,
                     f"{local_branch}:{remote_branch}",
                     "--follow-tags",
-                    "--force",
                     "--porcelain",
                 ],
                 inherit_stdio=False,
