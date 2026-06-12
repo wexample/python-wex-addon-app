@@ -173,6 +173,9 @@ class FrameworkPackageSuiteWorkdir(RepoWorkdir):
 
         return resolved
 
+    def has_tests(self) -> bool:
+        return any(package.has_tests() for package in self.get_packages())
+
     def packages_execute_function(
         self,
         command: callable,
@@ -431,6 +434,25 @@ class FrameworkPackageSuiteWorkdir(RepoWorkdir):
             package.ensure_app_manager_setup()
             self.log(f"Installing {package.get_project_name()}...")
             package.setup_install(env=env, force=force)
+
+    def test_run(self, format: str | None = None) -> None:
+        """Run the tests of every package in the suite; raise on first failure."""
+        from wexample_prompt.enums.terminal_color import TerminalColor
+
+        packages = [p for p in self.get_ordered_packages() if p.has_tests()]
+        progress = self.progress(
+            total=len(packages),
+            color=TerminalColor.CYAN,
+            print_response=False,
+        ).get_handle()
+
+        for package in packages:
+            progress.advance(
+                step=1, label=f"Testing {package.get_project_name()}"
+            )
+            package.test_run(format=format)
+
+        progress.finish(label="All package tests passed")
 
     def topological_order(self, dep_map: dict[str, list[str]]) -> list[str]:
         """Deterministic topological order (leaves -> trunk) using graphlib."""
