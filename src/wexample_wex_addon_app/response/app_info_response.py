@@ -103,7 +103,7 @@ class AppInfoResponse(AbstractResponse):
             is_clean_since_version = (
                 not self.app_workdir.has_changes_since_last_publication_tag()
             )
-            has_tests = self.app_workdir.has_a_test()
+            has_tests = self.app_workdir.has_tests()
             is_clean_since_coverage = (
                 not self.app_workdir.has_changes_since_last_coverage()
             )
@@ -291,7 +291,7 @@ class AppInfoResponse(AbstractResponse):
             hasattr(self.app_workdir, method_name)
             for method_name in [
                 "has_changes_since_last_publication_tag",
-                "has_a_test",
+                "has_tests",
                 "has_changes_since_last_coverage",
             ]
         )

@@ -447,9 +447,7 @@ class FrameworkPackageSuiteWorkdir(RepoWorkdir):
         ).get_handle()
 
         for package in packages:
-            progress.advance(
-                step=1, label=f"Testing {package.get_project_name()}"
-            )
+            progress.advance(step=1, label=f"Testing {package.get_project_name()}")
             package.test_run(format=format)
 
         progress.finish(label="All package tests passed")

@@ -132,6 +132,14 @@ class RepoWorkdir(ManagedWorkdir):
     def count_test_files(self) -> int:
         return self._count_files(self._get_test_code_directories())
 
+    def count_tests(self) -> int:
+        """Number of test functions shipped by this workdir.
+
+        Implemented per language workdir; the base has no test-file
+        convention to count from.
+        """
+        return 0
+
     def get_last_publication_tag(self) -> str | None:
         """Return the last publication tag for this package, or None if none exists."""
         from wexample_helpers_git.helpers.git import git_last_tag_for_prefix
@@ -151,16 +159,6 @@ class RepoWorkdir(ManagedWorkdir):
         Format: "{package_name}/v{version}"
         """
         return f"{self.get_package_name()}/v{self.get_setup_version()}"
-
-    def has_a_test(self) -> bool:
-        from wexample_wex_addon_app.const.path import APP_PATH_TEST
-
-        test_dir = self.find_by_name(APP_PATH_TEST)
-        return (
-            test_dir
-            and test_dir.is_directory()
-            and any(test_dir.get_path().rglob("*.py"))
-        )
 
     def has_changes_since_last_coverage(self) -> bool:
         from wexample_helpers_git.helpers.git import (
@@ -244,9 +242,7 @@ class RepoWorkdir(ManagedWorkdir):
                     indentation=1,
                     print_response=False,
                 ).get_handle()
-                sub_progress.advance(
-                    step=1, label=f"Testing {self.get_project_name()}"
-                )
+                sub_progress.advance(step=1, label=f"Testing {self.get_project_name()}")
                 if not skip_test and self.has_tests():
                     self.test_run()
                 sub_progress.advance(
