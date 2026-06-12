@@ -166,10 +166,8 @@ class RepoWorkdir(ManagedWorkdir):
             git_has_uncommitted_changes,
         )
 
-        last_commit = (
-            self.get_config()
-            .search("test.coverage.last_report.commit_hash")
-            .get_str_or_default()
+        last_commit = self.get_local_data_value("test", "coverage_last_report", {}).get(
+            "commit_hash"
         )
 
         if not last_commit:
