@@ -19,6 +19,13 @@ if TYPE_CHECKING:
 
 
 @option(name="force", type=bool, default=False, is_flag=True)
+@option(
+    name="skip_test",
+    type=bool,
+    default=False,
+    is_flag=True,
+    description="Skip the test phase before publishing.",
+)
 @as_sudo()
 @require_app_config(
     path="git.publication_strategy",
@@ -48,5 +55,6 @@ def app__release__publish(
     context: ExecutionContext,
     app_workdir: ManagedWorkdir,
     force: bool = False,
+    skip_test: bool = False,
 ) -> None:
-    app_workdir.release(force=force, interactive=False)
+    app_workdir.release(force=force, interactive=False, skip_test=skip_test)

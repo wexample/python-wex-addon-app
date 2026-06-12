@@ -195,6 +195,10 @@ class RepoWorkdir(ManagedWorkdir):
             return True
         return git_has_changes_since_tag(last_tag, ".", cwd=self.get_path())
 
+    def has_tests(self) -> bool:
+        """Whether this workdir ships a test suite (tests/ directory by convention)."""
+        return (self.get_path() / "tests").is_dir()
+
     def publish_dependencies(self) -> dict[str, str]:
         self.release(interactive=False)
         return {self.get_package_name(): self.get_setup_version()}
@@ -204,6 +208,7 @@ class RepoWorkdir(ManagedWorkdir):
         force: bool = False,
         interactive: bool = True,
         has_changes: bool | None = None,
+        skip_test: bool = False,
     ) -> None:
         from wexample_prompt.enums.terminal_color import TerminalColor
 
@@ -234,11 +239,16 @@ class RepoWorkdir(ManagedWorkdir):
         try:
             if force or _has_changes:
                 sub_progress = self.progress(
-                    total=7,
+                    total=8,
                     color=TerminalColor.YELLOW,
                     indentation=1,
                     print_response=False,
                 ).get_handle()
+                sub_progress.advance(
+                    step=1, label=f"Testing {self.get_project_name()}"
+                )
+                if not skip_test and self.has_tests():
+                    self.test_run()
                 sub_progress.advance(
                     step=1, label=f"Syncing libraries for {self.get_project_name()}"
                 )
@@ -299,6 +309,18 @@ class RepoWorkdir(ManagedWorkdir):
             self.log(f"{self.get_package_name()} already published as {current_tag}.")
             return False
         return True
+
+    def test_run(self, format: str | None = None) -> None:
+        """Run the workdir's test suite; raise on failure.
+
+        Implemented per language workdir (e.g. PythonWorkdir runs pytest
+        with coverage). The base class has no runner: a workdir with a
+        tests/ directory but no implementation is a structural gap to
+        fill, not a case to skip.
+        """
+        raise NotImplementedError(
+            f"{type(self).__name__} has tests but no test runner; implement test_run()."
+        )
 
     def update_dependencies(self, dependencies_map: dict[str, str]) -> None:
         pass
