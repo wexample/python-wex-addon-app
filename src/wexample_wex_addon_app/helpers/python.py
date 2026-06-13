@@ -102,7 +102,7 @@ def python_install_environment(path: PathOrString) -> Path:
 def python_is_package_installed_editable_in_venv(
     venv_path: Path,
     package_name: str,
-    package_path,
+    package_path: PathOrString,
 ) -> bool:
     """Return True if the package is installed in editable mode at the given path."""
     import subprocess
