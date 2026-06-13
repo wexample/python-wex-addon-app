@@ -88,6 +88,7 @@ def app__image__build(
     else:
         ordered = resolve_build_order(builds, name if not all else None)
 
+    str_app_path = str(app_path)
     steps = []
     for build_name in ordered:
         build = builds[build_name]
@@ -102,12 +103,13 @@ def app__image__build(
             _tag=tag,
             _build_name=build_name,
             _build_args=build_args,
+            _str_app_path=str_app_path,
         ) -> InteractiveShellCommandResponse:
             context.io.log(f"Building image: {_build_name} → {_tag}")
             cmd = ["docker", "build", "--no-cache", "-f", _dockerfile, "-t", _tag]
             for key, value in _build_args.items():
                 cmd.extend(["--build-arg", f"{key}={value}"])
-            cmd.append(str(app_path))
+            cmd.append(_str_app_path)
             return InteractiveShellCommandResponse(kernel=context.kernel, content=cmd)
 
         steps.append(_step)

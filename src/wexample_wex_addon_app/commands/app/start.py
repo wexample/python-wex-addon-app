@@ -290,8 +290,8 @@ def app__app__start(
         domains_config = runtime.search("app.domains")
         domain_lines = []
         if not domains_config.is_none():
+            scheme = "https" if env != "local" else "http"
             for domain in domains_config.get_list_or_default():
-                scheme = "https" if env != "local" else "http"
                 domain_lines.append(f"{scheme}://{domain.get_str()}")
 
         summary = f'App "{name}" started in {env} environment'

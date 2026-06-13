@@ -184,8 +184,10 @@ class AppAddonManager(AbstractAddonManager):
 
         services_config = app_workdir.get_config().search("service")
         if not services_config.is_none():
-            for service_name in services_config.to_dict():
-                result.append(self.get_app_service(service_name, app_workdir))
+            result.extend(
+                self.get_app_service(service_name, app_workdir)
+                for service_name in services_config.to_dict()
+            )
 
         return result
 
@@ -359,17 +361,15 @@ class AppAddonManager(AbstractAddonManager):
         from wexample_wex_core.common.command_request import CommandRequest
 
         results: dict[str, Any] = {}
+        parts = hook.split("/")
+        group_path = Path(*parts[:-1]) if len(parts) > 1 else Path()
+        hook_cmd_filename = f"{string_to_snake_case(parts[-1])}.py"
         for service in self.get_app_services(app_workdir):
             if not service.service_dir:
                 continue
 
-            parts = hook.split("/")
-            group_path = Path(*parts[:-1]) if len(parts) > 1 else Path()
             cmd_path = (
-                service.service_dir
-                / "commands"
-                / group_path
-                / f"{string_to_snake_case(parts[-1])}.py"
+                service.service_dir / "commands" / group_path / hook_cmd_filename
             )
             if not cmd_path.exists():
                 continue

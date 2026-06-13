@@ -180,7 +180,7 @@ def app__config__build(
 
         cmd = ["docker", "compose"]
         for f in compose_files:
-            cmd += ["-f", f]
+            cmd.extend(("-f", f))
         cmd += [
             "--profile",
             f"env_{env}",

@@ -103,7 +103,7 @@ def app__db__dump(
         },
     )
     response = context.kernel.execute_kernel_command(request)
-    dump_path_str = response.content if hasattr(response, "content") else None
+    dump_path_str = getattr(response, "content", None)
 
     if not dump_path_str:
         return None

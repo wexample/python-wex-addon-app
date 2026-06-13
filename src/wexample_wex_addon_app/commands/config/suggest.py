@@ -124,7 +124,7 @@ def app__config__suggest(
             + snippet
             + "\n# Currently set values in .wex/local/env.yml (for reference):"
         )
-        for name in sorted(to_suggest):
+        for name in suggestions:
             current = existing_env.get(name)
             if current is not None:
                 context.io.log(f"#   {name} = {current!r}")
@@ -139,7 +139,8 @@ def app__config__suggest(
             message="config.yml is not a mapping — aborting",
         )
 
-    existing_vars = config.get("vars") if isinstance(config.get("vars"), dict) else {}
+    _vars = config.get("vars")
+    existing_vars = _vars if isinstance(_vars, dict) else {}
     merged_vars = {**existing_vars}
     for name, entry in suggestions.items():
         merged_vars.setdefault(name, entry)

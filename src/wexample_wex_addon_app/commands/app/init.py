@@ -94,7 +94,7 @@ def app__app__init(
     target_path = Path(app_path or context.kernel.call_workdir.get_path()).resolve()
     app_name = name or target_path.name
     env_name = env or "local"
-    normalized_services = [string_to_snake_case(s) for s in (services or [])]
+    normalized_services = (string_to_snake_case(s) for s in (services or []))
     domain = f"{string_to_kebab_case(app_name)}.{CORE_COMMAND_NAME}"
     wex_version = context.kernel.workdir.get_setup_version()
 

@@ -98,9 +98,8 @@ def _check_started(app_workdir: ManagedWorkdir, mode: str, context) -> bool:
         capture_output=True,
         text=True,
     )
-    running = (
-        set(result.stdout.strip().splitlines()) if result.stdout.strip() else set()
-    )
+    _stdout = result.stdout.strip()
+    running = set(_stdout.splitlines()) if _stdout else set()
 
     all_runs = True
     for name in container_names:

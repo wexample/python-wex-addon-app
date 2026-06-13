@@ -91,8 +91,8 @@ def app__container__list(
     for service_name, attrs in services.items():
         container_name = attrs.get("container_name", service_name)
         inspect = inspect_by_name.get(container_name, {})
-        state = inspect.get("State", {}) if inspect else {}
-        config = inspect.get("Config", {}) if inspect else {}
+        state = inspect.get("State", {})
+        config = inspect.get("Config", {})
 
         row = [
             _format_role(service_name=service_name, app_workdir=app_workdir),

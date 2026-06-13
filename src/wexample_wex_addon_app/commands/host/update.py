@@ -53,13 +53,12 @@ def app__host__update(
     registry_purge_stopped()
     data = registry_read()
 
-    block_lines: list[str] = []
-    total_domains = 0
-    for entry in data["apps"].values():
-        ip = entry.get("ip", "127.0.1.1")
-        for domain in entry.get("domains", []):
-            block_lines.append(f"{ip}\t{domain}")
-            total_domains += 1
+    block_lines = [
+        f"{entry.get('ip', '127.0.1.1')}\t{domain}"
+        for entry in data["apps"].values()
+        for domain in entry.get("domains", [])
+    ]
+    total_domains = len(block_lines)
 
     with open(_HOSTS_PATH) as f:
         content = f.read()

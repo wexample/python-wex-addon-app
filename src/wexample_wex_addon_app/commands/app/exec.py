@@ -82,7 +82,7 @@ def app__app__exec(
     docker_command = ["docker", "exec"]
 
     if interactive:
-        docker_command += ["-ti"]
+        docker_command.append("-ti")
 
     if user:
         docker_command += ["-u", user]

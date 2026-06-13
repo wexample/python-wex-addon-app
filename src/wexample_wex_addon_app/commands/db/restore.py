@@ -119,24 +119,25 @@ def app__db__restore(
         context.io.log(f"Extracted: {sql_path.name}")
 
     app_path = str(app_workdir.get_path())
-
     extra = {"database": database} if database else {}
+    cmd_request_cls = context.kernel._get_command_request_class()
+    service_slug = string_to_kebab_case(service_name)
 
     # Destroy + recreate DB
     context.io.log("Restoring...")
     context.kernel.execute_kernel_command(
-        context.kernel._get_command_request_class()(
+        cmd_request_cls(
             kernel=context.kernel,
-            name=f"@{string_to_kebab_case(service_name)}::db/destroy",
+            name=f"@{service_slug}::db/destroy",
             arguments={"app_path": app_path, **extra},
         )
     )
 
     # Restore from SQL file
     context.kernel.execute_kernel_command(
-        context.kernel._get_command_request_class()(
+        cmd_request_cls(
             kernel=context.kernel,
-            name=f"@{string_to_kebab_case(service_name)}::db/restore",
+            name=f"@{service_slug}::db/restore",
             arguments={"app_path": app_path, "file_name": sql_path.name, **extra},
         )
     )
