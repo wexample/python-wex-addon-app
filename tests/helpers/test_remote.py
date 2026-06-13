@@ -5,39 +5,13 @@ from typing import Any
 import pytest
 
 
-class _Search:
-    def __init__(self, value: Any) -> None:
-        self._value = value
-
-    def to_list_or_none(self) -> Any:
-        return self._value
-
-
-class _Config:
-    def __init__(self, remotes: Any) -> None:
-        self._remotes = remotes
-
-    def search(self, _key: str) -> _Search:
-        return _Search(self._remotes)
-
-
-class _Workdir:
-    def __init__(self, remotes: Any, project: str = "proj") -> None:
-        self._remotes = remotes
-        self._project = project
-
-    def get_config(self, env_name: str) -> _Config:
-        return _Config(self._remotes)
-
-    def get_project_name(self) -> str:
-        return self._project
-
-
-def test_remote_resolve_raises_when_no_remotes() -> None:
+def test_remote_resolve_raises_when_host_missing() -> None:
     from wexample_wex_addon_app.helpers.remote import remote_resolve
 
-    with pytest.raises(ValueError, match="No remotes defined"):
-        remote_resolve(_Workdir(None), env="prod")
+    workdir = _Workdir([{"name": "a", "host": "   "}])
+
+    with pytest.raises(ValueError, match="no 'host' field"):
+        remote_resolve(workdir, env="prod")
 
 
 def test_remote_resolve_raises_when_named_remote_missing() -> None:
@@ -49,13 +23,11 @@ def test_remote_resolve_raises_when_named_remote_missing() -> None:
         remote_resolve(workdir, env="prod", name="b")
 
 
-def test_remote_resolve_raises_when_host_missing() -> None:
+def test_remote_resolve_raises_when_no_remotes() -> None:
     from wexample_wex_addon_app.helpers.remote import remote_resolve
 
-    workdir = _Workdir([{"name": "a", "host": "   "}])
-
-    with pytest.raises(ValueError, match="no 'host' field"):
-        remote_resolve(workdir, env="prod")
+    with pytest.raises(ValueError, match="No remotes defined"):
+        remote_resolve(_Workdir(None), env="prod")
 
 
 def test_remote_resolve_raises_when_user_unresolvable(
@@ -113,3 +85,31 @@ def test_remote_resolve_user_override_takes_precedence() -> None:
     resolved = remote_resolve(workdir, env="prod", user_override="override")
 
     assert resolved["user"] == "override"
+
+
+class _Search:
+    def __init__(self, value: Any) -> None:
+        self._value = value
+
+    def to_list_or_none(self) -> Any:
+        return self._value
+
+
+class _Config:
+    def __init__(self, remotes: Any) -> None:
+        self._remotes = remotes
+
+    def search(self, _key: str) -> _Search:
+        return _Search(self._remotes)
+
+
+class _Workdir:
+    def __init__(self, remotes: Any, project: str = "proj") -> None:
+        self._remotes = remotes
+        self._project = project
+
+    def get_config(self, env_name: str) -> _Config:
+        return _Config(self._remotes)
+
+    def get_project_name(self) -> str:
+        return self._project

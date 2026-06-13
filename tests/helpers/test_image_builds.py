@@ -6,10 +6,16 @@ import pytest
 from wexample_app.const.globals import APP_FILE_APP_CONFIG, WORKDIR_SETUP_DIR
 
 
-def _write_config(app_path: Path, body: str) -> None:
-    setup_dir = app_path / WORKDIR_SETUP_DIR
-    setup_dir.mkdir(parents=True, exist_ok=True)
-    (setup_dir / APP_FILE_APP_CONFIG).write_text(body)
+def test_collect_deps_gathers_transitive_chain() -> None:
+    from wexample_wex_addon_app.helpers.image_builds import _collect_deps
+
+    builds = {
+        "base": {},
+        "mid": {"depends_on": "base"},
+        "app": {"depends_on": "mid"},
+    }
+
+    assert _collect_deps(builds, "app") == {"app", "mid", "base"}
 
 
 def test_load_builds_raises_when_config_missing(tmp_path: Path) -> None:
@@ -69,13 +75,7 @@ def test_resolve_build_order_unknown_name_raises() -> None:
         resolve_build_order({"base": {}}, name="ghost")
 
 
-def test_collect_deps_gathers_transitive_chain() -> None:
-    from wexample_wex_addon_app.helpers.image_builds import _collect_deps
-
-    builds = {
-        "base": {},
-        "mid": {"depends_on": "base"},
-        "app": {"depends_on": "mid"},
-    }
-
-    assert _collect_deps(builds, "app") == {"app", "mid", "base"}
+def _write_config(app_path: Path, body: str) -> None:
+    setup_dir = app_path / WORKDIR_SETUP_DIR
+    setup_dir.mkdir(parents=True, exist_ok=True)
+    (setup_dir / APP_FILE_APP_CONFIG).write_text(body)

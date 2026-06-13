@@ -368,9 +368,7 @@ class AppAddonManager(AbstractAddonManager):
             if not service.service_dir:
                 continue
 
-            cmd_path = (
-                service.service_dir / "commands" / group_path / hook_cmd_filename
-            )
+            cmd_path = service.service_dir / "commands" / group_path / hook_cmd_filename
             if not cmd_path.exists():
                 continue
 
