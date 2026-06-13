@@ -77,7 +77,7 @@ def app__image__delete(
         targets = [name]
     else:
         # Delete in reverse dependency order: dependents before base images
-        targets = list(reversed(resolve_build_order(builds, None)))
+        targets = reversed(resolve_build_order(builds, None))
 
     steps = []
     for build_name in targets:
