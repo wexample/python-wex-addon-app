@@ -158,6 +158,50 @@ class ManagedWorkdir(
 
         return stamp_sort_key(migration_class.VERSION, migration_class.SEQ)
 
+    def add_gitignore_rules(
+        self,
+        children: list[dict],
+        *lines: str,
+        section: str | None = None,
+    ) -> dict:
+        """Ensure the `.gitignore` config in `children` has the given lines.
+
+        - Creates the .gitignore config (file, should_exist, end_new_line)
+          if absent, so callers never have to repeat the boilerplate.
+        - Idempotently enables the GitignoreOption rectifier
+          (`gitignore: True`) so the file is dedup+sorted on every pass.
+        - The `section` parameter is kept for caller intent (the call site
+          documents which language/topic the lines belong to) but is
+          intentionally NOT injected into `should_contain_lines`. Section
+          headers via that mechanism produce orphan `# Section` lines at
+          end-of-file whenever the entries are already present somewhere
+          else in the file. Real section grouping belongs to the rectifier
+          and will be plumbed through when it supports glob-aware
+          organization.
+
+        Returns the .gitignore config dict so the caller can attach extra
+        keys (e.g. specific TextOption tweaks) if needed.
+        """
+        del section  # accepted for caller intent; not used yet (see docstring)
+        from wexample_filestate.const.disk import DiskItemType
+        from wexample_filestate.option.text_option import TextOption
+        from wexample_helpers.helpers.array import array_dict_get_by
+
+        config = array_dict_get_by("name", ".gitignore", children)
+        if config is None:
+            config = {
+                "name": ".gitignore",
+                "type": DiskItemType.FILE,
+                "should_exist": True,
+                TextOption.get_name(): {"end_new_line": True},
+            }
+            children.append(config)
+
+        config.setdefault("gitignore", True)
+        bucket = config.setdefault("should_contain_lines", [])
+        bucket.extend(lines)
+        return config
+
     def app_install(self, env: str | None = None, force: bool = False) -> bool:
         return True
 
@@ -457,50 +501,6 @@ class ManagedWorkdir(
         if stamp.seq is not None:
             cfg.set_by_path("wex.migration", stamp.seq)
         config_file.write_config(cfg)
-
-    def add_gitignore_rules(
-        self,
-        children: list[dict],
-        *lines: str,
-        section: str | None = None,
-    ) -> dict:
-        """Ensure the `.gitignore` config in `children` has the given lines.
-
-        - Creates the .gitignore config (file, should_exist, end_new_line)
-          if absent, so callers never have to repeat the boilerplate.
-        - Idempotently enables the GitignoreOption rectifier
-          (`gitignore: True`) so the file is dedup+sorted on every pass.
-        - The `section` parameter is kept for caller intent (the call site
-          documents which language/topic the lines belong to) but is
-          intentionally NOT injected into `should_contain_lines`. Section
-          headers via that mechanism produce orphan `# Section` lines at
-          end-of-file whenever the entries are already present somewhere
-          else in the file. Real section grouping belongs to the rectifier
-          and will be plumbed through when it supports glob-aware
-          organization.
-
-        Returns the .gitignore config dict so the caller can attach extra
-        keys (e.g. specific TextOption tweaks) if needed.
-        """
-        del section  # accepted for caller intent; not used yet (see docstring)
-        from wexample_filestate.const.disk import DiskItemType
-        from wexample_filestate.option.text_option import TextOption
-        from wexample_helpers.helpers.array import array_dict_get_by
-
-        config = array_dict_get_by("name", ".gitignore", children)
-        if config is None:
-            config = {
-                "name": ".gitignore",
-                "type": DiskItemType.FILE,
-                "should_exist": True,
-                TextOption.get_name(): {"end_new_line": True},
-            }
-            children.append(config)
-
-        config.setdefault("gitignore", True)
-        bucket = config.setdefault("should_contain_lines", [])
-        bucket.extend(lines)
-        return config
 
     def prepare_value(self, raw_value: DictConfig | None = None) -> DictConfig:
         from wexample_app.const.globals import (
