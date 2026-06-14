@@ -458,6 +458,46 @@ class ManagedWorkdir(
             cfg.set_by_path("wex.migration", stamp.seq)
         config_file.write_config(cfg)
 
+    def add_gitignore_rules(
+        self,
+        children: list[dict],
+        *lines: str,
+        section: str | None = None,
+    ) -> dict:
+        """Ensure the `.gitignore` config in `children` has the given lines.
+
+        - Creates the .gitignore config (file, should_exist, end_new_line)
+          if absent, so callers never have to repeat the boilerplate.
+        - Idempotently enables the GitignoreOption rectifier
+          (`gitignore: True`) so the file is dedup+sorted on every pass.
+        - If `section` is given, prepends `# <section>` ahead of the new
+          lines so the rectifier groups them under that header (the safe
+          rectifier preserves leading-comment blocks as section headers).
+
+        Returns the .gitignore config dict so the caller can attach extra
+        keys (e.g. specific TextOption tweaks) if needed.
+        """
+        from wexample_filestate.const.disk import DiskItemType
+        from wexample_filestate.option.text_option import TextOption
+        from wexample_helpers.helpers.array import array_dict_get_by
+
+        config = array_dict_get_by("name", ".gitignore", children)
+        if config is None:
+            config = {
+                "name": ".gitignore",
+                "type": DiskItemType.FILE,
+                "should_exist": True,
+                TextOption.get_name(): {"end_new_line": True},
+            }
+            children.append(config)
+
+        config.setdefault("gitignore", True)
+        bucket = config.setdefault("should_contain_lines", [])
+        if section:
+            bucket.append(f"# {section}")
+        bucket.extend(lines)
+        return config
+
     def prepare_value(self, raw_value: DictConfig | None = None) -> DictConfig:
         from wexample_app.const.globals import (
             APP_FILE_APP_CONFIG,
@@ -637,6 +677,7 @@ class ManagedWorkdir(
                                     ".gitignore",
                                 ],
                                 TextOption.get_name(): {"end_new_line": True},
+                                "gitignore": True,
                             },
                         ],
                     },
@@ -650,6 +691,7 @@ class ManagedWorkdir(
                             f"/{WORKDIR_LOCAL_DIR_NAME}/",
                         ],
                         TextOption.get_name(): {"end_new_line": True},
+                        "gitignore": True,
                     },
                 ],
             }
@@ -662,6 +704,7 @@ class ManagedWorkdir(
                 "should_exist": True,
                 TextOption.get_name(): {"end_new_line": True},
                 "should_contain_lines": PROJECT_GITIGNORE_DEFAULT,
+                "gitignore": True,
             }
         )
 
