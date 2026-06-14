@@ -130,12 +130,8 @@ class CodeBaseWorkdir(RepoWorkdir):
     def get_io_context_prefix_format(self) -> str:
         return "‹› {prefix} | "
 
-    def get_options_providers(self) -> list[type[AbstractOptionsProvider]]:
-        from wexample_filestate_git.options_provider.git_options_provider import (
-            GitOptionsProvider,
-        )
-
-        return [*super().get_options_providers(), GitOptionsProvider]
+    # GitOptionsProvider is registered on ManagedWorkdir (parent of RepoWorkdir),
+    # so CodeBaseWorkdir inherits it for free — no override needed here.
 
     def get_package_dependency_name(self) -> str:
         """Return the name used by other packages to mark it as a dependency"""

@@ -402,11 +402,22 @@ class ManagedWorkdir(
         return sorted(migrations, key=self._migration_version_key)
 
     def get_options_providers(self) -> list[type[AbstractOptionsProvider]]:
+        from wexample_filestate_git.options_provider.git_options_provider import (
+            GitOptionsProvider,
+        )
         from wexample_wex_addon_app.filestate.options_provider.setup_manager_options_provider import (
             SetupManagerOptionsProvider,
         )
 
-        return [*super().get_options_providers(), SetupManagerOptionsProvider]
+        # GitOptionsProvider lives here (not just on CodeBaseWorkdir) because
+        # the .gitignore declarations injected in prepare_value carry
+        # `gitignore: True`, and the corresponding GitignoreOption must be
+        # resolvable on every ManagedWorkdir, not only on code repos.
+        return [
+            *super().get_options_providers(),
+            SetupManagerOptionsProvider,
+            GitOptionsProvider,
+        ]
 
     def get_project_name(self) -> str:
         from wexample_app.const.globals import APP_FILE_APP_CONFIG
