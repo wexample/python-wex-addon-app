@@ -470,13 +470,19 @@ class ManagedWorkdir(
           if absent, so callers never have to repeat the boilerplate.
         - Idempotently enables the GitignoreOption rectifier
           (`gitignore: True`) so the file is dedup+sorted on every pass.
-        - If `section` is given, prepends `# <section>` ahead of the new
-          lines so the rectifier groups them under that header (the safe
-          rectifier preserves leading-comment blocks as section headers).
+        - The `section` parameter is kept for caller intent (the call site
+          documents which language/topic the lines belong to) but is
+          intentionally NOT injected into `should_contain_lines`. Section
+          headers via that mechanism produce orphan `# Section` lines at
+          end-of-file whenever the entries are already present somewhere
+          else in the file. Real section grouping belongs to the rectifier
+          and will be plumbed through when it supports glob-aware
+          organization.
 
         Returns the .gitignore config dict so the caller can attach extra
         keys (e.g. specific TextOption tweaks) if needed.
         """
+        del section  # accepted for caller intent; not used yet (see docstring)
         from wexample_filestate.const.disk import DiskItemType
         from wexample_filestate.option.text_option import TextOption
         from wexample_helpers.helpers.array import array_dict_get_by
@@ -493,8 +499,6 @@ class ManagedWorkdir(
 
         config.setdefault("gitignore", True)
         bucket = config.setdefault("should_contain_lines", [])
-        if section:
-            bucket.append(f"# {section}")
         bucket.extend(lines)
         return config
 
