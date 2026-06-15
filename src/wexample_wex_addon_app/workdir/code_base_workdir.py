@@ -9,9 +9,6 @@ from wexample_helpers_git.helpers.git import git_run
 from wexample_wex_addon_app.workdir.repo_workdir import RepoWorkdir
 
 if TYPE_CHECKING:
-    from wexample_config.options_provider.abstract_options_provider import (
-        AbstractOptionsProvider,
-    )
     from wexample_prompt.common.progress.progress_handle import ProgressHandle
 
 
@@ -129,10 +126,9 @@ class CodeBaseWorkdir(RepoWorkdir):
 
     def get_io_context_prefix_format(self) -> str:
         return "‹› {prefix} | "
-
+    
     # GitOptionsProvider is registered on ManagedWorkdir (parent of RepoWorkdir),
     # so CodeBaseWorkdir inherits it for free — no override needed here.
-
     def get_package_dependency_name(self) -> str:
         """Return the name used by other packages to mark it as a dependency"""
         return self.get_package_name()

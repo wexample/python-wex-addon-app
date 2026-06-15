@@ -405,6 +405,7 @@ class ManagedWorkdir(
         from wexample_filestate_git.options_provider.git_options_provider import (
             GitOptionsProvider,
         )
+
         from wexample_wex_addon_app.filestate.options_provider.setup_manager_options_provider import (
             SetupManagerOptionsProvider,
         )
