@@ -1,0 +1,11 @@
+{
+  "engram_version": 1,
+  "source_key": "src/wexample_wex_addon_app/publication/strategy/main_push_publication_strategy.py",
+  "cache_nonce": "1c2800147ebc4367950bb7b61bd21d00",
+  "last_visited_at": "2026-06-16T20:13:44+00:00",
+  "last_rev": "548b5783da7f7b0e147e3cf45bf10f7808bd6173",
+  "last_decision": "edit",
+  "kinds": [],
+  "notes": "cached self.workdir in local variable to eliminate 3 repeated attribute lookups in push()",
+  "in_progress": null
+}

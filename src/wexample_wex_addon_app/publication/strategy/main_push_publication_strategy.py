@@ -31,10 +31,11 @@ class MainPushPublicationStrategy(AbstractPublicationStrategy):
             git_switch_branch,
         )
 
-        cwd = self.workdir.get_path()
+        workdir = self.workdir
+        cwd = workdir.get_path()
         version_branch = git_current_branch(cwd=cwd, inherit_stdio=False)
         main_branch = (
-            self.workdir.get_config()
+            workdir.get_config()
             .search("git.main_branch")
             .get_str_or_default(_DEFAULT_MAIN_BRANCH)
         )
@@ -42,7 +43,7 @@ class MainPushPublicationStrategy(AbstractPublicationStrategy):
         # If we're somehow already on main (e.g. resume after a partial run),
         # there is nothing to fast-forward — just push what's there.
         if version_branch == main_branch:
-            self.workdir.push_to_deployment_remote(branch_name=main_branch)
+            workdir.push_to_deployment_remote(branch_name=main_branch)
             return
 
         # Fast-forward main onto the version branch. --ff-only fails loudly
@@ -55,7 +56,7 @@ class MainPushPublicationStrategy(AbstractPublicationStrategy):
             inherit_stdio=False,
         )
 
-        self.workdir.push_to_deployment_remote(branch_name=main_branch)
+        workdir.push_to_deployment_remote(branch_name=main_branch)
 
         # Drop the local staging branch — it served its purpose and the
         # commits now live on main. Remote never saw it (see prepare_commit
