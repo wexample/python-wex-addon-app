@@ -28,7 +28,10 @@ class WithSuiteTreeWorkdirMixin(BaseClass):
         from wexample_config.config_value.nested_config_value import NestedConfigValue
         from wexample_helpers.helpers.dict import dict_interpolate, dict_merge
 
-        if not self.get_shallow_suite_workdir():
+        # Avoid instantiating a suite workdir just to check truthiness;
+        # the two cheaper checks are semantically equivalent and skip one
+        # create_from_path(configure=False) + one Path.exists() syscall.
+        if not self._get_suite_workdir_class() or not self.find_suite_workdir_path():
             return super().build_runtime_config_value()
 
         # Collect env params from the full suite tree (self + all parent suites).
@@ -126,7 +129,9 @@ class WithSuiteTreeWorkdirMixin(BaseClass):
             return None
 
         suite_path = self.find_suite_workdir_path()
-        if suite_path and suite_path.exists():
+        # find_suite_workdir_path already verified existence via directory_iterate_parent_dirs;
+        # the cached result is a live path — skip the redundant Path.exists() syscall.
+        if suite_path:
             return suite_class.create_from_path(path=suite_path, configure=False)
 
     def get_suite_workdir(

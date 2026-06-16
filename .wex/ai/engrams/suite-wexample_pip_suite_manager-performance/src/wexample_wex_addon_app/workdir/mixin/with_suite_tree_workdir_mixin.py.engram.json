@@ -1,0 +1,11 @@
+{
+  "engram_version": 1,
+  "source_key": "src/wexample_wex_addon_app/workdir/mixin/with_suite_tree_workdir_mixin.py",
+  "cache_nonce": "1c2800147ebc4367950bb7b61bd21d00",
+  "last_visited_at": "2026-06-16T20:30:26+00:00",
+  "last_rev": "4bd09896067595c04422ca3a33ef6a293e35805b",
+  "last_decision": "edit",
+  "kinds": [],
+  "notes": "replaced get_shallow_suite_workdir() guard in build_runtime_config_value with cheaper find_suite_workdir_path()/_get_suite_workdir_class() checks; removed redundant Path.exists() syscall in get_shallow_suite_workdir",
+  "in_progress": null
+}
