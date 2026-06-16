@@ -75,14 +75,16 @@ def app__remote__available(
         context.io.warning(str(e))
         return False
 
-    address = f"{remote['host']}:{remote['webhook_port']}"
+    host = remote["host"]
+    webhook_port = remote["webhook_port"]
+    address = f"{host}:{webhook_port}"
     context.io.log(f"Checking webhook on {remote['name']} ({address})")
 
     try:
-        conn = HTTPConnection(remote["host"], remote["webhook_port"], timeout=timeout)
+        conn = HTTPConnection(host, webhook_port, timeout=timeout)
         conn.request("GET", "/health")
-        response = conn.getresponse()
-        ok = response.status == 200
+        status = conn.getresponse().status
+        ok = status == 200
     except Exception as e:
         context.io.warning(f"Webhook on {address} not reachable: {e}")
         return False
@@ -90,6 +92,6 @@ def app__remote__available(
     if ok:
         context.io.success(f"Webhook on {address} is up")
     else:
-        context.io.warning(f"Webhook on {address} returned HTTP {response.status}")
+        context.io.warning(f"Webhook on {address} returned HTTP {status}")
 
     return ok
