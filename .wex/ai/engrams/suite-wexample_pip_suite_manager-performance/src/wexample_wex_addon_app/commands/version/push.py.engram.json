@@ -1,0 +1,11 @@
+{
+  "engram_version": 1,
+  "source_key": "src/wexample_wex_addon_app/commands/version/push.py",
+  "cache_nonce": "1c2800147ebc4367950bb7b61bd21d00",
+  "last_visited_at": "2026-06-16T19:20:45+00:00",
+  "last_rev": "d07a85c24d9129d1c9d332854b6e8f81d09def11",
+  "last_decision": "edit",
+  "kinds": [],
+  "notes": "inlined single-use `package_name` local into f-string, removing STORE_FAST/LOAD_FAST pair",
+  "in_progress": null
+}

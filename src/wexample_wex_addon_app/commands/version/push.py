@@ -40,7 +40,6 @@ def app__version__push(
         AbstractPublicationStrategy,
     )
 
-    package_name = app_workdir.get_package_name()
     app_workdir.commit_changes()
     AbstractPublicationStrategy.from_workdir(app_workdir).push()
-    return SuccessResponse(kernel=context.kernel, message=f"Pushed {package_name}.")
+    return SuccessResponse(kernel=context.kernel, message=f"Pushed {app_workdir.get_package_name()}.")
