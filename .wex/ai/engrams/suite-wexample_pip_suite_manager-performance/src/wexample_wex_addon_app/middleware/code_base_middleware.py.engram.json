@@ -1,0 +1,11 @@
+{
+  "engram_version": 1,
+  "source_key": "src/wexample_wex_addon_app/middleware/code_base_middleware.py",
+  "cache_nonce": "1c2800147ebc4367950bb7b61bd21d00",
+  "last_visited_at": "2026-06-16T19:43:57+00:00",
+  "last_rev": "c1f8445ab08357823055a39242a8c4caf5f6e458",
+  "last_decision": "edit",
+  "kinds": [],
+  "notes": "hoisted `from pathlib import Path` out of method body to module level",
+  "in_progress": null
+}
