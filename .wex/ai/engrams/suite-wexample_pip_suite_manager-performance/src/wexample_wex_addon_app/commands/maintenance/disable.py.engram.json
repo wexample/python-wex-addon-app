@@ -1,0 +1,11 @@
+{
+  "engram_version": 1,
+  "source_key": "src/wexample_wex_addon_app/commands/maintenance/disable.py",
+  "cache_nonce": "1c2800147ebc4367950bb7b61bd21d00",
+  "last_visited_at": "2026-06-16T19:03:31+00:00",
+  "last_rev": "cce435fe015ef0bae7d3c0b796d77eda48ba6c1b",
+  "last_decision": "skip",
+  "kinds": [],
+  "notes": "two-line body; deferred SuccessResponse import is an intentional circular-import guard matching sibling enable.py — nothing to optimize",
+  "in_progress": null
+}
