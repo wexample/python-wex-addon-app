@@ -1,0 +1,11 @@
+{
+  "engram_version": 1,
+  "source_key": "src/wexample_wex_addon_app/commands/env/var_list.py",
+  "cache_nonce": "1c2800147ebc4367950bb7b61bd21d00",
+  "last_visited_at": "2026-06-16T13:02:05+00:00",
+  "last_rev": "033c75a7df0972bb004cb3f491ac162be84bc59b",
+  "last_decision": "skip",
+  "kinds": [],
+  "notes": "already optimal: deferred PropertiesResponse import, TYPE_CHECKING guard, early-exit on empty dict, `from __future__ import annotations`; no hot path present",
+  "in_progress": null
+}
