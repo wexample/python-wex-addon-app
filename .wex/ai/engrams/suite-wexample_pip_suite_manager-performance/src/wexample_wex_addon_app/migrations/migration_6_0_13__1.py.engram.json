@@ -1,0 +1,11 @@
+{
+  "engram_version": 1,
+  "source_key": "src/wexample_wex_addon_app/migrations/migration_6_0_13__1.py",
+  "cache_nonce": "1c2800147ebc4367950bb7b61bd21d00",
+  "last_visited_at": "2026-06-16T19:53:16+00:00",
+  "last_rev": "7fd3ce93de2fb76dacbc626db8d5b17fdde6b57d",
+  "last_decision": "edit",
+  "kinds": [],
+  "notes": "replaced any() generator with set.isdisjoint(), dropped list() copy of DEFAULT_ENVS tuple, reused cached env_dir in loop",
+  "in_progress": null
+}

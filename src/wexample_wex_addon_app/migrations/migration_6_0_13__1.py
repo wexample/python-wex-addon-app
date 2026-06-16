@@ -32,9 +32,7 @@ class Migration_6_0_13__1(AbstractMigration):
         if not isinstance(service_config, dict):
             return
 
-        if not any(
-            service_name in service_config for service_name in self.PHP_SERVICES
-        ):
+        if self.PHP_SERVICES.isdisjoint(service_config):
             return
 
         env_dir = wex_dir / "env"
@@ -44,10 +42,10 @@ class Migration_6_0_13__1(AbstractMigration):
             env_names = []
 
         if not env_names:
-            env_names = list(self.DEFAULT_ENVS)
+            env_names = self.DEFAULT_ENVS
 
         for env_name in env_names:
-            cron_path = wex_dir / "env" / env_name / "cron" / "default.cron"
+            cron_path = env_dir / env_name / "cron" / "default.cron"
 
             if cron_path.is_dir():
                 continue
