@@ -1,0 +1,11 @@
+{
+  "engram_version": 1,
+  "source_key": "src/wexample_wex_addon_app/migrations/migration_6_0_26__1.py",
+  "cache_nonce": "1c2800147ebc4367950bb7b61bd21d00",
+  "last_visited_at": "2026-06-16T20:04:16+00:00",
+  "last_rev": "eb195eed76e4d68456606e61dc2bcd5282b15c39",
+  "last_decision": "edit",
+  "kinds": [],
+  "notes": "replaced dict-copy + setdefault loop + O(n) equality check with a single comprehension over new_entries and dict-unpack at write time",
+  "in_progress": null
+}

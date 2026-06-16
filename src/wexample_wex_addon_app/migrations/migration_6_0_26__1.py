@@ -37,14 +37,14 @@ class Migration_6_0_26__1(AbstractMigration):
             if isinstance(loaded, dict):
                 yaml_values = loaded
 
-        # YAML wins on conflicts (new source of truth).
-        merged = dict(yaml_values)
-        for key, value in env_values.items():
-            if value is None:
-                continue
-            merged.setdefault(key, value)
+        # YAML wins on conflicts (new source of truth); collect only missing keys.
+        new_entries = {
+            key: value
+            for key, value in env_values.items()
+            if value is not None and key not in yaml_values
+        }
 
-        if merged == yaml_values:
+        if not new_entries:
             return
 
         if context.dry_run:
@@ -52,7 +52,7 @@ class Migration_6_0_26__1(AbstractMigration):
 
         yaml_path.parent.mkdir(parents=True, exist_ok=True)
         with open(yaml_path, "w") as f:
-            yaml.safe_dump(merged, f, sort_keys=False)
+            yaml.safe_dump({**yaml_values, **new_entries}, f, sort_keys=False)
 
     def rollback(self, context: MigrationContext) -> None:
         # No rollback: .env is preserved intact, so reverting just means
