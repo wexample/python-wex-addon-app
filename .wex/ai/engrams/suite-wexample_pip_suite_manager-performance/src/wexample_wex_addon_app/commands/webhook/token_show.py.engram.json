@@ -1,0 +1,11 @@
+{
+  "engram_version": 1,
+  "source_key": "src/wexample_wex_addon_app/commands/webhook/token_show.py",
+  "cache_nonce": "1c2800147ebc4367950bb7b61bd21d00",
+  "last_visited_at": "2026-06-16T19:23:51+00:00",
+  "last_rev": "a05494305e90aeadc3911d71b84641816a2bef68",
+  "last_decision": "skip",
+  "kinds": [],
+  "notes": "simple CLI command handler with single dict lookup; lazy import is intentional for startup; no hot path to optimize",
+  "in_progress": null
+}
