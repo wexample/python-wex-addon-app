@@ -1,0 +1,11 @@
+{
+  "engram_version": 1,
+  "source_key": "src/wexample_wex_addon_app/migrations/migration_6_0_17__1.py",
+  "cache_nonce": "1c2800147ebc4367950bb7b61bd21d00",
+  "last_visited_at": "2026-06-16T19:56:47+00:00",
+  "last_rev": "5872f270c1f25d98166c07c4ad6728c839fe7cc6",
+  "last_decision": "edit",
+  "kinds": [],
+  "notes": "hoisted v5_markers set and passthrough keys tuple to module level; merged dead elif is_bash_file branch into else",
+  "in_progress": null
+}

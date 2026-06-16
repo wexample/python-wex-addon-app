@@ -13,6 +13,10 @@ if TYPE_CHECKING:
 _STEP_KEYS_DROP = {"type", "context", "sync", "interpreter"}
 # Keys that require a runtime warning when dropped
 _STEP_KEYS_WARN = {"sync"}
+# Keys copied verbatim from a v5 step dict to the v6 result
+_STEP_PASSTHROUGH_KEYS = ("script", "file", "workdir", "ignore_error", "app_should_run")
+# Top-level keys whose presence marks a file as v5 format
+_V5_MARKERS = {"type", "help", "command", "properties"}
 
 
 def _convert_properties(properties: list) -> list[dict]:
@@ -65,21 +69,12 @@ def _convert_step(step, yaml_path: Path) -> dict:
         result["service"] = step.get("container_name", step.get("service", ""))
     elif is_python:
         result["runner"] = "python"
-    elif is_bash_file:
-        result["runner"] = "bash"
     else:
         result["runner"] = "bash"
 
-    if "script" in step:
-        result["script"] = step["script"]
-    if "file" in step:
-        result["file"] = step["file"]
-    if "workdir" in step:
-        result["workdir"] = step["workdir"]
-    if "ignore_error" in step:
-        result["ignore_error"] = step["ignore_error"]
-    if "app_should_run" in step:
-        result["app_should_run"] = step["app_should_run"]
+    for key in _STEP_PASSTHROUGH_KEYS:
+        if key in step:
+            result[key] = step[key]
 
     return result
 
@@ -120,8 +115,7 @@ def _rewrite_yaml_file(path: Path) -> None:
 
     # Skip if already looks like v6 (has 'description' or 'scripts' with runner keys,
     # and no v5-only top-level keys)
-    v5_markers = {"type", "help", "command", "properties"}
-    if not any(k in data for k in v5_markers):
+    if not any(k in data for k in _V5_MARKERS):
         return
 
     converted = _convert_yaml(data, path)
