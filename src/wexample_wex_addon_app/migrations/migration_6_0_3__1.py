@@ -16,7 +16,7 @@ class Migration_6_0_3__1(AbstractMigration):
         "Move env-specific config files from .wex/<service>/<name>.<env>.<ext> "
         "to .wex/env/<env>/<service>/<name>.<ext>"
     )
-    ENVIRONMENTS = ("prod", "dev", "local", "test")
+    ENVIRONMENTS = frozenset(("prod", "dev", "local", "test"))
     SERVICE_WHITELIST = (
         "apache",
         "cron",
@@ -46,7 +46,7 @@ class Migration_6_0_3__1(AbstractMigration):
         if env_name not in cls.ENVIRONMENTS:
             return None
 
-        generic_name = ".".join(parts[:-2] + [parts[-1]])
+        generic_name = ".".join(parts[:-2]) + "." + parts[-1]
         return generic_name, env_name
 
     def apply(self, context: MigrationContext) -> None:
