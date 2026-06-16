@@ -46,23 +46,16 @@ def app__app__list(
     kernel = context.kernel
     responses: list[AbstractResponse] = []
     for app_path, entry in apps.items():
-        responses.append(
+        domains = entry.get("domains") or []
+        domains_str = ", ".join(f"@magenta{{{d}}}" for d in domains) if domains else "-"
+        responses.extend([
             TitleResponse(
                 kernel=kernel,
                 text=f"{app_path}  [{entry.get('env', '?')}]",
-            )
-        )
-
-        domains = entry.get("domains") or []
-        domains_str = ", ".join(f"@magenta{{{d}}}" for d in domains) if domains else "-"
-        responses.append(
-            LogResponse(kernel=kernel, message=f"  Domains: {domains_str}")
-        )
-
-        responses.append(LogResponse(kernel=kernel, message="  Containers:"))
-
-        responses.append(
-            kernel.run_function(app__container__list, {"app_path": app_path})
-        )
+            ),
+            LogResponse(kernel=kernel, message=f"  Domains: {domains_str}"),
+            LogResponse(kernel=kernel, message="  Containers:"),
+            kernel.run_function(app__container__list, {"app_path": app_path}),
+        ])
 
     return MultipleResponse(kernel=kernel, responses=responses)
