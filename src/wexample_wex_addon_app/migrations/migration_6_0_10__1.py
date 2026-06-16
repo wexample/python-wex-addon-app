@@ -50,21 +50,21 @@ class Migration_6_0_10__1(AbstractMigration):
                 config.pop("docker", None)
                 changed = True
 
-        docker_config = config.get("docker")
-        if not isinstance(docker_config, dict):
-            docker_config = {}
-            config["docker"] = docker_config
-            changed = True
+        if legacy_main_db is not None:
+            docker_config = config.get("docker")
+            if not isinstance(docker_config, dict):
+                docker_config = {}
+                config["docker"] = docker_config
+                changed = True
 
-        db_config = docker_config.get("db")
-        if not isinstance(db_config, dict):
-            db_config = {}
-            docker_config["db"] = db_config
-            changed = True
+            db_config = docker_config.get("db")
+            if not isinstance(db_config, dict):
+                db_config = {}
+                docker_config["db"] = db_config
 
-        if legacy_main_db and db_config.get("main") != legacy_main_db:
-            db_config["main"] = legacy_main_db
-            changed = True
+            if db_config.get("main") != legacy_main_db:
+                db_config["main"] = legacy_main_db
+                changed = True
 
         if changed:
             with open(config_path, "w") as file:
