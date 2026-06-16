@@ -22,7 +22,7 @@ class DependencyViolationException(AppRuntimeException):
         from wexample_helpers.helpers.cli import cli_make_clickable_path
 
         imports_details = "\n".join(
-            f" - {cli_make_clickable_path(loc)}" for loc in self.import_locations
+            [f" - {cli_make_clickable_path(loc)}" for loc in self.import_locations]
         )
 
         return (

@@ -1,0 +1,11 @@
+{
+  "engram_version": 1,
+  "source_key": "src/wexample_wex_addon_app/exception/dependency_violation_exception.py",
+  "cache_nonce": "1c2800147ebc4367950bb7b61bd21d00",
+  "last_visited_at": "2026-06-16T19:28:45+00:00",
+  "last_rev": "f31c919f00ad431280ba0090efa19bc2fcb73e63",
+  "last_decision": "edit",
+  "kinds": [],
+  "notes": "replaced generator with list comprehension in join to avoid CPython's internal double-pass",
+  "in_progress": null
+}
