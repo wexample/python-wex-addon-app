@@ -1,0 +1,11 @@
+{
+  "engram_version": 1,
+  "source_key": "src/wexample_wex_addon_app/filestate/option/_setup_manager/auto_migrate_option.py",
+  "cache_nonce": "1c2800147ebc4367950bb7b61bd21d00",
+  "last_visited_at": "2026-06-16T19:32:25+00:00",
+  "last_rev": "02ba7b2005c8923542687a196d9d5a5a5980f465",
+  "last_decision": "edit",
+  "kinds": [],
+  "notes": "cached get_scopes list in _SCOPES class var; replaced `get(\"pending\") or []` with `get(\"pending\", [])`",
+  "in_progress": null
+}
