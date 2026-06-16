@@ -34,7 +34,8 @@ class Migration_6_0_18__1(AbstractMigration):
             return
 
         # Leave wex-proxy itself untouched — it actually hosts the proxy service
-        if config.get("global", {}).get("main_service") == "proxy":
+        global_cfg = config.get("global")
+        if isinstance(global_cfg, dict) and global_cfg.get("main_service") == "proxy":
             return
 
         helper = config.get("helper")

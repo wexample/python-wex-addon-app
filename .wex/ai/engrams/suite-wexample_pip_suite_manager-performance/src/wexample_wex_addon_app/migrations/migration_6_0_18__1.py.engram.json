@@ -1,0 +1,11 @@
+{
+  "engram_version": 1,
+  "source_key": "src/wexample_wex_addon_app/migrations/migration_6_0_18__1.py",
+  "cache_nonce": "1c2800147ebc4367950bb7b61bd21d00",
+  "last_visited_at": "2026-06-16T19:57:28+00:00",
+  "last_rev": "4ac777350a9b23b3442e68f86fcb231059cba275",
+  "last_decision": "edit",
+  "kinds": [],
+  "notes": "avoid transient {} allocation in apply() by replacing config.get(\"global\", {}).get() with isinstance guard",
+  "in_progress": null
+}
