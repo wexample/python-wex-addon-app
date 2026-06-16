@@ -88,7 +88,7 @@ def app__service__install(
         installing.add(normalized_service_name)
         try:
             manifest = app_addon_manager.get_service_manifest(normalized_service_name)
-            for dependency in manifest.get("dependencies", []) or []:
+            for dependency in manifest.get("dependencies") or []:
                 _install(service_name=dependency, force_install=False)
 
             config_file = app_workdir.get_config_file()
@@ -114,6 +114,9 @@ def app__service__install(
             # Copy service samples into app — docker-compose.yml files are merged
             # (services: section) instead of overwritten, so installing a new service
             # never erases compose entries from previously installed services.
+            from wexample_app.const.globals import WORKDIR_SETUP_DIR
+            from wexample_helpers.helpers.file import file_copytree_merge_yaml
+
             for (
                 inherited_service_name
             ) in app_addon_manager.get_service_inheritance_chain(
@@ -124,9 +127,6 @@ def app__service__install(
                 )
                 if inherited_service_dir is None:
                     continue
-
-                from wexample_app.const.globals import WORKDIR_SETUP_DIR
-                from wexample_helpers.helpers.file import file_copytree_merge_yaml
 
                 samples_dir = inherited_service_dir / "samples"
                 if not samples_dir.is_dir():

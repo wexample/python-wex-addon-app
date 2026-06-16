@@ -1,0 +1,11 @@
+{
+  "engram_version": 1,
+  "source_key": "src/wexample_wex_addon_app/commands/service/install.py",
+  "cache_nonce": "1c2800147ebc4367950bb7b61bd21d00",
+  "last_visited_at": "2026-06-16T19:14:42+00:00",
+  "last_rev": "e0cf6d44e8330d0b900458109806e23bc6c34556",
+  "last_decision": "edit",
+  "kinds": [],
+  "notes": "hoisted WORKDIR_SETUP_DIR/file_copytree_merge_yaml imports out of inheritance-chain loop; removed redundant default in manifest.get(\"dependencies\") or []",
+  "in_progress": null
+}
