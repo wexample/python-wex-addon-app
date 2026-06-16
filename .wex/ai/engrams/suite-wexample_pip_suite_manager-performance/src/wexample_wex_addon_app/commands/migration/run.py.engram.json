@@ -1,0 +1,11 @@
+{
+  "engram_version": 1,
+  "source_key": "src/wexample_wex_addon_app/commands/migration/run.py",
+  "cache_nonce": "1c2800147ebc4367950bb7b61bd21d00",
+  "last_visited_at": "2026-06-16T19:06:30+00:00",
+  "last_rev": "48471a2314a34407264a62c2c69e4647a67a686b",
+  "last_decision": "edit",
+  "kinds": [],
+  "notes": "eliminated redundant dry_run early-return branch and inlined single-use kernel_key/current_key variables into stamp condition",
+  "in_progress": null
+}

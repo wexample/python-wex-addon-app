@@ -79,26 +79,21 @@ def app__migration__run(
     else:
         result = "No pending migrations."
 
-    if dry_run:
-        return result
+    if not dry_run:
+        # Final stamp = max(kernel.version, current applied state). The migration
+        # cursor (seq) is kept only when it belongs to the resulting version —
+        # otherwise it resets to 0 to leave room for future seq-1+ migrations
+        # tagged for that version.
+        kernel_version = context.kernel.workdir.get_setup_version()
+        current = app_workdir.migration_read_stamp()
 
-    # Final stamp = max(kernel.version, current applied state). The migration
-    # cursor (seq) is kept only when it belongs to the resulting version —
-    # otherwise it resets to 0 to leave room for future seq-1+ migrations
-    # tagged for that version.
-    kernel_version = context.kernel.workdir.get_setup_version()
-    current = app_workdir.migration_read_stamp()
+        if current is None or stamp_sort_key(kernel_version, 0) > stamp_sort_key(
+            current.version, current.seq
+        ):
+            new_stamp = MigrationStamp(version=kernel_version, seq=0)
+        else:
+            new_stamp = current
 
-    kernel_key = stamp_sort_key(kernel_version, 0)
-    current_key = (
-        stamp_sort_key(current.version, current.seq) if current is not None else None
-    )
-
-    if current_key is None or kernel_key > current_key:
-        new_stamp = MigrationStamp(version=kernel_version, seq=0)
-    else:
-        new_stamp = current
-
-    app_workdir.migration_write_stamp(new_stamp)
+        app_workdir.migration_write_stamp(new_stamp)
 
     return result
