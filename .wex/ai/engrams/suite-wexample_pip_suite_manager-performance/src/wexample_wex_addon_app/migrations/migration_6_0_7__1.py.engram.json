@@ -1,0 +1,11 @@
+{
+  "engram_version": 1,
+  "source_key": "src/wexample_wex_addon_app/migrations/migration_6_0_7__1.py",
+  "cache_nonce": "1c2800147ebc4367950bb7b61bd21d00",
+  "last_visited_at": "2026-06-16T20:09:35+00:00",
+  "last_rev": "87d93bbe2449cc03498d9c3f929c4341bdab833e",
+  "last_decision": "skip",
+  "kinds": [],
+  "notes": "one-shot migration; entirely I/O-bound (YAML read/parse/write); no hot path to optimize",
+  "in_progress": null
+}
