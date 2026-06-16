@@ -1,0 +1,11 @@
+{
+  "engram_version": 1,
+  "source_key": "src/wexample_wex_addon_app/commands/version/bump.py",
+  "cache_nonce": "1c2800147ebc4367950bb7b61bd21d00",
+  "last_visited_at": "2026-06-16T19:19:37+00:00",
+  "last_rev": "d5dae1dd2a81c7abd327c170293fc947d7e914ab",
+  "last_decision": "skip",
+  "kinds": [],
+  "notes": "two-call command body, no loops or repeated lookups, package_name already hoisted above both branches",
+  "in_progress": null
+}
