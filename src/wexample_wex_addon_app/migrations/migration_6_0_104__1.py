@@ -6,17 +6,16 @@ import yaml
 from wexample_migration.abstract_migration import AbstractMigration
 
 if TYPE_CHECKING:
-    from pathlib import Path
-
     from wexample_migration.migration_context import MigrationContext
 
 
 def _drop_empty_skeleton(config: dict) -> bool:
     if not isinstance(config, dict):
         return False
-    if "remotes" not in config:
+    remotes = config.get("remotes")
+    if remotes is None:
         return False
-    if not _is_empty_skeleton(config["remotes"]):
+    if not _is_empty_skeleton(remotes):
         return False
     del config["remotes"]
     return True
@@ -37,8 +36,7 @@ def _is_empty_skeleton(remotes) -> bool:
         return False
     # Other fields (user, webhook_port) shouldn't have been filled if host
     # wasn't — but if they are, we leave the entry alone (probably intentional).
-    extras = {k: v for k, v in entry.items() if k not in ("name", "host") and v}
-    return not extras
+    return not any(v for k, v in entry.items() if k not in ("name", "host"))
 
 
 class Migration_6_0_104__1(AbstractMigration):
@@ -57,7 +55,7 @@ class Migration_6_0_104__1(AbstractMigration):
         if not env_dir.is_dir():
             return
 
-        cleaned: list[Path] = []
+        cleaned = 0
 
         for env_subdir in sorted(env_dir.iterdir()):
             if not env_subdir.is_dir():
@@ -75,7 +73,7 @@ class Migration_6_0_104__1(AbstractMigration):
             if not _drop_empty_skeleton(config):
                 continue
 
-            cleaned.append(env_config_path)
+            cleaned += 1
 
             if context.dry_run:
                 continue
@@ -86,7 +84,7 @@ class Migration_6_0_104__1(AbstractMigration):
         kernel = context.extras.get("kernel")
         if kernel and cleaned:
             kernel.io.log(
-                f"Dropped empty `remotes:` skeleton from {len(cleaned)} env config(s)."
+                f"Dropped empty `remotes:` skeleton from {cleaned} env config(s)."
             )
 
     def rollback(self, context: MigrationContext) -> None:

@@ -1,0 +1,11 @@
+{
+  "engram_version": 1,
+  "source_key": "src/wexample_wex_addon_app/migrations/migration_6_0_104__1.py",
+  "cache_nonce": "1c2800147ebc4367950bb7b61bd21d00",
+  "last_visited_at": "2026-06-16T19:48:40+00:00",
+  "last_rev": "45d7161708b50c6faa86dea771d83e0bb57b5f19",
+  "last_decision": "edit",
+  "kinds": [],
+  "notes": "single dict.get() in _drop_empty_skeleton; any() generator replacing dict comprehension in _is_empty_skeleton; int counter replacing list[Path] for cleaned count; dropped unused Path import",
+  "in_progress": null
+}
