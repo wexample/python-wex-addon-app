@@ -113,11 +113,12 @@ class AppsRegistry(
             return
         raw = self._file.read_parsed() or {}
         data = raw.get("apps", {})
-        for key, entry in data.items():
-            if item_class is not None and hasattr(item_class, "hydrate"):
+        use_hydrate = item_class is not None and hasattr(item_class, "hydrate")
+        if use_hydrate:
+            for key, entry in data.items():
                 self._items[key] = item_class.hydrate(entry)
-            else:
-                self._items[key] = entry
+        else:
+            self._items.update(data)
 
     def purge_stopped(self) -> None:
         """Remove entries whose containers are no longer running."""
