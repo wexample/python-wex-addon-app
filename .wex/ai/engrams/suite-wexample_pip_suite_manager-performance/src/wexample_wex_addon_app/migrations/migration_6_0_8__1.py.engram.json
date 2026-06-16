@@ -1,0 +1,11 @@
+{
+  "engram_version": 1,
+  "source_key": "src/wexample_wex_addon_app/migrations/migration_6_0_8__1.py",
+  "cache_nonce": "1c2800147ebc4367950bb7b61bd21d00",
+  "last_visited_at": "2026-06-16T20:10:05+00:00",
+  "last_rev": "071bff41a7049e494f61d73cfbfcfad154432374",
+  "last_decision": "edit",
+  "kinds": [],
+  "notes": "replaced `len(domains) > 0` with truthy `domains` to skip redundant len() call in _has_env_domains loop",
+  "in_progress": null
+}

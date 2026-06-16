@@ -31,7 +31,7 @@ class Migration_6_0_8__1(AbstractMigration):
                 continue
 
             domains = env_config.get("domains")
-            if isinstance(domains, list) and len(domains) > 0:
+            if isinstance(domains, list) and domains:
                 return True
 
         return False
