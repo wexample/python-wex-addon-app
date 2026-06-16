@@ -22,19 +22,20 @@ class PackageSuiteMiddleware(AppMiddleware):
         self, request: CommandRequest, app_path: str
     ) -> ManagedWorkdir:
         """Create and validate that the app workdir is a FrameworkPackageSuiteWorkdir."""
-        from wexample_wex_addon_app.exception.invalid_workdir_type_exception import (
-            InvalidWorkdirTypeException,
-        )
-        from wexample_wex_addon_app.workdir.framework_packages_suite_workdir import (
-            FrameworkPackageSuiteWorkdir,
-        )
-
         app_workdir = super()._create_app_workdir(request=request, app_path=app_path)
 
         # Validate that app_workdir is a FrameworkPackageSuiteWorkdir
         if self._fail_if_not_suite_workdir and not self._is_package_suite_workdir(
             workdir=app_workdir
         ):
+            # Imports deferred to error path — skipped on every happy-path call
+            from wexample_wex_addon_app.exception.invalid_workdir_type_exception import (
+                InvalidWorkdirTypeException,
+            )
+            from wexample_wex_addon_app.workdir.framework_packages_suite_workdir import (
+                FrameworkPackageSuiteWorkdir,
+            )
+
             suite_path = app_workdir.find_suite_workdir_path()
             raise InvalidWorkdirTypeException(
                 workdir_path=app_workdir.get_path(),
