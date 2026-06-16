@@ -18,13 +18,14 @@ class Migration_6_0_20__1(AbstractMigration):
     )
 
     def apply(self, context: MigrationContext) -> None:
-        for apache_dir in self._apache_dirs(context.target_path):
+        target_path = context.target_path
+        for apache_dir in self._apache_dirs(target_path):
             old = apache_dir / "apache.conf"
             new = apache_dir / "web.conf"
             if old.exists() and not new.exists():
                 old.rename(new)
 
-        for compose_file in self._docker_compose_files(context.target_path):
+        for compose_file in self._docker_compose_files(target_path):
             content = compose_file.read_text()
             if "apache/apache.conf" in content:
                 compose_file.write_text(
@@ -32,13 +33,14 @@ class Migration_6_0_20__1(AbstractMigration):
                 )
 
     def rollback(self, context: MigrationContext) -> None:
-        for apache_dir in self._apache_dirs(context.target_path):
+        target_path = context.target_path
+        for apache_dir in self._apache_dirs(target_path):
             new = apache_dir / "web.conf"
             old = apache_dir / "apache.conf"
             if new.exists() and not old.exists():
                 new.rename(old)
 
-        for compose_file in self._docker_compose_files(context.target_path):
+        for compose_file in self._docker_compose_files(target_path):
             content = compose_file.read_text()
             if "apache/web.conf" in content:
                 compose_file.write_text(
@@ -46,12 +48,11 @@ class Migration_6_0_20__1(AbstractMigration):
                 )
 
     def _apache_dirs(self, target_path: Path) -> list[Path]:
-        dirs = [target_path / ".wex" / "apache"]
-        env_dir = target_path / ".wex" / "env"
+        wex_dir = target_path / ".wex"
+        dirs = [wex_dir / "apache"]
+        env_dir = wex_dir / "env"
         if env_dir.is_dir():
-            for d in env_dir.glob("*/apache"):
-                if d.is_dir():
-                    dirs.append(d)
+            dirs.extend(d for d in env_dir.glob("*/apache") if d.is_dir())
         return dirs
 
     def _docker_compose_files(self, target_path: Path) -> list[Path]:

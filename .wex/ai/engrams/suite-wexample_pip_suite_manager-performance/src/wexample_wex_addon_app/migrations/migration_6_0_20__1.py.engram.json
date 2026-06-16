@@ -1,0 +1,11 @@
+{
+  "engram_version": 1,
+  "source_key": "src/wexample_wex_addon_app/migrations/migration_6_0_20__1.py",
+  "cache_nonce": "1c2800147ebc4367950bb7b61bd21d00",
+  "last_visited_at": "2026-06-16T19:59:31+00:00",
+  "last_rev": "17235dc9e3e067e6d551fc83d6424754992962d4",
+  "last_decision": "edit",
+  "kinds": [],
+  "notes": "hoisted context.target_path and wex_dir; replaced per-item append loop with extend+generator in _apache_dirs",
+  "in_progress": null
+}
