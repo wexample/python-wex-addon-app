@@ -1,0 +1,11 @@
+{
+  "engram_version": 1,
+  "source_key": "src/wexample_wex_addon_app/commands/db/exec.py",
+  "cache_nonce": "1c2800147ebc4367950bb7b61bd21d00",
+  "last_visited_at": "2026-06-16T12:56:15+00:00",
+  "last_rev": "99adb257533cf7173a576f1a7d82dcefd72f0116",
+  "last_decision": "edit",
+  "kinds": [],
+  "notes": "cached context.kernel in local var to replace 3 LOAD_ATTR with LOAD_FAST",
+  "in_progress": null
+}

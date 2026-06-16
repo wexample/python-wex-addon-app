@@ -57,13 +57,14 @@ def app__db__exec(
     if not service_name:
         raise RuntimeError("No DB service configured (docker.db.main)")
 
+    kernel = context.kernel
     cmd_name = f"@{string_to_kebab_case(service_name)}::db/exec"
-    request = context.kernel._get_command_request_class()(
-        kernel=context.kernel,
+    request = kernel._get_command_request_class()(
+        kernel=kernel,
         name=cmd_name,
         arguments={
             "app_path": str(app_workdir.get_path()),
             "sql": sql,
         },
     )
-    return context.kernel.execute_kernel_command(request)
+    return kernel.execute_kernel_command(request)
