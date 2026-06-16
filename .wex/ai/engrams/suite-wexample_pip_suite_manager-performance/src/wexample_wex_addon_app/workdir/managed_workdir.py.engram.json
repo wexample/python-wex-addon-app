@@ -1,0 +1,11 @@
+{
+  "engram_version": 1,
+  "source_key": "src/wexample_wex_addon_app/workdir/managed_workdir.py",
+  "cache_nonce": "1c2800147ebc4367950bb7b61bd21d00",
+  "last_visited_at": "2026-06-16T20:23:03+00:00",
+  "last_rev": "e48fb36619b9dcd5ae2f8c6cc8f567abae2b86c1",
+  "last_decision": "edit",
+  "kinds": [],
+  "notes": "eliminated intermediate cmd list in manager_run_command_from_path, removed f-string on literal in get_local_libraries_paths, reordered get_migrations guards (cheap module check before issubclass, removed redundant is-AbstractMigration guard), avoided double split in runtime_cleanup comprehension",
+  "in_progress": null
+}

@@ -99,8 +99,8 @@ class ManagedWorkdir(
 
         request_id = request_build_id()
 
-        # Build full command
-        cmd = [resolved_command] + (arguments or [])
+        # Build full command (inline resolved_command + arguments to avoid two
+        # intermediate list allocations from the previous split construction)
         full_cmd = [
             str(APP_PATH_BIN_APP_MANAGER),
             "--force-request-id",
@@ -110,7 +110,9 @@ class ManagedWorkdir(
             "--output-target",
             OUTPUT_TARGET_FILE,
             "--subprocess",
-        ] + cmd
+            resolved_command,
+            *(arguments or []),
+        ]
 
         # Run the manager command in the given workdir
         return AppManagerShellResult.from_shell_result(
@@ -357,7 +359,7 @@ class ManagedWorkdir(
         return result
 
     def get_local_libraries_paths(self) -> list[ConfigValue]:
-        return self.get_runtime_config().search(f"libraries").get_list_or_default()
+        return self.get_runtime_config().search("libraries").get_list_or_default()
 
     def get_main_container_name(self) -> str:
         config = self.get_runtime_config().search("docker.main_container")
@@ -390,11 +392,12 @@ class ManagedWorkdir(
             )
 
             for _, migration_class in inspect.getmembers(module, inspect.isclass):
-                if not issubclass(migration_class, AbstractMigration):
-                    continue
-                if migration_class is AbstractMigration:
-                    continue
+                # Cheapest guard first: skip anything not defined in this
+                # module (also implicitly excludes AbstractMigration itself,
+                # which lives in wexample_migration.abstract_migration).
                 if migration_class.__module__ != module.__name__:
+                    continue
+                if not issubclass(migration_class, AbstractMigration):
                     continue
 
                 migrations.append(migration_class)
@@ -798,10 +801,14 @@ class ManagedWorkdir(
             cmd=["docker", "ps", "-a", "--format", "{{.Names}}\t{{.Image}}"],
             capture=True,
         )
+        # Avoid splitting each matching line twice by capturing the split result
+        # once via a nested loop.
         containers_to_remove = [
-            line.split("\t")[0]
+            parts[0]
             for line in result.stdout.strip().splitlines()
-            if "\t" in line and line.split("\t")[1] in image_names
+            if "\t" in line
+            for parts in (line.split("\t"),)
+            if parts[1] in image_names
         ]
 
         removed_containers = 0
