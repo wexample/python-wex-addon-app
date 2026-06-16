@@ -1,11 +1,14 @@
 from __future__ import annotations
 
+from pathlib import Path
 from typing import TYPE_CHECKING
 
+from wexample_app.const.globals import WORKDIR_SETUP_DIR
 from wexample_helpers.classes.base_class import BaseClass
 from wexample_helpers.const.types import FileStringOrPath
 from wexample_helpers.decorator.base_class import base_class
 from wexample_prompt.common.io_manager import IoManager
+from wexample_wex_core.const.globals import CORE_DIR_NAME_TMP, CORE_FILE_NAME_REGISTRY
 
 if TYPE_CHECKING:
     from wexample_config.config_value.nested_config_value import NestedConfigValue
@@ -32,14 +35,6 @@ class WithAppRegistryMixin(BaseClass):
 
     @classmethod
     def get_registry_path_from_path(cls, path: FileStringOrPath) -> FileStringOrPath:
-        from pathlib import Path
-
-        from wexample_app.const.globals import WORKDIR_SETUP_DIR
-        from wexample_wex_core.const.globals import (
-            CORE_DIR_NAME_TMP,
-            CORE_FILE_NAME_REGISTRY,
-        )
-
         return (
             Path(path) / WORKDIR_SETUP_DIR / CORE_DIR_NAME_TMP / CORE_FILE_NAME_REGISTRY
         )

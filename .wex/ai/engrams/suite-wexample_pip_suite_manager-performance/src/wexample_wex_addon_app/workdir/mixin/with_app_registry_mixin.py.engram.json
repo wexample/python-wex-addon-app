@@ -1,0 +1,11 @@
+{
+  "engram_version": 1,
+  "source_key": "src/wexample_wex_addon_app/workdir/mixin/with_app_registry_mixin.py",
+  "cache_nonce": "1c2800147ebc4367950bb7b61bd21d00",
+  "last_visited_at": "2026-06-16T20:25:37+00:00",
+  "last_rev": "77c3787954206de272362182053bb2c3dde7466e",
+  "last_decision": "edit",
+  "kinds": [],
+  "notes": "hoisted Path and three constants out of get_registry_path_from_path hot path to module level",
+  "in_progress": null
+}
