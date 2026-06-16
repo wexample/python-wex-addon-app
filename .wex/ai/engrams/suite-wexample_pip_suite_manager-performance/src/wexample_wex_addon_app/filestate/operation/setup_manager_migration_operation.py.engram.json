@@ -1,0 +1,11 @@
+{
+  "engram_version": 1,
+  "source_key": "src/wexample_wex_addon_app/filestate/operation/setup_manager_migration_operation.py",
+  "cache_nonce": "1c2800147ebc4367950bb7b61bd21d00",
+  "last_visited_at": "2026-06-16T19:31:30+00:00",
+  "last_rev": "6aa602377d0920d710a76cf5845a3fef028b2b8a",
+  "last_decision": "edit",
+  "kinds": [],
+  "notes": "cached get_scopes result in ClassVar to avoid repeated list allocation and deferred import lookup",
+  "in_progress": null
+}

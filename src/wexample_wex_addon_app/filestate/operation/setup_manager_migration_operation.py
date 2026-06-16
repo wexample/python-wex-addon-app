@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, ClassVar
 
 from wexample_filestate.operation.abstract_operation import AbstractOperation
 from wexample_helpers.decorator.base_class import base_class
@@ -11,11 +11,15 @@ if TYPE_CHECKING:
 
 @base_class
 class SetupManagerMigrationOperation(AbstractOperation):
+    _scopes: ClassVar[list[Scope] | None] = None
+
     @classmethod
     def get_scopes(cls) -> list[Scope]:
-        from wexample_filestate.enum.scopes import Scope
+        if cls._scopes is None:
+            from wexample_filestate.enum.scopes import Scope
 
-        return [Scope.LOCATION]
+            cls._scopes = [Scope.LOCATION]
+        return cls._scopes
 
     def apply_operation(self) -> None:
         # In-process: skip subprocess + binary dependency. Calls the same path
