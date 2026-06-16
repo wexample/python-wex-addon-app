@@ -1,0 +1,11 @@
+{
+  "engram_version": 1,
+  "source_key": "src/wexample_wex_addon_app/commands/webhook/token_generate.py",
+  "cache_nonce": "1c2800147ebc4367950bb7b61bd21d00",
+  "last_visited_at": "2026-06-16T19:22:11+00:00",
+  "last_rev": "46635d3fdd9f41c23e2096677c1a71f84b3b073d",
+  "last_decision": "edit",
+  "kinds": [],
+  "notes": "eliminated double cmd[\"command\"] dict lookup in webhook targets comprehension via walrus operator",
+  "in_progress": null
+}
