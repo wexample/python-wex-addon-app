@@ -1,0 +1,11 @@
+{
+  "engram_version": 1,
+  "source_key": "src/wexample_wex_addon_app/commands/app/setup.py",
+  "cache_nonce": "1c2800147ebc4367950bb7b61bd21d00",
+  "last_visited_at": "2026-06-16T12:27:33+00:00",
+  "last_rev": "232b34efa9c29669a2ea5c8d211638a1f0b4d0db",
+  "last_decision": "skip",
+  "kinds": [],
+  "notes": "only decorator declarations and a two-line function body with a necessary deferred import; no hot-path logic to optimize",
+  "in_progress": null
+}
