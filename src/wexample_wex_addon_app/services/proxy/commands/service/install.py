@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import shutil
+from pathlib import Path
 from typing import TYPE_CHECKING
 
 from wexample_cli.const.tags import AudienceTag, EffectTag, ScopeTag
@@ -8,6 +9,8 @@ from wexample_cli.decorator.command import command
 from wexample_wex_core.const.globals import COMMAND_TYPE_SERVICE
 
 from wexample_wex_addon_app.const.tags import DomainTag
+
+_SERVICE_DIR = Path(__file__).resolve().parents[2]
 
 if TYPE_CHECKING:
     from wexample_cli.context.execution_context import ExecutionContext
@@ -33,15 +36,12 @@ def proxy__service__install(
     context: ExecutionContext,
     service: AppService,
 ) -> None:
-    from pathlib import Path
-
-    service_dir = Path(__file__).resolve().parents[2]
     app_path = service.app_workdir.get_path()
 
     proxy_target_dir = app_path / "proxy"
     proxy_target_dir.mkdir(parents=True, exist_ok=True)
     shutil.copytree(
-        service_dir / "samples" / "proxy", proxy_target_dir, dirs_exist_ok=True
+        _SERVICE_DIR / "samples" / "proxy", proxy_target_dir, dirs_exist_ok=True
     )
 
     config_file = service.app_workdir.get_config_file()
