@@ -15,6 +15,8 @@ if TYPE_CHECKING:
 # These are duplicates of the top-level config.yml namespaces, formerly produced
 # by `merged["app"]` carrying a full copy of config.yml.
 # Real runtime app vars (APP_ENV, APP_DOMAIN, APP_PATH, ...) are NOT touched.
+_YAML_SUFFIXES: frozenset[str] = frozenset({".yml", ".yaml"})
+
 _DEAPP_PATTERNS: list[tuple[re.Pattern, str]] = [
     (re.compile(r"\$\{APP_BRANCH(:?[^}]*)\}"), r"${BRANCH\1}"),
     (re.compile(r"\$\{APP_DOCKER_([A-Z_]+)(:?[^}]*)\}"), r"${DOCKER_\1\2}"),
@@ -81,5 +83,6 @@ class Migration_6_0_28__1(AbstractMigration):
             base = wex_dir / sub
             if not base.is_dir():
                 continue
-            for ext in ("*.yml", "*.yaml"):
-                yield from base.rglob(ext)
+            for path in base.rglob("*"):
+                if path.suffix in _YAML_SUFFIXES:
+                    yield path

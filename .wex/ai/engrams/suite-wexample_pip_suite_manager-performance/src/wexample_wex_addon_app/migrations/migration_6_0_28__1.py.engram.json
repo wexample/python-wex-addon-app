@@ -1,0 +1,11 @@
+{
+  "engram_version": 1,
+  "source_key": "src/wexample_wex_addon_app/migrations/migration_6_0_28__1.py",
+  "cache_nonce": "1c2800147ebc4367950bb7b61bd21d00",
+  "last_visited_at": "2026-06-16T20:05:35+00:00",
+  "last_rev": "8e21c4f72acdef9163ae54747e946ab610ba6314",
+  "last_decision": "edit",
+  "kinds": [],
+  "notes": "replaced double rglob traversal with single rglob(\"*\") + module-level _YAML_SUFFIXES frozenset filter",
+  "in_progress": null
+}
