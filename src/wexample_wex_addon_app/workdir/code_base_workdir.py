@@ -91,7 +91,6 @@ class CodeBaseWorkdir(RepoWorkdir):
         longer calls this directly — packages with propagated dep changes are
         published in-run via the live has_changes_since_last_publication_tag check.
         """
-        from wexample_helpers_git.const.common import GIT_BRANCH_MAIN
         from wexample_helpers_git.helpers.git import (
             git_commit_all_with_message,
             git_has_uncommitted_changes,
@@ -113,10 +112,7 @@ class CodeBaseWorkdir(RepoWorkdir):
         self.push_to_deployment_remote(branch_name=GIT_BRANCH_MAIN)
 
     def depends_from(self, package: CodeBaseWorkdir) -> bool:
-        for dependence_name in self.get_dependencies_versions().keys():
-            if package.get_package_dependency_name() == dependence_name:
-                return True
-        return False
+        return package.get_package_dependency_name() in self.get_dependencies_versions()
 
     def get_io_context_prefix(self) -> str | None:
         from wexample_helpers.helpers.cli import cli_make_clickable_path
@@ -325,9 +321,10 @@ class CodeBaseWorkdir(RepoWorkdir):
         current_deps = config_file.get_dependencies_versions()
 
         for dep_name, dep_specifier in current_deps.items():
-            if self._canonicalize_dep_name(dep_name) not in canonical_map:
+            canon = self._canonicalize_dep_name(dep_name)
+            if canon not in canonical_map:
                 continue
-            new_version = canonical_map[self._canonicalize_dep_name(dep_name)]
+            new_version = canonical_map[canon]
             match = re.match(r"^([><=!~^]+)", dep_specifier)
             operator = match.group(1) if match else self._default_dependency_operator()
             config_file.add_dependency_from_string(
@@ -351,8 +348,6 @@ class CodeBaseWorkdir(RepoWorkdir):
         return []
 
     def _get_deployment_remote_name(self) -> str | None:
-        from wexample_helpers_git.const.common import GIT_REMOTE_ORIGIN
-
         return self.search_app_or_suite_runtime_config(
             "git.main_deployment_remote_name", default=GIT_REMOTE_ORIGIN
         ).get_str_or_none()
