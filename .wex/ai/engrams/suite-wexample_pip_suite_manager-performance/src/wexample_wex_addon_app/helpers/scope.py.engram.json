@@ -1,0 +1,11 @@
+{
+  "engram_version": 1,
+  "source_key": "src/wexample_wex_addon_app/helpers/scope.py",
+  "cache_nonce": "1c2800147ebc4367950bb7b61bd21d00",
+  "last_visited_at": "2026-06-16T19:38:14+00:00",
+  "last_rev": "8e3d3b905d0e444163b704369337a8859fa4f2a4",
+  "last_decision": "edit",
+  "kinds": [],
+  "notes": "hoisted name_map dict out of loop, replaced set comprehensions with O(1) dict lookups, discard/clear in-place, added early-exit breaks",
+  "in_progress": null
+}

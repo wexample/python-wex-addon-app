@@ -14,13 +14,22 @@ def build_scopes(filter_scope: str | None) -> set[Scope]:
     if not filter_scope:
         return all_scopes
 
-    result = set(all_scopes)
+    name_map = {s.name: s for s in all_scopes}
+    result = all_scopes.copy()
     for part in filter_scope.split(","):
         part = part.strip()
         if part.startswith("!"):
-            name = part[1:].upper()
-            result -= {s for s in all_scopes if s.name == name}
+            scope = name_map.get(part[1:].upper())
+            if scope is not None:
+                result.discard(scope)
         else:
-            result &= {s for s in all_scopes if s.name == part.upper()}
+            scope = name_map.get(part.upper())
+            if scope is not None:
+                result &= {scope}
+            else:
+                result.clear()
+                break
+        if not result:
+            break
 
     return result
