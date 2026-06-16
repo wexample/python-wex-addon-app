@@ -1,0 +1,11 @@
+{
+  "engram_version": 1,
+  "source_key": "src/wexample_wex_addon_app/commands/test/run.py",
+  "cache_nonce": "1c2800147ebc4367950bb7b61bd21d00",
+  "last_visited_at": "2026-06-16T19:19:06+00:00",
+  "last_rev": "635591b1ec52afa413072cd21ed589881c1f4b02",
+  "last_decision": "skip",
+  "kinds": [],
+  "notes": "two-line body with early-return guard and single method call; no hot path or optimization opportunity",
+  "in_progress": null
+}
