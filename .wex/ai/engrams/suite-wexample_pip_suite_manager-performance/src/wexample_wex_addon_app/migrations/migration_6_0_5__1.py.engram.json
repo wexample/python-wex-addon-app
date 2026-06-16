@@ -1,0 +1,11 @@
+{
+  "engram_version": 1,
+  "source_key": "src/wexample_wex_addon_app/migrations/migration_6_0_5__1.py",
+  "cache_nonce": "1c2800147ebc4367950bb7b61bd21d00",
+  "last_visited_at": "2026-06-16T20:07:57+00:00",
+  "last_rev": "e1202f07e7fe67b95d215be8cc733592e6b0026e",
+  "last_decision": "edit",
+  "kinds": [],
+  "notes": "hoisted `self.ENVIRONMENTS` and `wex_dir / \"env\"` (env_base) out of loops in apply and rollback",
+  "in_progress": null
+}

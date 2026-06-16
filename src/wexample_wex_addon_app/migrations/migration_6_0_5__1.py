@@ -16,21 +16,25 @@ class Migration_6_0_5__1(AbstractMigration):
 
     def apply(self, context: MigrationContext) -> None:
         wex_dir = context.target_path / ".wex"
+        env_base = wex_dir / "env"
+        environments = self.ENVIRONMENTS
 
-        for env_name in self.ENVIRONMENTS:
+        for env_name in environments:
             source = wex_dir / f"config.{env_name}.yml"
             if not source.is_file():
                 continue
 
-            target_dir = wex_dir / "env" / env_name
+            target_dir = env_base / env_name
             target_dir.mkdir(parents=True, exist_ok=True)
             source.rename(target_dir / "config.yml")
 
     def rollback(self, context: MigrationContext) -> None:
         wex_dir = context.target_path / ".wex"
+        env_base = wex_dir / "env"
+        environments = self.ENVIRONMENTS
 
-        for env_name in self.ENVIRONMENTS:
-            source = wex_dir / "env" / env_name / "config.yml"
+        for env_name in environments:
+            source = env_base / env_name / "config.yml"
             target = wex_dir / f"config.{env_name}.yml"
             if not source.is_file() or target.exists():
                 continue
