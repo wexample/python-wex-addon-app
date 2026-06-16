@@ -1,0 +1,11 @@
+{
+  "engram_version": 1,
+  "source_key": "src/wexample_wex_addon_app/item/file/mixin/app_dependencies_config_file_mixin.py",
+  "cache_nonce": "1c2800147ebc4367950bb7b61bd21d00",
+  "last_visited_at": "2026-06-16T19:42:16+00:00",
+  "last_rev": "70577842b4e188b4ea026c570fb1f4bb08c926a0",
+  "last_decision": "edit",
+  "kinds": [],
+  "notes": "removed redundant runtime import of CodeBaseWorkdir shadowed by TYPE_CHECKING guard (PEP 563 makes annotation lazy)",
+  "in_progress": null
+}

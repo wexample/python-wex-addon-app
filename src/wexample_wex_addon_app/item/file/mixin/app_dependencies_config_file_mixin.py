@@ -4,8 +4,6 @@ from typing import TYPE_CHECKING
 
 from wexample_helpers.classes.abstract_method import abstract_method
 
-from wexample_wex_addon_app.workdir.code_base_workdir import CodeBaseWorkdir
-
 if TYPE_CHECKING:
     from wexample_wex_addon_app.workdir.code_base_workdir import CodeBaseWorkdir
 
