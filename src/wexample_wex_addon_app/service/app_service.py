@@ -61,8 +61,6 @@ class AppService:
         ${VAR} from env). Re-injecting raw config.yml here would overwrite
         interpolated values with literal ${VAR}.
         """
-        from wexample_app.const.globals import WORKDIR_SETUP_DIR
-
         contribution: dict = {}
         env = self.app_workdir.get_app_env() or ""
 
@@ -76,29 +74,29 @@ class AppService:
                 inherited_service_name
             )
 
+            compose_path = None
             compose_rel = manifest.get("docker", {}).get("compose")
             if compose_rel:
                 compose_abs = service_dir / compose_rel
                 if compose_abs.exists():
-                    contribution.setdefault("service", {}).setdefault(
-                        inherited_service_name, {}
-                    )
-                    contribution["service"][inherited_service_name]["compose"] = str(
-                        compose_abs
-                    )
+                    compose_path = compose_abs
 
             env_compose = service_dir / "env" / env / "docker" / "docker-compose.yml"
-            if env_compose.exists():
-                contribution.setdefault("service", {}).setdefault(
+            env_compose_exists = env_compose.exists()
+
+            if compose_path or env_compose_exists:
+                svc = contribution.setdefault("service", {}).setdefault(
                     inherited_service_name, {}
                 )
-                contribution["service"][inherited_service_name][
-                    f"compose_env_{env}"
-                ] = str(env_compose)
+                if compose_path:
+                    svc["compose"] = str(compose_path)
+                if env_compose_exists:
+                    svc[f"compose_env_{env}"] = str(env_compose)
 
         bind_declarations = self.manifest.get("runtime", {}).get("bind", {})
         if bind_declarations:
-            env = self.app_workdir.get_app_env() or ""
+            from wexample_app.const.globals import WORKDIR_SETUP_DIR
+
             wex_dir = self.app_workdir.get_path() / WORKDIR_SETUP_DIR
             resolved_binds = {}
             for key, rel_path in bind_declarations.items():

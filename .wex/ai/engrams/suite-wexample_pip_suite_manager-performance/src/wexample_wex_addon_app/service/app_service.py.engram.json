@@ -1,0 +1,11 @@
+{
+  "engram_version": 1,
+  "source_key": "src/wexample_wex_addon_app/service/app_service.py",
+  "cache_nonce": "1c2800147ebc4367950bb7b61bd21d00",
+  "last_visited_at": "2026-06-16T20:18:06+00:00",
+  "last_rev": "303d1f6836e0773b400477d3d4005200b598d463",
+  "last_decision": "edit",
+  "kinds": [],
+  "notes": "hoisted WORKDIR_SETUP_DIR import into bind branch, removed redundant env re-call, cached inner service dict to eliminate double setdefault+lookup per loop iteration",
+  "in_progress": null
+}
