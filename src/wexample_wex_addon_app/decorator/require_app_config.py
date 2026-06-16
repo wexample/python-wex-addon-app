@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import functools
 import inspect
 from collections.abc import Callable
 from typing import TYPE_CHECKING, Any
@@ -9,6 +10,12 @@ if TYPE_CHECKING:
     from wexample_helpers.const.types import AnyCallable
 
 _SENTINEL = object()
+
+
+@functools.lru_cache(maxsize=None)
+def _signature(fn: Callable) -> inspect.Signature:
+    """Cache inspect.signature() per callable — reflection is expensive."""
+    return inspect.signature(fn)
 
 
 def check_config_requirements(
@@ -80,7 +87,7 @@ def _check_one(req: dict, app_workdir: Any, io: Any, function_kwargs: dict) -> N
     description = req["description"]
     ask_question = req["ask_question"]
     on_missing = req["on_missing"]
-    values_empty_hint = req.get("values_empty_hint")
+    values_empty_hint = req["values_empty_hint"]
 
     config_value = app_workdir.get_runtime_config().search(path)
 
@@ -160,6 +167,7 @@ def _read_typed(config_value: Any, target_type: type | None) -> Any:
 def _resolve_values(values: list | Callable, kwargs: dict[str, Any]) -> list:
     if not callable(values):
         return values
-    sig = inspect.signature(values)
-    filtered = {k: v for k, v in kwargs.items() if k in sig.parameters}
+    sig = _signature(values)
+    # Iterate over (typically small) sig.parameters rather than all kwargs
+    filtered = {k: kwargs[k] for k in sig.parameters if k in kwargs}
     return values(**filtered)
