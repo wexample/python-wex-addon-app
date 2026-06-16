@@ -1,0 +1,11 @@
+{
+  "engram_version": 1,
+  "source_key": "src/wexample_wex_addon_app/commands/image/build.py",
+  "cache_nonce": "1c2800147ebc4367950bb7b61bd21d00",
+  "last_visited_at": "2026-06-16T13:06:04+00:00",
+  "last_rev": "4660f43b0fc374bdb0bd64a0b07f5aa23059ebd1",
+  "last_decision": "skip",
+  "kinds": [],
+  "notes": "no hot path — str_app_path already hoisted, closures correctly bound; bottleneck is docker subprocess",
+  "in_progress": null
+}
