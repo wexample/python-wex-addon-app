@@ -98,19 +98,20 @@ def _check_started(app_workdir: ManagedWorkdir, mode: str, context) -> bool:
         capture_output=True,
         text=True,
     )
-    _stdout = result.stdout.strip()
-    running = set(_stdout.splitlines()) if _stdout else set()
+    running = {line for line in result.stdout.splitlines() if line}
 
+    any_mode = mode == APP_STARTED_CHECK_MODE_ANY_CONTAINER
+    full_mode = mode == APP_STARTED_CHECK_MODE_FULL
     all_runs = True
     for name in container_names:
         if name in running:
             context.io.log(f"Container {name} runs")
-            if mode == APP_STARTED_CHECK_MODE_ANY_CONTAINER:
+            if any_mode:
                 return True
         else:
             all_runs = False
             context.io.log(f"Container {name} does not run")
-            if mode == APP_STARTED_CHECK_MODE_FULL:
+            if full_mode:
                 return False
 
     return all_runs

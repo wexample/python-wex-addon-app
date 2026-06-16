@@ -1,0 +1,11 @@
+{
+  "engram_version": 1,
+  "source_key": "src/wexample_wex_addon_app/commands/app/started.py",
+  "cache_nonce": "1c2800147ebc4367950bb7b61bd21d00",
+  "last_visited_at": "2026-06-16T12:29:29+00:00",
+  "last_rev": "69667b4d5967c753b9d1db3d7df1fe105a84e543",
+  "last_decision": "edit",
+  "kinds": [],
+  "notes": "hoisted mode comparisons out of container loop; replaced _stdout intermediate with filtering set comprehension",
+  "in_progress": null
+}
