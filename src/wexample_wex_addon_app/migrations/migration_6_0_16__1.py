@@ -25,13 +25,10 @@ class Migration_6_0_16__1(AbstractMigration):
             return
 
         for name in _REMOVABLE:
-            target = am_dir / name
-            if target.exists():
-                target.unlink()
+            (am_dir / name).unlink(missing_ok=True)
 
         # Remove directory only if nothing remains (app_workdir.py may still be there)
-        remaining = list(am_dir.iterdir())
-        if not remaining:
+        if next(am_dir.iterdir(), None) is None:
             am_dir.rmdir()
 
     def rollback(self, context: MigrationContext) -> None:
