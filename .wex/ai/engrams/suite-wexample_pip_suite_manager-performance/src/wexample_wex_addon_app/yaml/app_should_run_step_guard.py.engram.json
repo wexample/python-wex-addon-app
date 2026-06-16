@@ -1,0 +1,11 @@
+{
+  "engram_version": 1,
+  "source_key": "src/wexample_wex_addon_app/yaml/app_should_run_step_guard.py",
+  "cache_nonce": "1c2800147ebc4367950bb7b61bd21d00",
+  "last_visited_at": "2026-06-16T20:31:58+00:00",
+  "last_rev": "d8ef7fe59753c47219c92902b33199bba6522fbf",
+  "last_decision": "edit",
+  "kinds": [],
+  "notes": "hoisted _STEP_OPTIONS list constant out of get_step_options to avoid per-call allocation",
+  "in_progress": null
+}

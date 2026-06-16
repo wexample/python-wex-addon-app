@@ -11,9 +11,11 @@ if TYPE_CHECKING:
 class AppShouldRunStepGuard(AbstractStepGuard):
     """Skip a step when ``app_should_run: true`` and the app is not started."""
 
+    _STEP_OPTIONS: list[str] = ["app_should_run"]
+
     @classmethod
     def get_step_options(cls) -> list[str]:
-        return ["app_should_run"]
+        return cls._STEP_OPTIONS
 
     @staticmethod
     def _is_app_started(kernel: Kernel) -> bool:
