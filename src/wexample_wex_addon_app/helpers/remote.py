@@ -30,13 +30,12 @@ def remote_resolve(
     remotes = [r if isinstance(r, dict) else {} for r in remotes_raw]
 
     if name is not None:
-        matches = [r for r in remotes if r.get("name") == name]
-        if not matches:
+        selected = next((r for r in remotes if r.get("name") == name), None)
+        if selected is None:
             available = ", ".join(str(r.get("name", "?")) for r in remotes)
             raise ValueError(
                 f"Remote '{name}' not found for env '{env}' (available: {available})"
             )
-        selected = matches[0]
     else:
         selected = remotes[0]
 
