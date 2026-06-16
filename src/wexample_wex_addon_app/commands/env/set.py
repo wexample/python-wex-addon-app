@@ -12,12 +12,12 @@ from wexample_wex_core.const.globals import COMMAND_TYPE_ADDON
 from wexample_wex_addon_app.const.tags import DomainTag
 from wexample_wex_addon_app.middleware.app_middleware import AppMiddleware
 
-_WWW_ROOT = pathlib.Path("/var/www")
-
 if TYPE_CHECKING:
     from wexample_cli.context.execution_context import ExecutionContext
 
     from wexample_wex_addon_app.workdir.managed_workdir import ManagedWorkdir
+
+_WWW_ROOT = pathlib.Path("/var/www")
 
 
 @option(

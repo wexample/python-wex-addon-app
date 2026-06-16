@@ -518,6 +518,7 @@ class ManagedWorkdir(
         from wexample_app.const.globals import (
             APP_FILE_APP_CONFIG,
             APP_FILE_APP_MANAGER,
+            APP_PATH_APP_MANAGER,
             WORKDIR_LOCAL_DIR_NAME,
             WORKDIR_SETUP_DIR,
         )
@@ -569,7 +570,7 @@ class ManagedWorkdir(
                         "yaml": {"sort_recursive": True},
                     },
                     {
-                        # python (app manager)
+                        # bin (app-manager shell entrypoint)
                         "name": "bin",
                         "type": DiskItemType.DIRECTORY,
                         "should_exist": True,
@@ -583,6 +584,51 @@ class ManagedWorkdir(
                                     path=AppAddonManager.get_shell_manager_path()
                                 ),
                             }
+                        ],
+                    },
+                    {
+                        # python — Python wex CLI install (venv + PDM). The
+                        # `app_manager/` subdir is created by the install
+                        # machinery (not filestate), but the .gitignore files
+                        # are declared here so committed state stays clean.
+                        "name": APP_PATH_APP_MANAGER.parts[1],  # "python"
+                        "type": DiskItemType.DIRECTORY,
+                        "should_exist": True,
+                        "children": [
+                            {
+                                "name": ".gitignore",
+                                "type": DiskItemType.FILE,
+                                "should_exist": True,
+                                "should_contain_lines": [
+                                    "/venv/",
+                                ],
+                                TextOption.get_name(): {"end_new_line": True},
+                                "gitignore": True,
+                            },
+                            {
+                                "name": APP_PATH_APP_MANAGER.parts[2],  # "app_manager"
+                                "type": DiskItemType.DIRECTORY,
+                                "should_exist": True,
+                                "children": [
+                                    {
+                                        "name": ".gitignore",
+                                        "type": DiskItemType.FILE,
+                                        "should_exist": True,
+                                        "should_contain_lines": [
+                                            "*.py[cod]",
+                                            "__pycache__/",
+                                            ".mypy_cache/",
+                                            ".pytest_cache/",
+                                            ".ruff_cache/",
+                                            ".pdm-python",
+                                            "/tmp/",
+                                            "/logs/",
+                                        ],
+                                        TextOption.get_name(): {"end_new_line": True},
+                                        "gitignore": True,
+                                    },
+                                ],
+                            },
                         ],
                     },
                     {
