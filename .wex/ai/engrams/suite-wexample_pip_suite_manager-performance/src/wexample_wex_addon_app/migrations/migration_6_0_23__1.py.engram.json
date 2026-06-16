@@ -1,0 +1,11 @@
+{
+  "engram_version": 1,
+  "source_key": "src/wexample_wex_addon_app/migrations/migration_6_0_23__1.py",
+  "cache_nonce": "1c2800147ebc4367950bb7b61bd21d00",
+  "last_visited_at": "2026-06-16T20:02:13+00:00",
+  "last_rev": "09aa61b809a68b6793407718de82b0446c6f289c",
+  "last_decision": "edit",
+  "kinds": [],
+  "notes": "hoisted step-key frozenset to class constant and replaced generator-based any() with C-level isdisjoint()",
+  "in_progress": null
+}

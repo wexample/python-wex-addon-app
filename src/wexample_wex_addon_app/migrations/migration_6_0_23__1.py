@@ -15,6 +15,7 @@ class Migration_6_0_23__1(AbstractMigration):
         "Remove empty script steps (entries with a 'runner' key but no 'script', "
         "'file', or 'command' key) from all .wex/commands/**/*.yml files."
     )
+    _STEP_CONTENT_KEYS: frozenset = frozenset(("script", "file", "command"))
 
     def apply(self, context: MigrationContext) -> None:
         import yaml
@@ -34,11 +35,12 @@ class Migration_6_0_23__1(AbstractMigration):
             if not isinstance(scripts, list):
                 continue
 
+            _keys = self._STEP_CONTENT_KEYS
             cleaned = [
                 step
                 for step in scripts
                 if not isinstance(step, dict)
-                or any(k in step for k in ("script", "file", "command"))
+                or not _keys.isdisjoint(step)
             ]
 
             if len(cleaned) == len(scripts):
