@@ -42,9 +42,9 @@ def app__env__var_get(
     app_workdir: ManagedWorkdir,
     key: str,
 ):
-    from wexample_app.response.warning_response import WarningResponse
-
     value = app_workdir.get_env_parameter(key)
     if value is None:
+        from wexample_app.response.warning_response import WarningResponse
+
         return WarningResponse(kernel=context.kernel, message=f"{key} is not set")
     return value

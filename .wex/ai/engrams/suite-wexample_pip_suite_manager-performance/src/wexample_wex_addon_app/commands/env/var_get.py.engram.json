@@ -1,0 +1,11 @@
+{
+  "engram_version": 1,
+  "source_key": "src/wexample_wex_addon_app/commands/env/var_get.py",
+  "cache_nonce": "1c2800147ebc4367950bb7b61bd21d00",
+  "last_visited_at": "2026-06-16T13:01:22+00:00",
+  "last_rev": "3a58e11054fa07dba49654ce7f9a722535d52728",
+  "last_decision": "edit",
+  "kinds": [],
+  "notes": "moved WarningResponse import inside error branch to skip sys.modules lookup on happy path",
+  "in_progress": null
+}
