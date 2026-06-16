@@ -1,0 +1,11 @@
+{
+  "engram_version": 1,
+  "source_key": "src/wexample_wex_addon_app/commands/app/init.py",
+  "cache_nonce": "1c2800147ebc4367950bb7b61bd21d00",
+  "last_visited_at": "2026-06-16T12:23:59+00:00",
+  "last_rev": "eec9b6d971f1c63142efa6a2d45c4609b899656a",
+  "last_decision": "edit",
+  "kinds": [],
+  "notes": "hoisted str(target_path) out of service loop + rectify call; list→tuple for subdir iteration",
+  "in_progress": null
+}

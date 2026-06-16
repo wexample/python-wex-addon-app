@@ -92,18 +92,19 @@ def app__app__init(
     )
 
     target_path = Path(app_path or context.kernel.call_workdir.get_path()).resolve()
+    str_target_path = str(target_path)
     app_name = name or target_path.name
     env_name = env or "local"
     normalized_services = (string_to_snake_case(s) for s in (services or []))
     domain = f"{string_to_kebab_case(app_name)}.{CORE_COMMAND_NAME}"
     wex_version = context.kernel.workdir.get_setup_version()
 
-    for subdir in [
+    for subdir in (
         WORKDIR_SETUP_DIR,
         APP_PATH_TMP,
         APP_DIR_DOCKER,
         APP_PATH_LOCAL_ENV.parent,
-    ]:
+    ):
         file_mkdir_as_real_user(target_path / subdir)
 
     docker_compose_path = target_path / APP_PATH_DOCKER_COMPOSE
@@ -128,12 +129,12 @@ def app__app__init(
     for service_name in normalized_services:
         context.kernel.run_function(
             app__service__install,
-            {"app_path": str(target_path), "service": service_name},
+            {"app_path": str_target_path, "service": service_name},
         )
 
     context.kernel.run_function(
         app__state__rectify,
-        {"app_path": str(target_path), "yes": True, "loop": True},
+        {"app_path": str_target_path, "yes": True, "loop": True},
     )
 
     from wexample_app.response.log_response import LogResponse
