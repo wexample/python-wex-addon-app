@@ -11,6 +11,7 @@ if TYPE_CHECKING:
 
 _DEFAULT_TARGET_BRANCH = "main"
 _DEFAULT_CI_POLL_TIMEOUT = 600
+_DEFAULT_CI_POLL_TIMEOUT_STR = str(_DEFAULT_CI_POLL_TIMEOUT)
 _PIPELINE_RETRY_ATTEMPTS = 360
 # Short detection windows for "does this project's CI even run pipelines at
 # this stage?". When nothing appears within the budget, we assume the CI is
@@ -18,6 +19,12 @@ _PIPELINE_RETRY_ATTEMPTS = 360
 # the wait rather than burning hours of exponential backoff.
 _MR_PIPELINE_DETECT_ATTEMPTS = 6
 _POST_MERGE_DETECT_ATTEMPTS = 6
+_PIPELINE_TICK_SYMBOL = "⬤"
+_PIPELINE_TICK_COLOR = {
+    "success": "green",
+    "failed": "red",
+    "canceled": "red",
+}
 
 
 class BranchMergePublicationStrategy(AbstractPublicationStrategy):
@@ -71,7 +78,7 @@ class BranchMergePublicationStrategy(AbstractPublicationStrategy):
             timeout = int(
                 self.workdir.get_config()
                 .search("git.ci_poll_timeout")
-                .get_str_or_default(str(_DEFAULT_CI_POLL_TIMEOUT))
+                .get_str_or_default(_DEFAULT_CI_POLL_TIMEOUT_STR)
             )
 
             on_tick = self._make_pipeline_tick_handler(pipeline_id, "Pipeline")
@@ -220,21 +227,14 @@ class BranchMergePublicationStrategy(AbstractPublicationStrategy):
     # Internal helpers
     # ------------------------------------------------------------------
     def _make_pipeline_tick_handler(self, pipeline_id: int, label: str):
-        _SYMBOL = "⬤"
-        _COLOR = {
-            "success": "green",
-            "failed": "red",
-            "canceled": "red",
-        }
-
         state: dict = {"last": None}
 
         def on_tick(status: str, elapsed: int) -> None:
-            color = _COLOR.get(status, "blue")
+            color = _PIPELINE_TICK_COLOR.get(status, "blue")
             if state["last"] is not None:
                 self.workdir.io.erase_response(state["last"])
             state["last"] = self.workdir.log(
-                f"@color:{color}{{{_SYMBOL}}}  {label} {pipeline_id} — {status} ({elapsed}s)"
+                f"@color:{color}{{{_PIPELINE_TICK_SYMBOL}}}  {label} {pipeline_id} — {status} ({elapsed}s)"
             )
 
         return on_tick
