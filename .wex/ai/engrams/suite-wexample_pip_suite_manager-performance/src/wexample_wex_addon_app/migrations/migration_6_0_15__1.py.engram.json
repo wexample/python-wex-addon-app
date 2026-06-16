@@ -1,0 +1,11 @@
+{
+  "engram_version": 1,
+  "source_key": "src/wexample_wex_addon_app/migrations/migration_6_0_15__1.py",
+  "cache_nonce": "1c2800147ebc4367950bb7b61bd21d00",
+  "last_visited_at": "2026-06-16T19:55:25+00:00",
+  "last_rev": "fefbcb1f2bc112abb7387097cf45b27f6240a264",
+  "last_decision": "skip",
+  "kinds": [],
+  "notes": "one-shot migration script with no hot paths; early-exit write guard already in place, two replace() calls are minimal, no optimization targets",
+  "in_progress": null
+}
