@@ -2,10 +2,10 @@
   "engram_version": 1,
   "source_key": "src/wexample_wex_addon_app/commands/env/set.py",
   "cache_nonce": "1c2800147ebc4367950bb7b61bd21d00",
-  "last_visited_at": "2026-06-16T13:00:47+00:00",
-  "last_rev": "6ba2dbe7ac4c3b39e4516e23594bc3bcbf2e4f3a",
-  "last_decision": "edit",
+  "last_visited_at": "2026-06-16T19:01:37+00:00",
+  "last_rev": "e2d2757d23a231774fce781469fa27016f00a4c6",
+  "last_decision": "skip",
   "kinds": [],
-  "notes": "hoisted deferred `import pathlib` and invariant `Path(\"/var/www\")` out of function body to module level",
+  "notes": "module-level Path constant already hoisted; thin one-shot CLI command with no hot path or repeated computation to optimize",
   "in_progress": null
 }
