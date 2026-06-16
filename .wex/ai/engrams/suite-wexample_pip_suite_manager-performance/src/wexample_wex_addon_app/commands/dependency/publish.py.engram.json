@@ -1,0 +1,11 @@
+{
+  "engram_version": 1,
+  "source_key": "src/wexample_wex_addon_app/commands/dependency/publish.py",
+  "cache_nonce": "1c2800147ebc4367950bb7b61bd21d00",
+  "last_visited_at": "2026-06-16T12:58:32+00:00",
+  "last_rev": "eff6bc256d0aa873312da6cf4fc63f3f9b5a600c",
+  "last_decision": "skip",
+  "kinds": [],
+  "notes": "thin one-shot CLI command adapter; lazy import is an intentional circular-import guard, no hot paths present",
+  "in_progress": null
+}
