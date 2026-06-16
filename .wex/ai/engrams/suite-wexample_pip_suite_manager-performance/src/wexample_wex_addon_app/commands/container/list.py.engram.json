@@ -1,0 +1,11 @@
+{
+  "engram_version": 1,
+  "source_key": "src/wexample_wex_addon_app/commands/container/list.py",
+  "cache_nonce": "1c2800147ebc4367950bb7b61bd21d00",
+  "last_visited_at": "2026-06-16T12:53:50+00:00",
+  "last_rev": "553213ee62ef5fb3476de54a6fa46f20555a87c0",
+  "last_decision": "edit",
+  "kinds": [],
+  "notes": "hoisted get_main_service/get_main_db_service out of per-service loop in _format_role",
+  "in_progress": null
+}

@@ -87,6 +87,9 @@ def app__container__list(
     if verbose:
         headers += ["Image", "Container"]
 
+    main_service = app_workdir.get_main_service()
+    main_db_service = app_workdir.get_main_db_service()
+
     rows: list[list[str]] = []
     for service_name, attrs in services.items():
         container_name = attrs.get("container_name", service_name)
@@ -95,7 +98,7 @@ def app__container__list(
         config = inspect.get("Config", {})
 
         row = [
-            _format_role(service_name=service_name, app_workdir=app_workdir),
+            _format_role(service_name=service_name, main_service=main_service, main_db_service=main_db_service),
             service_name,
             _format_state(
                 status=state.get("Status"),
@@ -136,10 +139,10 @@ def _format_ports(port_bindings: dict[str, Any] | None) -> str:
     return ", ".join(items) if items else "-"
 
 
-def _format_role(service_name: str, app_workdir: ManagedWorkdir) -> str:
-    if service_name == app_workdir.get_main_service():
+def _format_role(service_name: str, main_service: str | None, main_db_service: str | None) -> str:
+    if service_name == main_service:
         return "@cyan{main}"
-    if service_name == app_workdir.get_main_db_service():
+    if service_name == main_db_service:
         return "@yellow{db}"
     return "-"
 
