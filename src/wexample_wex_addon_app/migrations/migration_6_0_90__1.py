@@ -5,6 +5,8 @@ from typing import TYPE_CHECKING
 import yaml
 from wexample_migration.abstract_migration import AbstractMigration
 
+_ALLOWED_ROLLBACK_KEYS: frozenset[str] = frozenset({"name", "host"})
+
 if TYPE_CHECKING:
     from pathlib import Path
 
@@ -55,7 +57,7 @@ def _rollback_env_config(config: dict) -> bool:
     only = remotes[0]
     if not isinstance(only, dict):
         return False
-    if set(only.keys()) - {"name", "host"}:
+    if any(k not in _ALLOWED_ROLLBACK_KEYS for k in only):
         return False
     if only.get("name") != "main":
         return False
