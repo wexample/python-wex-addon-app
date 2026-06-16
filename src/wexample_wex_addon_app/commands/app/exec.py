@@ -85,14 +85,14 @@ def app__app__exec(
         docker_command.append("-ti")
 
     if user:
-        docker_command += ["-u", user]
+        docker_command.extend(("-u", user))
 
     # v6: todo — appeler le hook @service::hook/exec pour injecter des commandes préalables
     #             (ex: charger l'env du service avant d'exécuter). Bloqué par migration des services.
     # v6: todo — --sync : distinguer "capturer la sortie" vs "juste exécuter" (NonInteractiveShellCommandResponse)
     #             actuellement tout passe par ShellCommandResponse (capture).
     # v6: todo — args_parse_one : parser intelligemment --command (string ou liste imbriquée)
-    docker_command += [long_name, shell, "-c", command]
+    docker_command.extend((long_name, shell, "-c", command))
 
     if interactive:
         from wexample_app.response.interactive_shell_command_response import (

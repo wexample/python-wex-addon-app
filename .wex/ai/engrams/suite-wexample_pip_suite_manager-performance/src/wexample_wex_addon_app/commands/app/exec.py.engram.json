@@ -1,0 +1,11 @@
+{
+  "engram_version": 1,
+  "source_key": "src/wexample_wex_addon_app/commands/app/exec.py",
+  "cache_nonce": "1c2800147ebc4367950bb7b61bd21d00",
+  "last_visited_at": "2026-06-16T12:22:18+00:00",
+  "last_rev": "2b3fbcbbf77c21669d038192d70af557e805881c",
+  "last_decision": "edit",
+  "kinds": [],
+  "notes": "replaced list concatenation (`+= [...]`) with `extend(tuple)` to avoid temporary list allocation in docker_command construction",
+  "in_progress": null
+}
