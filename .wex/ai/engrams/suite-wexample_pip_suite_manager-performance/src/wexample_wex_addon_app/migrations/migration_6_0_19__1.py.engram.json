@@ -1,0 +1,11 @@
+{
+  "engram_version": 1,
+  "source_key": "src/wexample_wex_addon_app/migrations/migration_6_0_19__1.py",
+  "cache_nonce": "1c2800147ebc4367950bb7b61bd21d00",
+  "last_visited_at": "2026-06-16T19:58:04+00:00",
+  "last_rev": "6829ab77bd4bf783cc2e46e7f98856f1e716a2e4",
+  "last_decision": "edit",
+  "kinds": [],
+  "notes": "hoisted config.get(\"helper\") to remove duplicate dict lookup; dropped redundant bool() on has_domain",
+  "in_progress": null
+}

@@ -34,7 +34,7 @@ class Migration_6_0_19__1(AbstractMigration):
             return
 
         # Only apply to apps that declare a domain (root config or any env config)
-        has_domain = bool(config.get("domain") or config.get("domains"))
+        has_domain = config.get("domain") or config.get("domains")
         if not has_domain:
             env_dir = context.target_path / ".wex" / "env"
             if env_dir.is_dir():
@@ -49,11 +49,11 @@ class Migration_6_0_19__1(AbstractMigration):
         if not has_domain:
             return
 
+        helper = config.get("helper")
         # Already declared
-        if isinstance(config.get("helper"), dict) and "proxy" in config["helper"]:
+        if isinstance(helper, dict) and "proxy" in helper:
             return
 
-        helper = config.get("helper")
         if not isinstance(helper, dict):
             helper = {}
             config["helper"] = helper
