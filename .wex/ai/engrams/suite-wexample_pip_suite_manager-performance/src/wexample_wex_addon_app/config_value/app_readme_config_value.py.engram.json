@@ -1,0 +1,11 @@
+{
+  "engram_version": 1,
+  "source_key": "src/wexample_wex_addon_app/config_value/app_readme_config_value.py",
+  "cache_nonce": "1c2800147ebc4367950bb7b61bd21d00",
+  "last_visited_at": "2026-06-16T19:26:06+00:00",
+  "last_rev": "2f8b32b79e256563673cd658cd52fd54a2816353",
+  "last_decision": "edit",
+  "kinds": [],
+  "notes": "hoisted rest_set/order_set out of _merge_section_order comprehensions; fixed misplaced docstring in _append_template_path_from_module",
+  "in_progress": null
+}

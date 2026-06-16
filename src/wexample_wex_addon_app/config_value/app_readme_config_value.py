@@ -30,9 +30,9 @@ class AppReadmeConfigValue(ReadmeContentConfigValue):
     workdir = public_field(description="The application workdir")
 
     def _append_template_path_from_module(self, module, search_paths: list) -> None:
+        """Consider the template directory and the module files are placed at the same relative location into the module directory"""
         from wexample_helpers.helpers.module import module_get_path
 
-        """Consider the template directory and the module files are placed at the same relative location into the module directory"""
         try:
             template_path = (
                 module_get_path(module).parent / "resources" / "readme_templates"
@@ -175,8 +175,10 @@ class AppReadmeConfigValue(ReadmeContentConfigValue):
         first = [s for s in ["title", "table-of-contents"] if s in discovered]
         rest = [s for s in discovered if s not in pinned]
 
-        ordered = [s for s in order if s in rest]
-        remainder = [s for s in rest if s not in set(order)]
+        rest_set = set(rest)
+        order_set = set(order)
+        ordered = [s for s in order if s in rest_set]
+        remainder = [s for s in rest if s not in order_set]
 
         return first + ordered + remainder
 
