@@ -10,7 +10,6 @@ class WebhookTokensYamlFile(YamlFile):
 
     def get_token(self, command_str: str) -> str | None:
         try:
-            data = self.read_parsed(strict=False) or {}
+            return (self.read_parsed(strict=False) or {}).get(command_str)
         except Exception:
             return None
-        return data.get(command_str)

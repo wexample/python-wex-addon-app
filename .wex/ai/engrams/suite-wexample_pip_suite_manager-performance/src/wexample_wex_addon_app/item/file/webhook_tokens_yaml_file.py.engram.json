@@ -1,0 +1,11 @@
+{
+  "engram_version": 1,
+  "source_key": "src/wexample_wex_addon_app/item/file/webhook_tokens_yaml_file.py",
+  "cache_nonce": "1c2800147ebc4367950bb7b61bd21d00",
+  "last_visited_at": "2026-06-16T19:42:49+00:00",
+  "last_rev": "d84f1a8fc55addaf10e358232f0f441aa6aeebf5",
+  "last_decision": "edit",
+  "kinds": [],
+  "notes": "eliminated intermediate `data` variable in get_token, saving STORE_FAST+LOAD_FAST per call",
+  "in_progress": null
+}
