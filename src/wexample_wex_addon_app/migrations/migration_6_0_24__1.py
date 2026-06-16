@@ -25,13 +25,17 @@ def _transform_scripts(scripts: list, fn) -> tuple[list, bool]:
     result = []
     for step in scripts:
         if isinstance(step, dict):
-            step = dict(step)
+            new_step = None
             for key in ("script", "file"):
                 if isinstance(step.get(key), str):
                     updated = fn(step[key])
                     if updated != step[key]:
-                        step[key] = updated
+                        if new_step is None:
+                            new_step = dict(step)
+                        new_step[key] = updated
                         changed = True
+            if new_step is not None:
+                step = new_step
         result.append(step)
     return result, changed
 
