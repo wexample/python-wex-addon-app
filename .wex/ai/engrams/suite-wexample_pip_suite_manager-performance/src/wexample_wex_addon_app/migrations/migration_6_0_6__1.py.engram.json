@@ -1,0 +1,11 @@
+{
+  "engram_version": 1,
+  "source_key": "src/wexample_wex_addon_app/migrations/migration_6_0_6__1.py",
+  "cache_nonce": "1c2800147ebc4367950bb7b61bd21d00",
+  "last_visited_at": "2026-06-16T20:09:07+00:00",
+  "last_rev": "e1688237e0bc8c43cc5dba536c8e9aa378f91612",
+  "last_decision": "edit",
+  "kinds": [],
+  "notes": "replaced list accumulator with bool flag, hoisted str(env_name) conversion, read source.get instead of merged.get in merge helper",
+  "in_progress": null
+}

@@ -27,7 +27,7 @@ class Migration_6_0_6__1(AbstractMigration):
         merged = dict(source)
 
         for key, existing_value in existing.items():
-            source_value = merged.get(key)
+            source_value = source.get(key)
             if isinstance(source_value, dict) and isinstance(existing_value, dict):
                 merged[key] = cls._merge_with_existing_priority(
                     source=source_value,
@@ -54,12 +54,13 @@ class Migration_6_0_6__1(AbstractMigration):
         if not isinstance(env_config, dict):
             return
 
-        treated_envs: list[str] = []
+        treated_any = False
         for env_name, env_values in env_config.items():
             if not isinstance(env_values, dict):
                 continue
 
-            env_config_path = wex_dir / "env" / str(env_name) / "config.yml"
+            env_name_str = str(env_name)
+            env_config_path = wex_dir / "env" / env_name_str / "config.yml"
             env_config_path.parent.mkdir(parents=True, exist_ok=True)
 
             if env_config_path.exists():
@@ -79,10 +80,10 @@ class Migration_6_0_6__1(AbstractMigration):
             with open(env_config_path, "w") as file:
                 yaml.safe_dump(merged_config, file, sort_keys=False)
 
-            treated_envs.append(str(env_name))
-            logging.warning("Migration 6.0.6 treated env '%s'", env_name)
+            treated_any = True
+            logging.warning("Migration 6.0.6 treated env '%s'", env_name_str)
 
-        if not treated_envs:
+        if not treated_any:
             return
 
         root_config.pop("env", None)
