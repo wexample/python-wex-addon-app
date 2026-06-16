@@ -1,0 +1,11 @@
+{
+  "engram_version": 1,
+  "source_key": "src/wexample_wex_addon_app/commands/sidecar/start.py",
+  "cache_nonce": "1c2800147ebc4367950bb7b61bd21d00",
+  "last_visited_at": "2026-06-16T19:16:25+00:00",
+  "last_rev": "702570a21ae7de8e1a566a3c2be14f97ee8ed588",
+  "last_decision": "edit",
+  "kinds": [],
+  "notes": "hoisted str(sidecar_path) out of both inner closures into a single sidecar_path_str variable",
+  "in_progress": null
+}

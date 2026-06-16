@@ -62,6 +62,7 @@ def app__sidecar__start(
     env = env or "local"
     app_addon_manager = AppAddonManager.from_kernel(context.kernel)
     sidecar_path = app_addon_manager.get_sidecar_path(name=name, env=env)
+    sidecar_path_str = str(sidecar_path)
 
     def _create(previous_value=None) -> None:
         if sidecar_path.exists():
@@ -92,7 +93,7 @@ def app__sidecar__start(
         context.kernel.run_function(
             app__app__init,
             {
-                "app_path": str(sidecar_path),
+                "app_path": sidecar_path_str,
                 "env": env,
                 "name": f"wex-{name}",
                 "services": [name],
@@ -105,7 +106,7 @@ def app__sidecar__start(
         from wexample_wex_addon_app.commands.app.start import app__app__start
 
         return context.kernel.run_function(
-            app__app__start, {"app_path": str(sidecar_path)}
+            app__app__start, {"app_path": sidecar_path_str}
         )
 
     return QueuedCollectionResponse(kernel=context.kernel, content=[_create, _start])
