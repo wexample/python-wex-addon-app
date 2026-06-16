@@ -1,0 +1,11 @@
+{
+  "engram_version": 1,
+  "source_key": "src/wexample_wex_addon_app/commands/app/go.py",
+  "cache_nonce": "1c2800147ebc4367950bb7b61bd21d00",
+  "last_visited_at": "2026-06-16T12:23:07+00:00",
+  "last_rev": "f7c8861b139376cea2ea677223d7ab4c12330993",
+  "last_decision": "skip",
+  "kinds": [],
+  "notes": "single-shot CLI handler; all cost is subprocess/docker I/O; no loops, no hoistable invariants, lazy imports already in place",
+  "in_progress": null
+}
