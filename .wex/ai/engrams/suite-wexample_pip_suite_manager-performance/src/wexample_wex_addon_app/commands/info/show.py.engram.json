@@ -1,0 +1,11 @@
+{
+  "engram_version": 1,
+  "source_key": "src/wexample_wex_addon_app/commands/info/show.py",
+  "cache_nonce": "1c2800147ebc4367950bb7b61bd21d00",
+  "last_visited_at": "2026-06-16T13:08:32+00:00",
+  "last_rev": "94c0dfeaa6c93cf0bf99ff2086221a28bf0f435b",
+  "last_decision": "skip",
+  "kinds": [],
+  "notes": "thin CLI command handler — no loops, no repeated lookups, deferred import justified for circular-import avoidance; not a hot path",
+  "in_progress": null
+}
