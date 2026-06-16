@@ -1,0 +1,11 @@
+{
+  "engram_version": 1,
+  "source_key": "src/wexample_wex_addon_app/commands/release/publish.py",
+  "cache_nonce": "1c2800147ebc4367950bb7b61bd21d00",
+  "last_visited_at": "2026-06-16T19:10:36+00:00",
+  "last_rev": "7ac1f9f132e609cda87e2b39c0795aae95b48a2d",
+  "last_decision": "skip",
+  "kinds": [],
+  "notes": "thin command-registration module: single-line delegation, no loops or repeated lookups, `from __future__ import annotations` and TYPE_CHECKING guard already in place",
+  "in_progress": null
+}
