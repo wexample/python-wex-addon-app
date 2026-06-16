@@ -1,0 +1,11 @@
+{
+  "engram_version": 1,
+  "source_key": "src/wexample_wex_addon_app/app_addon_manager.py",
+  "cache_nonce": "1c2800147ebc4367950bb7b61bd21d00",
+  "last_visited_at": "2026-06-16T12:21:42+00:00",
+  "last_rev": "fd8d778223371d76cab4fd19e9451b0d9f6438ef",
+  "last_decision": "edit",
+  "kinds": [],
+  "notes": "dropped 3 redundant `from pathlib import Path` re-imports and replaced O(n²) list-dedup with O(n) insertion-ordered dict in get_service_manifest",
+  "in_progress": null
+}

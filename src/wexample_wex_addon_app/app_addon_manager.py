@@ -8,8 +8,6 @@ from wexample_helpers.decorator.base_class import base_class
 from wexample_wex_core.common.abstract_addon_manager import AbstractAddonManager
 
 if TYPE_CHECKING:
-    from pathlib import Path
-
     from wexample_app.resolver.abstract_command_resolver import AbstractCommandResolver
     from wexample_cli.middleware.abstract_middleware import AbstractMiddleware
     from wexample_helpers.const.types import PathOrString
@@ -50,8 +48,6 @@ class AppAddonManager(AbstractAddonManager):
     def create_app_workdir(
         self, path: PathOrString | None = None
     ) -> ManagedWorkdir | None:
-        from pathlib import Path
-
         from wexample_helpers.helpers.cli import cli_make_clickable_path
         from wexample_helpers.helpers.module import module_load_class_from_file
 
@@ -277,13 +273,12 @@ class AppAddonManager(AbstractAddonManager):
             merged = dict_merge(merged, raw_manifest)
 
             for key in list_keys:
-                values: list[Any] = []
+                seen: dict[Any, None] = {}
                 for source in (merged, raw_manifest):
-                    for value in source.get(key, []) or []:
-                        if value not in values:
-                            values.append(value)
-                if values:
-                    merged[key] = values
+                    for v in source.get(key, []) or []:
+                        seen[v] = None
+                if seen:
+                    merged[key] = list(seen)
 
         merged.pop("extends", None)
         return merged
@@ -354,8 +349,6 @@ class AppAddonManager(AbstractAddonManager):
         Hook name follows the command path convention: ``group/name`` (e.g. ``service/ready``).
         Services that do not declare the hook are silently skipped.
         """
-        from pathlib import Path
-
         from wexample_app.const.output import OUTPUT_TARGET_NONE
         from wexample_helpers.helpers.string import string_to_snake_case
         from wexample_wex_core.common.command_request import CommandRequest
