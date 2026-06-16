@@ -223,8 +223,8 @@ def app__app__start(
                 docker_env_file,
                 "-f",
                 compose_file,
-            ]
-            + compose_options,
+                *compose_options,
+            ],
         )
 
     def _update_hosts(previous_value=None) -> None:
@@ -291,8 +291,10 @@ def app__app__start(
         domain_lines = []
         if not domains_config.is_none():
             scheme = "https" if env != "local" else "http"
-            for domain in domains_config.get_list_or_default():
-                domain_lines.append(f"{scheme}://{domain.get_str()}")
+            domain_lines = [
+                f"{scheme}://{domain.get_str()}"
+                for domain in domains_config.get_list_or_default()
+            ]
 
         summary = f'App "{name}" started in {env} environment'
         if domain_lines:
