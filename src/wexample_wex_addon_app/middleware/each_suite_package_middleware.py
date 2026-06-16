@@ -33,8 +33,7 @@ class EachSuitePackageMiddleware(PackageSuiteMiddleware):
         from wexample_cli.context.execution_context import ExecutionContext
 
         # Check if --all-packages flag is set
-        all_packages = function_kwargs.get("all_packages", False)
-        function_kwargs.pop("all_packages", None)
+        all_packages = function_kwargs.pop("all_packages", False)
 
         # Call parent to get and validate app_workdir,
         # but don't use generated contexts.
@@ -56,7 +55,6 @@ class EachSuitePackageMiddleware(PackageSuiteMiddleware):
                         ),
                         arguments=request.arguments,
                     )
-                    return None
 
                 # Create a single context with the custom function
                 context = ExecutionContext(
