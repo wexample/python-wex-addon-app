@@ -72,18 +72,22 @@ def app__db__restore(
     dumps_dir = app_workdir.get_path() / WORKDIR_SETUP_DIR / service_name / "dumps"
     dumps_dir.mkdir(parents=True, exist_ok=True)
 
-    # Build list of available dumps (zip + sql, excluding symlinks)
-    all_dumps = sorted(
-        p
-        for pattern in ("*.zip", "*.sql")
-        for p in dumps_dir.glob(pattern)
-        if not p.is_symlink()
-    )
+    # Build ordered map of available dumps (zip + sql, excluding symlinks)
+    dump_map = {
+        p.name: p
+        for p in sorted(
+            (
+                p
+                for pattern in ("*.zip", "*.sql")
+                for p in dumps_dir.glob(pattern)
+                if not p.is_symlink()
+            ),
+            key=lambda p: p.name,
+        )
+    }
 
-    if not all_dumps:
+    if not dump_map:
         raise RuntimeError(f"No dumps found in {dumps_dir}")
-
-    dump_map = {p.name: p for p in all_dumps}
 
     # Resolve file_path
     if file_path:
@@ -93,7 +97,7 @@ def app__db__restore(
     else:
         response = context.io.choice(
             question="Please select a dump to restore",
-            choices=list(dump_map.keys()),
+            choices=list(dump_map),
             abort="Abort",
         )
         chosen = response.get_answer()
@@ -101,7 +105,6 @@ def app__db__restore(
             return None
         resolved = dump_map[chosen]
 
-    resolved = Path(resolved)
     if not resolved.exists():
         raise RuntimeError(f"Dump file not found: {resolved}")
 

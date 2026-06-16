@@ -1,0 +1,11 @@
+{
+  "engram_version": 1,
+  "source_key": "src/wexample_wex_addon_app/commands/db/restore.py",
+  "cache_nonce": "1c2800147ebc4367950bb7b61bd21d00",
+  "last_visited_at": "2026-06-16T12:57:59+00:00",
+  "last_rev": "a3933b1b09c2b7ce74c3790b6793aad109df3596",
+  "last_decision": "edit",
+  "kinds": [],
+  "notes": "eliminated all_dumps intermediate list, removed redundant Path(resolved), replaced list(dump_map.keys()) with list(dump_map)",
+  "in_progress": null
+}
