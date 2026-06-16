@@ -1,0 +1,11 @@
+{
+  "engram_version": 1,
+  "source_key": "src/wexample_wex_addon_app/migrations/migration_6_0_9__1.py",
+  "cache_nonce": "1c2800147ebc4367950bb7b61bd21d00",
+  "last_visited_at": "2026-06-16T20:11:21+00:00",
+  "last_rev": "4c2b7ec7bd1377feb1b8b74ce370613e60ab6f55",
+  "last_decision": "edit",
+  "kinds": [],
+  "notes": "replaced list comprehension with generator in _find_compose_files to avoid materializing intermediate list iterated only once",
+  "in_progress": null
+}

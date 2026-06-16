@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING
 from wexample_migration.abstract_migration import AbstractMigration
 
 if TYPE_CHECKING:
+    from collections.abc import Iterator
     from pathlib import Path
 
     from wexample_migration.migration_context import MigrationContext
@@ -19,12 +20,12 @@ class Migration_6_0_9__1(AbstractMigration):
     )
 
     @staticmethod
-    def _find_compose_files(wex_dir: Path) -> list[Path]:
-        return [
+    def _find_compose_files(wex_dir: Path) -> Iterator[Path]:
+        return (
             path
             for path in wex_dir.rglob("docker-compose.yml")
             if "tmp" not in path.parts
-        ]
+        )
 
     def apply(self, context: MigrationContext) -> None:
         wex_dir = context.target_path / ".wex"
