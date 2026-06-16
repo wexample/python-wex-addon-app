@@ -45,8 +45,6 @@ def app__app__stop(
     app_workdir: ManagedWorkdir,
     force: bool = False,
 ) -> AbstractResponse:
-    pass
-
     from wexample_app.const.globals import APP_PATH_TMP
     from wexample_app.response.queued_collection_response import (
         QueuedCollectionResponse,

@@ -1,0 +1,11 @@
+{
+  "engram_version": 1,
+  "source_key": "src/wexample_wex_addon_app/commands/app/stop.py",
+  "cache_nonce": "1c2800147ebc4367950bb7b61bd21d00",
+  "last_visited_at": "2026-06-16T12:30:03+00:00",
+  "last_rev": "8bd759a4878e53b17402719f6a3d654cf9b29b7f",
+  "last_decision": "edit",
+  "kinds": [],
+  "notes": "removed stray `pass` no-op before function body in app__app__stop",
+  "in_progress": null
+}
