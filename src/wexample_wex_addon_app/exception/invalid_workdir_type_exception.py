@@ -30,8 +30,8 @@ class InvalidWorkdirTypeException(AppRuntimeException):
             f"and not a subclass of {self.expected_type}."
         )
 
-        if self.suite_path:
-            clickable_suite_path = cli_make_clickable_path(self.suite_path)
+        if suite_path := self.suite_path:
+            clickable_suite_path = cli_make_clickable_path(suite_path)
             message += f"\nSuite workdir found at: {clickable_suite_path}"
 
         return message

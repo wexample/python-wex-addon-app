@@ -1,0 +1,11 @@
+{
+  "engram_version": 1,
+  "source_key": "src/wexample_wex_addon_app/exception/invalid_workdir_type_exception.py",
+  "cache_nonce": "1c2800147ebc4367950bb7b61bd21d00",
+  "last_visited_at": "2026-06-16T19:30:18+00:00",
+  "last_rev": "4aaa02175b7e4a67bd4a425fc73536b9096d6429",
+  "last_decision": "edit",
+  "kinds": [],
+  "notes": "replaced double self.suite_path attribute lookup with walrus operator in _build_message",
+  "in_progress": null
+}
