@@ -57,7 +57,7 @@ def _topo_sort(builds: dict, targets: set[str]) -> list[str]:
         if node in visited:
             return
         visited.add(node)
-        dep = builds.get(node, {}).get("depends_on")
+        dep = builds[node].get("depends_on")
         if dep and dep in targets:
             visit(dep)
         order.append(node)
