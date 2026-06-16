@@ -1,0 +1,11 @@
+{
+  "engram_version": 1,
+  "source_key": "src/wexample_wex_addon_app/commands/state/rectify.py",
+  "cache_nonce": "1c2800147ebc4367950bb7b61bd21d00",
+  "last_visited_at": "2026-06-16T19:18:37+00:00",
+  "last_rev": "e7d8c04c5da3469c8c58fbc4671f0e5efc140912",
+  "last_decision": "edit",
+  "kinds": [],
+  "notes": "cached len(result.operations) as n_ops to eliminate 3 repeated len() calls per loop iteration",
+  "in_progress": null
+}

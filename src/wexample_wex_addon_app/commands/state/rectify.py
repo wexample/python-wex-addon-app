@@ -105,8 +105,9 @@ def app__state__rectify(
             filter_operation=filter_operation,
             max=max,
         )
+        n_ops = len(result.operations)
 
-        if len(result.operations) == 0:
+        if n_ops == 0:
             pass_text = "pass" if iterations == 1 else "passes"
             result_response = SuccessResponse(
                 kernel=context.kernel,
@@ -116,12 +117,10 @@ def app__state__rectify(
 
         # Stop immediately after the first pass if looping is disabled.
         if not loop:
-            operation_text = (
-                "operation" if len(result.operations) == 1 else "operations"
-            )
+            operation_text = "operation" if n_ops == 1 else "operations"
             result_response = (
                 f"Rectification pass completed; applied "
-                f"{len(result.operations)} {operation_text}."
+                f"{n_ops} {operation_text}."
             )
             break
 
@@ -133,7 +132,7 @@ def app__state__rectify(
             break
 
         context.io.log(
-            f"Pass {iterations} completed with {len(result.operations)} operation(s); starting pass {iterations + 1} of {loop_limit}."
+            f"Pass {iterations} completed with {n_ops} operation(s); starting pass {iterations + 1} of {loop_limit}."
         )
 
     workdir.stop_runners()
