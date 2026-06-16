@@ -57,6 +57,6 @@ coverage*.lcov
 /coverage.json
 logs/
 log/
-.cache/
-cache/
+/.cache/
+/cache/
 /.pdm-build/
