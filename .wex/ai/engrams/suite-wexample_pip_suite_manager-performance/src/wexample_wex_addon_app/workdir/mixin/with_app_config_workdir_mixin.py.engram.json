@@ -1,0 +1,11 @@
+{
+  "engram_version": 1,
+  "source_key": "src/wexample_wex_addon_app/workdir/mixin/with_app_config_workdir_mixin.py",
+  "cache_nonce": "1c2800147ebc4367950bb7b61bd21d00",
+  "last_visited_at": "2026-06-16T20:24:53+00:00",
+  "last_rev": "8aa313565a731518354f1214f8907628494f100b",
+  "last_decision": "edit",
+  "kinds": [],
+  "notes": "guard annotation-only imports (TOMLDocument, StructuredContentFile) under TYPE_CHECKING to eliminate load-time overhead",
+  "in_progress": null
+}

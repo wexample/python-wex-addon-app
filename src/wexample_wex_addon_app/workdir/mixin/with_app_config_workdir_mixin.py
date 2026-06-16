@@ -1,10 +1,14 @@
 from __future__ import annotations
 
-from tomlkit import TOMLDocument
-from wexample_filestate.item.file.structured_content_file import StructuredContentFile
+from typing import TYPE_CHECKING
+
 from wexample_helpers.classes.abstract_method import abstract_method
 from wexample_helpers.classes.base_class import BaseClass
 from wexample_helpers.decorator.base_class import base_class
+
+if TYPE_CHECKING:
+    from tomlkit import TOMLDocument
+    from wexample_filestate.item.file.structured_content_file import StructuredContentFile
 
 
 @base_class
