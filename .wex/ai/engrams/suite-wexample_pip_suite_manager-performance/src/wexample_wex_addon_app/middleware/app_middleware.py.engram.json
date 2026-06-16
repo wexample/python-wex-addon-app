@@ -1,0 +1,11 @@
+{
+  "engram_version": 1,
+  "source_key": "src/wexample_wex_addon_app/middleware/app_middleware.py",
+  "cache_nonce": "1c2800147ebc4367950bb7b61bd21d00",
+  "last_visited_at": "2026-06-16T19:43:28+00:00",
+  "last_rev": "47e718cb675759c0bce0bd021b49220af48502ea",
+  "last_decision": "edit",
+  "kinds": [],
+  "notes": "collapsed get+pop into single pop and cached app_workdir local to eliminate 3 redundant dict lookups",
+  "in_progress": null
+}

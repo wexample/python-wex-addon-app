@@ -21,14 +21,12 @@ class AppMiddleware(AbstractMiddleware):
         request: CommandRequest,
         function_kwargs: Kwargs,
     ) -> list[ExecutionContext]:
-        app_path = function_kwargs.get(
+        app_path = function_kwargs.pop(
             "app_path", str(request.kernel.call_workdir.get_path())
         )
 
-        function_kwargs.pop("app_path", None)
-        function_kwargs["app_workdir"] = self._create_app_workdir(
-            request=request, app_path=app_path
-        )
+        app_workdir = self._create_app_workdir(request=request, app_path=app_path)
+        function_kwargs["app_workdir"] = app_workdir
 
         config_requirements = command_wrapper.extra.get("config_requirements", [])
         if config_requirements:
@@ -38,7 +36,7 @@ class AppMiddleware(AbstractMiddleware):
 
             check_config_requirements(
                 requirements=config_requirements,
-                app_workdir=function_kwargs["app_workdir"],
+                app_workdir=app_workdir,
                 io=request.kernel.io,
                 function_kwargs=function_kwargs,
             )
@@ -51,7 +49,7 @@ class AppMiddleware(AbstractMiddleware):
 
             check_env_requirements(
                 requirements=env_requirements,
-                app_workdir=function_kwargs["app_workdir"],
+                app_workdir=app_workdir,
                 io=request.kernel.io,
                 function_kwargs=function_kwargs,
             )
