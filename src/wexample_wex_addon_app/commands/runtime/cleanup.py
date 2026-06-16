@@ -29,7 +29,7 @@ def app__runtime__cleanup(context: ExecutionContext) -> SuccessResponse:
 
     removed_containers, removed_images = context.workdir.runtime_cleanup()
 
-    if removed_containers == 0 and removed_images == 0:
+    if not removed_containers and not removed_images:
         return SuccessResponse(kernel=context.kernel, message="Nothing to clean up.")
     return SuccessResponse(
         kernel=context.kernel,
