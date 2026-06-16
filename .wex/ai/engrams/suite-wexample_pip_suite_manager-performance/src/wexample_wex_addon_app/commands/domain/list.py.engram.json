@@ -1,0 +1,11 @@
+{
+  "engram_version": 1,
+  "source_key": "src/wexample_wex_addon_app/commands/domain/list.py",
+  "cache_nonce": "1c2800147ebc4367950bb7b61bd21d00",
+  "last_visited_at": "2026-06-16T12:59:13+00:00",
+  "last_rev": "dc9ea0bfee0ebf1005dec03cea0f6018bed4b6d0",
+  "last_decision": "skip",
+  "kinds": [],
+  "notes": "minimal one-shot command; no loops, no repeated lookups, no hoistable invariants — nothing to optimize",
+  "in_progress": null
+}
