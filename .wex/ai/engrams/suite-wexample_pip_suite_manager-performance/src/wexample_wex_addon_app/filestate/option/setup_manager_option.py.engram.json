@@ -1,0 +1,11 @@
+{
+  "engram_version": 1,
+  "source_key": "src/wexample_wex_addon_app/filestate/option/setup_manager_option.py",
+  "cache_nonce": "1c2800147ebc4367950bb7b61bd21d00",
+  "last_visited_at": "2026-06-16T19:33:33+00:00",
+  "last_rev": "6f50d991818eb37e193c3ee224165d60090e4d60",
+  "last_decision": "edit",
+  "kinds": [],
+  "notes": "cached get_scopes and get_allowed_options results at class level to avoid repeated list allocation and deferred imports on every call",
+  "in_progress": null
+}
