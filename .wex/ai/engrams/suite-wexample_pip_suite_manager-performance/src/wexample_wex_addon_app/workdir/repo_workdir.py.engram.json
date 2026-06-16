@@ -1,0 +1,11 @@
+{
+  "engram_version": 1,
+  "source_key": "src/wexample_wex_addon_app/workdir/repo_workdir.py",
+  "cache_nonce": "1c2800147ebc4367950bb7b61bd21d00",
+  "last_visited_at": "2026-06-16T20:31:25+00:00",
+  "last_rev": "c7d973156ffcced8f77e6d3b69b2e36c807a8e57",
+  "last_decision": "edit",
+  "kinds": [],
+  "notes": "hoisted self.get_path() out of loops in _classify_version_bump/_count_code_lines/_count_files; replaced len(list(rglob)) with sum(1 for _ in rglob) to avoid materialising list",
+  "in_progress": null
+}

@@ -329,10 +329,11 @@ class RepoWorkdir(ManagedWorkdir):
         from wexample_helpers.const.types import UPGRADE_TYPE_MAJOR, UPGRADE_TYPE_MINOR
         from wexample_helpers_git.helpers.git import git_has_changes_since_tag
 
+        workdir_path = self.get_path()
         for directory in self._get_critical_directories():
-            dir_path = self.get_path() / directory
+            dir_path = workdir_path / directory
             if dir_path.exists() and git_has_changes_since_tag(
-                last_tag, directory, cwd=self.get_path()
+                last_tag, directory, cwd=workdir_path
             ):
                 return UPGRADE_TYPE_MAJOR
 
@@ -341,27 +342,29 @@ class RepoWorkdir(ManagedWorkdir):
     def _count_code_lines(self, directories: list[TargetFileOrDirectoryType]) -> int:
         from wexample_file.helper.line import line_count_recursive
 
+        workdir_path = self.get_path()
         count = 0
         for directory in directories:
             path = (
                 directory.get_path()
                 if hasattr(directory, "get_path")
-                else self.get_path() / directory
+                else workdir_path / directory
             )
             if path.exists():
                 count += line_count_recursive(path)
         return count
 
     def _count_files(self, directories: list[TargetFileOrDirectoryType]) -> int:
+        workdir_path = self.get_path()
         count = 0
         for directory in directories:
             path = (
                 directory.get_path()
                 if hasattr(directory, "get_path")
-                else self.get_path() / directory
+                else workdir_path / directory
             )
             if path.exists():
-                count += len(list(path.rglob("*")))
+                count += sum(1 for _ in path.rglob("*"))
         return count
 
     def _do_publish(self, force: bool = False) -> None:
