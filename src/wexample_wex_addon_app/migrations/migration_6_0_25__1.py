@@ -62,10 +62,9 @@ class Migration_6_0_25__1(AbstractMigration):
         if git_section.get(_STRATEGY_KEY) != _DEFAULT_VALUE:
             return
 
-        del git_section[_STRATEGY_KEY]
-        if not git_section:
-            del config[_CONFIG_KEY]
-
         if not context.dry_run:
+            del git_section[_STRATEGY_KEY]
+            if not git_section:
+                del config[_CONFIG_KEY]
             with open(config_path, "w") as f:
                 yaml.safe_dump(config, f, sort_keys=False)

@@ -1,0 +1,11 @@
+{
+  "engram_version": 1,
+  "source_key": "src/wexample_wex_addon_app/migrations/migration_6_0_25__1.py",
+  "cache_nonce": "1c2800147ebc4367950bb7b61bd21d00",
+  "last_visited_at": "2026-06-16T20:03:32+00:00",
+  "last_rev": "013f7cfca6a87a6cfe8544c366c89651a2ab8976",
+  "last_decision": "edit",
+  "kinds": [],
+  "notes": "moved dict mutations inside dry_run guard in rollback() to skip unnecessary work when dry_run=True",
+  "in_progress": null
+}
