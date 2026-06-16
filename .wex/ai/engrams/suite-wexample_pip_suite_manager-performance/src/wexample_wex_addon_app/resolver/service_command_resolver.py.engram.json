@@ -1,0 +1,11 @@
+{
+  "engram_version": 1,
+  "source_key": "src/wexample_wex_addon_app/resolver/service_command_resolver.py",
+  "cache_nonce": "1c2800147ebc4367950bb7b61bd21d00",
+  "last_visited_at": "2026-06-16T20:16:04+00:00",
+  "last_rev": "259cb551c21ea3897732a30ec485ad2467bda218",
+  "last_decision": "edit",
+  "kinds": [],
+  "notes": "eliminated intermediate list in autocomplete_suggest; hoisted len(service_prefix) out of per-iteration calls; inlined arguments_dict to short-circuit isinstance check",
+  "in_progress": null
+}

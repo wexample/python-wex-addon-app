@@ -60,10 +60,11 @@ class ServiceCommandResolver(AbstractCommandResolver):
             COMMAND_SEPARATOR_ADDON,
         )
 
-        service_cmds = list(
-            self.kernel.get_configuration_registry().get_all_commands().keys()
-        )
-        service_cmds = [c for c in service_cmds if c.startswith(COMMAND_CHAR_SERVICE)]
+        service_cmds = [
+            c
+            for c in self.kernel.get_configuration_registry().get_all_commands().keys()
+            if c.startswith(COMMAND_CHAR_SERVICE)
+        ]
 
         if not service_cmds:
             return None
@@ -98,12 +99,13 @@ class ServiceCommandResolver(AbstractCommandResolver):
 
         # Reconstruct "@service::" regardless of bash word splitting
         service_prefix = "".join(search_split[: sep_idx + 1])
+        _sp_len = len(service_prefix)
 
         if cursor == sep_idx:
             # Cursor is on "::" — bash clears CURRENT to ""; suggest all group/commands
             matches = sorted(
                 {
-                    c[len(service_prefix) :]
+                    c[_sp_len:]
                     for c in service_cmds
                     if c.startswith(service_prefix)
                 }
@@ -114,10 +116,9 @@ class ServiceCommandResolver(AbstractCommandResolver):
             # After "::" — filter group/command by partial
             partial = search_split[cursor] if cursor < len(search_split) else ""
             matches = sorted(
-                c[len(service_prefix) :]
+                c[_sp_len:]
                 for c in service_cmds
-                if c.startswith(service_prefix)
-                and c[len(service_prefix) :].startswith(partial)
+                if c.startswith(service_prefix) and c[_sp_len:].startswith(partial)
             )
             return " ".join(matches) or None
 
@@ -165,12 +166,13 @@ class ServiceCommandResolver(AbstractCommandResolver):
 
         service_name = string_to_snake_case(request.match.group(1))
 
-        arguments_dict = (
-            request.arguments if isinstance(request.arguments, dict) else {}
-        )
         app_path = (
             function_kwargs.pop("app_path", None)
-            or arguments_dict.get("app_path")
+            or (
+                request.arguments.get("app_path")
+                if isinstance(request.arguments, dict)
+                else None
+            )
             or str(request.kernel.call_workdir.get_path())
         )
         app_addon_manager = self._get_app_addon_manager()
