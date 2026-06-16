@@ -72,9 +72,9 @@ class Migration_6_0_112__1(AbstractMigration):
 
         kernel = context.extras.get("kernel")
         if kernel:
+            release_branch = config["git"]["release_target_branch"]
             kernel.io.log(
-                f"Added `git.release_target_branch` = "
-                f"`{config['git']['release_target_branch']}` to {config_path}."
+                f"Added `git.release_target_branch` = `{release_branch}` to {config_path}."
             )
 
     def rollback(self, context: MigrationContext) -> None:

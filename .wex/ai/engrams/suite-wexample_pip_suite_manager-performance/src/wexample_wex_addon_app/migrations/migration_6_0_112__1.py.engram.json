@@ -1,0 +1,11 @@
+{
+  "engram_version": 1,
+  "source_key": "src/wexample_wex_addon_app/migrations/migration_6_0_112__1.py",
+  "cache_nonce": "1c2800147ebc4367950bb7b61bd21d00",
+  "last_visited_at": "2026-06-16T19:50:41+00:00",
+  "last_rev": "a67c54278175cc98031f5c47de9dd63c01fcb97e",
+  "last_decision": "edit",
+  "kinds": [],
+  "notes": "cache release_branch local and collapse two adjacent f-strings into one in apply()",
+  "in_progress": null
+}
