@@ -1,0 +1,11 @@
+{
+  "engram_version": 1,
+  "source_key": "src/wexample_wex_addon_app/migrations/migration_6_0_12__1.py",
+  "cache_nonce": "1c2800147ebc4367950bb7b61bd21d00",
+  "last_visited_at": "2026-06-16T19:52:28+00:00",
+  "last_rev": "b9d406a34ff05d86b177a4fd0d628ee9ce886ab7",
+  "last_decision": "edit",
+  "kinds": [],
+  "notes": "avoid full key-list alloc with dict comprehension, hoist changed flag, add seen-set for O(1) domain dedup",
+  "in_progress": null
+}

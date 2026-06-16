@@ -52,15 +52,12 @@ class Migration_6_0_12__1(AbstractMigration):
                     config["domain"] = domain
                     changed = True
 
-            legacy_extra_domains = []
-            for key in list(config.keys()):
-                if not key.startswith("domain_"):
-                    continue
-
-                value = config.pop(key)
+            # Collect matching keys first so we can safely pop while not
+            # iterating the dict; avoids materialising the full key list.
+            domain_keys = [k for k in config if k.startswith("domain_")]
+            if domain_keys:
                 changed = True
-                if value:
-                    legacy_extra_domains.append(value)
+            legacy_extra_domains = [v for k in domain_keys if (v := config.pop(k))]
 
             configured_domains = config.get("domains")
             if isinstance(configured_domains, list) and configured_domains:
@@ -69,9 +66,12 @@ class Migration_6_0_12__1(AbstractMigration):
                 main_domain = config.get("domain")
                 domains = [main_domain] if main_domain else []
 
+            # Use a set for O(1) membership tests while appending new entries.
+            seen = set(domains)
             for domain in legacy_extra_domains:
-                if domain not in domains:
+                if domain not in seen:
                     domains.append(domain)
+                    seen.add(domain)
 
             if domains != config.get("domains"):
                 config["domains"] = domains
