@@ -1,0 +1,11 @@
+{
+  "engram_version": 1,
+  "source_key": "src/wexample_wex_addon_app/commands/service/used.py",
+  "cache_nonce": "1c2800147ebc4367950bb7b61bd21d00",
+  "last_visited_at": "2026-06-16T19:15:06+00:00",
+  "last_rev": "f518b5c67dbb94dba29f1ee5366246d085e93d2a",
+  "last_decision": "edit",
+  "kinds": [],
+  "notes": "drop redundant .keys() on dict `in` membership test to avoid creating a dict_keys view",
+  "in_progress": null
+}

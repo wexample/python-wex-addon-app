@@ -50,7 +50,7 @@ def app__service__used(
     installed_services = app_workdir.get_config().search("service")
     is_used = (
         not installed_services.is_none()
-        and service_name in installed_services.to_dict().keys()
+        and service_name in installed_services.to_dict()
     )
 
     return BooleanResponse(kernel=context.kernel, content=is_used)
