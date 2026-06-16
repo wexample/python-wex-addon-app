@@ -57,7 +57,7 @@ def app__webhook__status(
     # ---- webhook commands in this app ----------------------------------------
     all_webhook = context.kernel.get_configuration_registry().get_webhook_commands()
     webhook_commands = [
-        cmd["command"] for cmd in all_webhook.values() if cmd["command"].startswith(".")
+        c for cmd in all_webhook.values() if (c := cmd["command"]).startswith(".")
     ]
 
     if not webhook_commands:
@@ -68,8 +68,7 @@ def app__webhook__status(
 
     rows = []
     for cmd in sorted(webhook_commands):
-        has_token = cmd in tokens
-        token_status = "@green{yes}" if has_token else "@red{no}"
+        token_status = "@green{yes}" if cmd in tokens else "@red{no}"
         rows.append([cmd, token_status])
 
     return TableResponse(

@@ -1,0 +1,11 @@
+{
+  "engram_version": 1,
+  "source_key": "src/wexample_wex_addon_app/commands/webhook/status.py",
+  "cache_nonce": "1c2800147ebc4367950bb7b61bd21d00",
+  "last_visited_at": "2026-06-16T19:21:34+00:00",
+  "last_rev": "c38270765f39df23848468022690a22e554ea68f",
+  "last_decision": "edit",
+  "kinds": [],
+  "notes": "walrus operator eliminates double dict lookup in list comprehension; inlined single-use `has_token` variable",
+  "in_progress": null
+}
