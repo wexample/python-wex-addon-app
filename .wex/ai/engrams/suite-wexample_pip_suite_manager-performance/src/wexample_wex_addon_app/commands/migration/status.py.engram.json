@@ -1,0 +1,11 @@
+{
+  "engram_version": 1,
+  "source_key": "src/wexample_wex_addon_app/commands/migration/status.py",
+  "cache_nonce": "1c2800147ebc4367950bb7b61bd21d00",
+  "last_visited_at": "2026-06-16T19:06:58+00:00",
+  "last_rev": "7a0de6a1d840bf346b07f7200d4823466f2f9745",
+  "last_decision": "edit",
+  "kinds": [],
+  "notes": "hoisted repeated status dict lookups for 'applied' and 'pending' into local variables",
+  "in_progress": null
+}

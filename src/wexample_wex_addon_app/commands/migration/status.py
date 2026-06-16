@@ -50,15 +50,15 @@ def app__migration__status(context: ExecutionContext, app_workdir: ManagedWorkdi
     status = app_workdir.migration_status(
         extras={"workdir": app_workdir, "kernel": context.kernel}
     )
+    applied = status["applied"]
+    pending = status["pending"]
 
     return PropertiesResponse(
         kernel=context.kernel,
         title="Migration status",
         properties={
             "Current version": status["current_version"] or "none",
-            "Applied": ", ".join(status["applied"]) if status["applied"] else "(none)",
-            "Pending": (
-                ", ".join(status["pending"]) if status["pending"] else "(up to date)"
-            ),
+            "Applied": ", ".join(applied) if applied else "(none)",
+            "Pending": ", ".join(pending) if pending else "(up to date)",
         },
     )
