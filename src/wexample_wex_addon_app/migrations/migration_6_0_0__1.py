@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import stat
 from typing import TYPE_CHECKING
 
 from wexample_migration.abstract_migration import AbstractMigration
@@ -27,15 +26,8 @@ class Migration_6_0_0__1(AbstractMigration):
             target.unlink()
 
         source = AppAddonManager.get_shell_manager_path()
-        target.write_text(source.read_text())
-        target.chmod(
-            target.stat().st_mode
-            | stat.S_IRWXU
-            | stat.S_IRGRP
-            | stat.S_IXGRP
-            | stat.S_IROTH
-            | stat.S_IXOTH
-        )
+        target.write_bytes(source.read_bytes())
+        target.chmod(0o755)
 
     def guess_version(self, context: MigrationContext) -> bool:
         # A wex-5 app has wex.version starting with "5." in config.yml
@@ -60,8 +52,7 @@ class Migration_6_0_0__1(AbstractMigration):
         if target.exists() and not target.is_symlink():
             target.unlink()
 
-        bin_dir = context.target_path / ".wex" / "bin"
         try:
-            bin_dir.rmdir()
+            target.parent.rmdir()
         except OSError:
             pass
