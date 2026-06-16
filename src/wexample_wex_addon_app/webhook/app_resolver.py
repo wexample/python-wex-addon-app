@@ -22,16 +22,21 @@ class AppWebhookTypeResolver:
         _, _, local_command = parsed
         return f".{local_command}"
 
+    def _resolve_app_path(self, command_path: str) -> Path | None:
+        """Return the resolved app directory as a Path, or None on bad input."""
+        parsed = self._parse(command_path)
+        if parsed is None:
+            return None
+        env, app_name, _ = parsed
+        return self._base / env / app_name
+
     def resolve_cwd(
         self,
         command_path: str,
         query_params: dict[str, list[str]] | None = None,
     ) -> str | None:
-        parsed = self._parse(command_path)
-        if parsed is None:
-            return None
-        env, app_name, _ = parsed
-        return str(self._base / env / app_name)
+        app_path = self._resolve_app_path(command_path)
+        return str(app_path) if app_path is not None else None
 
     def resolve_token(self, command_path: str, command_str: str) -> str | None:
         from wexample_app.const.globals import WORKDIR_LOCAL_DIR_NAME, WORKDIR_SETUP_DIR
@@ -40,15 +45,10 @@ class AppWebhookTypeResolver:
             WebhookTokensYamlFile,
         )
 
-        cwd = self.resolve_cwd(command_path)
-        if not cwd:
+        app_path = self._resolve_app_path(command_path)
+        if app_path is None:
             return None
-        token_file = (
-            Path(cwd)
-            / WORKDIR_SETUP_DIR
-            / WORKDIR_LOCAL_DIR_NAME
-            / "webhook_tokens.yml"
-        )
+        token_file = app_path / WORKDIR_SETUP_DIR / WORKDIR_LOCAL_DIR_NAME / "webhook_tokens.yml"
         if not token_file.exists():
             return None
         return WebhookTokensYamlFile.create_from_path(path=token_file).get_token(
