@@ -1,0 +1,11 @@
+{
+  "engram_version": 1,
+  "source_key": "src/wexample_wex_addon_app/commands/remote/exec.py",
+  "cache_nonce": "1c2800147ebc4367950bb7b61bd21d00",
+  "last_visited_at": "2026-06-16T19:11:51+00:00",
+  "last_rev": "b186e88b85cb3c32cbbb9f64a3140509ee5a63f4",
+  "last_decision": "skip",
+  "kinds": [],
+  "notes": "single-invocation CLI handler; lazy imports are framework-required (circular-import prevention); no loops or repeated computations; nothing to micro-optimize",
+  "in_progress": null
+}
