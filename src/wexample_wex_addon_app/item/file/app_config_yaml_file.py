@@ -15,12 +15,15 @@ class AppConfigYamlFile(YamlFile):
         except Exception:
             return []
         out: list[str] = []
+        seen: set[str] = set()
         single = data.get("domain")
         if isinstance(single, str) and single:
             out.append(single)
+            seen.add(single)
         multi = data.get("domains") or []
         if isinstance(multi, list):
             for d in multi:
-                if isinstance(d, str) and d and d not in out:
+                if isinstance(d, str) and d and d not in seen:
                     out.append(d)
+                    seen.add(d)
         return out

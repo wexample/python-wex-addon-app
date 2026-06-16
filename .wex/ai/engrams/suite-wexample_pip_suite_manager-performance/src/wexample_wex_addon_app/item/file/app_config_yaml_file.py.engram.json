@@ -1,0 +1,11 @@
+{
+  "engram_version": 1,
+  "source_key": "src/wexample_wex_addon_app/item/file/app_config_yaml_file.py",
+  "cache_nonce": "1c2800147ebc4367950bb7b61bd21d00",
+  "last_visited_at": "2026-06-16T19:41:19+00:00",
+  "last_rev": "febb6e331de9b5f605a3cde68683fe3d598ba1dc",
+  "last_decision": "edit",
+  "kinds": [],
+  "notes": "replaced O(n) `d not in out` list check with O(1) set-based deduplication in read_domains",
+  "in_progress": null
+}
