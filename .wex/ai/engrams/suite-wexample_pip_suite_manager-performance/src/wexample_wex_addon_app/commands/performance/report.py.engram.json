@@ -1,0 +1,11 @@
+{
+  "engram_version": 1,
+  "source_key": "src/wexample_wex_addon_app/commands/performance/report.py",
+  "cache_nonce": "1c2800147ebc4367950bb7b61bd21d00",
+  "last_visited_at": "2026-06-16T19:07:42+00:00",
+  "last_rev": "db3ea6f9ea85256b4f7d0b16adc79a1d6f339a54",
+  "last_decision": "skip",
+  "kinds": [],
+  "notes": "CLI command handler invoked once per user call; lazy imports already deferred; no hot path or loop to optimize",
+  "in_progress": null
+}
