@@ -1,0 +1,11 @@
+{
+  "engram_version": 1,
+  "source_key": "src/wexample_wex_addon_app/commands/release/deploy.py",
+  "cache_nonce": "1c2800147ebc4367950bb7b61bd21d00",
+  "last_visited_at": "2026-06-16T19:10:01+00:00",
+  "last_rev": "ec46538a5e750983346959ee5384b6f360a22d77",
+  "last_decision": "edit",
+  "kinds": [],
+  "notes": "hoisted kernel ref, app_path_str, and 4 invariant content lists out of closure bodies",
+  "in_progress": null
+}

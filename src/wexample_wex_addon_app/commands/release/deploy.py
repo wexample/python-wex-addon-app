@@ -63,73 +63,66 @@ def app__release__deploy(
     )
 
     app_path = app_workdir.get_path()
+    app_path_str = str(app_path)  # computed once; reused by _git_fetch / _git_reset
     tmp_dir = app_path / APP_PATH_TMP
     compose_file = str(tmp_dir / "docker-compose.runtime.yml")
     docker_env_file = str(tmp_dir / "docker.env")
 
-    def _pull(previous_value=None) -> InteractiveShellCommandResponse:
-        return InteractiveShellCommandResponse(
-            kernel=context.kernel,
-            content=[
-                "docker",
-                "compose",
-                "--env-file",
-                docker_env_file,
-                "-f",
-                compose_file,
-                "pull",
-            ],
-        )
+    # Hoist kernel reference: avoids repeated attribute lookup inside each closure.
+    kernel = context.kernel
 
+    # Pre-build invariant content lists so each closure allocates nothing on call.
+    _pull_cmd = ["docker", "compose", "--env-file", docker_env_file, "-f", compose_file, "pull"]
     # Repos on dev/prod are owned by www-data by convention; running `git` as root
     # would trip "dubious ownership" and leave new files root-owned. Run as
     # www-data so files written by git stay www-data-owned. We're already inside
     # an @as_sudo() deploy so `sudo -u www-data` works without a password prompt.
+    _git_fetch_cmd = ["sudo", "-n", "-u", "www-data", "git", "fetch", "origin", "--prune"]
+    _git_reset_cmd = ["sudo", "-n", "-u", "www-data", "git", "reset", "--hard", "@{u}"]
+    _prune_cmd = ["docker", "system", "prune", "-a", "-f"]
+
+    def _pull(previous_value=None) -> InteractiveShellCommandResponse:
+        return InteractiveShellCommandResponse(
+            kernel=kernel,
+            content=_pull_cmd,
+        )
+
     def _git_fetch(previous_value=None) -> InteractiveShellCommandResponse:
         return InteractiveShellCommandResponse(
-            kernel=context.kernel,
-            content=[
-                "sudo",
-                "-n",
-                "-u",
-                "www-data",
-                "git",
-                "fetch",
-                "origin",
-                "--prune",
-            ],
-            workdir=str(app_path),
+            kernel=kernel,
+            content=_git_fetch_cmd,
+            workdir=app_path_str,
         )
 
     def _git_reset(previous_value=None) -> InteractiveShellCommandResponse:
         return InteractiveShellCommandResponse(
-            kernel=context.kernel,
-            content=["sudo", "-n", "-u", "www-data", "git", "reset", "--hard", "@{u}"],
-            workdir=str(app_path),
+            kernel=kernel,
+            content=_git_reset_cmd,
+            workdir=app_path_str,
         )
 
     def _maintenance_enable(previous_value=None) -> AbstractResponse:
-        return context.kernel.run_function(app__maintenance__enable, arguments={})
+        return kernel.run_function(app__maintenance__enable, arguments={})
 
     def _cache_clear(previous_value=None) -> AbstractResponse:
-        return context.kernel.run_function(app__cache__clear, arguments={})
+        return kernel.run_function(app__cache__clear, arguments={})
 
     def _config_build(previous_value=None) -> AbstractResponse:
-        return context.kernel.run_function(app__config__build, arguments={})
+        return kernel.run_function(app__config__build, arguments={})
 
     def _restart(previous_value=None) -> AbstractResponse:
-        return context.kernel.run_function(app__app__restart, arguments={"fast": True})
+        return kernel.run_function(app__app__restart, arguments={"fast": True})
 
     def _maintenance_disable(previous_value=None) -> AbstractResponse:
-        return context.kernel.run_function(app__maintenance__disable, arguments={})
+        return kernel.run_function(app__maintenance__disable, arguments={})
 
     def _prune(previous_value=None) -> InteractiveShellCommandResponse | None:
         if app_workdir.get_app_env() == ENV_NAME_LOCAL:
             context.io.log("Local env — skipping docker system prune.")
             return None
         return InteractiveShellCommandResponse(
-            kernel=context.kernel,
-            content=["docker", "system", "prune", "-a", "-f"],
+            kernel=kernel,
+            content=_prune_cmd,
         )
 
     return QueuedCollectionResponse(
