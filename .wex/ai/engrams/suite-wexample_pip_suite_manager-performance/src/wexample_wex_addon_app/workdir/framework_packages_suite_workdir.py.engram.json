@@ -1,0 +1,11 @@
+{
+  "engram_version": 1,
+  "source_key": "src/wexample_wex_addon_app/workdir/framework_packages_suite_workdir.py",
+  "cache_nonce": "1c2800147ebc4367950bb7b61bd21d00",
+  "last_visited_at": "2026-06-16T20:21:48+00:00",
+  "last_rev": "5bd660a870083c912937066e89f21c52083deab5",
+  "last_decision": "edit",
+  "kinds": [],
+  "notes": "replace O(V+E) nodes-set in build_dependencies_stack with O(1) key checks; `not x` over `len(x)==0` in hot O(n²) loop; drop redundant Path import in _pre_install_python_packages_editable",
+  "in_progress": null
+}

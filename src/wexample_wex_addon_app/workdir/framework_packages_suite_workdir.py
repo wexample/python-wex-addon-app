@@ -60,11 +60,9 @@ class FrameworkPackageSuiteWorkdir(RepoWorkdir):
         if start == target:
             return [package]
 
-        # Ensure both nodes exist in the map
-        nodes = set(dependencies_map.keys()) | {
-            d for deps in dependencies_map.values() for d in deps
-        }
-        if start not in nodes or target not in nodes:
+        # Ensure both nodes exist in the map — O(1) key checks are sufficient
+        # because every CodeBaseWorkdir package is always a key in the map.
+        if start not in dependencies_map or target not in dependencies_map:
             return []
 
         visited: set[str] = set()
@@ -261,14 +259,14 @@ class FrameworkPackageSuiteWorkdir(RepoWorkdir):
                     continue
 
                 imports = search_fn(searched_package)
-                if len(imports) == 0:
+                if not imports:
                     continue
 
                 dependencies_stack = self.build_dependencies_stack(
                     package, searched_package, dependencies_map
                 )
 
-                if len(dependencies_stack) == 0:
+                if not dependencies_stack:
                     import_locations = [
                         f"{res.item.get_path()}:{res.line}:{res.column}"
                         for res in imports
@@ -574,8 +572,6 @@ class FrameworkPackageSuiteWorkdir(RepoWorkdir):
             )
 
     def _pre_install_python_packages_editable(self, force: bool = False) -> None:
-        from pathlib import Path
-
         from wexample_wex_addon_app.helpers.python import (
             python_install_dependency_in_venv,
             python_is_package_installed_editable_in_venv,
