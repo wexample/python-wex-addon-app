@@ -1,0 +1,11 @@
+{
+  "engram_version": 1,
+  "source_key": "src/wexample_wex_addon_app/commands/registry/build.py",
+  "cache_nonce": "1c2800147ebc4367950bb7b61bd21d00",
+  "last_visited_at": "2026-06-16T19:09:02+00:00",
+  "last_rev": "bc03cc5fd8dee37b8b3fa1aead862a84cf5fd143",
+  "last_decision": "edit",
+  "kinds": [],
+  "notes": "moved ManagedWorkdir to TYPE_CHECKING block and added SuccessResponse there, eliminating eager top-level import of annotation-only type",
+  "in_progress": null
+}
