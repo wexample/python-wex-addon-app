@@ -1,0 +1,11 @@
+{
+  "engram_version": 1,
+  "source_key": "src/wexample_wex_addon_app/commands/version/propagate.py",
+  "cache_nonce": "1c2800147ebc4367950bb7b61bd21d00",
+  "last_visited_at": "2026-06-16T19:20:16+00:00",
+  "last_rev": "6c9b0b3a5b1dc948539773822f9bdfd92935c8ff",
+  "last_decision": "edit",
+  "kinds": [],
+  "notes": "hoisted get_project_name() call above if/else and removed redundant inline comments",
+  "in_progress": null
+}

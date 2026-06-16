@@ -36,15 +36,10 @@ def app__version__propagate(
     context: ExecutionContext,
     app_workdir: RepoWorkdir,
 ) -> None:
+    project_name = app_workdir.get_project_name()
     if isinstance(app_workdir, FrameworkPackageSuiteWorkdir):
-        context.kernel.log(
-            f"Propagating version of suite's packages {app_workdir.get_project_name()}"
-        )
-        # Propagate versions
+        context.kernel.log(f"Propagating version of suite's packages {project_name}")
         app_workdir.propagate_packages_versions()
     else:
-        context.kernel.log(
-            f"Propagating version of single package {app_workdir.get_project_name()}"
-        )
-        # Propagate versions
+        context.kernel.log(f"Propagating version of single package {project_name}")
         app_workdir.propagate_version()
