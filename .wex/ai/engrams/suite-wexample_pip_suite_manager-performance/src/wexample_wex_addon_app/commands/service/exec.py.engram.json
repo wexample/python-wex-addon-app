@@ -1,0 +1,11 @@
+{
+  "engram_version": 1,
+  "source_key": "src/wexample_wex_addon_app/commands/service/exec.py",
+  "cache_nonce": "1c2800147ebc4367950bb7b61bd21d00",
+  "last_visited_at": "2026-06-16T19:13:48+00:00",
+  "last_rev": "82abaa5c49e04f75350828f93154e351a1a19233",
+  "last_decision": "skip",
+  "kinds": [],
+  "notes": "CLI command handler called once per process; deferred imports prevent circular imports, no hot path to optimize",
+  "in_progress": null
+}
