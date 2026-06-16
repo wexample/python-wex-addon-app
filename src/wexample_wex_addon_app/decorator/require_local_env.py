@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import inspect
 from collections.abc import Callable
+from functools import lru_cache
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
@@ -103,7 +104,7 @@ def _check_one(
     description = req["description"]
     ask_question = req["ask_question"]
     on_missing = req["on_missing"]
-    use_suite_fallback = req.get("use_suite_fallback", False)
+    use_suite_fallback = req["use_suite_fallback"]
 
     value = _lookup(app_workdir, key, use_suite_fallback)
     if value:
@@ -152,13 +153,18 @@ def _lookup(app_workdir: Any, key: str, use_suite_fallback: bool) -> str | None:
     return app_workdir.get_env_parameter(key, default=None)
 
 
+@lru_cache(maxsize=None)
+def _cached_signature(key: Callable) -> inspect.Signature:
+    return inspect.signature(key)
+
+
 def _resolve_key(
     key: str | Callable, app_workdir: Any, function_kwargs: dict[str, Any]
 ) -> str | None:
     if not callable(key):
         return key
-    candidates = dict(function_kwargs)
-    candidates.setdefault("app_workdir", app_workdir)
-    sig = inspect.signature(key)
-    filtered = {k: v for k, v in candidates.items() if k in sig.parameters}
+    params = _cached_signature(key).parameters
+    filtered = {k: v for k, v in function_kwargs.items() if k in params}
+    if "app_workdir" in params and "app_workdir" not in filtered:
+        filtered["app_workdir"] = app_workdir
     return key(**filtered)
