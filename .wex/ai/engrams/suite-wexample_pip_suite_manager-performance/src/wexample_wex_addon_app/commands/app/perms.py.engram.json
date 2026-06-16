@@ -1,0 +1,11 @@
+{
+  "engram_version": 1,
+  "source_key": "src/wexample_wex_addon_app/commands/app/perms.py",
+  "cache_nonce": "1c2800147ebc4367950bb7b61bd21d00",
+  "last_visited_at": "2026-06-16T12:25:11+00:00",
+  "last_rev": "a2f7a90edd80a412e681606c3a1ef6957991bf64",
+  "last_decision": "skip",
+  "kinds": [],
+  "notes": "one-shot CLI command with a single delegating call; deferred imports are intentional lazy-load; no hot path, loops, or hoistable invariants",
+  "in_progress": null
+}
