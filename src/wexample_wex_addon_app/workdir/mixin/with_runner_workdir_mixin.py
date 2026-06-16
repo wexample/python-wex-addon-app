@@ -96,9 +96,8 @@ class WithRunnerWorkdirMixin:
         )
 
     def _get_or_create_runner(self, runner_name: str) -> DockerRunner:
-        pass
-
-        if runner_name not in self._runner_instances:
-            self._runner_instances[runner_name] = self._build_runner(runner_name)
-
-        return self._runner_instances[runner_name]
+        runner = self._runner_instances.get(runner_name)
+        if runner is None:
+            runner = self._build_runner(runner_name)
+            self._runner_instances[runner_name] = runner
+        return runner

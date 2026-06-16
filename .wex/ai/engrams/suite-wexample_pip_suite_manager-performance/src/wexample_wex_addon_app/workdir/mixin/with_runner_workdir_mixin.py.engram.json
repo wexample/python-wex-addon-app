@@ -1,0 +1,11 @@
+{
+  "engram_version": 1,
+  "source_key": "src/wexample_wex_addon_app/workdir/mixin/with_runner_workdir_mixin.py",
+  "cache_nonce": "1c2800147ebc4367950bb7b61bd21d00",
+  "last_visited_at": "2026-06-16T20:27:31+00:00",
+  "last_rev": "97abe09654308bdd0c8b62026a4b97a5b8eb9856",
+  "last_decision": "edit",
+  "kinds": [],
+  "notes": "removed spurious `pass` and reduced `_get_or_create_runner` hot-path from 2 dict lookups to 1 via `.get()` pattern",
+  "in_progress": null
+}
