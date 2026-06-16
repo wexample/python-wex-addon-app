@@ -1,0 +1,11 @@
+{
+  "engram_version": 1,
+  "source_key": "src/wexample_wex_addon_app/commands/db/dump.py",
+  "cache_nonce": "1c2800147ebc4367950bb7b61bd21d00",
+  "last_visited_at": "2026-06-16T12:55:23+00:00",
+  "last_rev": "f8e3b6fff995ab4a49b53a93d692b848904fe9eb",
+  "last_decision": "edit",
+  "kinds": [],
+  "notes": "deferred datetime/zipfile imports to their conditional branches; cached dump_path.parent as dump_dir",
+  "in_progress": null
+}

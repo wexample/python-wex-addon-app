@@ -65,9 +65,6 @@ def app__db__dump(
     zip: bool = True,
     service: str | None = None,
 ) -> AbstractResponse | str | None:
-    import zipfile as _zipfile
-    from datetime import datetime
-
     from wexample_app.response.warning_response import WarningResponse
     from wexample_helpers.helpers.string import string_to_kebab_case
 
@@ -87,6 +84,8 @@ def app__db__dump(
     )
 
     if not file_name:
+        from datetime import datetime
+
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         file_name = f"{env}-{db_name}-{timestamp}"
         if tag:
@@ -116,8 +115,11 @@ def app__db__dump(
         raise RuntimeError(f"Dump file not found: {dump_path}")
 
     output_path = dump_path
+    dump_dir = dump_path.parent
 
     if zip:
+        import zipfile as _zipfile
+
         context.io.log("Creating zip file")
         zip_path = dump_path.with_suffix(".sql.zip")
         with _zipfile.ZipFile(zip_path, "w", _zipfile.ZIP_DEFLATED) as zf:
@@ -125,12 +127,12 @@ def app__db__dump(
         dump_path.unlink()
         output_path = zip_path
 
-        zip_symlink = dump_path.parent / "db.latest.zip"
+        zip_symlink = dump_dir / "db.latest.zip"
         if zip_symlink.is_symlink():
             zip_symlink.unlink()
         zip_symlink.symlink_to(zip_path.name)
 
-    symlink = dump_path.parent / "db.latest"
+    symlink = dump_dir / "db.latest"
     if symlink.is_symlink():
         symlink.unlink()
     symlink.symlink_to(output_path.name)
