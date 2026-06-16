@@ -56,7 +56,10 @@ def _extract_server_ip(server) -> str | None:
         return server.strip() or None
     if isinstance(server, dict):
         value = server.get("ip") or server.get("host")
-        return value.strip() if isinstance(value, str) and value.strip() else None
+        if not isinstance(value, str):
+            return None
+        stripped = value.strip()
+        return stripped or None
     return None
 
 

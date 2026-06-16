@@ -1,0 +1,11 @@
+{
+  "engram_version": 1,
+  "source_key": "src/wexample_wex_addon_app/migrations/migration_6_0_103__1.py",
+  "cache_nonce": "1c2800147ebc4367950bb7b61bd21d00",
+  "last_visited_at": "2026-06-16T19:47:30+00:00",
+  "last_rev": "63daad48680a767e750fa10205f85da326e2cb54",
+  "last_decision": "edit",
+  "kinds": [],
+  "notes": "eliminated redundant value.strip() double-call in _extract_server_ip by hoisting to a single `stripped` variable",
+  "in_progress": null
+}
