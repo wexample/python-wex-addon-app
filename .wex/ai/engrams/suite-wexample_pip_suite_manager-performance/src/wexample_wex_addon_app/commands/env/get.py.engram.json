@@ -1,0 +1,11 @@
+{
+  "engram_version": 1,
+  "source_key": "src/wexample_wex_addon_app/commands/env/get.py",
+  "cache_nonce": "1c2800147ebc4367950bb7b61bd21d00",
+  "last_visited_at": "2026-06-16T13:00:11+00:00",
+  "last_rev": "9a7868d82f0b0c54846f9427c6ec28e75d644102",
+  "last_decision": "skip",
+  "kinds": [],
+  "notes": "single-line delegation body, TYPE_CHECKING guard already present, decorator args evaluated once at import — no hot path to optimize",
+  "in_progress": null
+}
