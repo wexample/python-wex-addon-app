@@ -1,0 +1,11 @@
+{
+  "engram_version": 1,
+  "source_key": "src/wexample_wex_addon_app/commands/host/clean.py",
+  "cache_nonce": "1c2800147ebc4367950bb7b61bd21d00",
+  "last_visited_at": "2026-06-16T13:03:39+00:00",
+  "last_rev": "e3b29a3a1c73bfde0658745eaf07f0dc2f4460e8",
+  "last_decision": "skip",
+  "kinds": [],
+  "notes": "one-shot CLI command, no loops or hot paths; local imports serve circular-import prevention",
+  "in_progress": null
+}
