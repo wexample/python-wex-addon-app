@@ -1,0 +1,11 @@
+{
+  "engram_version": 1,
+  "source_key": "src/wexample_wex_addon_app/response/app_info_response.py",
+  "cache_nonce": "1c2800147ebc4367950bb7b61bd21d00",
+  "last_visited_at": "2026-06-16T20:17:09+00:00",
+  "last_rev": "70bcca08ae288d720d438d2ce6ea0f93742ebef5",
+  "last_decision": "edit",
+  "kinds": [],
+  "notes": "inlined clamped_ratio, all([]) → all(()), library append-loop → comprehension, walrus to avoid double dict lookup in webhook comprehension",
+  "in_progress": null
+}

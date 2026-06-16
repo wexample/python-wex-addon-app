@@ -52,8 +52,7 @@ class AppInfoResponse(AbstractResponse):
             covered_int = covered.get_int() if covered else 0
 
             coverage_ratio = (covered_int / total_int) if total_int else 0.0
-            clamped_ratio = min(max(coverage_ratio, 0.0), 1.0)
-            coverage_percent = int(round(clamped_ratio * 100))
+            coverage_percent = int(round(min(max(coverage_ratio, 0.0), 1.0) * 100))
         else:
             total_int = 100
             covered_int = 0
@@ -108,12 +107,12 @@ class AppInfoResponse(AbstractResponse):
                 not self.app_workdir.has_changes_since_last_coverage()
             )
             is_publishable = all(
-                [
+                (
                     has_readme,
                     is_clean_since_version,
                     has_tests,
                     is_clean_since_coverage,
-                ]
+                )
             )
         else:
             is_clean_since_version = None
@@ -228,19 +227,12 @@ class AppInfoResponse(AbstractResponse):
         """
         from wexample_prompt.responses.echo_prompt_response import EchoPromptResponse
 
-        libraries = []
         local_libraries = self.app_workdir.get_local_libraries_paths()
-
-        if local_libraries:
-            for library_config in local_libraries:
-                if library_config.is_str():
-                    libraries.append(
-                        EchoPromptResponse.create_echo(
-                            message=f"@path{{{library_config.get_str()}}}"
-                        )
-                    )
-
-        return libraries
+        return [
+            EchoPromptResponse.create_echo(message=f"@path{{{library_config.get_str()}}}")
+            for library_config in (local_libraries or ())
+            if library_config.is_str()
+        ]
 
     def _get_project_version_display(self) -> str:
         try:
@@ -254,9 +246,9 @@ class AppInfoResponse(AbstractResponse):
 
         all_webhook = self.kernel.get_configuration_registry().get_webhook_commands()
         app_cmds = [
-            cmd["command"]
+            c
             for cmd in all_webhook.values()
-            if cmd["command"].startswith(".")
+            if (c := cmd["command"]).startswith(".")
         ]
         if not app_cmds:
             return None
