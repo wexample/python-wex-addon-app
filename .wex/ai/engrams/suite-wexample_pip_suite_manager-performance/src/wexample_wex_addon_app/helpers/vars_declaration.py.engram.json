@@ -1,0 +1,11 @@
+{
+  "engram_version": 1,
+  "source_key": "src/wexample_wex_addon_app/helpers/vars_declaration.py",
+  "cache_nonce": "1c2800147ebc4367950bb7b61bd21d00",
+  "last_visited_at": "2026-06-16T19:40:39+00:00",
+  "last_rev": "8804e17c6a68e4f1cfed734dd1d3302faa5069ce",
+  "last_decision": "edit",
+  "kinds": [],
+  "notes": "hoisted flat_runtime/dict_flatten out of _is_present hot loop, promoted secrets to module level, simplified while-loop guard",
+  "in_progress": null
+}
