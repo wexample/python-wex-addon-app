@@ -164,7 +164,8 @@ class AppCommandResolver(AbstractCommandResolver):
             return None
 
         # Add app commands dir to sys.path so imports work in app scripts
-        if commands_path.is_dir() and str(commands_path) not in sys.path:
-            sys.path.append(str(commands_path))
+        commands_path_str = str(commands_path)
+        if commands_path.is_dir() and commands_path_str not in sys.path:
+            sys.path.append(commands_path_str)
 
         return match

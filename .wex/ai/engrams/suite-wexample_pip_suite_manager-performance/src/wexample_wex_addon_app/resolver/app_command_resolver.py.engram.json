@@ -1,0 +1,11 @@
+{
+  "engram_version": 1,
+  "source_key": "src/wexample_wex_addon_app/resolver/app_command_resolver.py",
+  "cache_nonce": "1c2800147ebc4367950bb7b61bd21d00",
+  "last_visited_at": "2026-06-16T20:14:52+00:00",
+  "last_rev": "bbe0756a20760d3151c18435069779582bf0715f",
+  "last_decision": "edit",
+  "kinds": [],
+  "notes": "deduplicate str(commands_path) call in supports() to avoid redundant Path.__str__ invocation",
+  "in_progress": null
+}
