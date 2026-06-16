@@ -48,9 +48,10 @@ def app__db__go(
     if not service_name:
         raise RuntimeError("No DB service configured (docker.db.main)")
 
-    request = context.kernel._get_command_request_class()(
-        kernel=context.kernel,
+    kernel = context.kernel
+    request = kernel._get_command_request_class()(
+        kernel=kernel,
         name=f"@{string_to_kebab_case(service_name)}::db/go",
         arguments={"app_path": str(app_workdir.get_path())},
     )
-    return context.kernel.execute_kernel_command(request)
+    return kernel.execute_kernel_command(request)
