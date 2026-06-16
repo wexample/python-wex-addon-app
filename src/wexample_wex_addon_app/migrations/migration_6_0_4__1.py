@@ -20,6 +20,11 @@ class Migration_6_0_4__1(AbstractMigration):
         "docker-compose.yml files under .wex/, excluding tmp/"
     )
     _VAR_PATTERN = re.compile(r"\$\{([A-Z0-9_]+)\}")
+    _BIND_PATTERN = re.compile(r"RUNTIME_BIND_(.+)")
+    _SERVICE_COMPOSE_PATTERN = re.compile(
+        r"RUNTIME_SERVICE_([A-Z0-9_]+)_YML_(?:ENV|BASE)"
+    )
+    _SERVICE_PATTERN = re.compile(r"RUNTIME_SERVICE_([A-Z0-9_]+)_(.+)")
     _EXACT_MAPPING = {
         "RUNTIME_NAME": "APP_NAME",
         "RUNTIME_ENV": "APP_ENV",
@@ -37,7 +42,7 @@ class Migration_6_0_4__1(AbstractMigration):
             {
                 variable
                 for variable in cls._VAR_PATTERN.findall(content)
-                if variable.startswith("RUNTIME_") or variable.startswith("GLOBAL_")
+                if variable.startswith(("RUNTIME_", "GLOBAL_"))
             }
         )
 
@@ -46,18 +51,15 @@ class Migration_6_0_4__1(AbstractMigration):
         if variable in cls._EXACT_MAPPING:
             return cls._EXACT_MAPPING[variable]
 
-        bind_match = re.fullmatch(r"RUNTIME_BIND_(.+)", variable)
+        bind_match = cls._BIND_PATTERN.fullmatch(variable)
         if bind_match:
             return f"BIND_{bind_match.group(1)}"
 
-        service_compose_match = re.fullmatch(
-            r"RUNTIME_SERVICE_([A-Z0-9_]+)_YML_(?:ENV|BASE)",
-            variable,
-        )
+        service_compose_match = cls._SERVICE_COMPOSE_PATTERN.fullmatch(variable)
         if service_compose_match:
             return f"SERVICE_{service_compose_match.group(1)}_COMPOSE"
 
-        service_match = re.fullmatch(r"RUNTIME_SERVICE_([A-Z0-9_]+)_(.+)", variable)
+        service_match = cls._SERVICE_PATTERN.fullmatch(variable)
         if service_match:
             return f"SERVICE_{service_match.group(1)}_{service_match.group(2)}"
 
