@@ -39,11 +39,11 @@ class Migration_6_0_1__1(AbstractMigration):
         knowledge_dir = wex_dir / "knowledge"
 
         # Move .wex/knowledge/readme/introduction.md back to README.md
-        introduction = knowledge_dir / "readme" / "introduction.md"
+        readme_dir = knowledge_dir / "readme"
+        introduction = readme_dir / "introduction.md"
         if introduction.exists():
             introduction.rename(context.target_path / "README.md")
 
-            readme_dir = knowledge_dir / "readme"
             try:
                 readme_dir.rmdir()
             except OSError:
