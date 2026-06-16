@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import pathlib
 from typing import TYPE_CHECKING
 
 from wexample_cli.const.tags import AudienceTag, EffectTag, ScopeTag
@@ -10,6 +11,8 @@ from wexample_wex_core.const.globals import COMMAND_TYPE_ADDON
 
 from wexample_wex_addon_app.const.tags import DomainTag
 from wexample_wex_addon_app.middleware.app_middleware import AppMiddleware
+
+_WWW_ROOT = pathlib.Path("/var/www")
 
 if TYPE_CHECKING:
     from wexample_cli.context.execution_context import ExecutionContext
@@ -41,12 +44,10 @@ def app__env__set(
     app_workdir: ManagedWorkdir,
     environment: str,
 ) -> bool:
-    import pathlib
-
     app_workdir.set_app_env(environment)
     context.io.log(f'Environment set to "{environment}"')
 
-    www_dir = pathlib.Path("/var/www") / environment
+    www_dir = _WWW_ROOT / environment
     if not www_dir.exists():
         try:
             www_dir.mkdir(parents=True, exist_ok=True)
