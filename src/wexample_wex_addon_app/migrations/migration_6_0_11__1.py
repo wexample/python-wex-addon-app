@@ -40,11 +40,11 @@ class Migration_6_0_11__1(AbstractMigration):
 
             # domain_main or domain_tld → domain (domain_main takes priority)
             for old_key in ("domain_main", "domain_tld"):
-                if old_key in config and "domain" not in config:
-                    config["domain"] = config.pop(old_key)
-                    changed = True
-                elif old_key in config:
-                    config.pop(old_key)
+                if old_key in config:
+                    if "domain" not in config:
+                        config["domain"] = config.pop(old_key)
+                    else:
+                        config.pop(old_key)
                     changed = True
 
             # domains: keep only if it has extras beyond domain
