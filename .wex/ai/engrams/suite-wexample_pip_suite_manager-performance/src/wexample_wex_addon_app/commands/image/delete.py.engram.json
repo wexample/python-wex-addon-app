@@ -1,0 +1,11 @@
+{
+  "engram_version": 1,
+  "source_key": "src/wexample_wex_addon_app/commands/image/delete.py",
+  "cache_nonce": "1c2800147ebc4367950bb7b61bd21d00",
+  "last_visited_at": "2026-06-16T13:07:07+00:00",
+  "last_rev": "44fff83433443c9befdad9719bf390dfc7357cd4",
+  "last_decision": "skip",
+  "kinds": [],
+  "notes": "one-shot CLI handler; all steps are I/O-bound `docker rmi` calls; loop body and closures are already idiomatic with no redundant lookups or invariants to hoist",
+  "in_progress": null
+}
