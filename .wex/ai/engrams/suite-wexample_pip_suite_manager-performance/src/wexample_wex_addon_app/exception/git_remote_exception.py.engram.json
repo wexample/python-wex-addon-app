@@ -1,0 +1,11 @@
+{
+  "engram_version": 1,
+  "source_key": "src/wexample_wex_addon_app/exception/git_remote_exception.py",
+  "cache_nonce": "1c2800147ebc4367950bb7b61bd21d00",
+  "last_visited_at": "2026-06-16T19:29:35+00:00",
+  "last_rev": "10cbb52fd878bd30eb9893927acfd0201620ee64",
+  "last_decision": "edit",
+  "kinds": [],
+  "notes": "hoisted cli import to module level and replaced += string chaining with list join in _build_message",
+  "in_progress": null
+}

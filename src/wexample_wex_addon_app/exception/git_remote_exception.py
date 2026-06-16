@@ -5,6 +5,7 @@ from typing import ClassVar
 from wexample_app.exception.app_runtime_exception import AppRuntimeException
 from wexample_helpers.classes.field import public_field
 from wexample_helpers.decorator.base_class import base_class
+from wexample_helpers.helpers.cli import cli_make_clickable_path
 
 
 @base_class
@@ -28,19 +29,17 @@ class GitRemoteException(AppRuntimeException):
     workdir_path: str = public_field(description="Path of the git working directory")
 
     def _build_message(self) -> str:
-        from wexample_helpers.helpers.cli import cli_make_clickable_path
-
         clickable_path = cli_make_clickable_path(self.workdir_path)
 
-        message = (
+        parts = [
             f"Git remote operation '{self.operation}' failed for package {self.package_name} at {clickable_path}. "
-            f"The remote '{self.remote_name}' does not appear to be configured correctly."
-        )
+            f"The remote '{self.remote_name}' does not appear to be configured correctly.",
+        ]
 
         if self.branch_name:
-            message += f"\nBranch: {self.branch_name}"
+            parts.append(f"\nBranch: {self.branch_name}")
 
-        message += (
+        parts.append(
             f"\n\nPossible causes:"
             f"\n  - The remote '{self.remote_name}' is not configured"
             f"\n  - The remote URL is invalid or inaccessible"
@@ -50,4 +49,4 @@ class GitRemoteException(AppRuntimeException):
             f"\n  - Set upstream: git push -u {self.remote_name} <branch>"
         )
 
-        return message
+        return "".join(parts)
