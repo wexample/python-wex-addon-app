@@ -1,0 +1,11 @@
+{
+  "engram_version": 1,
+  "source_key": "src/wexample_wex_addon_app/commands/log/follow.py",
+  "cache_nonce": "1c2800147ebc4367950bb7b61bd21d00",
+  "last_visited_at": "2026-06-16T19:02:09+00:00",
+  "last_rev": "ddccb20e933833d75b96f44ab6a7cce134febe37",
+  "last_decision": "skip",
+  "kinds": [],
+  "notes": "thin single-invocation CLI command handler; lazy import already in place, no loops or hoistable invariants",
+  "in_progress": null
+}
