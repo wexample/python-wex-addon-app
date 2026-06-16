@@ -13,10 +13,14 @@ if TYPE_CHECKING:
 
 
 class SetupManagerOptionsProvider(AbstractOptionsProvider):
+    _options_cache: list[type[AbstractConfigOption]] | None = None
+
     @classmethod
     def get_options(cls) -> list[type[AbstractConfigOption]]:
-        from wexample_wex_addon_app.filestate.option.setup_manager_option import (
-            SetupManagerOption,
-        )
+        if cls._options_cache is None:
+            from wexample_wex_addon_app.filestate.option.setup_manager_option import (
+                SetupManagerOption,
+            )
 
-        return [SetupManagerOption]
+            cls._options_cache = [SetupManagerOption]
+        return cls._options_cache
