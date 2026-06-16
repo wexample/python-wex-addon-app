@@ -1,0 +1,11 @@
+{
+  "engram_version": 1,
+  "source_key": "src/wexample_wex_addon_app/commands/host/update.py",
+  "cache_nonce": "1c2800147ebc4367950bb7b61bd21d00",
+  "last_visited_at": "2026-06-16T13:04:53+00:00",
+  "last_rev": "9459e3cc61b40549ea2d678f7119c3f96b4e9c1a",
+  "last_decision": "edit",
+  "kinds": [],
+  "notes": "hoisted os.linesep to _LINESEP constant and cached data[\"apps\"] to avoid repeated lookups",
+  "in_progress": null
+}

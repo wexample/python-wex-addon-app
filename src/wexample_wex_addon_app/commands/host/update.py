@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import os
 from typing import TYPE_CHECKING
 
 from wexample_cli.const.tags import AudienceTag, EffectTag, ScopeTag
@@ -21,6 +20,7 @@ if TYPE_CHECKING:
 _HOSTS_PATH = "/etc/hosts"
 _BLOCK_START = "#[ wex ]#"
 _BLOCK_END = "#[ end-wex ]#"
+_LINESEP = "\n"
 
 
 @as_sudo()
@@ -53,9 +53,10 @@ def app__host__update(
     registry_purge_stopped()
     data = registry_read()
 
+    apps = data["apps"]
     block_lines = [
         f"{entry.get('ip', '127.0.1.1')}\t{domain}"
-        for entry in data["apps"].values()
+        for entry in apps.values()
         for domain in entry.get("domains", [])
     ]
     total_domains = len(block_lines)
@@ -75,21 +76,21 @@ def app__host__update(
         kernel=context.kernel,
         message=(
             f"Hosts updated: {total_domains} domain(s) "
-            f"from {len(data['apps'])} app(s)"
+            f"from {len(apps)} app(s)"
         ),
     )
 
 
 def _add_block(content: str, block_lines: list[str]) -> str:
-    block = os.linesep.join(block_lines)
+    block = _LINESEP.join(block_lines)
     return (
         content
-        + f"{_BLOCK_START}{os.linesep}{block}{os.linesep}{_BLOCK_END}{os.linesep}"
+        + f"{_BLOCK_START}{_LINESEP}{block}{_LINESEP}{_BLOCK_END}{_LINESEP}"
     )
 
 
 def _remove_block(content: str) -> str:
-    lines = content.split(os.linesep)
+    lines = content.split(_LINESEP)
     result = []
     in_block = False
     for line in lines:
@@ -100,4 +101,4 @@ def _remove_block(content: str) -> str:
             continue
         if not in_block:
             result.append(line)
-    return os.linesep.join(result)
+    return _LINESEP.join(result)
