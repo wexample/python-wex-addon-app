@@ -1,0 +1,11 @@
+{
+  "engram_version": 1,
+  "source_key": "src/wexample_wex_addon_app/workdir/mixin/abstract_profiling_workdir_mixin.py",
+  "cache_nonce": "1c2800147ebc4367950bb7b61bd21d00",
+  "last_visited_at": "2026-06-16T20:24:08+00:00",
+  "last_rev": "44d542bdbdf1afb6b526ae3547e7c56cb81126f1",
+  "last_decision": "edit",
+  "kinds": [],
+  "notes": "added __slots__ = () to abstract mixin to prevent redundant __dict__ slot in concrete subclasses",
+  "in_progress": null
+}

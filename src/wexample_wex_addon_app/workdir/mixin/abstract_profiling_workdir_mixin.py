@@ -14,6 +14,10 @@ class AbstractProfilingWorkdirMixin:
     any language-specific addon is required.
     """
 
+    # Empty slots: this mixin holds no instance state; declaring __slots__ = ()
+    # prevents a redundant __dict__ slot from being added to concrete subclasses.
+    __slots__ = ()
+
     def get_benchmark_dir(self) -> str:
         """Return the directory (relative to the workdir root) that contains benchmark tests."""
         return "benchmarks/"
