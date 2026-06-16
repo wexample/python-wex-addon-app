@@ -61,8 +61,6 @@ def app__app__restart(
         QueuedCollectionResponse,
     )
 
-    from wexample_wex_addon_app.commands.app.stop import app__app__stop
-
     def _stop(previous_value=None) -> AbstractResponse | None:
         # Skip stop entirely when the app has never started — otherwise
         # `docker compose stop` runs against a runtime compose file that may
@@ -72,6 +70,8 @@ def app__app__restart(
         if not runtime.search("app.started").get_bool_or_default(False):
             context.io.log("App not started — skipping stop, proceeding to start.")
             return None
+        from wexample_wex_addon_app.commands.app.stop import app__app__stop
+
         return context.kernel.run_function(app__app__stop, arguments={"force": True})
 
     def _start(previous_value=None) -> AbstractResponse:

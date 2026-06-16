@@ -1,0 +1,11 @@
+{
+  "engram_version": 1,
+  "source_key": "src/wexample_wex_addon_app/commands/app/restart.py",
+  "cache_nonce": "1c2800147ebc4367950bb7b61bd21d00",
+  "last_visited_at": "2026-06-16T12:27:02+00:00",
+  "last_rev": "e456d77320ce574b43708c7a839cb921f4f08eb8",
+  "last_decision": "edit",
+  "kinds": [],
+  "notes": "deferred app__app__stop import into _stop closure, avoiding eager load on never-started path",
+  "in_progress": null
+}
