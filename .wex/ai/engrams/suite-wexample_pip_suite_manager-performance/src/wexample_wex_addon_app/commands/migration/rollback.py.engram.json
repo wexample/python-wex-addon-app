@@ -1,0 +1,11 @@
+{
+  "engram_version": 1,
+  "source_key": "src/wexample_wex_addon_app/commands/migration/rollback.py",
+  "cache_nonce": "1c2800147ebc4367950bb7b61bd21d00",
+  "last_visited_at": "2026-06-16T19:05:04+00:00",
+  "last_rev": "51f7ae01a06df354c2df89454a8027cd9a44443b",
+  "last_decision": "edit",
+  "kinds": [],
+  "notes": "hoisted repeated context.kernel attribute lookup into local variable kernel",
+  "in_progress": null
+}

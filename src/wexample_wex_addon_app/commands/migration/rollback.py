@@ -38,9 +38,11 @@ def app__migration__rollback(context: ExecutionContext, app_workdir: ManagedWork
         WithMigrationWorkdirMixin,
     )
 
+    kernel = context.kernel
+
     if not isinstance(app_workdir, WithMigrationWorkdirMixin):
         return FailureResponse(
-            kernel=context.kernel,
+            kernel=kernel,
             message=(
                 "Current workdir does not support migrations. "
                 "Mix WithMigrationWorkdirMixin into your workdir class and "
@@ -49,11 +51,11 @@ def app__migration__rollback(context: ExecutionContext, app_workdir: ManagedWork
         )
 
     rolled_back = app_workdir.migration_rollback(
-        extras={"workdir": app_workdir, "kernel": context.kernel}
+        extras={"workdir": app_workdir, "kernel": kernel}
     )
 
     if rolled_back:
         return SuccessResponse(
-            kernel=context.kernel, message=f"Rolled back: {rolled_back}"
+            kernel=kernel, message=f"Rolled back: {rolled_back}"
         )
     return "Nothing to rollback."
