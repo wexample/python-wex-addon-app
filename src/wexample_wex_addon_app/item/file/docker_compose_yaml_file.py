@@ -18,4 +18,4 @@ class DockerComposeYamlFile(YamlFile):
     def read_services(self) -> dict:
         """Return the `services:` dict, or an empty dict if absent."""
         data = self.read_parsed() or {}
-        return data.get("services", {}) or {}
+        return data.get("services") or {}

@@ -1,0 +1,11 @@
+{
+  "engram_version": 1,
+  "source_key": "src/wexample_wex_addon_app/item/file/docker_compose_yaml_file.py",
+  "cache_nonce": "1c2800147ebc4367950bb7b61bd21d00",
+  "last_visited_at": "2026-06-16T19:41:50+00:00",
+  "last_rev": "09adc6fdaea14364a10396f548c1968fc597cba0",
+  "last_decision": "edit",
+  "kinds": [],
+  "notes": "removed redundant {} default from .get(\"services\", {}) since trailing `or {}` already covers missing/falsy",
+  "in_progress": null
+}
