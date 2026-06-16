@@ -1,0 +1,11 @@
+{
+  "engram_version": 1,
+  "source_key": "src/wexample_wex_addon_app/middleware/suite_or_each_package_middleware.py",
+  "cache_nonce": "1c2800147ebc4367950bb7b61bd21d00",
+  "last_visited_at": "2026-06-16T19:46:01+00:00",
+  "last_rev": "dc2ce7d55348aead9a0eaa45c5af68bc585b67d7",
+  "last_decision": "edit",
+  "kinds": [],
+  "notes": "merged 6 get+pop dict lookups into 3 pop calls; removed redundant `return None` in custom_function",
+  "in_progress": null
+}

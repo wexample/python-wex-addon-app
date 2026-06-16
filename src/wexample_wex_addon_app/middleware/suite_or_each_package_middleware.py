@@ -38,15 +38,10 @@ class SuiteOrEachPackageMiddleware(PackageSuiteMiddleware):
     ) -> list[ExecutionContext]:
         from wexample_cli.context.execution_context import ExecutionContext
 
-        # Get flags
-        all_packages = function_kwargs.get("all_packages", False)
-        packages_only = function_kwargs.get("packages_only", False)
-        suite_only = function_kwargs.get("suite_only", False)
-
-        # Remove flags from kwargs
-        function_kwargs.pop("all_packages", None)
-        function_kwargs.pop("packages_only", None)
-        function_kwargs.pop("suite_only", None)
+        # Get flags and remove them from kwargs in one pass
+        all_packages = function_kwargs.pop("all_packages", False)
+        packages_only = function_kwargs.pop("packages_only", False)
+        suite_only = function_kwargs.pop("suite_only", False)
 
         # Validate conflicting options
         if packages_only and suite_only:
@@ -100,7 +95,6 @@ class SuiteOrEachPackageMiddleware(PackageSuiteMiddleware):
                     ),
                     arguments=request.arguments,
                 )
-                return None
 
             # Create a context with the custom function for package iteration
             package_kwargs = function_kwargs.copy()
