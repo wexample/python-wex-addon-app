@@ -24,7 +24,7 @@ class Migration_6_0_27__1(AbstractMigration):
         if kernel is None:
             return
 
-        compose_path = context.target_path / ".wex" / "docker" / "docker-compose.yml"
+        compose_path = context.target_path / ".wex/docker/docker-compose.yml"
         if not compose_path.exists():
             return
 

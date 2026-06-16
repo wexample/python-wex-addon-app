@@ -1,0 +1,11 @@
+{
+  "engram_version": 1,
+  "source_key": "src/wexample_wex_addon_app/migrations/migration_6_0_27__1.py",
+  "cache_nonce": "1c2800147ebc4367950bb7b61bd21d00",
+  "last_visited_at": "2026-06-16T20:04:50+00:00",
+  "last_rev": "02bd81d9ccab5d86d8758523e603eaf3b6f58b93",
+  "last_decision": "edit",
+  "kinds": [],
+  "notes": "collapsed 3-segment path join into single string to eliminate 2 intermediate Path allocations",
+  "in_progress": null
+}
