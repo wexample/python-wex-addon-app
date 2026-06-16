@@ -1,0 +1,11 @@
+{
+  "engram_version": 1,
+  "source_key": "src/wexample_wex_addon_app/commands/version/release.py",
+  "cache_nonce": "1c2800147ebc4367950bb7b61bd21d00",
+  "last_visited_at": "2026-06-16T19:21:02+00:00",
+  "last_rev": "f55a086c80588a8b94cbc5e540413ce10c06bbd5",
+  "last_decision": "skip",
+  "kinds": [],
+  "notes": "single-call CLI command handler, no hot path, no repeated computations or hoistable invariants",
+  "in_progress": null
+}
