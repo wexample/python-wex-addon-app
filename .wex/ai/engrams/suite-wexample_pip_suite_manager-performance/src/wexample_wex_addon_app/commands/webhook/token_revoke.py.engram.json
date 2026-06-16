@@ -1,0 +1,11 @@
+{
+  "engram_version": 1,
+  "source_key": "src/wexample_wex_addon_app/commands/webhook/token_revoke.py",
+  "cache_nonce": "1c2800147ebc4367950bb7b61bd21d00",
+  "last_visited_at": "2026-06-16T19:23:26+00:00",
+  "last_rev": "827e27613a96d23a6c4b43c8ca4a6d44239405ff",
+  "last_decision": "edit",
+  "kinds": [],
+  "notes": "eliminated double dict lookup in webhook_cmds list-comp via walrus operator",
+  "in_progress": null
+}

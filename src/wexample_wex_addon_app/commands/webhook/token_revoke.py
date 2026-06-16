@@ -71,9 +71,9 @@ def app__webhook__token_revoke(
             context.kernel.get_configuration_registry().get_webhook_commands()
         )
         targets = [
-            cmd["command"]
+            c
             for cmd in webhook_cmds.values()
-            if cmd["command"].startswith(".")
+            if (c := cmd["command"]).startswith(".")
         ]
         if not targets:
             return "No @webhook app commands found."
