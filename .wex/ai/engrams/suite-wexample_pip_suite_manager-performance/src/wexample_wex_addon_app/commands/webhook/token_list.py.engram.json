@@ -1,0 +1,11 @@
+{
+  "engram_version": 1,
+  "source_key": "src/wexample_wex_addon_app/commands/webhook/token_list.py",
+  "cache_nonce": "1c2800147ebc4367950bb7b61bd21d00",
+  "last_visited_at": "2026-06-16T19:22:42+00:00",
+  "last_rev": "27cd40441cd23dd911a51ed4b374ac637be3f7c2",
+  "last_decision": "skip",
+  "kinds": [],
+  "notes": "command handler runs once per invocation; lazy import, early-return, and list comprehension already in place — no hot path to optimize",
+  "in_progress": null
+}
