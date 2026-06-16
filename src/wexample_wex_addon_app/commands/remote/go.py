@@ -68,9 +68,13 @@ def app__remote__go(
         app_workdir=app_workdir, env=env, name=name, user_override=user
     )
 
-    target = f"{remote['user']}@{remote['host']}"
-    remote_cmd = f'cd {remote["path"]} 2>/dev/null || cd /var/www; exec "$SHELL" -l'
+    remote_user = remote["user"]
+    remote_host = remote["host"]
+    remote_path = remote["path"]
 
-    context.io.log(f"SSH → {target}  (cd {remote['path']})")
+    target = f"{remote_user}@{remote_host}"
+    remote_cmd = f'cd {remote_path} 2>/dev/null || cd /var/www; exec "$SHELL" -l'
+
+    context.io.log(f"SSH → {target}  (cd {remote_path})")
 
     return subprocess.run(["ssh", "-t", target, remote_cmd]).returncode
