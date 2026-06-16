@@ -1,0 +1,11 @@
+{
+  "engram_version": 1,
+  "source_key": "src/wexample_wex_addon_app/commands/config/get.py",
+  "cache_nonce": "1c2800147ebc4367950bb7b61bd21d00",
+  "last_visited_at": "2026-06-16T12:51:27+00:00",
+  "last_rev": "9ee04a3a54f3f2cd232a69367ee988bc259941b3",
+  "last_decision": "skip",
+  "kinds": [],
+  "notes": "thin CLI command handler, no loops or redundant calls; TYPE_CHECKING guard and annotations deferral already in place",
+  "in_progress": null
+}
