@@ -1,0 +1,11 @@
+{
+  "engram_version": 1,
+  "source_key": "src/wexample_wex_addon_app/helpers/app_vars.py",
+  "cache_nonce": "1c2800147ebc4367950bb7b61bd21d00",
+  "last_visited_at": "2026-06-16T19:35:37+00:00",
+  "last_rev": "cb39be7597ae1aad2eb3543053fe5e3224e31ef6",
+  "last_decision": "skip",
+  "kinds": [],
+  "notes": "single startup-check function, no loops or hot path; deferred import is circular-import guard, not a performance issue",
+  "in_progress": null
+}
