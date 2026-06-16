@@ -1,0 +1,11 @@
+{
+  "engram_version": 1,
+  "source_key": "src/wexample_wex_addon_app/publication/strategy/abstract_publication_strategy.py",
+  "cache_nonce": "1c2800147ebc4367950bb7b61bd21d00",
+  "last_visited_at": "2026-06-16T20:11:55+00:00",
+  "last_rev": "091cc732f6d26f90864fa9fbc3112b636bafb620",
+  "last_decision": "skip",
+  "kinds": [],
+  "notes": "abstract base class with stub methods only; no loops, no repeated lookups, `cwd` already bound locally — no hot path to optimize",
+  "in_progress": null
+}
