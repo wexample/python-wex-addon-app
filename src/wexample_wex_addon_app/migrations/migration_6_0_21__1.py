@@ -91,7 +91,7 @@ class Migration_6_0_21__1(AbstractMigration):
             if updated != content:
                 compose_file.write_text(updated)
 
-        if images_dir.is_dir() and not list(images_dir.iterdir()):
+        if images_dir.is_dir() and next(images_dir.iterdir(), None) is None:
             images_dir.rmdir()
 
         config_file = context.target_path / ".wex" / "config.yml"
@@ -126,7 +126,8 @@ class Migration_6_0_21__1(AbstractMigration):
                     if len(parts) < 2:
                         break
                     image_ref = parts[1]
-                    image_name = image_ref.split(":")[0].split("/")[-1]
+                    image_base = image_ref.split(":")[0]
+                    image_name = image_base.split("/")[-1]
 
                     for suffix, tag in suffix_tags.items():
                         if suffix == own_suffix:
@@ -137,7 +138,7 @@ class Migration_6_0_21__1(AbstractMigration):
                         # Match by local tag (e.g., FROM pdf-generator:local)
                         if (
                             image_ref == tag
-                            or image_ref.split(":")[0] == tag.split(":")[0]
+                            or image_base == tag.split(":")[0]
                         ):
                             return suffix
                     break
@@ -195,13 +196,14 @@ class Migration_6_0_21__1(AbstractMigration):
         from wexample_helpers.helpers.string import string_to_snake_case
 
         suffix_tags: dict[str, str] = {}
+        name_suffix_pairs: list[tuple[str, str]] = []
         for name in dockerfile_names:
             suffix = string_to_snake_case(name.replace("Dockerfile.", ""))
+            name_suffix_pairs.append((name, suffix))
             suffix_tags[suffix] = tags.get(name) or f"{app_name}-{suffix}:local"
 
         images = {}
-        for name in dockerfile_names:
-            suffix = string_to_snake_case(name.replace("Dockerfile.", ""))
+        for name, suffix in name_suffix_pairs:
             tag = suffix_tags[suffix]
             depends_on = self._detect_depends_on(images_dir / name, suffix, suffix_tags)
             entry: dict = {

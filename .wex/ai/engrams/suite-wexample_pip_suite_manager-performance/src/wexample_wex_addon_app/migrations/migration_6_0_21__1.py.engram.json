@@ -1,0 +1,11 @@
+{
+  "engram_version": 1,
+  "source_key": "src/wexample_wex_addon_app/migrations/migration_6_0_21__1.py",
+  "cache_nonce": "1c2800147ebc4367950bb7b61bd21d00",
+  "last_visited_at": "2026-06-16T20:00:29+00:00",
+  "last_rev": "1d00376ababb4670fc84a9149db89d52a328414a",
+  "last_decision": "edit",
+  "kinds": [],
+  "notes": "cache image_base split, short-circuit iterdir emptiness check, eliminate redundant string_to_snake_case in double loop",
+  "in_progress": null
+}
