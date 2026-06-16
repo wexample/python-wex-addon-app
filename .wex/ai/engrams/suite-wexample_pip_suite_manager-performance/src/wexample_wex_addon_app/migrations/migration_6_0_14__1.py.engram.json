@@ -1,0 +1,11 @@
+{
+  "engram_version": 1,
+  "source_key": "src/wexample_wex_addon_app/migrations/migration_6_0_14__1.py",
+  "cache_nonce": "1c2800147ebc4367950bb7b61bd21d00",
+  "last_visited_at": "2026-06-16T19:54:01+00:00",
+  "last_rev": "10893ea13f65d7d5d2020f383ef517285c985276",
+  "last_decision": "edit",
+  "kinds": [],
+  "notes": "guard replace() with `in` check in apply/rollback to skip allocation when token absent",
+  "in_progress": null
+}

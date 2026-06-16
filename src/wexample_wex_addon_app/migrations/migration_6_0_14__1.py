@@ -33,13 +33,11 @@ class Migration_6_0_14__1(AbstractMigration):
     def apply(self, context: MigrationContext) -> None:
         for compose_path in self._iter_compose_files(context):
             content = compose_path.read_text()
-            updated = content.replace("RUNTIME_BRANCH", "APP_BRANCH")
-            if updated != content:
-                compose_path.write_text(updated)
+            if "RUNTIME_BRANCH" in content:
+                compose_path.write_text(content.replace("RUNTIME_BRANCH", "APP_BRANCH"))
 
     def rollback(self, context: MigrationContext) -> None:
         for compose_path in self._iter_compose_files(context):
             content = compose_path.read_text()
-            updated = content.replace("APP_BRANCH", "RUNTIME_BRANCH")
-            if updated != content:
-                compose_path.write_text(updated)
+            if "APP_BRANCH" in content:
+                compose_path.write_text(content.replace("APP_BRANCH", "RUNTIME_BRANCH"))
