@@ -1,0 +1,11 @@
+{
+  "engram_version": 1,
+  "source_key": "src/wexample_wex_addon_app/config_value/app_license_config_value.py",
+  "cache_nonce": "1c2800147ebc4367950bb7b61bd21d00",
+  "last_visited_at": "2026-06-16T19:25:11+00:00",
+  "last_rev": "61a9ffccc51d983d1bfdb80794a3525665717118",
+  "last_decision": "edit",
+  "kinds": [],
+  "notes": "hoisted datetime import to module level and replaced datetime.now() with lighter date.today() for year lookup",
+  "in_progress": null
+}

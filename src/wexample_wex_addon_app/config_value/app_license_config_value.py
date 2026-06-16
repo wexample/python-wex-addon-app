@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from datetime import date
+
 from wexample_filestate.config_value.aggregated_templates_config_value import (
     AggregatedTemplatesConfigValue,
 )
@@ -14,11 +16,9 @@ class AppLicenseConfigValue(AggregatedTemplatesConfigValue):
     workdir: CodeBaseWorkdir = public_field(description="The application workdir")
 
     def get_templates(self) -> list[str] | None:
-        from datetime import datetime
-
         return [
             "MIT License",
-            f"Copyright (c) {datetime.now().year} {self.workdir.get_vendor_name()}",
+            f"Copyright (c) {date.today().year} {self.workdir.get_vendor_name()}",
             "",
             "Permission is hereby granted, free of charge, to any person obtaining a copy",
             'of this software and associated documentation files (the "Software"), to deal',
