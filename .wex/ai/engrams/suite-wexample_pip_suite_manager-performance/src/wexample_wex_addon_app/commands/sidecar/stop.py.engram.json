@@ -1,0 +1,11 @@
+{
+  "engram_version": 1,
+  "source_key": "src/wexample_wex_addon_app/commands/sidecar/stop.py",
+  "cache_nonce": "1c2800147ebc4367950bb7b61bd21d00",
+  "last_visited_at": "2026-06-16T19:17:57+00:00",
+  "last_rev": "b6df3bd3c5e058801b0afe247a6fa10ee83eb19f",
+  "last_decision": "skip",
+  "kinds": [],
+  "notes": "thin one-shot CLI handler; single-element list membership check and error-path join are not hot paths — no meaningful optimization available",
+  "in_progress": null
+}
