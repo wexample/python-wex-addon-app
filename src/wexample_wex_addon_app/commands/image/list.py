@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import subprocess
 from typing import TYPE_CHECKING
 
 from wexample_cli.const.tags import AudienceTag, EffectTag, ScopeTag
@@ -36,8 +37,6 @@ def app__image__list(
     context: ExecutionContext,
     app_workdir: ManagedWorkdir,
 ):
-    import subprocess
-
     from wexample_app.response.table_response import TableResponse
 
     from wexample_wex_addon_app.helpers.image_builds import load_builds
@@ -45,10 +44,11 @@ def app__image__list(
     app_path = app_workdir.get_path()
     builds = load_builds(app_path)
 
+    _run = subprocess.run
     rows = []
     for build_name, build in builds.items():
         tag = build["tag"]
-        result = subprocess.run(
+        result = _run(
             [
                 "docker",
                 "images",

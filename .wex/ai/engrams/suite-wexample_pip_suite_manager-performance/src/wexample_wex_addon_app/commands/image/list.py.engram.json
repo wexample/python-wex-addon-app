@@ -1,0 +1,11 @@
+{
+  "engram_version": 1,
+  "source_key": "src/wexample_wex_addon_app/commands/image/list.py",
+  "cache_nonce": "1c2800147ebc4367950bb7b61bd21d00",
+  "last_visited_at": "2026-06-16T13:08:06+00:00",
+  "last_rev": "3973f459298649f06ec9a1f7072f62436ac33d44",
+  "last_decision": "edit",
+  "kinds": [],
+  "notes": "hoisted `subprocess` to module level and cached `subprocess.run` as `_run` before build loop",
+  "in_progress": null
+}
