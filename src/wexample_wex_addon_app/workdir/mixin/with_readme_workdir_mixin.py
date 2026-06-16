@@ -20,7 +20,7 @@ class WithReadmeWorkdirMixin(BaseClass):
         from wexample_filestate.const.disk import DiskItemType
         from wexample_filestate.option.text_option import TextOption
 
-        config.get("children").append(
+        config["children"].append(
             {
                 "name": APP_PATH_README,
                 "type": DiskItemType.FILE,
@@ -34,7 +34,7 @@ class WithReadmeWorkdirMixin(BaseClass):
 
     def has_readme(self) -> bool:
         readme = self.find_by_name(APP_PATH_README)
-        return readme.get_path().exists() if readme else None
+        return readme.get_path().exists() if readme else False
 
     def _get_readme_content(self) -> ReadmeContentConfigValue:
         from wexample_wex_addon_app.config_value.app_readme_config_value import (

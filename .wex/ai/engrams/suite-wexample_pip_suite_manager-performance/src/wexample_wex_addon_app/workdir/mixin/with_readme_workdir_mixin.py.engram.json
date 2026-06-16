@@ -1,0 +1,11 @@
+{
+  "engram_version": 1,
+  "source_key": "src/wexample_wex_addon_app/workdir/mixin/with_readme_workdir_mixin.py",
+  "cache_nonce": "1c2800147ebc4367950bb7b61bd21d00",
+  "last_visited_at": "2026-06-16T20:26:45+00:00",
+  "last_rev": "141835ab313ebde8c1b34dfc48eaec031aaf4ca0",
+  "last_decision": "edit",
+  "kinds": [],
+  "notes": "replaced config.get(\"children\") with config[\"children\"] (faster direct access); fixed has_readme returning None→False for correct bool return type",
+  "in_progress": null
+}
