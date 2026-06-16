@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import shutil
+import subprocess
 from pathlib import Path
 
 from wexample_helpers.const.types import PathOrString
@@ -35,8 +36,6 @@ def python_install_dependencies_in_venv(
 def python_install_dependency_in_venv(
     venv_path: Path, name: PathOrString, editable: bool = False
 ) -> None:
-    from wexample_helpers.helpers.shell import shell_run
-
     cmd = [
         f"{venv_path}/bin/python",
         "-m",
@@ -105,9 +104,6 @@ def python_is_package_installed_editable_in_venv(
     package_path: PathOrString,
 ) -> bool:
     """Return True if the package is installed in editable mode at the given path."""
-    import subprocess
-    from pathlib import Path
-
     python_bin = venv_path / "bin" / "python"
 
     try:

@@ -1,0 +1,11 @@
+{
+  "engram_version": 1,
+  "source_key": "src/wexample_wex_addon_app/helpers/python.py",
+  "cache_nonce": "1c2800147ebc4367950bb7b61bd21d00",
+  "last_visited_at": "2026-06-16T19:36:54+00:00",
+  "last_rev": "2a8a29e0a2d3fe4a323f88d77829fbc55a515f71",
+  "last_decision": "edit",
+  "kinds": [],
+  "notes": "removed redundant local imports (shell_run, Path) and hoisted subprocess to module level",
+  "in_progress": null
+}
