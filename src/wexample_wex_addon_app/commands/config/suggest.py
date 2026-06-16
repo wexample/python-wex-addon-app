@@ -167,9 +167,7 @@ def _has_filled_host(remotes) -> bool:
 
 
 def _is_builtin(name: str) -> bool:
-    return name in _WEX_BUILTINS or any(
-        name.startswith(p) for p in _WEX_BUILTIN_PREFIXES
-    )
+    return name in _WEX_BUILTINS or name.startswith(_WEX_BUILTIN_PREFIXES)
 
 
 def _read_declared_vars(app_workdir) -> set[str]:

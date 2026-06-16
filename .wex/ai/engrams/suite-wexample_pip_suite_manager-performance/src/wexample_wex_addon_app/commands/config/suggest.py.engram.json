@@ -1,0 +1,11 @@
+{
+  "engram_version": 1,
+  "source_key": "src/wexample_wex_addon_app/commands/config/suggest.py",
+  "cache_nonce": "1c2800147ebc4367950bb7b61bd21d00",
+  "last_visited_at": "2026-06-16T12:52:43+00:00",
+  "last_rev": "89aec455ea52af83ec6f0e22164700d8e850c7d3",
+  "last_decision": "edit",
+  "kinds": [],
+  "notes": "replaced `any(name.startswith(p) for p in _WEX_BUILTIN_PREFIXES)` with native tuple-overload `name.startswith(_WEX_BUILTIN_PREFIXES)` in `_is_builtin`",
+  "in_progress": null
+}
