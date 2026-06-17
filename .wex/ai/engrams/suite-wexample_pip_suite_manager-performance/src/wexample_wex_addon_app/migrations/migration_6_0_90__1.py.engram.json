@@ -2,10 +2,10 @@
   "engram_version": 1,
   "source_key": "src/wexample_wex_addon_app/migrations/migration_6_0_90__1.py",
   "cache_nonce": "1c2800147ebc4367950bb7b61bd21d00",
-  "last_visited_at": "2026-06-16T20:10:43+00:00",
-  "last_rev": "632ba525276202ac6db9d3ab9ec5d1f1926cb47e",
+  "last_visited_at": "2026-06-17T16:50:44+00:00",
+  "last_rev": "b05efadc6b667842dd53dd1455ed91801003ca43",
   "last_decision": "edit",
   "kinds": [],
-  "notes": "hoisted {\"name\",\"host\"} to module-level frozenset; replaced set subtraction with short-circuiting any() in _rollback_env_config",
+  "notes": "replaced list[Path] accumulator with int counter and any-generator key check with C-level subset operator",
   "in_progress": null
 }

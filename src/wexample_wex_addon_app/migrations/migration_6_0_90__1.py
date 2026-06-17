@@ -6,8 +6,6 @@ import yaml
 from wexample_migration.abstract_migration import AbstractMigration
 
 if TYPE_CHECKING:
-    from pathlib import Path
-
     from wexample_migration.migration_context import MigrationContext
 
 _ALLOWED_ROLLBACK_KEYS: frozenset[str] = frozenset({"name", "host"})
@@ -57,7 +55,7 @@ def _rollback_env_config(config: dict) -> bool:
     only = remotes[0]
     if not isinstance(only, dict):
         return False
-    if any(k not in _ALLOWED_ROLLBACK_KEYS for k in only):
+    if not (only.keys() <= _ALLOWED_ROLLBACK_KEYS):
         return False
     if only.get("name") != "main":
         return False
@@ -85,7 +83,7 @@ class Migration_6_0_90__1(AbstractMigration):
         if not env_dir.is_dir():
             return
 
-        migrated: list[Path] = []
+        migrated_count = 0
 
         for env_subdir in sorted(env_dir.iterdir()):
             if not env_subdir.is_dir():
@@ -103,7 +101,7 @@ class Migration_6_0_90__1(AbstractMigration):
             if not _migrate_env_config(config):
                 continue
 
-            migrated.append(env_config_path)
+            migrated_count += 1
 
             if context.dry_run:
                 continue
@@ -112,9 +110,9 @@ class Migration_6_0_90__1(AbstractMigration):
                 yaml.safe_dump(config, f, sort_keys=False)
 
         kernel = context.extras.get("kernel")
-        if kernel and migrated:
+        if kernel and migrated_count:
             kernel.io.log(
-                f"Converted `server:` → `remotes:` in {len(migrated)} env config(s)."
+                f"Converted `server:` → `remotes:` in {migrated_count} env config(s)."
             )
 
     def rollback(self, context: MigrationContext) -> None:
