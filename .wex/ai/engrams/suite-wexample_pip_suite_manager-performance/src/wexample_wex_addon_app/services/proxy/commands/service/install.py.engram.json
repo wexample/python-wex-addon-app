@@ -2,10 +2,10 @@
   "engram_version": 1,
   "source_key": "src/wexample_wex_addon_app/services/proxy/commands/service/install.py",
   "cache_nonce": "1c2800147ebc4367950bb7b61bd21d00",
-  "last_visited_at": "2026-06-16T20:18:47+00:00",
-  "last_rev": "7300294917190ba88632ea67d3b954af9a932a45",
+  "last_visited_at": "2026-06-17T16:51:37+00:00",
+  "last_rev": "0e7f37da9301012b34026609a610d9ac42fded1b",
   "last_decision": "edit",
   "kinds": [],
-  "notes": "hoisted Path import and service_dir resolution out of function body to module level",
+  "notes": "hoisted proxy samples path to module-level constant; cached app_workdir to eliminate repeated attribute lookups",
   "in_progress": null
 }
