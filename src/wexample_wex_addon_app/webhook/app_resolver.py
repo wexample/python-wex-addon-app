@@ -19,8 +19,7 @@ class AppWebhookTypeResolver:
         parsed = self._parse(command_path)
         if parsed is None:
             return None
-        _, _, local_command = parsed
-        return f".{local_command}"
+        return f".{parsed[2]}"
 
     def resolve_cwd(
         self,
@@ -58,5 +57,4 @@ class AppWebhookTypeResolver:
         parsed = self._parse(command_path)
         if parsed is None:
             return None
-        env, app_name, _ = parsed
-        return self._base / env / app_name
+        return self._base / parsed[0] / parsed[1]

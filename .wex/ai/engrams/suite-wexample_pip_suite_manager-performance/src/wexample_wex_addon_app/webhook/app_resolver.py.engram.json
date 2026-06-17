@@ -2,10 +2,10 @@
   "engram_version": 1,
   "source_key": "src/wexample_wex_addon_app/webhook/app_resolver.py",
   "cache_nonce": "1c2800147ebc4367950bb7b61bd21d00",
-  "last_visited_at": "2026-06-16T20:19:38+00:00",
-  "last_rev": "1e1318a25341efd50e664d03c46f01218b24c129",
+  "last_visited_at": "2026-06-17T16:52:32+00:00",
+  "last_rev": "fe500211123d5e052a88360b4c6a3938f643ebfc",
   "last_decision": "edit",
   "kinds": [],
-  "notes": "eliminated str→Path round-trip in resolve_token via extracted _resolve_app_path() returning Path directly",
+  "notes": "replaced tuple-unpack assignments with direct index access in build_command and _resolve_app_path, saving STORE_FAST/LOAD_FAST bytecodes per call",
   "in_progress": null
 }
