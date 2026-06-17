@@ -24,11 +24,13 @@ class SetupManagerOption(OptionMixin, AbstractNestedConfigOption):
 
     @classmethod
     def get_scopes(cls) -> list[Scope]:
-        if cls._scopes_cache is None:
+        cache = cls._scopes_cache
+        if cache is None:
             from wexample_filestate.enum.scopes import Scope
 
-            cls._scopes_cache = [Scope.LOCATION]
-        return cls._scopes_cache
+            cache = [Scope.LOCATION]
+            cls._scopes_cache = cache
+        return cache
 
     @staticmethod
     def get_raw_value_allowed_type() -> Any:
@@ -40,10 +42,12 @@ class SetupManagerOption(OptionMixin, AbstractNestedConfigOption):
         return self._create_child_required_operation(target=target, scopes=scopes)
 
     def get_allowed_options(self) -> list[type[AbstractConfigOption]]:
-        if SetupManagerOption._allowed_options_cache is None:
+        cache = SetupManagerOption._allowed_options_cache
+        if cache is None:
             from wexample_wex_addon_app.filestate.option._setup_manager.auto_migrate_option import (
                 AutoMigrateOption,
             )
 
-            SetupManagerOption._allowed_options_cache = [AutoMigrateOption]
-        return SetupManagerOption._allowed_options_cache
+            cache = [AutoMigrateOption]
+            SetupManagerOption._allowed_options_cache = cache
+        return cache
