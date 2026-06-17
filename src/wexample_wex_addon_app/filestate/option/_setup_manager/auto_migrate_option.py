@@ -11,14 +11,21 @@ if TYPE_CHECKING:
     from wexample_filestate.enum.scopes import Scope
     from wexample_filestate.operation.abstract_operation import AbstractOperation
 
+# Module-level cache: populated on first call to avoid repeated list allocation
+# and deferred-import machinery on every get_scopes() invocation.
+_SCOPES: list | None = None
+
 
 @base_class
 class AutoMigrateOption(OptionMixin, AbstractConfigOption):
     @classmethod
     def get_scopes(cls) -> list[Scope]:
-        from wexample_filestate.enum.scopes import Scope
+        global _SCOPES
+        if _SCOPES is None:
+            from wexample_filestate.enum.scopes import Scope
 
-        return [Scope.LOCATION]
+            _SCOPES = [Scope.LOCATION]
+        return _SCOPES
 
     @staticmethod
     def get_raw_value_allowed_type() -> Any:

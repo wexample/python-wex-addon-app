@@ -1,0 +1,11 @@
+{
+  "engram_version": 1,
+  "source_key": "src/wexample_wex_addon_app/filestate/option/_setup_manager/auto_migrate_option.py",
+  "cache_nonce": "1c2800147ebc4367950bb7b61bd21d00",
+  "last_visited_at": "2026-06-17T16:47:57+00:00",
+  "last_rev": "9ea18165431510874a2115c75b8e67e0ca41286c",
+  "last_decision": "edit",
+  "kinds": [],
+  "notes": "cached get_scopes result in module-level _SCOPES to avoid repeated list allocation and deferred-import overhead",
+  "in_progress": null
+}
