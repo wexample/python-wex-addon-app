@@ -11,6 +11,7 @@ from pathlib import Path
 from wexample_helpers.helpers.shell import shell_run
 
 _DEFAULT_LOCAL_IP = "127.0.1.1"
+_RUN_USER = Path("/run/user")
 _SSH_SOCKET_CANDIDATES = (
     Path("keyring") / "ssh",
     Path("gnupg") / "S.gpg-agent.ssh",
@@ -18,10 +19,9 @@ _SSH_SOCKET_CANDIDATES = (
 
 
 def detect_ssh_socket() -> str | None:
-    run_user = Path("/run/user")
-    if not run_user.exists():
+    if not _RUN_USER.exists():
         return None
-    for uid_dir in run_user.iterdir():
+    for uid_dir in _RUN_USER.iterdir():
         for suffix in _SSH_SOCKET_CANDIDATES:
             candidate = uid_dir / suffix
             try:

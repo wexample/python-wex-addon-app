@@ -2,10 +2,10 @@
   "engram_version": 1,
   "source_key": "src/wexample_wex_addon_app/helpers/app.py",
   "cache_nonce": "1c2800147ebc4367950bb7b61bd21d00",
-  "last_visited_at": "2026-06-16T19:35:02+00:00",
-  "last_rev": "0cf163cd405750788c99dc10157bd2f9d2b09348",
+  "last_visited_at": "2026-06-17T16:49:32+00:00",
+  "last_rev": "4d295eb6dd5484ebc5627752806c32b8da09c206",
   "last_decision": "edit",
   "kinds": [],
-  "notes": "hoisted os/stat imports, cached platform.system(), pre-computed SSH socket candidate paths as module-level tuple",
+  "notes": "hoisted Path(\"/run/user\") construction to module-level constant _RUN_USER, eliminating per-call Path allocation in detect_ssh_socket",
   "in_progress": null
 }
