@@ -2,10 +2,10 @@
   "engram_version": 1,
   "source_key": "src/wexample_wex_addon_app/decorator/require_app_config.py",
   "cache_nonce": "1c2800147ebc4367950bb7b61bd21d00",
-  "last_visited_at": "2026-06-16T19:27:07+00:00",
-  "last_rev": "27e53033211105ed19a531c3af3ee1b2c1be968e",
+  "last_visited_at": "2026-06-17T16:46:03+00:00",
+  "last_rev": "11e3c0a23361bd1cdbd69092878d5020f3326601",
   "last_decision": "edit",
   "kinds": [],
-  "notes": "cached inspect.signature per callable via lru_cache; iterate sig.parameters (not kwargs) in _resolve_values; direct key access for values_empty_hint",
+  "notes": "deferred 5 dict lookups in _check_one to their respective branches, reducing hot-path (config present) from 8 to 3 key extractions",
   "in_progress": null
 }

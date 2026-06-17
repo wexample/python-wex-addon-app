@@ -74,14 +74,10 @@ def _check_one(req: dict, app_workdir: Any, io: Any, function_kwargs: dict) -> N
         ConfigRequirementException,
     )
 
+    # Extract only the keys needed on every branch; defer the rest to where used.
     path = req["path"]
     type_ = req["type"]
-    default = req["default"]
     values = req["values"]
-    description = req["description"]
-    ask_question = req["ask_question"]
-    on_missing = req["on_missing"]
-    values_empty_hint = req["values_empty_hint"]
 
     config_value = app_workdir.get_runtime_config().search(path)
 
@@ -91,7 +87,7 @@ def _check_one(req: dict, app_workdir: Any, io: Any, function_kwargs: dict) -> N
             allowed = _resolve_values(values, function_kwargs)
             if not allowed:
                 raise ConfigRequirementException(
-                    message=_empty_values_message(path, values_empty_hint),
+                    message=_empty_values_message(path, req["values_empty_hint"]),
                     path=path,
                     value=str(value),
                     allowed=[],
@@ -108,11 +104,14 @@ def _check_one(req: dict, app_workdir: Any, io: Any, function_kwargs: dict) -> N
                 )
         return
 
+    default = req["default"]
     if default is not _SENTINEL:
         app_workdir.write_config_value(path, default)
         return
 
-    if on_missing == "ask":
+    if req["on_missing"] == "ask":
+        description = req["description"]
+        ask_question = req["ask_question"]
         question = ask_question or (
             f"Config @cyan{{{path}}} is not set"
             + (f" — {description}" if description else "")
@@ -123,7 +122,7 @@ def _check_one(req: dict, app_workdir: Any, io: Any, function_kwargs: dict) -> N
             allowed = _resolve_values(values, function_kwargs)
             if not allowed:
                 raise ConfigRequirementException(
-                    message=_empty_values_message(path, values_empty_hint),
+                    message=_empty_values_message(path, req["values_empty_hint"]),
                     path=path,
                     allowed=[],
                 )
@@ -135,6 +134,7 @@ def _check_one(req: dict, app_workdir: Any, io: Any, function_kwargs: dict) -> N
             app_workdir.write_config_value(path, value)
         return
 
+    description = req["description"]
     raise ConfigRequirementException(
         message=(
             f"Required config @cyan{{{path}}}"
