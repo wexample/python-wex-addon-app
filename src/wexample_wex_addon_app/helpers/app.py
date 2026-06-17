@@ -11,7 +11,6 @@ from pathlib import Path
 from wexample_helpers.helpers.shell import shell_run
 
 _DEFAULT_LOCAL_IP = "127.0.1.1"
-_PLATFORM_SYSTEM = platform.system()
 _SSH_SOCKET_CANDIDATES = (
     Path("keyring") / "ssh",
     Path("gnupg") / "S.gpg-agent.ssh",
@@ -34,7 +33,11 @@ def detect_ssh_socket() -> str | None:
 
 
 def get_docker_local_ip() -> str:
-    if _PLATFORM_SYSTEM == "Darwin":
+    # Call platform.system() at runtime, not as a module-level constant:
+    # the stdlib already caches the underlying uname, and a frozen constant
+    # would make the platform branch impossible to override (in tests, or if
+    # the value is ever monkeypatched).
+    if platform.system() == "Darwin":
         return "127.0.0.1"
 
     if shutil.which("docker-machine"):

@@ -5,12 +5,12 @@ from typing import TYPE_CHECKING
 import yaml
 from wexample_migration.abstract_migration import AbstractMigration
 
-_ALLOWED_ROLLBACK_KEYS: frozenset[str] = frozenset({"name", "host"})
-
 if TYPE_CHECKING:
     from pathlib import Path
 
     from wexample_migration.migration_context import MigrationContext
+
+_ALLOWED_ROLLBACK_KEYS: frozenset[str] = frozenset({"name", "host"})
 
 
 def _migrate_env_config(config: dict) -> bool:

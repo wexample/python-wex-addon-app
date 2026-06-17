@@ -12,12 +12,6 @@ if TYPE_CHECKING:
 _SENTINEL = object()
 
 
-@functools.lru_cache(maxsize=None)
-def _signature(fn: Callable) -> inspect.Signature:
-    """Cache inspect.signature() per callable — reflection is expensive."""
-    return inspect.signature(fn)
-
-
 def check_config_requirements(
     requirements: list[dict],
     app_workdir: Any,
@@ -171,3 +165,9 @@ def _resolve_values(values: list | Callable, kwargs: dict[str, Any]) -> list:
     # Iterate over (typically small) sig.parameters rather than all kwargs
     filtered = {k: kwargs[k] for k in sig.parameters if k in kwargs}
     return values(**filtered)
+
+
+@functools.cache
+def _signature(fn: Callable) -> inspect.Signature:
+    """Cache inspect.signature() per callable — reflection is expensive."""
+    return inspect.signature(fn)

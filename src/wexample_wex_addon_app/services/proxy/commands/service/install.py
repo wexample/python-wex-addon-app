@@ -10,12 +10,12 @@ from wexample_wex_core.const.globals import COMMAND_TYPE_SERVICE
 
 from wexample_wex_addon_app.const.tags import DomainTag
 
-_SERVICE_DIR = Path(__file__).resolve().parents[2]
-
 if TYPE_CHECKING:
     from wexample_cli.context.execution_context import ExecutionContext
 
     from wexample_wex_addon_app.service.app_service import AppService
+
+_SERVICE_DIR = Path(__file__).resolve().parents[2]
 
 
 @command(

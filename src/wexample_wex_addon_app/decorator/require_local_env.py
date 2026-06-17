@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import inspect
 from collections.abc import Callable
-from functools import lru_cache
+from functools import cache
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
@@ -94,6 +94,11 @@ def require_local_env(
     return decorator
 
 
+@cache
+def _cached_signature(key: Callable) -> inspect.Signature:
+    return inspect.signature(key)
+
+
 def _check_one(
     req: dict, app_workdir: Any, io: Any, function_kwargs: dict
 ) -> str | None:
@@ -151,11 +156,6 @@ def _lookup(app_workdir: Any, key: str, use_suite_fallback: bool) -> str | None:
             )
         return fallback(key, default=None)
     return app_workdir.get_env_parameter(key, default=None)
-
-
-@lru_cache(maxsize=None)
-def _cached_signature(key: Callable) -> inspect.Signature:
-    return inspect.signature(key)
 
 
 def _resolve_key(

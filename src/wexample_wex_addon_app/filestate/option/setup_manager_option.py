@@ -19,8 +19,8 @@ if TYPE_CHECKING:
 
 @base_class
 class SetupManagerOption(OptionMixin, AbstractNestedConfigOption):
-    _scopes_cache = None
     _allowed_options_cache = None
+    _scopes_cache = None
 
     @classmethod
     def get_scopes(cls) -> list[Scope]:

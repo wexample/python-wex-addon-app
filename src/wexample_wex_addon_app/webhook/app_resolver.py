@@ -22,14 +22,6 @@ class AppWebhookTypeResolver:
         _, _, local_command = parsed
         return f".{local_command}"
 
-    def _resolve_app_path(self, command_path: str) -> Path | None:
-        """Return the resolved app directory as a Path, or None on bad input."""
-        parsed = self._parse(command_path)
-        if parsed is None:
-            return None
-        env, app_name, _ = parsed
-        return self._base / env / app_name
-
     def resolve_cwd(
         self,
         command_path: str,
@@ -60,3 +52,11 @@ class AppWebhookTypeResolver:
         if len(parts) < 3:
             return None
         return parts[0], parts[1], parts[2]
+
+    def _resolve_app_path(self, command_path: str) -> Path | None:
+        """Return the resolved app directory as a Path, or None on bad input."""
+        parsed = self._parse(command_path)
+        if parsed is None:
+            return None
+        env, app_name, _ = parsed
+        return self._base / env / app_name
