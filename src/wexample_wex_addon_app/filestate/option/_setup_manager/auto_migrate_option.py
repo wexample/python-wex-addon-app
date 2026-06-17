@@ -14,15 +14,11 @@ if TYPE_CHECKING:
 
 @base_class
 class AutoMigrateOption(OptionMixin, AbstractConfigOption):
-    _SCOPES: list | None = None
-
     @classmethod
     def get_scopes(cls) -> list[Scope]:
-        if cls._SCOPES is None:
-            from wexample_filestate.enum.scopes import Scope
+        from wexample_filestate.enum.scopes import Scope
 
-            cls._SCOPES = [Scope.LOCATION]
-        return cls._SCOPES
+        return [Scope.LOCATION]
 
     @staticmethod
     def get_raw_value_allowed_type() -> Any:
@@ -45,7 +41,7 @@ class AutoMigrateOption(OptionMixin, AbstractConfigOption):
             return None
 
         status = root.migration_status(extras={"workdir": root})
-        pending = status.get("pending", [])
+        pending = status.get("pending") or []
         if not pending:
             return None
 
