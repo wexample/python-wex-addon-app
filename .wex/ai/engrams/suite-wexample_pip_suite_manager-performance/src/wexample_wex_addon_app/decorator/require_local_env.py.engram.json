@@ -2,10 +2,10 @@
   "engram_version": 1,
   "source_key": "src/wexample_wex_addon_app/decorator/require_local_env.py",
   "cache_nonce": "1c2800147ebc4367950bb7b61bd21d00",
-  "last_visited_at": "2026-06-16T19:28:07+00:00",
-  "last_rev": "3358f9f8cba91d7f8dc08b653242d76ed2b4b728",
+  "last_visited_at": "2026-06-17T16:46:59+00:00",
+  "last_rev": "91a1d443e5aaf52463fa78353465687478fec682",
   "last_decision": "edit",
   "kinds": [],
-  "notes": "cache inspect.signature per callable, eliminate dict copy in _resolve_key, use direct key access for use_suite_fallback",
+  "notes": "iterate params (small) instead of function_kwargs in _resolve_key; use function_kwargs for app_workdir membership check",
   "in_progress": null
 }

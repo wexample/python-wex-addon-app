@@ -164,7 +164,7 @@ def _resolve_key(
     if not callable(key):
         return key
     params = _cached_signature(key).parameters
-    filtered = {k: v for k, v in function_kwargs.items() if k in params}
-    if "app_workdir" in params and "app_workdir" not in filtered:
+    filtered = {k: function_kwargs[k] for k in params if k in function_kwargs}
+    if "app_workdir" in params and "app_workdir" not in function_kwargs:
         filtered["app_workdir"] = app_workdir
     return key(**filtered)
