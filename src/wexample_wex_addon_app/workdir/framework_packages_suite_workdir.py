@@ -126,6 +126,57 @@ class FrameworkPackageSuiteWorkdir(RepoWorkdir):
                 filtered.append(name)
         return filtered
 
+    def get_code_paths(self) -> list[Path]:
+        """Override: a suite's code paths are every package it ships."""
+        return [p.get_path() for p in self.get_ordered_packages()]
+
+    def get_consumers_paths(self) -> list[Path]:
+        """Return paths declared in `consumers:` resolved polymorphically.
+
+        Each entry is materialised into a workdir via the addon manager
+        factory, then asked for its own `get_code_paths()`. No type-branching
+        here: an app returns [its_path], a suite returns its packages, a
+        master returns its apps — each subclass decides on its own.
+        """
+        from wexample_wex_addon_app.app_addon_manager import AppAddonManager
+
+        raw_entries = (
+            self.get_runtime_config()
+            .search("consumers")
+            .get_list_or_default(default=[])
+        )
+        if not raw_entries:
+            return []
+
+        addon_manager = AppAddonManager.from_kernel(self.kernel)
+        seen: set[str] = set()
+        resolved: list[Path] = []
+
+        for entry in raw_entries:
+            entry_str = entry.get_str_or_none() if hasattr(entry, "get_str_or_none") else None
+            entry_path = entry_str if entry_str is not None else str(entry)
+            if not entry_path or entry_path in seen:
+                continue
+            seen.add(entry_path)
+
+            workdir = addon_manager.create_app_workdir(path=entry_path)
+            if workdir is None:
+                # Path doesn't match any known workdir layout — skip with a
+                # warning rather than failing the whole sweep.
+                self.warning(
+                    f"consumer path '{entry_path}' is not a recognised workdir, skipping"
+                )
+                continue
+
+            for code_path in workdir.get_code_paths():
+                key = str(code_path)
+                if key in seen:
+                    continue
+                seen.add(key)
+                resolved.append(code_path)
+
+        return resolved
+
     def get_dependents(self, package: CodeBaseWorkdir) -> list[CodeBaseWorkdir]:
         dependents = []
         for neighbor_package in self.get_packages():
@@ -170,23 +221,6 @@ class FrameworkPackageSuiteWorkdir(RepoWorkdir):
                     resolved.append(path)
 
         return resolved
-
-    def get_consumers_paths(self) -> list[Path]:
-        """Return paths that consume this suite (masters, suites, or apps).
-
-        Reads the `consumers:` block of the suite's config and resolves each
-        entry into a flat list of workdir paths to be scanned by cross-suite
-        operations (e.g. `python::code/rename` propagating to importers).
-
-        Resolution rules (per entry, by detected type):
-          - master path  → expand to all apps the master declares
-          - suite path   → expand to all packages of that suite
-          - app path     → keep as-is
-
-        TODO: implement the actual resolution. For now returns an empty list
-        so callers can wire the method without a hard failure.
-        """
-        return []
 
     def has_tests(self) -> bool:
         return any(package.has_tests() for package in self.get_packages())

@@ -38,6 +38,8 @@ from wexample_wex_addon_app.workdir.mixin.with_suite_tree_workdir_mixin import (
 )
 
 if TYPE_CHECKING:
+    from pathlib import Path
+
     from wexample_config.config_value.config_value import ConfigValue
     from wexample_config.const.types import DictConfig
     from wexample_config.options_provider.abstract_options_provider import (
@@ -317,6 +319,15 @@ class ManagedWorkdir(
         # get_runtime_config() → build_runtime_config_value() → get_app_env() → get_runtime_config()
         # APP_ENV is always set via .wex/local/env.yml — never in config.yml (which uses "env:" as a block).
         return self.get_env_parameter("APP_ENV", default=None) or ENV_NAME_PROD
+    def get_code_paths(self) -> list[Path]:
+        """Paths a cross-codebase tool (refactor, lint sweep, …) should treat
+        as this workdir's source roots.
+
+        Default for an app: the workdir itself. Subclasses that aggregate
+        children (suite → packages, master → apps) override this to expand
+        polymorphically — callers never branch on workdir type.
+        """
+        return [self.get_path()]
 
     def get_dependencies_versions(self) -> dict[str, str]:
         return {}
