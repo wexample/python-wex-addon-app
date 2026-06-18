@@ -130,6 +130,30 @@ class FrameworkPackageSuiteWorkdir(RepoWorkdir):
         """Override: a suite's code paths are every package it ships."""
         return [p.get_path() for p in self.get_ordered_packages()]
 
+    def get_code_scope_paths(self, kernel) -> list[Path]:
+        """Override: a suite's scope is its packages plus every declared
+        consumer expanded via its own `get_code_paths()` (an app contributes
+        itself, a master expands to all its apps, etc.)."""
+        from wexample_wex_addon_app.app_addon_manager import AppAddonManager
+
+        paths = list(self.get_code_paths())
+        seen: set[str] = {str(p) for p in paths}
+        addon_manager = AppAddonManager.from_kernel(kernel)
+        for declared in self.get_consumers_declared_paths():
+            consumer = addon_manager.create_app_workdir(path=declared)
+            if consumer is None:
+                self.warning(
+                    f"consumer path '{declared}' is not a recognised workdir, skipping"
+                )
+                continue
+            for code_path in consumer.get_code_paths():
+                key = str(code_path)
+                if key in seen:
+                    continue
+                seen.add(key)
+                paths.append(code_path)
+        return paths
+
     def get_consumers_declared_paths(self) -> list[Path]:
         """Return paths declared in `consumers:` of the suite config, as-is.
 

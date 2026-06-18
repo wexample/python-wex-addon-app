@@ -329,6 +329,22 @@ class ManagedWorkdir(
         """
         return [self.get_path()]
 
+    def get_code_scope_paths(self, kernel) -> list[Path]:
+        """Full set of code paths reachable from this workdir for ops that
+        cross workdir boundaries (refactor, sweep, …).
+
+        Default: if contained in a parent that knows how to expand a scope
+        (e.g. a suite that knows its packages + consumers), delegate to it.
+        Otherwise fall back to this workdir's own code paths.
+        """
+        from wexample_wex_addon_app.app_addon_manager import AppAddonManager
+
+        suite_path = self.find_suite_workdir_path()
+        if suite_path is None or suite_path == self.get_path():
+            return self.get_code_paths()
+        suite = AppAddonManager.from_kernel(kernel).create_app_workdir(path=suite_path)
+        return suite.get_code_scope_paths(kernel)
+
     def get_dependencies_versions(self) -> dict[str, str]:
         return {}
 
