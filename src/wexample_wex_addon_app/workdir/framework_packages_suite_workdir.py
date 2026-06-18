@@ -171,6 +171,23 @@ class FrameworkPackageSuiteWorkdir(RepoWorkdir):
 
         return resolved
 
+    def get_consumers_paths(self) -> list[Path]:
+        """Return paths that consume this suite (masters, suites, or apps).
+
+        Reads the `consumers:` block of the suite's config and resolves each
+        entry into a flat list of workdir paths to be scanned by cross-suite
+        operations (e.g. `python::code/rename` propagating to importers).
+
+        Resolution rules (per entry, by detected type):
+          - master path  → expand to all apps the master declares
+          - suite path   → expand to all packages of that suite
+          - app path     → keep as-is
+
+        TODO: implement the actual resolution. For now returns an empty list
+        so callers can wire the method without a hard failure.
+        """
+        return []
+
     def has_tests(self) -> bool:
         return any(package.has_tests() for package in self.get_packages())
 
