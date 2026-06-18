@@ -1,6 +1,6 @@
 # wex_addon_app
 
-Version: 26.2.0
+Version: 27.0.0
 
 App management with wex
 
