@@ -73,7 +73,7 @@ def app__state__rectify(
         if filter_path:
             paths = [filter_path]
         if changed_only:
-            from wexample_helpers_git.helpers.git import git_get_changed_paths
+            from wexample_helpers_git.helper.git import git_get_changed_paths
 
             paths = list(git_get_changed_paths(cwd=cwd))
         return paths

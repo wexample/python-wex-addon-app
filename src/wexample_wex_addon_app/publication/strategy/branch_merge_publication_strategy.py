@@ -205,7 +205,7 @@ class BranchMergePublicationStrategy(AbstractPublicationStrategy):
 
     def _get_remote_url(self) -> str:
         if self._remote_url is None:
-            from wexample_helpers_git.helpers.git import git_get_remote_url
+            from wexample_helpers_git.helper.git import git_get_remote_url
 
             remote_name = self.workdir._get_deployment_remote_name() or "origin"
             self._remote_url = git_get_remote_url(

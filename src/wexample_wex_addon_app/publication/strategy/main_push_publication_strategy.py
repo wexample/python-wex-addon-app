@@ -25,7 +25,7 @@ class MainPushPublicationStrategy(AbstractPublicationStrategy):
         pass
 
     def push(self) -> None:
-        from wexample_helpers_git.helpers.git import (
+        from wexample_helpers_git.helper.git import (
             git_current_branch,
             git_run,
             git_switch_branch,

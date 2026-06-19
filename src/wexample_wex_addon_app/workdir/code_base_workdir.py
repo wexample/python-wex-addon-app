@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING
 
 from wexample_helpers.decorator.base_class import base_class
 from wexample_helpers_git.const.common import GIT_BRANCH_MAIN, GIT_REMOTE_ORIGIN
-from wexample_helpers_git.helpers.git import git_run
+from wexample_helpers_git.helper.git import git_run
 
 from wexample_wex_addon_app.workdir.repo_workdir import RepoWorkdir
 
@@ -15,7 +15,7 @@ if TYPE_CHECKING:
 @base_class
 class CodeBaseWorkdir(RepoWorkdir):
     def add_publication_tag(self) -> None:
-        from wexample_helpers_git.helpers.git import (
+        from wexample_helpers_git.helper.git import (
             git_push_tag,
             git_tag_annotated,
             git_tag_exists,
@@ -48,7 +48,7 @@ class CodeBaseWorkdir(RepoWorkdir):
         progress: ProgressHandle | None = None,
     ) -> None:
         """Commit local changes (if any), without pushing."""
-        from wexample_helpers_git.helpers.git import (
+        from wexample_helpers_git.helper.git import (
             git_commit_all_with_message,
             git_has_index_changes,
             git_has_working_changes,
@@ -91,7 +91,7 @@ class CodeBaseWorkdir(RepoWorkdir):
         longer calls this directly — packages with propagated dep changes are
         published in-run via the live has_changes_since_last_publication_tag check.
         """
-        from wexample_helpers_git.helpers.git import (
+        from wexample_helpers_git.helper.git import (
             git_commit_all_with_message,
             git_has_uncommitted_changes,
         )
@@ -134,7 +134,7 @@ class CodeBaseWorkdir(RepoWorkdir):
         return git_run(cmd, **kwargs)
 
     def has_working_changes(self) -> bool:
-        from wexample_helpers_git.helpers.git import git_has_working_changes
+        from wexample_helpers_git.helper.git import git_has_working_changes
 
         return git_has_working_changes(cwd=self.get_path(), inherit_stdio=True)
 
@@ -156,7 +156,7 @@ class CodeBaseWorkdir(RepoWorkdir):
 
         Raises if there are uncommitted changes or merge conflicts.
         """
-        from wexample_helpers_git.helpers.git import (
+        from wexample_helpers_git.helper.git import (
             git_current_branch,
             git_has_uncommitted_changes,
             git_switch_branch,
@@ -242,8 +242,8 @@ class CodeBaseWorkdir(RepoWorkdir):
         remote_name: str | None = None,
         branch_name: str | None = None,
     ) -> None:
-        from wexample_helpers_git.helpers.git import git_current_branch
-        from wexample_helpers_git.helpers.git_retryable_callback_manager import (
+        from wexample_helpers_git.helper.git import git_current_branch
+        from wexample_helpers_git.helper.git_retryable_callback_manager import (
             GitRetryableCallbackManager,
         )
 

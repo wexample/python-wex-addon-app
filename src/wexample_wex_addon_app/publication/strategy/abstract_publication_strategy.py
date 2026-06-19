@@ -49,7 +49,7 @@ class AbstractPublicationStrategy:
         ``main_push``) override this to a no-op so ``git_ensure_upstream``
         doesn't push the branch as a side effect.
         """
-        from wexample_helpers_git.helpers.git import (
+        from wexample_helpers_git.helper.git import (
             git_ensure_upstream,
             git_pull_rebase_autostash,
         )

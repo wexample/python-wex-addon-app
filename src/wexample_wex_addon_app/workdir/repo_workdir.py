@@ -36,7 +36,7 @@ class RepoWorkdir(ManagedWorkdir):
 
         def _bump() -> None:
             from wexample_helpers.helper.shell import shell_run
-            from wexample_helpers_git.helpers.git import (
+            from wexample_helpers_git.helper.git import (
                 git_current_branch,
                 git_switch_branch,
             )
@@ -142,7 +142,7 @@ class RepoWorkdir(ManagedWorkdir):
 
     def get_last_publication_tag(self) -> str | None:
         """Return the last publication tag for this package, or None if none exists."""
-        from wexample_helpers_git.helpers.git import git_last_tag_for_prefix
+        from wexample_helpers_git.helper.git import git_last_tag_for_prefix
 
         prefix = f"{self.get_package_name()}/v*"
         return git_last_tag_for_prefix(prefix, cwd=self.get_path(), inherit_stdio=False)
@@ -161,7 +161,7 @@ class RepoWorkdir(ManagedWorkdir):
         return f"{self.get_package_name()}/v{self.get_setup_version()}"
 
     def has_changes_since_last_coverage(self) -> bool:
-        from wexample_helpers_git.helpers.git import (
+        from wexample_helpers_git.helper.git import (
             git_has_changes_since_tag,
             git_has_uncommitted_changes,
         )
@@ -184,7 +184,7 @@ class RepoWorkdir(ManagedWorkdir):
         bumps written by a sibling's propagate_version step are detected even
         before they are committed.  Returns True on first publication (no tag).
         """
-        from wexample_helpers_git.helpers.git import git_has_changes_since_tag
+        from wexample_helpers_git.helper.git import git_has_changes_since_tag
 
         last_tag = self.get_last_publication_tag()
         if last_tag is None:
@@ -327,7 +327,7 @@ class RepoWorkdir(ManagedWorkdir):
         Override in language-specific workdirs for finer-grained detection.
         """
         from wexample_helpers.const.types import UPGRADE_TYPE_MAJOR, UPGRADE_TYPE_MINOR
-        from wexample_helpers_git.helpers.git import git_has_changes_since_tag
+        from wexample_helpers_git.helper.git import git_has_changes_since_tag
 
         workdir_path = self.get_path()
         for directory in self._get_critical_directories():
