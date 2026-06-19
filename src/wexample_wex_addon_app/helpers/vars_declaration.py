@@ -50,7 +50,7 @@ def process_vars_declarations(
     flat_runtime: dict = {}
     _build_runtime = getattr(app_workdir, "build_runtime_config_value", None)
     if _build_runtime is not None:
-        from wexample_helpers.helpers.dict import dict_flatten
+        from wexample_helpers.helper.dict import dict_flatten
 
         try:
             flat_runtime = dict_flatten(_build_runtime().to_dict())
@@ -147,7 +147,7 @@ def _is_present(
     else:
         build_runtime = getattr(app_workdir, "build_runtime_config_value", None)
         if build_runtime is not None:
-            from wexample_helpers.helpers.dict import dict_flatten
+            from wexample_helpers.helper.dict import dict_flatten
 
             try:
                 _flat = dict_flatten(build_runtime().to_dict())

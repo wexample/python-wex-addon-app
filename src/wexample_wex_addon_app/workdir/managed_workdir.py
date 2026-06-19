@@ -240,7 +240,7 @@ class ManagedWorkdir(
 
     def build_runtime_config_value(self) -> NestedConfigValue:
         from wexample_config.config_value.nested_config_value import NestedConfigValue
-        from wexample_helpers.helpers.dict import dict_merge
+        from wexample_helpers.helper.dict import dict_merge
 
         base = super().build_runtime_config_value()
         project_name = self.get_docker_project_name(self.get_app_env())
@@ -467,7 +467,7 @@ class ManagedWorkdir(
         return None
 
     def get_runtime_app_config(self) -> dict:
-        from wexample_helpers.helpers.dict import dict_merge
+        from wexample_helpers.helper.dict import dict_merge
 
         env = self.get_app_env()
         app_config = dict_merge(

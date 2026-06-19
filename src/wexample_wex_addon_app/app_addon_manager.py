@@ -262,7 +262,7 @@ class AppAddonManager(AbstractAddonManager):
         return chain
 
     def get_service_manifest(self, service_name: str) -> dict[str, Any]:
-        from wexample_helpers.helpers.dict import dict_merge
+        from wexample_helpers.helper.dict import dict_merge
 
         chain = self.get_service_inheritance_chain(service_name)
         merged: dict[str, Any] = {}

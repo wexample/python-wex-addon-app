@@ -46,7 +46,7 @@ def app__config__build(
         QueuedCollectionResponse,
     )
     from wexample_config.config_value.nested_config_value import NestedConfigValue
-    from wexample_helpers.helpers.dict import dict_merge
+    from wexample_helpers.helper.dict import dict_merge
 
     app_path = app_workdir.get_path()
     env = app_workdir.get_app_env()
@@ -102,7 +102,7 @@ def app__config__build(
 
     def _env(previous_value=None) -> None:
         from wexample_filestate.item.file.env_file import EnvFile
-        from wexample_helpers.helpers.dict import dict_flatten
+        from wexample_helpers.helper.dict import dict_flatten
 
         # Load .env first (user-defined vars), runtime flattened on top (takes priority)
         dot_env = app_workdir.get_env_parameters().to_dict()

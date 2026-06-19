@@ -26,7 +26,7 @@ class WithSuiteTreeWorkdirMixin(BaseClass):
 
     def build_runtime_config_value(self):
         from wexample_config.config_value.nested_config_value import NestedConfigValue
-        from wexample_helpers.helpers.dict import dict_interpolate, dict_merge
+        from wexample_helpers.helper.dict import dict_interpolate, dict_merge
 
         # Avoid instantiating a suite workdir just to check truthiness;
         # the two cheaper checks are semantically equivalent and skip one
