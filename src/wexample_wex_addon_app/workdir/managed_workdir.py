@@ -6,7 +6,7 @@ import pkgutil
 from typing import TYPE_CHECKING, Any
 
 from wexample_app.const.output import OUTPUT_FORMAT_JSON, OUTPUT_TARGET_FILE
-from wexample_app.helpers.request import request_build_id
+from wexample_app.helper.request import request_build_id
 from wexample_app.item.file.iml_file import ImlFile
 from wexample_app.workdir.mixin.with_local_data_mixin import WithLocalDataMixin
 from wexample_app.workdir.mixin.with_runtime_config_mixin import WithRuntimeConfigMixin
