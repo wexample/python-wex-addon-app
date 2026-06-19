@@ -284,7 +284,7 @@ class AppAddonManager(AbstractAddonManager):
         return merged
 
     def get_service_manifest_raw(self, service_name: str) -> dict[str, Any]:
-        from wexample_helpers_yaml.helpers.yaml_helpers import yaml_read
+        from wexample_helpers_yaml.helper.yaml_helpers import yaml_read
 
         service_dir = self.find_service_dir(service_name)
         if service_dir is None:
