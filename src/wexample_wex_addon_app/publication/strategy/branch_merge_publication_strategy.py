@@ -251,7 +251,7 @@ class BranchMergePublicationStrategy(AbstractPublicationStrategy):
         within `max_attempts` — the caller decides what "no pipeline" means
         in its context (MR-only CI vs post-merge-only CI).
         """
-        from wexample_helpers.helpers.polling_callback_manager import (
+        from wexample_helpers.helper.polling_callback_manager import (
             PollingCallbackManager,
         )
 
