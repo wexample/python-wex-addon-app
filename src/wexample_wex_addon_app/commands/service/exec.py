@@ -53,7 +53,7 @@ def app__service__exec(
     arguments: str | None = None,
 ) -> DictResponse:
     from wexample_app.response.dict_response import DictResponse
-    from wexample_helpers.helpers.args import args_parse_dict
+    from wexample_helpers.helper.args import args_parse_dict
 
     from wexample_wex_addon_app.app_addon_manager import AppAddonManager
 
