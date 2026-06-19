@@ -565,7 +565,7 @@ class FrameworkPackageSuiteWorkdir(RepoWorkdir):
         return None
 
     def _package_title(self, path: PathOrString, message: str) -> None:
-        from wexample_helpers.helpers.cli import cli_make_clickable_path
+        from wexample_helpers.helper.cli import cli_make_clickable_path
 
         self.title(f"📦 {message}: {path.name}")
         self.log(f"Path: {cli_make_clickable_path(path)}", indentation=1)

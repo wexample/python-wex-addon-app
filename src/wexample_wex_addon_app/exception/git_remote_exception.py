@@ -5,7 +5,7 @@ from typing import ClassVar
 from wexample_app.exception.app_runtime_exception import AppRuntimeException
 from wexample_helpers.classes.field import public_field
 from wexample_helpers.decorator.base_class import base_class
-from wexample_helpers.helpers.cli import cli_make_clickable_path
+from wexample_helpers.helper.cli import cli_make_clickable_path
 
 
 @base_class

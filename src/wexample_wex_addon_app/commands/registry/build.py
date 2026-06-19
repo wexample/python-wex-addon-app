@@ -34,7 +34,7 @@ def app__registry__build(
     app_workdir: ManagedWorkdir,
 ) -> SuccessResponse:
     from wexample_app.response.success_response import SuccessResponse
-    from wexample_helpers.helpers.cli import cli_make_clickable_path
+    from wexample_helpers.helper.cli import cli_make_clickable_path
 
     registry = app_workdir.get_registry_file(rebuild=True)
 

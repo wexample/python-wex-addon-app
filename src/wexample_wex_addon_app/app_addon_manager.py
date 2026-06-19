@@ -48,7 +48,7 @@ class AppAddonManager(AbstractAddonManager):
     def create_app_workdir(
         self, path: PathOrString | None = None
     ) -> ManagedWorkdir | None:
-        from wexample_helpers.helpers.cli import cli_make_clickable_path
+        from wexample_helpers.helper.cli import cli_make_clickable_path
         from wexample_helpers.helpers.module import module_load_class_from_file
 
         from wexample_wex_addon_app.workdir.managed_workdir import ManagedWorkdir

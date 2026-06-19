@@ -21,7 +21,7 @@ class InvalidWorkdirTypeException(AppRuntimeException):
     workdir_path: str = public_field(description="Path of the workdir")
 
     def _build_message(self) -> str:
-        from wexample_helpers.helpers.cli import cli_make_clickable_path
+        from wexample_helpers.helper.cli import cli_make_clickable_path
 
         clickable_path = cli_make_clickable_path(self.workdir_path)
 

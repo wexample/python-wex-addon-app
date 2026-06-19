@@ -19,7 +19,7 @@ class DependencyViolationException(AppRuntimeException):
     package_name: str = public_field(description="Package performing the import")
 
     def _build_message(self) -> str:
-        from wexample_helpers.helpers.cli import cli_make_clickable_path
+        from wexample_helpers.helper.cli import cli_make_clickable_path
 
         imports_details = "\n".join(
             [f" - {cli_make_clickable_path(loc)}" for loc in self.import_locations]
