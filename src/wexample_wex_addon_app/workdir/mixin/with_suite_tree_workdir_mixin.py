@@ -79,7 +79,7 @@ class WithSuiteTreeWorkdirMixin(BaseClass):
         We have to trust the configuration file to know if parent directory is a suite or not,
         as we cannot directly load suite python class from a different venv.
         """
-        from wexample_helpers.helpers.directory import directory_iterate_parent_dirs
+        from wexample_helpers.helper.directory import directory_iterate_parent_dirs
 
         from wexample_wex_addon_app.workdir.managed_workdir import ManagedWorkdir
 

@@ -112,7 +112,7 @@ class Migration_6_0_21__1(AbstractMigration):
         suffix_tags: dict[str, str],
     ) -> str | None:
         """Read the first FROM line and match against known build suffixes or local tags."""
-        from wexample_helpers.helpers.string import string_to_snake_case
+        from wexample_helpers.helper.string import string_to_snake_case
 
         if not dockerfile_path.exists():
             return None
@@ -193,7 +193,7 @@ class Migration_6_0_21__1(AbstractMigration):
         tags = self._extract_tags_from_composes(target_path, dockerfile_names)
 
         # Build suffix→tag map (including fallbacks) for depends_on detection
-        from wexample_helpers.helpers.string import string_to_snake_case
+        from wexample_helpers.helper.string import string_to_snake_case
 
         suffix_tags: dict[str, str] = {}
         name_suffix_pairs: list[tuple[str, str]] = []

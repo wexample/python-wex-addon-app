@@ -42,7 +42,7 @@ def app__db__go(
     app_workdir: ManagedWorkdir,
     service: str | None = None,
 ) -> AbstractResponse:
-    from wexample_helpers.helpers.string import string_to_kebab_case
+    from wexample_helpers.helper.string import string_to_kebab_case
 
     service_name = service or app_workdir.get_main_db_service()
     if not service_name:

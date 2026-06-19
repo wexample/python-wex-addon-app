@@ -5,7 +5,7 @@ import subprocess
 from pathlib import Path
 
 from wexample_helpers.const.types import PathOrString
-from wexample_helpers.helpers.shell import shell_run
+from wexample_helpers.helper.shell import shell_run
 
 
 def python_ensure_pip_or_fail(venv_path: Path) -> bool:

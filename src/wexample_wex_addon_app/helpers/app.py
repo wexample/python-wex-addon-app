@@ -8,7 +8,7 @@ import stat
 import subprocess
 from pathlib import Path
 
-from wexample_helpers.helpers.shell import shell_run
+from wexample_helpers.helper.shell import shell_run
 
 _DEFAULT_LOCAL_IP = "127.0.1.1"
 _RUN_USER = Path("/run/user")

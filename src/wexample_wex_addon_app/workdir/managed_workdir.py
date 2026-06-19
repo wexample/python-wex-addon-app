@@ -92,7 +92,7 @@ class ManagedWorkdir(
         within a specific workdir.
         """
         from wexample_app.const.globals import APP_PATH_BIN_APP_MANAGER
-        from wexample_helpers.helpers.shell import shell_run
+        from wexample_helpers.helper.shell import shell_run
 
         # Resolve function to CLI command name
         resolved_command = AddonCommandResolver.build_command_from_function(
@@ -130,7 +130,7 @@ class ManagedWorkdir(
         inherit_stdio: bool = True,
     ) -> ShellResult:
         from wexample_app.const.globals import APP_PATH_BIN_APP_MANAGER
-        from wexample_helpers.helpers.shell import shell_run
+        from wexample_helpers.helper.shell import shell_run
 
         if not isinstance(cmd, list):
             cmd = [cmd]
@@ -148,7 +148,7 @@ class ManagedWorkdir(
     def shell_run_from_path(
         cls, path: FileStringOrPath, cmd: list[str] | str
     ) -> ShellResult:
-        from wexample_helpers.helpers.shell import shell_run
+        from wexample_helpers.helper.shell import shell_run
 
         return shell_run(
             cmd=cmd,
@@ -357,7 +357,7 @@ class ManagedWorkdir(
         the two sides will diverge (e.g. `bdo-letters_local_vite` from
         compose vs `bdo_letters_local_vite` from exec).
         """
-        from wexample_helpers.helpers.string import string_to_snake_case
+        from wexample_helpers.helper.string import string_to_snake_case
 
         name = string_to_snake_case(self.get_project_name())
         if env is None:
@@ -813,14 +813,14 @@ class ManagedWorkdir(
         return raw_value
 
     def runtime_cleanup(self) -> tuple[int, int]:
-        from wexample_helpers.helpers.docker import (
+        from wexample_helpers.helper.docker import (
             docker_container_is_running,
             docker_image_exists,
             docker_remove_container,
             docker_remove_image,
             docker_stop_container,
         )
-        from wexample_helpers.helpers.shell import shell_run
+        from wexample_helpers.helper.shell import shell_run
 
         image_names: set[str] = self._collect_docker_image_names()
 

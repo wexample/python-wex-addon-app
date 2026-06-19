@@ -66,7 +66,7 @@ def app__db__dump(
     service: str | None = None,
 ) -> AbstractResponse | str | None:
     from wexample_app.response.warning_response import WarningResponse
-    from wexample_helpers.helpers.string import string_to_kebab_case
+    from wexample_helpers.helper.string import string_to_kebab_case
 
     service_name = service or app_workdir.get_main_db_service()
     if not service_name:

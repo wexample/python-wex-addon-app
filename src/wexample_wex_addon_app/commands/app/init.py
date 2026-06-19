@@ -77,11 +77,11 @@ def app__app__init(
         CORE_COMMAND_NAME,
         WORKDIR_SETUP_DIR,
     )
-    from wexample_helpers.helpers.file import (
+    from wexample_helpers.helper.file import (
         file_mkdir_as_real_user,
         file_write_as_real_user,
     )
-    from wexample_helpers.helpers.string import (
+    from wexample_helpers.helper.string import (
         string_to_kebab_case,
         string_to_snake_case,
     )

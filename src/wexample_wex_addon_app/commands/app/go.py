@@ -66,7 +66,7 @@ def app__app__go(
     )
     from wexample_app.response.multiple_response import MultipleResponse
     from wexample_app.response.suggestions_response import SuggestionsResponse
-    from wexample_helpers.helpers.docker import docker_container_is_running
+    from wexample_helpers.helper.docker import docker_container_is_running
 
     container = container_name or app_workdir.get_main_container_name()
     long_name = app_workdir.docker_build_long_container_name(container)

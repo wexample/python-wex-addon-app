@@ -125,7 +125,7 @@ class ServiceCommandResolver(AbstractCommandResolver):
         return None
 
     def build_command_function_name(self, request: CommandRequest) -> str | None:
-        from wexample_helpers.helpers.string import string_to_snake_case
+        from wexample_helpers.helper.string import string_to_snake_case
         from wexample_wex_core.common.command_address import CommandAddress
 
         address = CommandAddress(
@@ -138,7 +138,7 @@ class ServiceCommandResolver(AbstractCommandResolver):
     def build_command_path(
         self, request: CommandRequest, extension: str
     ) -> Path | None:
-        from wexample_helpers.helpers.string import string_to_snake_case
+        from wexample_helpers.helper.string import string_to_snake_case
         from wexample_wex_core.common.command_address import CommandAddress
 
         service_name = string_to_snake_case(request.match.group(1))
@@ -160,7 +160,7 @@ class ServiceCommandResolver(AbstractCommandResolver):
         request: CommandRequest,
         function_kwargs: Kwargs,
     ) -> ExecutionContext:
-        from wexample_helpers.helpers.string import string_to_snake_case
+        from wexample_helpers.helper.string import string_to_snake_case
 
         from wexample_wex_addon_app.service.app_service import AppService
 
@@ -221,7 +221,7 @@ class ServiceCommandResolver(AbstractCommandResolver):
         Outside an app workdir there is no service context to check, so the
         attachment stays active (kernel-level behavior unchanged).
         """
-        from wexample_helpers.helpers.string import string_to_snake_case
+        from wexample_helpers.helper.string import string_to_snake_case
 
         from wexample_wex_addon_app.workdir.managed_workdir import ManagedWorkdir
 

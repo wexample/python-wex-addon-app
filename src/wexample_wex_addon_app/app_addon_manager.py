@@ -49,7 +49,7 @@ class AppAddonManager(AbstractAddonManager):
         self, path: PathOrString | None = None
     ) -> ManagedWorkdir | None:
         from wexample_helpers.helper.cli import cli_make_clickable_path
-        from wexample_helpers.helpers.module import module_load_class_from_file
+        from wexample_helpers.helper.module import module_load_class_from_file
 
         from wexample_wex_addon_app.workdir.managed_workdir import ManagedWorkdir
 
@@ -108,7 +108,7 @@ class AppAddonManager(AbstractAddonManager):
         )
 
     def docker_exec(self, service: str, args: list[str]) -> str:
-        from wexample_helpers.helpers.docker import docker_exec as _docker_exec
+        from wexample_helpers.helper.docker import docker_exec as _docker_exec
 
         container = self.get_service_docker_container_name(service)
         if not container:
@@ -150,7 +150,7 @@ class AppAddonManager(AbstractAddonManager):
     def get_app_service(
         self, service_name: str, app_workdir: ManagedWorkdir
     ) -> AppService:
-        from wexample_helpers.helpers.module import module_load_class_from_file
+        from wexample_helpers.helper.module import module_load_class_from_file
 
         from wexample_wex_addon_app.service.app_service import AppService
 
@@ -350,7 +350,7 @@ class AppAddonManager(AbstractAddonManager):
         Services that do not declare the hook are silently skipped.
         """
         from wexample_app.const.output import OUTPUT_TARGET_NONE
-        from wexample_helpers.helpers.string import string_to_snake_case
+        from wexample_helpers.helper.string import string_to_snake_case
         from wexample_wex_core.common.command_request import CommandRequest
 
         results: dict[str, Any] = {}

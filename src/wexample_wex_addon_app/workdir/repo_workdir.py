@@ -16,7 +16,7 @@ if TYPE_CHECKING:
 class RepoWorkdir(ManagedWorkdir):
     def bump(self, interactive: bool = False, force: bool = False, **kwargs) -> bool:
         """Create a version-x.y.z branch, update the version number in config. Don't commit changes."""
-        from wexample_helpers.helpers.version import version_increment
+        from wexample_helpers.helper.version import version_increment
         from wexample_prompt.responses.interactive.confirm_prompt_response import (
             ConfirmPromptResponse,
         )
@@ -35,7 +35,7 @@ class RepoWorkdir(ManagedWorkdir):
         self.info(f"Bumping version to {new_version}", prefix=True)
 
         def _bump() -> None:
-            from wexample_helpers.helpers.shell import shell_run
+            from wexample_helpers.helper.shell import shell_run
             from wexample_helpers_git.helpers.git import (
                 git_current_branch,
                 git_switch_branch,

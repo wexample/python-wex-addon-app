@@ -114,7 +114,7 @@ def _gen_hex() -> str:
 
 
 def _gen_token() -> str:
-    from wexample_helpers.helpers.string import string_random_token
+    from wexample_helpers.helper.string import string_random_token
 
     return string_random_token()
 

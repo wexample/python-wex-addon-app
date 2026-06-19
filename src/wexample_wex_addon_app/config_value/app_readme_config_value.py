@@ -31,7 +31,7 @@ class AppReadmeConfigValue(ReadmeContentConfigValue):
 
     def _append_template_path_from_module(self, module, search_paths: list) -> None:
         """Consider the template directory and the module files are placed at the same relative location into the module directory"""
-        from wexample_helpers.helpers.module import module_get_path
+        from wexample_helpers.helper.module import module_get_path
 
         try:
             template_path = (
@@ -47,7 +47,7 @@ class AppReadmeConfigValue(ReadmeContentConfigValue):
 
     def _collect_suite_paths(self) -> list[Path]:
         """Return suite paths from closest to farthest."""
-        from wexample_helpers.helpers.directory import directory_iterate_parent_dirs
+        from wexample_helpers.helper.directory import directory_iterate_parent_dirs
 
         from wexample_wex_addon_app.workdir.managed_workdir import ManagedWorkdir
 

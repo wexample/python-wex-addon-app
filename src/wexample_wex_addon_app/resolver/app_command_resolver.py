@@ -23,7 +23,7 @@ class AppCommandResolver(AbstractCommandResolver):
 
     @classmethod
     def address_to_command(cls, address: CommandAddress) -> str:
-        from wexample_helpers.helpers.string import string_to_kebab_case
+        from wexample_helpers.helper.string import string_to_kebab_case
         from wexample_wex_core.const.globals import (
             COMMAND_CHAR_APP,
             COMMAND_SEPARATOR_GROUP,
@@ -74,7 +74,7 @@ class AppCommandResolver(AbstractCommandResolver):
         return None
 
     def build_command_function_name(self, request: CommandRequest) -> str | None:
-        from wexample_helpers.helpers.string import string_to_snake_case
+        from wexample_helpers.helper.string import string_to_snake_case
         from wexample_wex_core.common.command_address import CommandAddress
 
         address = CommandAddress(
@@ -87,7 +87,7 @@ class AppCommandResolver(AbstractCommandResolver):
     def build_command_path(
         self, request: CommandRequest, extension: str
     ) -> Path | None:
-        from wexample_helpers.helpers.string import string_to_snake_case
+        from wexample_helpers.helper.string import string_to_snake_case
         from wexample_wex_core.common.command_address import CommandAddress
 
         base = self.get_base_path()
@@ -147,7 +147,7 @@ class AppCommandResolver(AbstractCommandResolver):
     def supports(self, request: CommandRequest) -> object:
         import sys
 
-        from wexample_helpers.helpers.string import string_to_snake_case
+        from wexample_helpers.helper.string import string_to_snake_case
 
         match = self.build_match(request.name)
         if not match:

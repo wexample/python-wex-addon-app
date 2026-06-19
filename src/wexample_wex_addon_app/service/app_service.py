@@ -35,7 +35,7 @@ class AppService:
         names like `gitlab_runner` must be normalized before being interpolated
         into a command string.
         """
-        from wexample_helpers.helpers.string import string_to_kebab_case
+        from wexample_helpers.helper.string import string_to_kebab_case
 
         return string_to_kebab_case(self.name)
 

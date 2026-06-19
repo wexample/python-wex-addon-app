@@ -54,7 +54,7 @@ def app__service__install(
     service: str,
     force: bool = False,
 ) -> None:
-    from wexample_helpers.helpers.string import string_to_snake_case
+    from wexample_helpers.helper.string import string_to_snake_case
 
     from wexample_wex_addon_app.app_addon_manager import AppAddonManager
 
@@ -115,7 +115,7 @@ def app__service__install(
             # (services: section) instead of overwritten, so installing a new service
             # never erases compose entries from previously installed services.
             from wexample_app.const.globals import WORKDIR_SETUP_DIR
-            from wexample_helpers.helpers.file import file_copytree_merge_yaml
+            from wexample_helpers.helper.file import file_copytree_merge_yaml
 
             for (
                 inherited_service_name
@@ -161,7 +161,7 @@ def app__service__install(
                 import secrets
 
                 from jinja2 import Environment as JinjaEnv
-                from wexample_helpers.helpers.string import string_random_token
+                from wexample_helpers.helper.string import string_random_token
 
                 jinja = JinjaEnv()
                 jinja.globals.update(

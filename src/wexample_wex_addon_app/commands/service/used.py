@@ -44,7 +44,7 @@ def app__service__used(
     service: str,
 ) -> BooleanResponse:
     from wexample_app.response.boolean_response import BooleanResponse
-    from wexample_helpers.helpers.string import string_to_snake_case
+    from wexample_helpers.helper.string import string_to_snake_case
 
     service_name = string_to_snake_case(service)
     installed_services = app_workdir.get_config().search("service")

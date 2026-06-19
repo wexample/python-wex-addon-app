@@ -63,7 +63,7 @@ def app__db__restore(
 
     from wexample_app.const.globals import WORKDIR_SETUP_DIR
     from wexample_app.response.success_response import SuccessResponse
-    from wexample_helpers.helpers.string import string_to_kebab_case
+    from wexample_helpers.helper.string import string_to_kebab_case
 
     service_name = service or app_workdir.get_main_db_service()
     if not service_name:
