@@ -621,7 +621,7 @@ class FrameworkPackageSuiteWorkdir(RepoWorkdir):
             )
 
     def _pre_install_python_packages_editable(self, force: bool = False) -> None:
-        from wexample_wex_addon_app.helpers.python import (
+        from wexample_wex_addon_app.helper.python import (
             python_install_dependency_in_venv,
             python_is_package_installed_editable_in_venv,
         )

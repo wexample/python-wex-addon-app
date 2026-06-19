@@ -4,7 +4,7 @@ from typing import Any
 
 
 def test_gen_hex_returns_64_hex_chars() -> None:
-    from wexample_wex_addon_app.helpers.vars_declaration import _gen_hex
+    from wexample_wex_addon_app.helper.vars_declaration import _gen_hex
 
     value = _gen_hex()
 
@@ -13,20 +13,20 @@ def test_gen_hex_returns_64_hex_chars() -> None:
 
 
 def test_generators_registry_has_known_kinds() -> None:
-    from wexample_wex_addon_app.helpers.vars_declaration import _GENERATORS
+    from wexample_wex_addon_app.helper.vars_declaration import _GENERATORS
 
     assert set(_GENERATORS) == {"token", "hex", "urlsafe"}
     assert all(callable(g) for g in _GENERATORS.values())
 
 
 def test_is_present_false_when_absent_everywhere() -> None:
-    from wexample_wex_addon_app.helpers.vars_declaration import _is_present
+    from wexample_wex_addon_app.helper.vars_declaration import _is_present
 
     assert _is_present(_Workdir(), "FOO", {}, {}) is False
 
 
 def test_is_present_handles_build_runtime_failure() -> None:
-    from wexample_wex_addon_app.helpers.vars_declaration import _is_present
+    from wexample_wex_addon_app.helper.vars_declaration import _is_present
 
     class _W:
         def build_runtime_config_value(self) -> None:
@@ -36,7 +36,7 @@ def test_is_present_handles_build_runtime_failure() -> None:
 
 
 def test_is_present_true_via_build_runtime_config() -> None:
-    from wexample_wex_addon_app.helpers.vars_declaration import _is_present
+    from wexample_wex_addon_app.helper.vars_declaration import _is_present
 
     class _W:
         def build_runtime_config_value(self) -> _Runtime:
@@ -46,7 +46,7 @@ def test_is_present_true_via_build_runtime_config() -> None:
 
 
 def test_is_present_true_via_suite_fallback() -> None:
-    from wexample_wex_addon_app.helpers.vars_declaration import _is_present
+    from wexample_wex_addon_app.helper.vars_declaration import _is_present
 
     class _W:
         def get_env_parameter_or_suite_fallback(self, key: str, default=None) -> str:
@@ -56,13 +56,13 @@ def test_is_present_true_via_suite_fallback() -> None:
 
 
 def test_is_present_true_when_in_existing_env() -> None:
-    from wexample_wex_addon_app.helpers.vars_declaration import _is_present
+    from wexample_wex_addon_app.helper.vars_declaration import _is_present
 
     assert _is_present(_Workdir(), "FOO", {}, {"FOO": "x"}) is True
 
 
 def test_process_vars_declarations_generates_missing_token() -> None:
-    from wexample_wex_addon_app.helpers.vars_declaration import (
+    from wexample_wex_addon_app.helper.vars_declaration import (
         process_vars_declarations,
     )
 
@@ -76,7 +76,7 @@ def test_process_vars_declarations_generates_missing_token() -> None:
 
 
 def test_process_vars_declarations_noop_when_empty() -> None:
-    from wexample_wex_addon_app.helpers.vars_declaration import (
+    from wexample_wex_addon_app.helper.vars_declaration import (
         process_vars_declarations,
     )
 
@@ -87,7 +87,7 @@ def test_process_vars_declarations_noop_when_empty() -> None:
 
 
 def test_process_vars_declarations_prompts_for_required() -> None:
-    from wexample_wex_addon_app.helpers.vars_declaration import (
+    from wexample_wex_addon_app.helper.vars_declaration import (
         process_vars_declarations,
     )
 
@@ -104,7 +104,7 @@ def test_process_vars_declarations_prompts_for_required() -> None:
 
 
 def test_process_vars_declarations_skips_default_when_already_set() -> None:
-    from wexample_wex_addon_app.helpers.vars_declaration import (
+    from wexample_wex_addon_app.helper.vars_declaration import (
         process_vars_declarations,
     )
 
@@ -118,7 +118,7 @@ def test_process_vars_declarations_skips_default_when_already_set() -> None:
 
 
 def test_process_vars_declarations_writes_silent_default() -> None:
-    from wexample_wex_addon_app.helpers.vars_declaration import (
+    from wexample_wex_addon_app.helper.vars_declaration import (
         process_vars_declarations,
     )
 

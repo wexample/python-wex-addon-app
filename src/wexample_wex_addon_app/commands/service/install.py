@@ -142,7 +142,7 @@ def app__service__install(
                 )
 
             # Write vars declared in service.yml into env (skip if already present)
-            from wexample_wex_addon_app.helpers.vars_declaration import (
+            from wexample_wex_addon_app.helper.vars_declaration import (
                 process_vars_declarations,
             )
 

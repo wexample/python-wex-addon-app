@@ -67,7 +67,7 @@ def app__image__build(
         QueuedCollectionResponse,
     )
 
-    from wexample_wex_addon_app.helpers.image_builds import (
+    from wexample_wex_addon_app.helper.image_builds import (
         load_builds,
         resolve_build_order,
     )

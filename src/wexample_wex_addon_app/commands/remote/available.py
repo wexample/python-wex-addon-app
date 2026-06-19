@@ -67,7 +67,7 @@ def app__remote__available(
 ) -> bool:
     from http.client import HTTPConnection
 
-    from wexample_wex_addon_app.helpers.remote import remote_resolve
+    from wexample_wex_addon_app.helper.remote import remote_resolve
 
     try:
         remote = remote_resolve(app_workdir=app_workdir, env=env, name=name)

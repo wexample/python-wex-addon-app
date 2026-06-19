@@ -41,7 +41,7 @@ class AppAddonManager(AbstractAddonManager):
 
     @staticmethod
     def get_sidecar_path(name: str, env: str) -> Path:
-        from wexample_wex_addon_app.helpers.app import get_sidecar_path
+        from wexample_wex_addon_app.helper.app import get_sidecar_path
 
         return get_sidecar_path(name=name, env=env)
 
@@ -198,7 +198,7 @@ class AppAddonManager(AbstractAddonManager):
         return [AppCommandResolver, ServiceCommandResolver]
 
     def get_local_configurable_keys(self) -> list[dict]:
-        from wexample_wex_addon_app.helpers.app import detect_ssh_socket
+        from wexample_wex_addon_app.helper.app import detect_ssh_socket
 
         return [
             {

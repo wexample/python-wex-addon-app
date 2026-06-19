@@ -39,7 +39,7 @@ def app__image__list(
 ):
     from wexample_app.response.table_response import TableResponse
 
-    from wexample_wex_addon_app.helpers.image_builds import load_builds
+    from wexample_wex_addon_app.helper.image_builds import load_builds
 
     app_path = app_workdir.get_path()
     builds = load_builds(app_path)

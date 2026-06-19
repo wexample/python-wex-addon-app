@@ -8,8 +8,8 @@ import pytest
 def test_check_app_vars_requirements_delegates_when_vars_present(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    from wexample_wex_addon_app.helpers import vars_declaration
-    from wexample_wex_addon_app.helpers.app_vars import check_app_vars_requirements
+    from wexample_wex_addon_app.helper import vars_declaration
+    from wexample_wex_addon_app.helper.app_vars import check_app_vars_requirements
 
     calls: list[dict] = []
     monkeypatch.setattr(
@@ -31,8 +31,8 @@ def test_check_app_vars_requirements_delegates_when_vars_present(
 def test_check_app_vars_requirements_noop_when_no_vars(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    from wexample_wex_addon_app.helpers import vars_declaration
-    from wexample_wex_addon_app.helpers.app_vars import check_app_vars_requirements
+    from wexample_wex_addon_app.helper import vars_declaration
+    from wexample_wex_addon_app.helper.app_vars import check_app_vars_requirements
 
     calls: list[dict] = []
     monkeypatch.setattr(

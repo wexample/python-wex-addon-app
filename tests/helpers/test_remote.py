@@ -6,7 +6,7 @@ import pytest
 
 
 def test_remote_resolve_raises_when_host_missing() -> None:
-    from wexample_wex_addon_app.helpers.remote import remote_resolve
+    from wexample_wex_addon_app.helper.remote import remote_resolve
 
     workdir = _Workdir([{"name": "a", "host": "   "}])
 
@@ -15,7 +15,7 @@ def test_remote_resolve_raises_when_host_missing() -> None:
 
 
 def test_remote_resolve_raises_when_named_remote_missing() -> None:
-    from wexample_wex_addon_app.helpers.remote import remote_resolve
+    from wexample_wex_addon_app.helper.remote import remote_resolve
 
     workdir = _Workdir([{"name": "a", "host": "h"}])
 
@@ -24,7 +24,7 @@ def test_remote_resolve_raises_when_named_remote_missing() -> None:
 
 
 def test_remote_resolve_raises_when_no_remotes() -> None:
-    from wexample_wex_addon_app.helpers.remote import remote_resolve
+    from wexample_wex_addon_app.helper.remote import remote_resolve
 
     with pytest.raises(ValueError, match="No remotes defined"):
         remote_resolve(_Workdir(None), env="prod")
@@ -33,7 +33,7 @@ def test_remote_resolve_raises_when_no_remotes() -> None:
 def test_remote_resolve_raises_when_user_unresolvable(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    from wexample_wex_addon_app.helpers.remote import remote_resolve
+    from wexample_wex_addon_app.helper.remote import remote_resolve
 
     monkeypatch.delenv("USER", raising=False)
     workdir = _Workdir([{"name": "a", "host": "h"}])
@@ -43,7 +43,7 @@ def test_remote_resolve_raises_when_user_unresolvable(
 
 
 def test_remote_resolve_returns_full_descriptor() -> None:
-    from wexample_wex_addon_app.helpers.remote import remote_resolve
+    from wexample_wex_addon_app.helper.remote import remote_resolve
 
     workdir = _Workdir(
         [{"name": "main", "host": "example.com", "user": "deploy"}], project="myapp"
@@ -62,7 +62,7 @@ def test_remote_resolve_returns_full_descriptor() -> None:
 
 
 def test_remote_resolve_selects_named_remote() -> None:
-    from wexample_wex_addon_app.helpers.remote import remote_resolve
+    from wexample_wex_addon_app.helper.remote import remote_resolve
 
     workdir = _Workdir(
         [
@@ -78,7 +78,7 @@ def test_remote_resolve_selects_named_remote() -> None:
 
 
 def test_remote_resolve_user_override_takes_precedence() -> None:
-    from wexample_wex_addon_app.helpers.remote import remote_resolve
+    from wexample_wex_addon_app.helper.remote import remote_resolve
 
     workdir = _Workdir([{"name": "a", "host": "h", "user": "configured"}])
 

@@ -64,7 +64,7 @@ def app__state__rectify(
     from wexample_app.response.success_response import SuccessResponse
     from wexample_app.response.warning_response import WarningResponse
 
-    from wexample_wex_addon_app.helpers.scope import build_scopes
+    from wexample_wex_addon_app.helper.scope import build_scopes
 
     scopes = build_scopes(filter_scope=filter_scope)
 

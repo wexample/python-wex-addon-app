@@ -85,7 +85,7 @@ def app__remote__exec(
 ) -> int:
     from wexample_cli.helper.extra_args import resolve_shell_command
 
-    from wexample_wex_addon_app.helpers.remote import remote_resolve
+    from wexample_wex_addon_app.helper.remote import remote_resolve
 
     remote_cmd = resolve_shell_command(
         context=context, command=command, extra_args=extra_args

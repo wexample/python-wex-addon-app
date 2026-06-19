@@ -19,7 +19,7 @@ def check_app_vars_requirements(app_workdir: Any, io: IoManager) -> None:
     Idempotent: skips vars already present in `.wex/local/env.yml` (or in the
     suite parent when `use_suite_fallback: true`).
     """
-    from wexample_wex_addon_app.helpers.vars_declaration import (
+    from wexample_wex_addon_app.helper.vars_declaration import (
         process_vars_declarations,
     )
 

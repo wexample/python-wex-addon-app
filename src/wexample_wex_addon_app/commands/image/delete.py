@@ -58,7 +58,7 @@ def app__image__delete(
     )
     from wexample_app.response.shell_command_response import ShellCommandResponse
 
-    from wexample_wex_addon_app.helpers.image_builds import (
+    from wexample_wex_addon_app.helper.image_builds import (
         load_builds,
         resolve_build_order,
     )

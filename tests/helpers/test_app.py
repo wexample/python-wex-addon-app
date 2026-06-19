@@ -12,8 +12,8 @@ def test_get_docker_local_ip_falls_back_when_hostname_lookup_fails(
 ) -> None:
     import shutil
 
-    from wexample_wex_addon_app.helpers import app as app_module
-    from wexample_wex_addon_app.helpers.app import get_docker_local_ip
+    from wexample_wex_addon_app.helper import app as app_module
+    from wexample_wex_addon_app.helper.app import get_docker_local_ip
 
     monkeypatch.setattr(platform, "system", lambda: "Linux")
     monkeypatch.setattr(shutil, "which", lambda _: None)
@@ -29,7 +29,7 @@ def test_get_docker_local_ip_falls_back_when_hostname_lookup_fails(
 def test_get_docker_local_ip_returns_loopback_on_darwin(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    from wexample_wex_addon_app.helpers.app import get_docker_local_ip
+    from wexample_wex_addon_app.helper.app import get_docker_local_ip
 
     monkeypatch.setattr(platform, "system", lambda: "Darwin")
 
@@ -37,6 +37,6 @@ def test_get_docker_local_ip_returns_loopback_on_darwin(
 
 
 def test_get_sidecar_path_builds_var_www_path() -> None:
-    from wexample_wex_addon_app.helpers.app import get_sidecar_path
+    from wexample_wex_addon_app.helper.app import get_sidecar_path
 
     assert get_sidecar_path("worker", "prod") == Path("/var/www/prod/wex-worker")

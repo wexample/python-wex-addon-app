@@ -7,7 +7,7 @@ from wexample_app.const.globals import APP_FILE_APP_CONFIG, WORKDIR_SETUP_DIR
 
 
 def test_collect_deps_gathers_transitive_chain() -> None:
-    from wexample_wex_addon_app.helpers.image_builds import _collect_deps
+    from wexample_wex_addon_app.helper.image_builds import _collect_deps
 
     builds = {
         "base": {},
@@ -19,14 +19,14 @@ def test_collect_deps_gathers_transitive_chain() -> None:
 
 
 def test_load_builds_raises_when_config_missing(tmp_path: Path) -> None:
-    from wexample_wex_addon_app.helpers.image_builds import load_builds
+    from wexample_wex_addon_app.helper.image_builds import load_builds
 
     with pytest.raises(FileNotFoundError, match="No config.yml"):
         load_builds(tmp_path)
 
 
 def test_load_builds_raises_when_no_images_section(tmp_path: Path) -> None:
-    from wexample_wex_addon_app.helpers.image_builds import load_builds
+    from wexample_wex_addon_app.helper.image_builds import load_builds
 
     _write_config(tmp_path, "docker:\n  other: {}\n")
 
@@ -35,7 +35,7 @@ def test_load_builds_raises_when_no_images_section(tmp_path: Path) -> None:
 
 
 def test_load_builds_returns_images(tmp_path: Path) -> None:
-    from wexample_wex_addon_app.helpers.image_builds import load_builds
+    from wexample_wex_addon_app.helper.image_builds import load_builds
 
     _write_config(tmp_path, "docker:\n  images:\n    base: {}\n")
 
@@ -43,7 +43,7 @@ def test_load_builds_returns_images(tmp_path: Path) -> None:
 
 
 def test_resolve_build_order_deps_first_for_all() -> None:
-    from wexample_wex_addon_app.helpers.image_builds import resolve_build_order
+    from wexample_wex_addon_app.helper.image_builds import resolve_build_order
 
     builds = {"app": {"depends_on": "base"}, "base": {}}
 
@@ -54,7 +54,7 @@ def test_resolve_build_order_deps_first_for_all() -> None:
 
 
 def test_resolve_build_order_single_target_includes_transitive_deps() -> None:
-    from wexample_wex_addon_app.helpers.image_builds import resolve_build_order
+    from wexample_wex_addon_app.helper.image_builds import resolve_build_order
 
     builds = {
         "base": {},
@@ -69,7 +69,7 @@ def test_resolve_build_order_single_target_includes_transitive_deps() -> None:
 
 
 def test_resolve_build_order_unknown_name_raises() -> None:
-    from wexample_wex_addon_app.helpers.image_builds import resolve_build_order
+    from wexample_wex_addon_app.helper.image_builds import resolve_build_order
 
     with pytest.raises(KeyError, match="Build 'ghost' not found"):
         resolve_build_order({"base": {}}, name="ghost")

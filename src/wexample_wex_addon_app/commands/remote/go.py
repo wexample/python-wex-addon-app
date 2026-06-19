@@ -62,7 +62,7 @@ def app__remote__go(
     name: str | None = None,
     user: str | None = None,
 ) -> int:
-    from wexample_wex_addon_app.helpers.remote import remote_resolve
+    from wexample_wex_addon_app.helper.remote import remote_resolve
 
     remote = remote_resolve(
         app_workdir=app_workdir, env=env, name=name, user_override=user

@@ -118,8 +118,8 @@ def app__app__start(
                 )
 
         # Check app-level vars declared in config.yml → vars:
-        from wexample_wex_addon_app.helpers.app_vars import check_app_vars_requirements
-        from wexample_wex_addon_app.helpers.vars_declaration import (
+        from wexample_wex_addon_app.helper.app_vars import check_app_vars_requirements
+        from wexample_wex_addon_app.helper.vars_declaration import (
             process_vars_declarations,
         )
 

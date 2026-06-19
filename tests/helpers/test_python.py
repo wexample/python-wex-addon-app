@@ -9,7 +9,7 @@ import pytest
 def test_install_dependencies_calls_per_name(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
-    from wexample_wex_addon_app.helpers import python as python_module
+    from wexample_wex_addon_app.helper import python as python_module
 
     calls: list[tuple] = []
     monkeypatch.setattr(
@@ -28,7 +28,7 @@ def test_install_dependencies_calls_per_name(
 def test_is_package_installed_editable_false_when_not_editable(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
-    from wexample_wex_addon_app.helpers.python import (
+    from wexample_wex_addon_app.helper.python import (
         python_is_package_installed_editable_in_venv,
     )
 
@@ -44,7 +44,7 @@ def test_is_package_installed_editable_false_when_not_editable(
 def test_is_package_installed_editable_false_when_paths_differ(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
-    from wexample_wex_addon_app.helpers.python import (
+    from wexample_wex_addon_app.helper.python import (
         python_is_package_installed_editable_in_venv,
     )
 
@@ -60,7 +60,7 @@ def test_is_package_installed_editable_false_when_paths_differ(
 def test_is_package_installed_editable_false_when_pip_show_fails(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
-    from wexample_wex_addon_app.helpers.python import (
+    from wexample_wex_addon_app.helper.python import (
         python_is_package_installed_editable_in_venv,
     )
 
@@ -74,7 +74,7 @@ def test_is_package_installed_editable_false_when_pip_show_fails(
 def test_is_package_installed_editable_false_when_subprocess_raises(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
-    from wexample_wex_addon_app.helpers.python import (
+    from wexample_wex_addon_app.helper.python import (
         python_is_package_installed_editable_in_venv,
     )
 
@@ -91,7 +91,7 @@ def test_is_package_installed_editable_false_when_subprocess_raises(
 def test_is_package_installed_editable_true_when_paths_match(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
-    from wexample_wex_addon_app.helpers.python import (
+    from wexample_wex_addon_app.helper.python import (
         python_is_package_installed_editable_in_venv,
     )
 
