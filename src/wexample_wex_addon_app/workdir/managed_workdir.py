@@ -189,7 +189,7 @@ class ManagedWorkdir(
         del section  # accepted for caller intent; not used yet (see docstring)
         from wexample_filestate.const.disk import DiskItemType
         from wexample_filestate.option.text_option import TextOption
-        from wexample_helpers.helpers.array import array_dict_get_by
+        from wexample_helpers.helper.array import array_dict_get_by
 
         config = array_dict_get_by("name", ".gitignore", children)
         if config is None:
