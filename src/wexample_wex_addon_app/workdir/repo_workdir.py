@@ -287,14 +287,21 @@ class RepoWorkdir(ManagedWorkdir):
             # Restore ownership to the real user — @as_sudo on publish can leave
             # files root-owned (rectify writes, build artifacts, dep caches…).
             # In finally so a failed/canceled publish still hands ownership back.
-            from wexample_wex_core.addons.system.commands.own.this import (
-                system__own__this,
-            )
+            # Only invoked when foreign-owned entries actually exist: own/this
+            # elevates via sudo, which would prompt (and fail) in
+            # non-interactive runs.
+            from wexample_helpers.helper.file import file_tree_owned_by
+            from wexample_helpers.helper.user import user_get_real_uid
 
-            self.manager_run_command(
-                command=system__own__this,
-                arguments=["--path", str(self.get_path())],
-            )
+            if not file_tree_owned_by(self.get_path(), user_get_real_uid()):
+                from wexample_wex_core.addons.system.commands.own.this import (
+                    system__own__this,
+                )
+
+                self.manager_run_command(
+                    command=system__own__this,
+                    arguments=["--path", str(self.get_path())],
+                )
 
     def should_be_published(self, force: bool = False) -> bool:
         current_tag = self.get_publication_tag_name()
